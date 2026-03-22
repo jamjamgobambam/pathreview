@@ -38,7 +38,7 @@ class ApiClient {
     formData.append('username', email)
     formData.append('password', password)
 
-    const response = await fetch(`${API_BASE}/token`, {
+    const response = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       body: formData,
       headers: {
@@ -55,7 +55,7 @@ class ApiClient {
   }
 
   async register(email: string, password: string): Promise<string> {
-    const response = await fetch(`${API_BASE}/register`, {
+    const response = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })

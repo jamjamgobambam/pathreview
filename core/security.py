@@ -1,10 +1,10 @@
 """Security utilities for authentication and password handling."""
 
-from datetime import datetime, timedelta, timezone
-from typing import Any
+from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 
-from passlib.context import CryptContext
 from jose import JWTError, jwt
+from passlib.context import CryptContext
 
 from core.config import settings
 
@@ -21,7 +21,7 @@ def hash_password(password: str) -> str:
     Returns:
         Bcrypt hashed password
     """
-    return pwd_context.hash(password)
+    return str(pwd_context.hash(password))
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -34,7 +34,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         True if password matches, False otherwise
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    return bool(pwd_context.verify(plain_password, hashed_password))
 
 
 def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
@@ -42,7 +42,8 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
 
     Args:
         data: Dictionary of claims to encode in the token
-        expires_delta: Optional custom expiration time delta. Defaults to access_token_expire_minutes from settings
+        expires_delta: Optional custom expiration time delta. Defaults to
+            access_token_expire_minutes from settings.
 
     Returns:
         Encoded JWT token
@@ -50,9 +51,9 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
     to_encode = data.copy()
 
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
+        expire = datetime.now(UTC) + timedelta(minutes=settings.access_token_expire_minutes)
 
     to_encode.update({"exp": expire})
 
@@ -62,7 +63,7 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
         algorithm=settings.jwt_algorithm,
     )
 
-    return encoded_jwt
+    return str(encoded_jwt)
 
 
 def decode_access_token(token: str) -> dict[str, Any] | None:
@@ -80,6 +81,6 @@ def decode_access_token(token: str) -> dict[str, Any] | None:
             settings.secret_key,
             algorithms=[settings.jwt_algorithm],
         )
-        return payload
+        return cast("dict[str, Any]", payload)
     except JWTError:
         return None

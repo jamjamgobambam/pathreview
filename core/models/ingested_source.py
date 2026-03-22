@@ -1,13 +1,17 @@
 """Ingested source model for tracking imported content."""
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from sqlalchemy import String, Text, DateTime, ForeignKey, Integer, Index
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.database import Base
+
+if TYPE_CHECKING:
+    from core.models.profile import Profile
 
 
 class IngestedSource(Base):
@@ -15,14 +19,27 @@ class IngestedSource(Base):
 
     __tablename__ = "ingested_sources"
 
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4()))
-    profile_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("profiles.id", ondelete="CASCADE"), nullable=False, index=True)
-    source_type: Mapped[str] = mapped_column(String(50), nullable=False)  # "resume", "readme", "repo", "web"
+    id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4())
+    )
+    profile_id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("profiles.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    source_type: Mapped[str] = mapped_column(
+        String(50), nullable=False
+    )  # "resume", "readme", "repo", "web"
     source_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    content_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)  # SHA256 hash for deduplication
+    content_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, index=True
+    )  # SHA256 hash for deduplication
     chunk_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    ingested_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=datetime.utcnow
+    )
 
     # Relationships
     profile: Mapped["Profile"] = relationship("Profile", back_populates="ingested_sources")

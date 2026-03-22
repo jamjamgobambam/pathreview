@@ -19,7 +19,17 @@
 Ensure Rosetta 2 is installed: `softwareupdate --install-rosetta`. Docker Desktop should be set to use the Apple Silicon build. The `make setup` command handles `ARCHFLAGS` automatically.
 
 **Windows:**
-Use WSL 2 with Ubuntu 22.04. All commands should be run inside the WSL terminal. Docker Desktop must use the WSL 2 backend (Settings → General → "Use the WSL 2 based engine").
+Use **Git Bash** (included with [Git for Windows](https://git-scm.com/download/win)) to run all commands in this guide. PowerShell and Command Prompt will not work for most commands.
+
+`make` is not installed by default on Windows. Install it via winget, then add it to your Git Bash PATH:
+
+```bash
+winget install GnuWin32.Make
+echo 'export PATH="$PATH:/c/Program Files (x86)/GnuWin32/bin"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Docker Desktop must use the WSL 2 backend (Settings → General → "Use the WSL 2 based engine"). If you prefer a fully Linux-native environment, WSL 2 with Ubuntu 22.04 also works — run all commands inside the WSL terminal in that case.
 
 **Linux:**
 Install Docker Engine and the Docker Compose plugin (not the standalone `docker-compose` binary).
@@ -30,15 +40,17 @@ Install Docker Engine and the Docker Compose plugin (not the standalone `docker-
 # 1. Clone your fork
 git clone https://github.com/<your-username>/pathreview.git
 cd pathreview
-git remote add upstream https://github.com/codepath-ai201/pathreview.git
+git remote add upstream https://github.com/jamjamgobambam/pathreview.git
 
 # 2. Configure environment
 cp .env.example .env
-# Edit .env if needed — defaults work for local development
+# Edit .env and set your OPENROUTER_API_KEY (required for AI features)
+# All other defaults work for local development
 
-# 3. Start backing services
+# 3. Start backing services (PostgreSQL + Redis)
+#    ⚠️  Docker must be running before the next step — make setup runs database migrations
 docker compose up -d
-# Wait for all services to show "healthy":
+# Wait ~15 seconds, then verify all services are healthy:
 docker compose ps
 
 # 4. Run first-time setup
@@ -72,3 +84,20 @@ Open http://localhost:5173 in your browser. The API is at http://localhost:8000 
 
 **Python version too old:**
 - Use `pyenv` to install Python 3.11+: `pyenv install 3.11 && pyenv local 3.11`
+
+**Windows: `make` not found after installing GnuWin32:**
+- The GnuWin32 bin directory may not be on your PATH. Add it manually in Git Bash:
+  ```bash
+  echo 'export PATH="$PATH:/c/Program Files (x86)/GnuWin32/bin"' >> ~/.bashrc
+  source ~/.bashrc
+  make --version   # should print GNU Make x.x
+  ```
+
+**Windows: `make setup` fails with "No such file or directory: .venv/bin/pip":**
+- This should not occur with the current Makefile, which auto-detects Windows and uses `.venv/Scripts/`. If you see this, ensure you have the latest `Makefile` from the repo.
+
+**`alembic upgrade head` fails with "password authentication failed":**
+- Docker is not running, or the database container hasn't finished initializing. Run `docker compose up -d`, wait 15 seconds, and try again.
+
+**`alembic upgrade head` fails with "No module named asyncpg":**
+- Run: `.venv/Scripts/pip install asyncpg` (Windows) or `.venv/bin/pip install asyncpg` (Mac/Linux).

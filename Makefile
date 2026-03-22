@@ -1,17 +1,26 @@
 .PHONY: setup run test-unit test-integration test-all lint format typecheck check migrate seed reset-db eval clean
 
 SHELL := /bin/bash
-PYTHON := .venv/bin/python
-PIP := .venv/bin/pip
-PYTEST := .venv/bin/pytest
+
+# Detect Windows (Git Bash) vs Unix
+ifeq ($(OS),Windows_NT)
+  VENV_BIN := .venv/Scripts
+else
+  VENV_BIN := .venv/bin
+endif
+
+PYTHON := $(VENV_BIN)/python
+PIP := $(VENV_BIN)/pip
+PYTEST := $(VENV_BIN)/pytest
 
 # ---- Setup ----
 
 setup: ## First-time setup: venv, deps, migrations, seed data
 	python -m venv .venv
+	$(PYTHON) -m pip install --upgrade pip setuptools wheel
 	$(PIP) install -e ".[dev]"
-	.venv/bin/pre-commit install
-	$(PYTHON) -m alembic upgrade head
+	$(VENV_BIN)/pre-commit install
+	$(VENV_BIN)/alembic upgrade head
 	$(PYTHON) scripts/seed_db.py
 	cd frontend && npm install
 	@echo ""
@@ -21,7 +30,7 @@ setup: ## First-time setup: venv, deps, migrations, seed data
 
 run: ## Start backend + frontend dev servers
 	@trap 'kill %1 %2 2>/dev/null' EXIT; \
-	source .venv/bin/activate && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
+	source $(VENV_BIN)/activate && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
 	cd frontend && npm run dev &; \
 	wait
 
@@ -39,20 +48,20 @@ test-all: ## Run full test suite
 # ---- Code Quality ----
 
 lint: ## Run ruff linter
-	.venv/bin/ruff check .
+	$(VENV_BIN)/ruff check .
 
 format: ## Run black formatter
-	.venv/bin/black .
+	$(VENV_BIN)/black .
 
 typecheck: ## Run mypy type checker
-	.venv/bin/mypy pathreview/ api/ core/ ingestion/ rag/ agent/ safety/
+	$(VENV_BIN)/mypy pathreview/ api/ core/ ingestion/ rag/ agent/ safety/
 
 check: lint format typecheck ## Run lint + format + typecheck
 
 # ---- Database ----
 
 migrate: ## Run pending database migrations
-	$(PYTHON) -m alembic upgrade head
+	$(VENV_BIN)/alembic upgrade head
 
 seed: ## Re-seed the database with sample data
 	$(PYTHON) scripts/seed_db.py
@@ -60,7 +69,7 @@ seed: ## Re-seed the database with sample data
 reset-db: ## Drop and recreate the development database
 	docker compose exec db psql -U pathreview -c "DROP DATABASE IF EXISTS pathreview_dev;"
 	docker compose exec db psql -U pathreview -c "CREATE DATABASE pathreview_dev;"
-	$(PYTHON) -m alembic upgrade head
+	$(VENV_BIN)/alembic upgrade head
 	$(PYTHON) scripts/seed_db.py
 
 # ---- Evaluation ----

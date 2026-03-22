@@ -1,11 +1,15 @@
+from typing import Annotated, cast
+
+import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-import structlog
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.schemas.user import UserCreate, UserResponse, Token
+from api.schemas.user import Token, UserCreate, UserResponse
 from core.database import get_db
 from core.models.user import User
-from core.security import verify_password, hash_password, create_access_token
+from core.security import create_access_token, hash_password, verify_password
 
 log = structlog.get_logger()
 
@@ -13,14 +17,18 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/register", response_model=UserResponse)
-async def register(user_data: UserCreate, db=Depends(get_db)):
+async def register(
+    user_data: UserCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> UserResponse:
     """
     Register a new user.
     Returns 400 if email already exists.
     """
     try:
         # Check if user already exists
-        existing_user = await db.query(User).filter(User.email == user_data.email).first()
+        result = await db.execute(select(User).where(User.email == user_data.email))
+        existing_user = result.scalar_one_or_none()
         if existing_user:
             log.warning("registration_failed_email_exists", email=user_data.email)
             raise HTTPException(
@@ -41,7 +49,7 @@ async def register(user_data: UserCreate, db=Depends(get_db)):
 
         log.info("user_registered", user_id=str(new_user.id), email=user_data.email)
 
-        return UserResponse.model_validate(new_user)
+        return cast(UserResponse, UserResponse.model_validate(new_user))
 
     except HTTPException:
         raise
@@ -51,21 +59,22 @@ async def register(user_data: UserCreate, db=Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Registration failed",
-        )
+        ) from exc
 
 
 @router.post("/login", response_model=Token)
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db=Depends(get_db),
-):
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Token:
     """
     Login with email and password.
     Returns 401 if credentials are invalid.
     """
     try:
         # Query user by email (form_data.username is used for email in OAuth2)
-        user = await db.query(User).filter(User.email == form_data.username).first()
+        result = await db.execute(select(User).where(User.email == form_data.username))
+        user = result.scalar_one_or_none()
 
         if not user or not verify_password(form_data.password, user.hashed_password):
             log.warning("login_failed_invalid_credentials", email=form_data.username)
@@ -83,7 +92,7 @@ async def login(
             )
 
         # Create access token
-        access_token = create_access_token(user_id=str(user.id))
+        access_token = create_access_token(data={"sub": str(user.id)})
 
         log.info("user_login", user_id=str(user.id), email=user.email)
 
@@ -96,4 +105,4 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Login failed",
-        )
+        ) from exc

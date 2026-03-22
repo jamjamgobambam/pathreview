@@ -18,7 +18,7 @@ export const DashboardPage: React.FC = () => {
     const fetchReviews = async () => {
       try {
         const response = await apiClient.listReviews(1, 5)
-        setReviews(response.reviews)
+        setReviews(response.items)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load reviews')
       } finally {

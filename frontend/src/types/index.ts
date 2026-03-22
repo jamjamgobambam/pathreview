@@ -36,7 +36,7 @@ export interface Review {
 }
 
 export interface ReviewListResponse {
-  reviews: Review[]
+  items: Review[]
   total: number
   page: number
   page_size: number

@@ -14,15 +14,20 @@ PathReview analyzes GitHub profiles, resumes, and project repositories to genera
 
 ## Quick Start
 
+> **Windows users:** Use [Git Bash](https://git-scm.com/download/win) to run these commands, not PowerShell. See [docs/SETUP.md](docs/SETUP.md) for Windows-specific setup including installing `make`.
+
 ```bash
 # Clone and enter the repo
-git clone https://github.com/codepath-ai201/pathreview.git
+git clone https://github.com/jamjamgobambam/pathreview.git
 cd pathreview
 
-# Start backing services (PostgreSQL, Redis, ChromaDB)
+# Configure environment (add your OPENROUTER_API_KEY to .env)
+cp .env.example .env
+
+# Start backing services — must be running before make setup
 docker compose up -d
 
-# Run first-time setup
+# Run first-time setup (installs deps, runs migrations, seeds DB, installs frontend)
 make setup
 
 # Start the application
