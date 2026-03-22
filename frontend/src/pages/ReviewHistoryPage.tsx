@@ -20,7 +20,7 @@ export const ReviewHistoryPage: React.FC = () => {
     const fetchReviews = async () => {
       try {
         const response = await apiClient.listReviews(currentPage, pageSize)
-        setReviews(response.reviews)
+        setReviews(response.items ?? [])
         setTotal(response.total)
         setError('')
       } catch (err) {
