@@ -104,8 +104,10 @@ async def seed_database() -> None:
 
             await session.commit()
 
-            # Create sample reviews for user1's profile
+            # Create sample reviews for all users
             logger.info("Creating sample reviews...")
+
+            # --- user1: two complete reviews showing improvement + one failed ---
             stmt = select(User).where(User.email == "user1@example.com")
             result = await session.execute(stmt)
             user1 = result.scalar_one_or_none()
@@ -116,7 +118,7 @@ async def seed_database() -> None:
                 profile1 = result.scalar_one_or_none()
 
                 if profile1:
-                    sample_reviews = [
+                    reviews_user1 = [
                         Review(
                             id=str(uuid4()),
                             profile_id=profile1.id,
@@ -208,12 +210,166 @@ async def seed_database() -> None:
                             error_message="GitHub API rate limit exceeded. Please try again later.",
                         ),
                     ]
-
-                    for review in sample_reviews:
+                    for review in reviews_user1:
                         session.add(review)
+                    logger.info("Created reviews for user1")
 
-                    await session.commit()
-                    logger.info("Sample reviews created successfully")
+            # --- user2: one complete review, earlier in career, lower score ---
+            stmt = select(User).where(User.email == "user2@example.com")
+            result = await session.execute(stmt)
+            user2 = result.scalar_one_or_none()
+
+            if user2:
+                stmt = select(Profile).where(Profile.user_id == user2.id)
+                result = await session.execute(stmt)
+                profile2 = result.scalar_one_or_none()
+
+                if profile2:
+                    reviews_user2 = [
+                        Review(
+                            id=str(uuid4()),
+                            profile_id=profile2.id,
+                            status="complete",
+                            overall_score=0.58,
+                            created_at=datetime.utcnow() - timedelta(days=7),
+                            updated_at=datetime.utcnow() - timedelta(days=7),
+                            sections=[
+                                {
+                                    "section_name": "Technical Skills",
+                                    "content": "Your profile shows 4 public repositories, all created within the last 6 months. The code quality is inconsistent — some files have no comments, variable names like 'x' and 'temp2' appear frequently, and two repos have no commits after the initial push. Recruiters will interpret abandoned repos as a red flag.",
+                                    "confidence": 0.76,
+                                    "suggestions": [
+                                        "Archive or delete repos you don't plan to maintain",
+                                        "Refactor your most recent project to use meaningful variable and function names",
+                                        "Add at least one project that uses an external API or database",
+                                    ],
+                                },
+                                {
+                                    "section_name": "Project Experience",
+                                    "content": "None of your current projects demonstrate end-to-end thinking — they're all isolated scripts or single-page experiments. There's no evidence of user-facing work, data persistence, or deployment. This makes it difficult to evaluate your readiness for a junior role.",
+                                    "confidence": 0.81,
+                                    "suggestions": [
+                                        "Build and deploy one full-stack project, even something simple like a personal blog",
+                                        "Add a live URL or screenshot to at least one project README",
+                                        "Include a brief write-up of what problem each project solves and why you built it",
+                                    ],
+                                },
+                                {
+                                    "section_name": "Career Positioning",
+                                    "content": "Your GitHub bio is empty and your portfolio URL returns a 404. There's no LinkedIn link and no resume attached to any application materials we could find. You're essentially invisible to recruiters who search for candidates online.",
+                                    "confidence": 0.69,
+                                    "suggestions": [
+                                        "Fill in your GitHub bio with your name, target role, and one standout skill",
+                                        "Fix or replace your portfolio URL — even a simple GitHub Pages site is better than a 404",
+                                        "Create a LinkedIn profile and connect it to your GitHub",
+                                    ],
+                                },
+                            ],
+                        ),
+                    ]
+                    for review in reviews_user2:
+                        session.add(review)
+                    logger.info("Created reviews for user2")
+
+            # --- user3: two complete reviews, strong candidate, high scores ---
+            stmt = select(User).where(User.email == "user3@example.com")
+            result = await session.execute(stmt)
+            user3 = result.scalar_one_or_none()
+
+            if user3:
+                stmt = select(Profile).where(Profile.user_id == user3.id)
+                result = await session.execute(stmt)
+                profile3 = result.scalar_one_or_none()
+
+                if profile3:
+                    reviews_user3 = [
+                        Review(
+                            id=str(uuid4()),
+                            profile_id=profile3.id,
+                            status="complete",
+                            overall_score=0.87,
+                            created_at=datetime.utcnow() - timedelta(days=21),
+                            updated_at=datetime.utcnow() - timedelta(days=21),
+                            sections=[
+                                {
+                                    "section_name": "Technical Skills",
+                                    "content": "Strong technical foundation across your 23 public repositories. Your most recent projects show consistent use of type hints, docstrings, and test suites. Your open source contributions to two mid-size Python libraries demonstrate you can navigate unfamiliar codebases and communicate through PRs.",
+                                    "confidence": 0.91,
+                                    "suggestions": [
+                                        "Add CI/CD badges to your top repos to surface your automation practices",
+                                        "Your Go projects lack test coverage — add at least unit tests for core logic",
+                                        "Consider publishing a small Python package to PyPI to demonstrate end-to-end ownership",
+                                    ],
+                                },
+                                {
+                                    "section_name": "Project Experience",
+                                    "content": "Your distributed task queue project is technically impressive and well-documented. The load testing results you included in the README are a strong differentiator — most candidates at your level don't benchmark their work. Two other projects have clear problem statements and measurable outcomes.",
+                                    "confidence": 0.89,
+                                    "suggestions": [
+                                        "Write a technical blog post about the architecture decisions in your task queue project",
+                                        "Your ML project README buries the results — move the accuracy metrics to the top",
+                                        "Add a comparison table showing your approach vs. existing solutions",
+                                    ],
+                                },
+                                {
+                                    "section_name": "Career Positioning",
+                                    "content": "You're well-positioned for mid-level backend or platform engineering roles. Your online presence is cohesive: GitHub, LinkedIn, and portfolio all tell the same story. The main gap is visibility — your blog hasn't been updated in 8 months and you have no recent conference talks or community contributions.",
+                                    "confidence": 0.84,
+                                    "suggestions": [
+                                        "Publish one technical article per month — even short ones build SEO and credibility",
+                                        "Submit a talk proposal to a local Python or backend engineering meetup",
+                                        "Ask two former collaborators for LinkedIn recommendations focused on technical depth",
+                                    ],
+                                },
+                            ],
+                        ),
+                        Review(
+                            id=str(uuid4()),
+                            profile_id=profile3.id,
+                            status="complete",
+                            overall_score=0.91,
+                            created_at=datetime.utcnow() - timedelta(days=2),
+                            updated_at=datetime.utcnow() - timedelta(days=2),
+                            sections=[
+                                {
+                                    "section_name": "Technical Skills",
+                                    "content": "Excellent progress. Your new Rust project shows you're actively expanding beyond your Python comfort zone, and the README quality has improved across all repos. Your CI/CD pipelines now run on all active projects, including matrix testing across Python 3.10–3.12.",
+                                    "confidence": 0.93,
+                                    "suggestions": [
+                                        "Add property-based tests with Hypothesis to your core libraries",
+                                        "Document your local dev setup in a CONTRIBUTING.md — you're ready to receive outside contributors",
+                                        "Pin your dependency versions more tightly in production-facing projects",
+                                    ],
+                                },
+                                {
+                                    "section_name": "Project Experience",
+                                    "content": "Your PyPI package now has 340 downloads/month — that's a meaningful signal to include on your resume. The blog post you published about the task queue project has 2,100 views and is ranking for several relevant search terms. Your project portfolio now clearly demonstrates scope, ownership, and impact.",
+                                    "confidence": 0.92,
+                                    "suggestions": [
+                                        "Add a 'Featured Work' section to your portfolio site with 3 curated projects",
+                                        "Cross-post your technical articles to dev.to or Hashnode for wider reach",
+                                        "Update your resume to quantify the PyPI package impact",
+                                    ],
+                                },
+                                {
+                                    "section_name": "Career Positioning",
+                                    "content": "You're a strong candidate for senior backend or staff-track roles at growth-stage companies. Your public work speaks for itself. The remaining opportunity is to make your job search intent clearer — it's not obvious from your profile that you're open to opportunities.",
+                                    "confidence": 0.88,
+                                    "suggestions": [
+                                        "Set your LinkedIn to 'Open to Work' (visible to recruiters only if preferred)",
+                                        "Add a brief 'currently interested in' note to your GitHub bio",
+                                        "Reach out directly to 3–5 companies whose engineering blogs you follow",
+                                    ],
+                                },
+                            ],
+                        ),
+                    ]
+                    for review in reviews_user3:
+                        session.add(review)
+                    logger.info("Created reviews for user3")
+
+            await session.commit()
+            logger.info("Sample reviews created successfully")
 
             logger.info("Database seeding completed successfully")
 
