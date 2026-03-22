@@ -1,0 +1,1971 @@
+[
+  {
+    "id": "A-01",
+    "title": "Resume parser raises `IndexError` on resumes with no work experience section",
+    "body": "The `resume_parser.py` assumes at least one work experience entry exists and accesses `sections['experience'][0]` without a bounds check. Resumes from new graduates with no work history cause a crash.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "ingestion",
+      "bug"
+    ],
+    "files": [
+      "ingestion/parsers/resume_parser.py",
+      "tests/unit/test_resume_parser.py"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "A-02",
+    "title": "Skill extractor ignores Python type annotations when identifying Python usage",
+    "body": "`skill_extractor.py` identifies Python proficiency by scanning for `import` statements and `def` keywords but misses files that use type hints (`x: int`, `-> str`) as the primary Python signal.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "ingestion",
+      "devops"
+    ],
+    "files": [
+      "ingestion/parsers/skill_extractor.py"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "A-03",
+    "title": "README parser truncates files longer than 10,000 characters",
+    "body": "`readme_parser.py` has a hardcoded character limit that silently truncates long READMEs before chunking, causing the embedding to miss the bottom half of the document. No warning is raised.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "ingestion",
+      "docs"
+    ],
+    "files": [
+      "ingestion/parsers/readme_parser.py",
+      "ingestion/pipeline.py"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "A-04",
+    "title": "Batch embedding processor fails silently when a document produces zero chunks",
+    "body": "When a document has no extractable text (e.g., an image-only PDF resume), the chunker returns an empty list. The batch processor passes the empty list to the embedding provider without checking, which raises an exception that is caught and swallowed \u2014 the document is silently skipped with no record in the database.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "ingestion",
+      "docs"
+    ],
+    "files": [
+      "ingestion/embeddings/batch_processor.py"
+    ],
+    "effort": "3\u20134 hours"
+  },
+  {
+    "id": "A-05",
+    "title": "Semantic chunker splits mid-sentence when text contains bullet points",
+    "body": "The semantic chunker uses period-based sentence detection, which fails on resume bullet points that don't end with periods. This causes semantically related bullets to be split across chunks, degrading retrieval quality.",
+    "labels": [
+      "tier-2",
+      "ingestion",
+      "bug"
+    ],
+    "files": [
+      "ingestion/chunking/semantic_chunker.py",
+      "tests/unit/test_semantic_chunker.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "A-06",
+    "title": "Duplicate embeddings generated when re-ingesting the same repository",
+    "body": "The `pipeline.py` doesn't check whether a repo has already been ingested before processing it. Re-uploading the same GitHub repo generates duplicate vector entries, causing retrieval to return identical chunks with inflated scores.",
+    "labels": [
+      "tier-2",
+      "ingestion",
+      "devops",
+      "bug"
+    ],
+    "files": [
+      "ingestion/pipeline.py",
+      "core/models/ingested_source.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "A-07",
+    "title": "Repo analyzer returns incorrect primary language for polyglot repositories",
+    "body": "`repo_analyzer.py` identifies the primary language by counting files with each extension. For repos that include generated code (e.g., a Python project with bundled JavaScript vendor files), the vendor language dominates the count.",
+    "labels": [
+      "tier-2",
+      "ingestion"
+    ],
+    "files": [
+      "ingestion/parsers/repo_analyzer.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "A-08",
+    "title": "Structural chunker doesn't preserve markdown heading hierarchy in embedded chunks",
+    "body": "The structural chunker splits on headings (`#`, `##`, `###`) but discards the heading context from child chunks. A chunk from the \"Installation\" subsection of a README loses its heading context, making it impossible for the retriever to distinguish between Installation chunks from different documents.",
+    "labels": [
+      "tier-3",
+      "ingestion",
+      "docs"
+    ],
+    "files": [
+      "ingestion/chunking/structural_chunker.py",
+      "ingestion/chunking/semantic_chunker.py"
+    ],
+    "effort": "5\u20138 hours"
+  },
+  {
+    "id": "A-09",
+    "title": "Add `last_commit_date` field to repo analysis output",
+    "body": "`github_tool.py` fetches repository metadata via the GitHub API but doesn't include when the repo was last committed to. Portfolio freshness is a key signal reviewers look for.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "ingestion",
+      "bug"
+    ],
+    "files": [
+      "ingestion/parsers/repo_analyzer.py",
+      "api/schemas/profile.py"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "A-10",
+    "title": "Add support for `.md` resume files in addition to PDF",
+    "body": "The ingestion pipeline currently only accepts PDF resumes. Add support for Markdown-formatted resumes, which are common among developers who maintain their resume in a GitHub repo.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "ingestion",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "ingestion/parsers/resume_parser.py",
+      "api/routes/profiles.py",
+      "api/schemas/profile.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "A-11",
+    "title": "Add support for ingesting a portfolio website URL",
+    "body": "Allow users to submit a URL to their personal portfolio site. The pipeline should fetch the page content, extract relevant text (bio, project descriptions), and include it in the vector store alongside GitHub and resume data.",
+    "labels": [
+      "tier-2",
+      "ingestion",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "ingestion/parsers/ (new web_parser.py)",
+      "ingestion/pipeline.py",
+      "api/schemas/profile.py"
+    ],
+    "effort": "5\u20138 hours"
+  },
+  {
+    "id": "A-12",
+    "title": "Support multi-page resume PDFs",
+    "body": "`resume_parser.py` only reads the first page of a PDF. Engineers with several years of experience commonly have 2-page resumes.",
+    "labels": [
+      "tier-2",
+      "ingestion",
+      "enhancement"
+    ],
+    "files": [
+      "ingestion/parsers/resume_parser.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "A-13",
+    "title": "Add a content hash to detect unchanged documents and skip re-embedding",
+    "body": "When a user re-submits the same README without changes, the pipeline should detect that the content hash hasn't changed and skip the embedding step, reducing unnecessary API calls.",
+    "labels": [
+      "tier-2",
+      "ingestion",
+      "docs",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "ingestion/pipeline.py",
+      "core/models/ingested_source.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "A-14",
+    "title": "Add support for parsing GitHub Actions workflow files to detect CI/CD skills",
+    "body": "Developers who maintain CI/CD workflows demonstrate DevOps skills that don't appear in `import` statements or README text. Add a parser that reads `.github/workflows/*.yml` files and extracts inferred skills (e.g., `GitHub Actions`, `Docker`, `pytest`, `deployment`).",
+    "labels": [
+      "tier-3",
+      "ingestion",
+      "tests",
+      "docs",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "ingestion/parsers/ (new workflow_parser.py)",
+      "ingestion/parsers/skill_extractor.py"
+    ],
+    "effort": "6\u201310 hours"
+  },
+  {
+    "id": "A-15",
+    "title": "`structural_chunker.py` has no unit tests",
+    "body": "The structural chunker is used on every README ingestion but has no tests. Add unit tests covering: empty input, single-heading documents, nested headings, and documents with no headings.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "tests",
+      "ingestion",
+      "docs",
+      "enhancement"
+    ],
+    "files": [
+      "tests/unit/test_structural_chunker.py"
+    ],
+    "effort": "3\u20134 hours"
+  },
+  {
+    "id": "A-16",
+    "title": "`batch_processor.py` integration test uses a live embedding API instead of a mock",
+    "body": "The integration test in `tests/integration/test_batch_processor.py` makes real API calls during CI, causing flakiness and unnecessary cost. Replace the live call with the project's mock LLM provider.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "tests",
+      "ingestion",
+      "devops"
+    ],
+    "files": [
+      "tests/integration/test_batch_processor.py"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "A-17",
+    "title": "Contributing guide doesn't explain how to add a new parser",
+    "body": "`CONTRIBUTING.md` explains Git workflows but doesn't describe how to implement a new parser following the `BaseParser` interface. Add a \"Adding a New Parser\" section with a step-by-step walkthrough.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "docs",
+      "ingestion"
+    ],
+    "files": [
+      "docs/CONTRIBUTING.md"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "A-18",
+    "title": "Add end-to-end ingestion test with a sample resume fixture",
+    "body": "There are unit tests for individual parsers but no test that runs a complete ingestion from file upload through embedding storage. Add an integration test using the fixtures in `tests/fixtures/sample_resumes/`.",
+    "labels": [
+      "tier-2",
+      "tests",
+      "ingestion",
+      "enhancement"
+    ],
+    "files": [
+      "tests/integration/test_ingestion_pipeline.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "A-19",
+    "title": "Add structured logging to the ingestion pipeline",
+    "body": "The ingestion pipeline currently prints status messages with `print()`. Replace with structured logging using the project's logging configuration so ingestion events appear in the monitoring dashboard.",
+    "labels": [
+      "tier-2",
+      "ingestion",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "ingestion/pipeline.py",
+      "ingestion/embeddings/batch_processor.py"
+    ],
+    "effort": "3\u20134 hours"
+  },
+  {
+    "id": "A-20",
+    "title": "Implement chunking strategy selection based on document type",
+    "body": "Currently all documents use the same chunker. READMEs benefit from structural chunking (split on headings) while resumes benefit from semantic chunking (split on meaning). Add a `ChunkingStrategySelector` that dispatches based on document type.",
+    "labels": [
+      "tier-3",
+      "ingestion",
+      "docs",
+      "enhancement"
+    ],
+    "files": [
+      "ingestion/chunking/ (new strategy_selector.py)",
+      "ingestion/pipeline.py"
+    ],
+    "effort": "6\u20139 hours"
+  },
+  {
+    "id": "B-01",
+    "title": "Review generator returns raw JSON string instead of parsed feedback object",
+    "body": "`output_parser.py` expects the LLM to return JSON wrapped in a code fence (```json ... ```). When the LLM omits the fences, the parser fails to extract the JSON and returns the raw string to the API, which passes it unparsed to the frontend.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "rag",
+      "bug"
+    ],
+    "files": [
+      "rag/generator/output_parser.py"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "B-02",
+    "title": "Prompt template for skill gap analysis uses `{project_count}` placeholder that is never filled",
+    "body": "The skill gap prompt template references `{project_count}` but the template filling logic doesn't supply this variable, causing the LLM to receive a literal `{project_count}` string in the prompt.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "rag",
+      "bug"
+    ],
+    "files": [
+      "rag/generator/prompt_templates.py",
+      "rag/generator/review_generator.py"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "B-03",
+    "title": "Keyword search returns results sorted by insertion order instead of relevance score",
+    "body": "The BM25-based keyword search in `keyword_search.py` computes relevance scores but then returns results sorted by their database ID rather than by score, causing less relevant chunks to appear at the top of keyword results.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "rag"
+    ],
+    "files": [
+      "rag/retriever/keyword_search.py"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "B-04",
+    "title": "Hybrid retriever over-weights keyword results when query contains technology names",
+    "body": "The hybrid scoring function blends vector similarity and BM25 scores with a fixed 50/50 weight. Technology names (e.g., \"React\", \"Python\") appear heavily in both resume and README chunks, causing keyword matches to dominate and return irrelevant chunks from the wrong document.",
+    "labels": [
+      "tier-2",
+      "rag",
+      "docs"
+    ],
+    "files": [
+      "rag/retriever/hybrid.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "B-05",
+    "title": "Review generator doesn't include source citations when feedback references specific projects",
+    "body": "Generated feedback sometimes says \"your React project\" without specifying which repository it's referring to. The source document metadata is available in the retrieved chunks but isn't passed into the generation prompt.",
+    "labels": [
+      "tier-2",
+      "rag",
+      "docs",
+      "devops"
+    ],
+    "files": [
+      "rag/generator/review_generator.py",
+      "rag/generator/prompt_templates.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "B-06",
+    "title": "RAG eval suite `faithfulness_checker.py` always returns a perfect score of 1.0",
+    "body": "A recent refactor broke the faithfulness checker: it now returns `1.0` for every response instead of actually checking whether the generated feedback is supported by the retrieved context.",
+    "labels": [
+      "tier-2",
+      "rag",
+      "enhancement"
+    ],
+    "files": [
+      "rag/evaluator/faithfulness_checker.py"
+    ],
+    "effort": "4\u20137 hours"
+  },
+  {
+    "id": "B-07",
+    "title": "Vector store returns stale embeddings after a document is re-ingested",
+    "body": "When a README is updated and re-ingested, the old embeddings remain in the vector store alongside the new ones. The retriever can return outdated chunks that don't reflect the current document content.",
+    "labels": [
+      "tier-3",
+      "rag",
+      "docs"
+    ],
+    "files": [
+      "rag/retriever/vector_store.py",
+      "ingestion/pipeline.py"
+    ],
+    "effort": "6\u20139 hours"
+  },
+  {
+    "id": "B-08",
+    "title": "Generator produces duplicate feedback sections when a user has multiple projects in the same tech stack",
+    "body": "When a user has three Python projects, the review generator produces nearly identical \"Python skills\" feedback for each project, making the review feel repetitive. The generator should deduplicate and consolidate cross-project observations.",
+    "labels": [
+      "tier-3",
+      "rag"
+    ],
+    "files": [
+      "rag/generator/review_generator.py",
+      "rag/generator/output_parser.py"
+    ],
+    "effort": "7\u201310 hours"
+  },
+  {
+    "id": "B-09",
+    "title": "Add a `max_chunks` parameter to the retriever to limit context window usage",
+    "body": "The retriever currently returns all chunks above a relevance threshold, which can exceed the LLM's context window for users with large portfolios. Add a configurable `max_chunks` parameter (default: 10) to cap retrieval.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "rag",
+      "enhancement"
+    ],
+    "files": [
+      "rag/retriever/hybrid.py",
+      "rag/retriever/vector_store.py",
+      "core/config.py"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "B-10",
+    "title": "Add a prompt template for the \"first impression\" feedback section",
+    "body": "The review currently generates four sections: Skills, Projects, Presentation, and Gaps. Add a fifth \"First Impression\" section that summarizes the overall portfolio in 2\u20133 sentences as a hiring manager might. Requires a new prompt template and generator integration.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "rag",
+      "enhancement"
+    ],
+    "files": [
+      "rag/generator/prompt_templates.py",
+      "rag/generator/review_generator.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "B-11",
+    "title": "Add a relevance score threshold filter to prevent low-quality chunks from reaching the generator",
+    "body": "Currently all retrieved chunks are passed to the generator regardless of their relevance score. Add a configurable minimum relevance threshold that filters out chunks below the cutoff before generation.",
+    "labels": [
+      "tier-2",
+      "rag",
+      "enhancement"
+    ],
+    "files": [
+      "rag/retriever/hybrid.py",
+      "core/config.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "B-12",
+    "title": "Implement a caching layer for repeated identical portfolio queries",
+    "body": "When a user submits the same portfolio for review twice without making changes, the system re-runs the full RAG pipeline. Add a cache keyed on the profile's content hash that returns the stored review if the portfolio hasn't changed.",
+    "labels": [
+      "tier-2",
+      "rag",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "rag/generator/review_generator.py",
+      "core/services/review_service.py"
+    ],
+    "effort": "4\u20137 hours"
+  },
+  {
+    "id": "B-13",
+    "title": "Add a \"confidence score\" field to each feedback section",
+    "body": "The review output should include a `confidence` field (0.0\u20131.0) for each feedback section indicating how much supporting evidence was found in the retrieved chunks. Low confidence sections should be flagged visually in the frontend.",
+    "labels": [
+      "tier-2",
+      "rag",
+      "enhancement"
+    ],
+    "files": [
+      "rag/generator/review_generator.py",
+      "rag/generator/output_parser.py",
+      "api/schemas/review.py"
+    ],
+    "effort": "5\u20137 hours"
+  },
+  {
+    "id": "B-14",
+    "title": "Implement a re-ranking step that uses an LLM to score retrieved chunks before generation",
+    "body": "The current retriever uses vector + keyword scores for ranking. Add an optional re-ranking pass that prompts a smaller LLM to score each retrieved chunk's relevance to the query before passing the top-k to the generator.",
+    "labels": [
+      "tier-3",
+      "rag",
+      "enhancement"
+    ],
+    "files": [
+      "rag/retriever/ (new reranker.py)",
+      "rag/retriever/hybrid.py"
+    ],
+    "effort": "7\u201310 hours"
+  },
+  {
+    "id": "B-15",
+    "title": "`relevance_scorer.py` has no unit tests",
+    "body": "The relevance scorer is a critical component of the eval suite but has no automated tests. Write tests covering: perfect match, zero match, and partial match scenarios using the test fixtures in `tests/fixtures/`.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "tests",
+      "rag"
+    ],
+    "files": [
+      "tests/unit/test_relevance_scorer.py"
+    ],
+    "effort": "3\u20134 hours"
+  },
+  {
+    "id": "B-16",
+    "title": "Architecture doc doesn't explain the hybrid retrieval scoring formula",
+    "body": "`docs/ARCHITECTURE.md` describes that hybrid retrieval blends vector and keyword scores but doesn't explain the formula or the default weights. Add a section explaining the scoring logic with an example.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "docs",
+      "rag"
+    ],
+    "files": [
+      "docs/ARCHITECTURE.md"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "B-17",
+    "title": "Add snapshot tests for prompt templates to catch accidental changes",
+    "body": "Prompt templates directly affect review quality. Add snapshot tests that fail if a template's content changes without a version bump, so developers must consciously version templates rather than silently editing them.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "tests",
+      "rag",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "tests/unit/test_prompt_templates.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "B-18",
+    "title": "Add an integration test that runs the full RAG pipeline against a mock LLM",
+    "body": "There are unit tests for individual RAG components but no integration test that runs a full query through retrieval \u2192 reranking \u2192 generation \u2192 parsing. Add one using the mock LLM provider.",
+    "labels": [
+      "tier-2",
+      "tests",
+      "rag",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "tests/integration/test_rag_pipeline.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "B-19",
+    "title": "Add an Architecture Decision Record for the chunking strategy selection",
+    "body": "The decision to use different chunking strategies for resumes vs. READMEs was made without documentation. Write an ADR explaining the options considered, the tradeoffs, and the decision.",
+    "labels": [
+      "tier-2",
+      "rag",
+      "docs",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "docs/adr/001-chunking-strategy.md"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "B-20",
+    "title": "Implement an offline eval runner that measures review quality across a benchmark portfolio set",
+    "body": "The current eval suite runs inline during API requests. Add a standalone eval runner (`scripts/run_evals.py`) that tests the full RAG pipeline against a curated set of benchmark portfolios and outputs a JSON report of quality scores.",
+    "labels": [
+      "tier-3",
+      "rag",
+      "tests",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "scripts/run_evals.py",
+      "rag/evaluator/eval_suite.py"
+    ],
+    "effort": "7\u201310 hours"
+  },
+  {
+    "id": "C-01",
+    "title": "`github_tool.py` raises `KeyError` when a repository has no description",
+    "body": "The tool accesses `repo_data['description'].strip()` directly. Repositories with a `null` description in the GitHub API response cause an unhandled `KeyError`.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "agent",
+      "bug"
+    ],
+    "files": [
+      "agent/tools/github_tool.py"
+    ],
+    "effort": "1\u20132 hours"
+  },
+  {
+    "id": "C-02",
+    "title": "`tech_detector.py` misclassifies Jupyter notebooks as JSON files",
+    "body": "The tech detector identifies file types by extension. `.ipynb` files are JSON under the hood and are being counted as JSON rather than as Python/Jupyter work.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "agent"
+    ],
+    "files": [
+      "agent/tools/tech_detector.py"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "C-03",
+    "title": "Agent session state is not cleared between reviews for the same user",
+    "body": "`session_store.py` caches agent state by user ID. When a user requests a second review after updating their portfolio, the orchestrator uses stale tool results from the previous session instead of re-running the tools.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "agent"
+    ],
+    "files": [
+      "agent/memory/session_store.py"
+    ],
+    "effort": "3\u20134 hours"
+  },
+  {
+    "id": "C-04",
+    "title": "Orchestrator catches all exceptions from tool calls and continues without logging the failure",
+    "body": "The plan-execute loop wraps each tool call in a broad `except Exception` that silently continues. When a tool fails, the orchestrator produces a review with missing sections and no indication to the user that something went wrong.",
+    "labels": [
+      "tier-2",
+      "agent",
+      "bug"
+    ],
+    "files": [
+      "agent/orchestrator.py",
+      "agent/error_handling.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "C-05",
+    "title": "`market_analyzer.py` tool returns stale job market data because the cache never expires",
+    "body": "The market analyzer caches job demand data in Redis with no TTL. Data from the first request is served indefinitely, meaning users see job market comparisons that may be months out of date.",
+    "labels": [
+      "tier-2",
+      "agent"
+    ],
+    "files": [
+      "agent/tools/market_analyzer.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "C-06",
+    "title": "Agent planning loop runs tools in a fixed order regardless of the portfolio content",
+    "body": "The orchestrator always executes tools in the same sequence: GitHub \u2192 skill extractor \u2192 README scorer \u2192 market analyzer \u2192 tech detector. For profiles with no GitHub data, the plan should skip GitHub-dependent tools and proceed to available ones.",
+    "labels": [
+      "tier-2",
+      "agent",
+      "docs"
+    ],
+    "files": [
+      "agent/orchestrator.py"
+    ],
+    "effort": "5\u20138 hours"
+  },
+  {
+    "id": "C-07",
+    "title": "Agent state isn't persisted across API restarts, causing in-progress reviews to be lost",
+    "body": "Long-running reviews (5+ repositories) that span a server restart lose their progress. The in-flight session state is held only in memory and not written to Redis until completion.",
+    "labels": [
+      "tier-3",
+      "agent"
+    ],
+    "files": [
+      "agent/memory/context_manager.py",
+      "agent/orchestrator.py"
+    ],
+    "effort": "7\u201310 hours"
+  },
+  {
+    "id": "C-08",
+    "title": "Tool retries use fixed 1-second backoff instead of exponential backoff",
+    "body": "When a tool call fails (e.g., GitHub API rate limit), the retry logic waits 1 second between every attempt. Under sustained rate limiting, this generates rapid-fire retries that worsen the rate limit situation.",
+    "labels": [
+      "tier-3",
+      "agent",
+      "bug"
+    ],
+    "files": [
+      "agent/error_handling.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "C-09",
+    "title": "Add a `star_count` field to the GitHub repo analysis tool",
+    "body": "`github_tool.py` doesn't include the number of GitHub stars a repository has. Stars are a basic signal of project visibility and are simple to add from the existing API response.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "agent",
+      "bug"
+    ],
+    "files": [
+      "agent/tools/github_tool.py",
+      "api/schemas/review.py"
+    ],
+    "effort": "1\u20133 hours"
+  },
+  {
+    "id": "C-10",
+    "title": "Add a `has_tests` boolean to the repo analysis output",
+    "body": "Test coverage is a strong portfolio signal. Add detection logic that checks whether a repository has a `tests/` or `test/` directory, a `pytest.ini`, or test files matching `test_*.py`, and surfaces this as a boolean field in the analysis output.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "agent",
+      "tests",
+      "enhancement"
+    ],
+    "files": [
+      "agent/tools/github_tool.py",
+      "agent/tools/repo_analyzer.py"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "C-11",
+    "title": "Add a `readme_word_count` metric to the README scorer tool",
+    "body": "The README scorer currently assigns a binary \"has README / no README\" score. Add a word count metric with thresholds (< 100 words = minimal, 100\u2013500 = adequate, > 500 = comprehensive) to differentiate placeholder READMEs from well-documented ones.",
+    "labels": [
+      "tier-2",
+      "agent",
+      "docs",
+      "enhancement"
+    ],
+    "files": [
+      "agent/tools/readme_scorer.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "C-12",
+    "title": "Add a `contribution_streak` field to the GitHub analysis (longest consecutive days of commits)",
+    "body": "Consistent contribution activity is a portfolio signal. Add a tool that computes the user's longest consecutive commit streak from their GitHub contribution history.",
+    "labels": [
+      "tier-2",
+      "agent",
+      "enhancement"
+    ],
+    "files": [
+      "agent/tools/github_tool.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "C-13",
+    "title": "Implement a `DependencyAuditTool` that flags outdated major dependencies in project repos",
+    "body": "Add a new tool that parses `requirements.txt`, `package.json`, or `pyproject.toml` files in submitted repos and flags dependencies that are more than one major version behind the current release.",
+    "labels": [
+      "tier-2",
+      "agent",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "agent/tools/ (new dependency_audit_tool.py)",
+      "agent/orchestrator.py"
+    ],
+    "effort": "5\u20138 hours"
+  },
+  {
+    "id": "C-14",
+    "title": "Add a plan validation step that checks tool prerequisites before executing the plan",
+    "body": "The orchestrator executes tools without checking their dependencies. For example, the skill extractor depends on ingestion being complete, and the market analyzer depends on the tech detector having run first. Add a DAG-based plan validator.",
+    "labels": [
+      "tier-3",
+      "agent",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "agent/orchestrator.py",
+      "agent/tools/ (new tool_dependencies.py)"
+    ],
+    "effort": "8\u201312 hours"
+  },
+  {
+    "id": "C-15",
+    "title": "`readme_scorer.py` has no unit tests",
+    "body": "This tool ships without any tests. Add unit tests covering: README with all quality signals present, README with none, README with only some, and empty string input.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "tests",
+      "agent",
+      "docs",
+      "enhancement"
+    ],
+    "files": [
+      "tests/unit/test_readme_scorer.py"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "C-16",
+    "title": "`tech_detector.py` unit tests don't cover mixed-language repositories",
+    "body": "Current tests only test repos with a single language. Add test cases for repositories with multiple languages to ensure the primary language detection is correct.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "tests",
+      "agent",
+      "enhancement"
+    ],
+    "files": [
+      "tests/unit/test_tech_detector.py"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "C-17",
+    "title": "Add a mock GitHub API server for integration tests",
+    "body": "Agent integration tests currently skip GitHub tool tests because they require live API access. Set up a lightweight mock server (using `pytest-httpserver` or similar) that returns fixture responses, enabling GitHub tool tests in CI.",
+    "labels": [
+      "tier-2",
+      "tests",
+      "agent",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "tests/integration/test_github_tool.py",
+      "tests/fixtures/github_responses/"
+    ],
+    "effort": "5\u20137 hours"
+  },
+  {
+    "id": "C-18",
+    "title": "Add an Architecture Decision Record for the agent orchestration approach",
+    "body": "Document the decision to use a plan-execute loop vs. a reactive agent. The ADR should explain the tradeoffs in the context of PathReview's use case.",
+    "labels": [
+      "tier-2",
+      "docs",
+      "agent",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "docs/adr/003-agent-orchestration.md"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "C-19",
+    "title": "Add an end-to-end agent test using a fully stubbed tool suite",
+    "body": "There is no test that exercises the full agent lifecycle (plan \u2192 execute \u2192 synthesize) without live dependencies. Add an integration test using stub implementations of all tools and the mock LLM.",
+    "labels": [
+      "tier-3",
+      "agent",
+      "tests",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "tests/integration/test_agent_orchestrator.py"
+    ],
+    "effort": "6\u20139 hours"
+  },
+  {
+    "id": "C-20",
+    "title": "Implement tool result memoization within a single agent session",
+    "body": "Within a single review session, if the orchestrator calls the same tool with the same input twice (which can happen during plan replanning), the second call should return the cached result from the first call.",
+    "labels": [
+      "tier-3",
+      "agent",
+      "enhancement"
+    ],
+    "files": [
+      "agent/memory/context_manager.py",
+      "agent/orchestrator.py"
+    ],
+    "effort": "5\u20137 hours"
+  },
+  {
+    "id": "D-01",
+    "title": "PII scrubber doesn't redact email addresses in generated feedback",
+    "body": "`pii_scrubber.py` uses regex patterns to detect and redact PII. The email pattern `[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}` was removed during a refactor, so email addresses extracted from resumes can appear verbatim in generated feedback.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "safety",
+      "bug"
+    ],
+    "files": [
+      "safety/pii_scrubber.py"
+    ],
+    "effort": "1\u20133 hours"
+  },
+  {
+    "id": "D-02",
+    "title": "Rate limiter uses per-minute window but resets at wall-clock minute boundaries instead of rolling window",
+    "body": "The rate limiter allows 60 requests per minute but resets at :00 of each minute. A user can make 60 requests at :59 and 60 more at :00 \u2014 120 requests in 2 seconds \u2014 without triggering the limit.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "safety"
+    ],
+    "files": [
+      "safety/rate_limiter.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "D-03",
+    "title": "Bias detector flags all feedback containing \"bootcamp\" as biased, producing false positives",
+    "body": "The bias detector was trained to flag dismissive language about non-traditional education backgrounds. However, the current implementation flags any feedback that mentions \"bootcamp\" regardless of sentiment, causing legitimate positive mentions to be incorrectly flagged and removed.",
+    "labels": [
+      "tier-2",
+      "safety",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "safety/bias_detector.py"
+    ],
+    "effort": "5\u20137 hours"
+  },
+  {
+    "id": "D-04",
+    "title": "Prompt injection defense doesn't sanitize newline characters in user-supplied resume text",
+    "body": "Adversarial users can inject newline sequences into their resume text that terminate the system prompt and append new instructions. The sanitizer strips `<`, `>`, and `{` but misses `\\n---\\n` and `\\nSystem:` patterns.",
+    "labels": [
+      "tier-2",
+      "safety",
+      "bug"
+    ],
+    "files": [
+      "safety/prompt_defense.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "D-05",
+    "title": "Content filter blocks feedback containing the word \"struggle\" even in supportive contexts",
+    "body": "The content filter uses a blocklist of words associated with negative feedback. \"Struggle\" was added to the list to prevent discouraging feedback, but this causes legitimate supportive phrases like \"this is a common area developers struggle with\" to be filtered.",
+    "labels": [
+      "tier-2",
+      "safety",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "safety/content_filter.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "D-06",
+    "title": "Safety monitoring doesn't emit metrics when the content filter is bypassed by a multi-turn conversation",
+    "body": "The monitoring system logs safety events for single-turn requests but doesn't track cases where a user circumvents the content filter across multiple API calls. Add cross-request pattern detection for known bypass sequences.",
+    "labels": [
+      "tier-3",
+      "safety",
+      "devops",
+      "bug"
+    ],
+    "files": [
+      "safety/monitoring.py"
+    ],
+    "effort": "8\u201312 hours"
+  },
+  {
+    "id": "D-07",
+    "title": "Add phone number detection to the PII scrubber",
+    "body": "The current PII scrubber handles email addresses and SSN patterns but not phone numbers. Phone numbers extracted from resumes can appear in generated feedback. Add detection for common US and international phone formats.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "safety",
+      "enhancement"
+    ],
+    "files": [
+      "safety/pii_scrubber.py",
+      "tests/unit/test_pii_scrubber.py"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "D-08",
+    "title": "Add a safety event count to the health check endpoint",
+    "body": "The `/health` API endpoint returns service status but doesn't surface safety metrics. Add a `safety_events_last_hour` field to the health check response so operators can monitor safety system activity without querying the monitoring dashboard.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "safety",
+      "bug"
+    ],
+    "files": [
+      "api/routes/health.py",
+      "safety/monitoring.py"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "D-09",
+    "title": "Add a \"feedback tone check\" that ensures all generated feedback is written constructively",
+    "body": "After generation, add a tone classification step that uses a prompt to classify whether each feedback section is constructive (actionable, specific, encouraging) or negative (discouraging, vague, dismissive). Reject and regenerate sections that fail.",
+    "labels": [
+      "tier-2",
+      "safety",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "safety/content_filter.py",
+      "rag/generator/review_generator.py"
+    ],
+    "effort": "5\u20138 hours"
+  },
+  {
+    "id": "D-10",
+    "title": "Add rate limiting per IP address in addition to per user",
+    "body": "The current rate limiter limits requests per authenticated user ID. Unauthenticated requests (e.g., to public endpoints) are not rate limited at all. Add per-IP rate limiting as a secondary layer.",
+    "labels": [
+      "tier-2",
+      "safety",
+      "enhancement"
+    ],
+    "files": [
+      "safety/rate_limiter.py",
+      "api/middleware/"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "D-11",
+    "title": "Implement a red-teaming test suite for the prompt injection defense",
+    "body": "Add an automated test suite that attempts a curated set of known prompt injection attacks against the safety layer and verifies that all are blocked. This suite should run in CI on every PR that touches `safety/`.",
+    "labels": [
+      "tier-3",
+      "safety",
+      "tests",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "tests/security/test_prompt_injection.py",
+      "tests/fixtures/injection_attempts/"
+    ],
+    "effort": "7\u201310 hours"
+  },
+  {
+    "id": "D-12",
+    "title": "Add a bias audit report that runs over a sample of stored reviews",
+    "body": "Implement an offline bias audit script (`scripts/audit_bias.py`) that samples 100 stored reviews, runs them through the bias detector with detailed logging, and produces a report showing false positive/negative rates by demographic signal.",
+    "labels": [
+      "tier-3",
+      "safety",
+      "enhancement"
+    ],
+    "files": [
+      "scripts/audit_bias.py",
+      "safety/bias_detector.py"
+    ],
+    "effort": "7\u201311 hours"
+  },
+  {
+    "id": "D-13",
+    "title": "`pii_scrubber.py` test coverage doesn't include address formats",
+    "body": "The PII scrubber tests cover email and SSN but not street addresses. Add test cases for common US address formats to ensure address data extracted from resumes is scrubbed.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "tests",
+      "safety"
+    ],
+    "files": [
+      "tests/unit/test_pii_scrubber.py"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "D-14",
+    "title": "Safety layer overview is missing from `docs/ARCHITECTURE.md`",
+    "body": "The architecture doc describes the ingestion, RAG, and agent subsystems but doesn't have a section on the safety layer and how it integrates with the generation pipeline.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "docs",
+      "safety",
+      "devops"
+    ],
+    "files": [
+      "docs/ARCHITECTURE.md"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "D-15",
+    "title": "Add integration tests for the full safety middleware chain",
+    "body": "Unit tests exist for individual safety components but there's no test that runs a request through the full safety stack (prompt defense \u2192 content filter \u2192 bias detector \u2192 PII scrubber). Add an integration test with fixtures covering pass and fail cases for each layer.",
+    "labels": [
+      "tier-2",
+      "tests",
+      "safety",
+      "enhancement"
+    ],
+    "files": [
+      "tests/integration/test_safety_middleware.py"
+    ],
+    "effort": "4\u20137 hours"
+  },
+  {
+    "id": "E-01",
+    "title": "`POST /profiles` returns HTTP 500 instead of HTTP 422 when the resume file is not a PDF",
+    "body": "The endpoint validates that an uploaded file is a PDF but raises an unhandled exception when the validation fails, causing the API to return a 500 Internal Server Error instead of a meaningful 422 Unprocessable Entity with an error message.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "api",
+      "bug"
+    ],
+    "files": [
+      "api/routes/profiles.py"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "E-02",
+    "title": "`GET /reviews/{review_id}` returns HTTP 200 with a null body when the review doesn't exist",
+    "body": "The endpoint queries for a review by ID and returns whatever the database query returns, including `None`. A missing review should return HTTP 404 with a descriptive error message.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "api",
+      "bug"
+    ],
+    "files": [
+      "api/routes/reviews.py"
+    ],
+    "effort": "1\u20132 hours"
+  },
+  {
+    "id": "E-03",
+    "title": "API response for profile creation doesn't include the `profile_id` field",
+    "body": "After successfully creating a profile, the response schema is missing the `profile_id` field that clients need to make subsequent requests. The field is in the database model but wasn't included in the response schema.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "api",
+      "bug"
+    ],
+    "files": [
+      "api/schemas/profile.py"
+    ],
+    "effort": "1\u20132 hours"
+  },
+  {
+    "id": "E-04",
+    "title": "Authentication middleware doesn't validate token expiry",
+    "body": "The JWT authentication middleware verifies the token signature but doesn't check the `exp` (expiry) claim. Expired tokens are accepted as valid.",
+    "labels": [
+      "tier-2",
+      "api",
+      "bug"
+    ],
+    "files": [
+      "api/middleware/auth.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "E-05",
+    "title": "`DELETE /profiles/{profile_id}` doesn't cascade to delete associated reviews and embeddings",
+    "body": "Deleting a profile removes the profile record from the database but leaves orphaned review records and vector store embeddings associated with that profile ID.",
+    "labels": [
+      "tier-2",
+      "api",
+      "devops",
+      "bug"
+    ],
+    "files": [
+      "api/routes/profiles.py",
+      "core/services/profile_service.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "E-06",
+    "title": "Request body validation errors don't return field-level error details",
+    "body": "When a request body fails Pydantic validation, the API returns a generic \"Validation Error\" message without specifying which fields failed and why. Clients can't determine what to fix.",
+    "labels": [
+      "tier-2",
+      "api",
+      "devops",
+      "bug"
+    ],
+    "files": [
+      "api/middleware/",
+      "api/routes/"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "E-07",
+    "title": "Concurrent review requests for the same profile can produce inconsistent results",
+    "body": "If a user submits two review requests simultaneously, both requests start the agent loop against the same profile state. The second agent loop may read stale data modified by the first. Add a per-profile lock to serialize concurrent reviews.",
+    "labels": [
+      "tier-3",
+      "api",
+      "enhancement"
+    ],
+    "files": [
+      "api/routes/reviews.py",
+      "core/services/review_service.py"
+    ],
+    "effort": "6\u20139 hours"
+  },
+  {
+    "id": "E-08",
+    "title": "Add a `GET /health` endpoint with dependency status checks",
+    "body": "The application has no health check endpoint. Add one that returns the status of each dependency (PostgreSQL, Redis, vector store) so infrastructure monitoring tools can verify the service is healthy.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "api",
+      "enhancement"
+    ],
+    "files": [
+      "api/routes/health.py"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "E-09",
+    "title": "Add pagination to `GET /reviews` list endpoint",
+    "body": "The endpoint returns all reviews for a user in a single response. Users with many reviews will receive large payloads. Add `page` and `page_size` query parameters with a default page size of 20.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "api",
+      "enhancement"
+    ],
+    "files": [
+      "api/routes/reviews.py",
+      "api/schemas/review.py"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "E-10",
+    "title": "Add request ID logging middleware to correlate log lines across a single request",
+    "body": "Multi-step requests (profile creation \u2192 ingestion \u2192 review generation) produce many log lines with no way to correlate them to a single user request. Add middleware that generates a `request_id` UUID and attaches it to every log line for a request.",
+    "labels": [
+      "tier-2",
+      "api",
+      "enhancement"
+    ],
+    "files": [
+      "api/middleware/ (new request_id.py)",
+      "core/config.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "E-11",
+    "title": "Add an API rate limiting header (`X-RateLimit-Remaining`) to responses",
+    "body": "API clients have no way to know how many requests they have left before hitting the rate limit until they receive a 429. Add standard `X-RateLimit-Limit` and `X-RateLimit-Remaining` headers to every response.",
+    "labels": [
+      "tier-2",
+      "api",
+      "enhancement"
+    ],
+    "files": [
+      "api/middleware/",
+      "safety/rate_limiter.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "E-12",
+    "title": "Implement a webhook system that notifies users when their review is ready",
+    "body": "Long-running reviews (multiple repositories) can take 30\u201390 seconds. Add a webhook endpoint where clients can register a callback URL that receives a `POST` with the review payload when processing is complete.",
+    "labels": [
+      "tier-3",
+      "api",
+      "enhancement"
+    ],
+    "files": [
+      "api/routes/ (new webhooks.py)",
+      "core/services/ (new webhook_service.py)"
+    ],
+    "effort": "8\u201312 hours"
+  },
+  {
+    "id": "E-13",
+    "title": "`POST /reviews` endpoint has no test for when the profile has no ingested documents",
+    "body": "There's no test that exercises the review endpoint when a profile exists but has no associated ingested content. Add a test that verifies the endpoint returns an appropriate error rather than crashing.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "tests",
+      "api",
+      "docs",
+      "devops"
+    ],
+    "files": [
+      "tests/unit/test_review_routes.py"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "E-14",
+    "title": "API reference doc is missing the `POST /profiles` request body schema",
+    "body": "`docs/API.md` describes the response schemas for each endpoint but is missing the request body schemas for `POST /profiles` and `POST /reviews`. Add them with field descriptions and example values.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "docs",
+      "api",
+      "enhancement"
+    ],
+    "files": [
+      "docs/API.md"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "E-15",
+    "title": "Add integration tests for authentication edge cases",
+    "body": "The auth middleware is tested with a valid token but there are no tests for: expired tokens, malformed tokens, missing `Authorization` header, and tokens signed with a different secret.",
+    "labels": [
+      "tier-2",
+      "tests",
+      "api",
+      "enhancement"
+    ],
+    "files": [
+      "tests/integration/test_auth_middleware.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "F-01",
+    "title": "Review page shows a blank section when the `confidence` field is below 0.3 instead of a warning badge",
+    "body": "The `ReviewSection` component is supposed to display a \"Low confidence\" badge when `confidence < 0.3`. Instead it renders an empty `<div>` because the conditional rendering logic was removed.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "frontend"
+    ],
+    "files": [
+      "frontend/src/components/ReviewSection.tsx"
+    ],
+    "effort": "1\u20133 hours"
+  },
+  {
+    "id": "F-02",
+    "title": "Profile creation form doesn't show a loading state while the resume is being uploaded",
+    "body": "When a user submits the profile form, the submit button remains active and the form gives no feedback while the upload and ingestion are in progress. Users click the button multiple times, submitting duplicate profiles.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "frontend",
+      "bug"
+    ],
+    "files": [
+      "frontend/src/components/ProfileForm.tsx",
+      "frontend/src/hooks/useProfileSubmit.ts"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "F-03",
+    "title": "Review history page displays dates in UTC instead of the user's local timezone",
+    "body": "Review creation timestamps are stored and returned in UTC. The frontend displays them as-is, so a review created at 11:00 PM EST shows as 04:00 AM the next day.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "frontend"
+    ],
+    "files": [
+      "frontend/src/pages/ReviewHistory.tsx",
+      "frontend/src/utils/dateFormatters.ts"
+    ],
+    "effort": "1\u20133 hours"
+  },
+  {
+    "id": "F-04",
+    "title": "Search/filter on the review history page is case-sensitive",
+    "body": "Users searching for \"python\" don't see reviews where the keyword appears as \"Python\". The filter function compares the raw string without normalizing case.",
+    "labels": [
+      "tier-2",
+      "frontend"
+    ],
+    "files": [
+      "frontend/src/pages/ReviewHistory.tsx"
+    ],
+    "effort": "1\u20132 hours"
+  },
+  {
+    "id": "F-05",
+    "title": "Feedback sections don't preserve line breaks when rendered in the review view",
+    "body": "AI-generated feedback uses newline characters to separate bullet points within a section. The `ReviewSection` component renders the text inside a `<p>` tag, which collapses all whitespace into a single line.",
+    "labels": [
+      "tier-2",
+      "frontend"
+    ],
+    "files": [
+      "frontend/src/components/ReviewSection.tsx"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "F-06",
+    "title": "Export button generates a PDF with all confidence scores removed",
+    "body": "The \"Export Review\" feature generates a PDF summary. A recent change to the export formatter removed the confidence score from each section, making the export less useful than the on-screen view.",
+    "labels": [
+      "tier-2",
+      "frontend"
+    ],
+    "files": [
+      "frontend/src/services/exportService.ts",
+      "frontend/src/utils/pdfFormatter.ts"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "F-07",
+    "title": "Review progress indicator doesn't update in real time during long-running reviews",
+    "body": "The progress bar on the review page is driven by polling the `GET /reviews/{id}/status` endpoint every 5 seconds. This was replaced with a fixed spinner that doesn't reflect actual progress, making long reviews feel like the app has hung.",
+    "labels": [
+      "tier-3",
+      "frontend",
+      "bug"
+    ],
+    "files": [
+      "frontend/src/pages/ReviewPage.tsx",
+      "frontend/src/hooks/useReviewStatus.ts"
+    ],
+    "effort": "5\u20138 hours"
+  },
+  {
+    "id": "F-08",
+    "title": "Add a character counter to the portfolio URL input field",
+    "body": "The portfolio URL input has a 500-character maximum enforced by the API, but the frontend doesn't show the user how many characters they've used. Add a live counter (e.g., \"312/500 characters\").",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "frontend",
+      "bug"
+    ],
+    "files": [
+      "frontend/src/components/ProfileForm.tsx"
+    ],
+    "effort": "1\u20132 hours"
+  },
+  {
+    "id": "F-09",
+    "title": "Add an empty state message to the review history page when the user has no reviews",
+    "body": "When a user has just created a profile and hasn't requested any reviews yet, the review history page shows a blank list. Add a friendly empty state with a call-to-action button to start their first review.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "frontend",
+      "enhancement"
+    ],
+    "files": [
+      "frontend/src/pages/ReviewHistory.tsx"
+    ],
+    "effort": "1\u20132 hours"
+  },
+  {
+    "id": "F-10",
+    "title": "Add keyboard navigation support to the review section accordion",
+    "body": "The feedback sections expand/collapse on click but can't be opened with the keyboard. Add `onKeyDown` handlers to support Enter and Space key activation, and appropriate ARIA attributes for screen reader support.",
+    "labels": [
+      "tier-2",
+      "frontend",
+      "enhancement"
+    ],
+    "files": [
+      "frontend/src/components/ReviewSection.tsx"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "F-11",
+    "title": "Add a \"Copy link\" button to share a public review summary",
+    "body": "Allow users to generate a shareable link to a read-only view of their review summary. The link should be accessible without login and expire after 30 days.",
+    "labels": [
+      "tier-2",
+      "frontend",
+      "enhancement"
+    ],
+    "files": [
+      "frontend/src/pages/ReviewPage.tsx",
+      "frontend/src/services/shareService.ts",
+      "api/routes/reviews.py"
+    ],
+    "effort": "5\u20138 hours"
+  },
+  {
+    "id": "F-12",
+    "title": "Add a before/after comparison view for users who have completed multiple reviews",
+    "body": "Users who review their portfolio at two different points in time have no way to see how their scores changed. Add a comparison view that shows side-by-side diffs of two selected reviews.",
+    "labels": [
+      "tier-3",
+      "frontend",
+      "enhancement"
+    ],
+    "files": [
+      "frontend/src/pages/ (new ComparisonView.tsx)",
+      "frontend/src/utils/diffFormatter.ts"
+    ],
+    "effort": "7\u201310 hours"
+  },
+  {
+    "id": "F-13",
+    "title": "`ReviewSection` component has no unit tests",
+    "body": "The review section component handles conditional rendering, confidence badge display, and text formatting but has no test coverage. Add tests covering: normal render, low-confidence render, empty feedback text, and long text wrapping.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "tests",
+      "frontend",
+      "enhancement"
+    ],
+    "files": [
+      "frontend/src/components/__tests__/ReviewSection.test.tsx"
+    ],
+    "effort": "3\u20134 hours"
+  },
+  {
+    "id": "F-14",
+    "title": "`ProfileForm` submission test doesn't assert that the loading state is shown",
+    "body": "The existing form test submits the form and checks for success, but doesn't verify that the button is disabled and the loading indicator is shown while the request is in flight.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "tests",
+      "frontend"
+    ],
+    "files": [
+      "frontend/src/components/__tests__/ProfileForm.test.tsx"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "F-15",
+    "title": "Add accessibility tests for the review page using `jest-axe`",
+    "body": "The review page has no automated accessibility checks. Add `jest-axe` tests that verify the page doesn't have common accessibility violations (contrast, missing labels, improper heading structure).",
+    "labels": [
+      "tier-2",
+      "tests",
+      "frontend"
+    ],
+    "files": [
+      "frontend/src/pages/__tests__/ReviewPage.test.tsx"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "G-01",
+    "title": "Shared test fixture for a sample user profile is missing from `tests/fixtures/`",
+    "body": "Multiple integration tests were skipped because they depend on `tests/fixtures/sample_profiles/basic_profile.json` which was deleted. Restore the fixture with a realistic sample portfolio (GitHub username, resume, two repos).",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "tests"
+    ],
+    "files": [
+      "tests/fixtures/sample_profiles/basic_profile.json"
+    ],
+    "effort": "1\u20132 hours"
+  },
+  {
+    "id": "G-02",
+    "title": "CI pipeline fails because `conftest.py` imports a module that no longer exists",
+    "body": "The shared `conftest.py` imports from `core.services.legacy_review_service`, which was removed in a refactor. All tests that use the shared fixtures fail at collection time.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "tests",
+      "devops"
+    ],
+    "files": [
+      "tests/conftest.py"
+    ],
+    "effort": "1\u20132 hours"
+  },
+  {
+    "id": "G-03",
+    "title": "No test verifies that the mock LLM provider returns responses in the expected format",
+    "body": "The mock provider is used in dozens of tests but its output format has diverged from the real provider's format. Add a contract test that verifies the mock and real providers return identically structured responses.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "tests",
+      "enhancement"
+    ],
+    "files": [
+      "tests/unit/test_llm_provider_contract.py"
+    ],
+    "effort": "3\u20134 hours"
+  },
+  {
+    "id": "G-04",
+    "title": "Test coverage for `core/services/review_service.py` is below 40%",
+    "body": "The review service orchestrates the full review workflow and is the most critical service in the application, but most of its code paths are untested. Add unit tests targeting the major execution paths including success, partial failure, and full failure cases.",
+    "labels": [
+      "tier-2",
+      "tests",
+      "enhancement"
+    ],
+    "files": [
+      "tests/unit/test_review_service.py"
+    ],
+    "effort": "5\u20137 hours"
+  },
+  {
+    "id": "G-05",
+    "title": "Integration test database is not cleaned up between test runs",
+    "body": "Integration tests that write to the test database leave data behind, causing subsequent test runs to fail due to unique constraint violations.",
+    "labels": [
+      "tier-2",
+      "tests"
+    ],
+    "files": [
+      "tests/conftest.py"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "G-06",
+    "title": "No property-based tests for the PII scrubber",
+    "body": "The PII scrubber handles an enormous variety of personal data formats. Add property-based tests using `hypothesis` to generate randomized PII inputs and verify the scrubber always removes them.",
+    "labels": [
+      "tier-2",
+      "tests",
+      "enhancement"
+    ],
+    "files": [
+      "tests/unit/test_pii_scrubber.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "G-07",
+    "title": "Add a performance benchmark for the ingestion pipeline to detect regressions",
+    "body": "Large portfolio ingestion (5 repos + resume) should complete within 30 seconds. Add a benchmark test using `pytest-benchmark` that fails if mean ingestion time exceeds the threshold.",
+    "labels": [
+      "tier-3",
+      "tests",
+      "devops"
+    ],
+    "files": [
+      "tests/benchmarks/test_ingestion_performance.py"
+    ],
+    "effort": "5\u20138 hours"
+  },
+  {
+    "id": "G-08",
+    "title": "Mutation testing reveals 60% of unit tests pass even with incorrect logic",
+    "body": "Run `mutmut` against the codebase and identify the 10 surviving mutants with the highest impact. Write targeted tests that would catch each mutation.",
+    "labels": [
+      "tier-3",
+      "tests"
+    ],
+    "files": [
+      "Various tests/unit/ files"
+    ],
+    "effort": "8\u201312 hours"
+  },
+  {
+    "id": "G-09",
+    "title": "`README.md` is missing the project overview and feature list",
+    "body": "The project README only has setup instructions. New contributors (and students selecting issues) have no overview of what PathReview does, what problems it solves, or what the major subsystems are.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "docs"
+    ],
+    "files": [
+      "README.md"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "G-10",
+    "title": "`CONTRIBUTING.md` doesn't explain the commit message convention",
+    "body": "The project uses conventional commits (`feat:`, `fix:`, `docs:`, `test:`) but the contributing guide doesn't mention this. Contributors are submitting PRs with non-conforming commit messages that fail CI.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "docs",
+      "tests",
+      "devops"
+    ],
+    "files": [
+      "docs/CONTRIBUTING.md"
+    ],
+    "effort": "1\u20132 hours"
+  },
+  {
+    "id": "G-11",
+    "title": "`SETUP.md` is missing Docker Compose startup instructions for Windows users",
+    "body": "The setup guide covers macOS and Linux but omits Windows-specific steps for Docker Desktop configuration and path separator differences.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "docs",
+      "devops"
+    ],
+    "files": [
+      "docs/SETUP.md"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "G-12",
+    "title": "API docs don't include example `curl` commands",
+    "body": "`docs/API.md` describes each endpoint but has no example invocations. Developers setting up the project for the first time can't quickly verify the API is working.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "docs"
+    ],
+    "files": [
+      "docs/API.md"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "G-13",
+    "title": "Add a troubleshooting guide for the five most common setup failures",
+    "body": "Students and contributors frequently encounter the same five setup errors (Docker memory limit, port conflicts, missing `.env` variables, outdated Node version, and mismatched Python version). Document each with cause, symptoms, and resolution steps.",
+    "labels": [
+      "tier-2",
+      "docs",
+      "devops"
+    ],
+    "files": [
+      "docs/SETUP.md (or new docs/TROUBLESHOOTING.md)"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "G-14",
+    "title": "Add inline docstrings to all public methods in `core/services/`",
+    "body": "The service layer has no docstrings. Add Google-style docstrings to all public methods covering: description, Args, Returns, and Raises.",
+    "labels": [
+      "tier-2",
+      "docs"
+    ],
+    "files": [
+      "core/services/profile_service.py",
+      "core/services/review_service.py",
+      "core/services/notification_service.py"
+    ],
+    "effort": "4\u20136 hours"
+  },
+  {
+    "id": "G-15",
+    "title": "Add an Architecture Decision Record for the embedding model selection",
+    "body": "Document the tradeoffs between different embedding models (OpenAI `text-embedding-3-small`, a local sentence-transformers model, etc.) and explain why the current default was chosen.",
+    "labels": [
+      "tier-2",
+      "docs",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      "docs/adr/002-embedding-model.md"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "G-16",
+    "title": "Write a contributor onboarding guide that walks through a complete issue \u2192 PR lifecycle",
+    "body": "New contributors need a walkthrough that takes them from forking the repo to getting a PR merged. Cover: setting up the dev environment, running tests, finding and understanding an issue, making a change, and passing CI.",
+    "labels": [
+      "tier-3",
+      "docs",
+      "tests",
+      "devops"
+    ],
+    "files": [
+      "docs/ONBOARDING.md"
+    ],
+    "effort": "4\u20137 hours"
+  },
+  {
+    "id": "G-17",
+    "title": "CI pipeline doesn't run type checks before tests, causing avoidable failures",
+    "body": "`mypy` type checking is configured but not included in the CI pipeline. Type errors that would be caught before running tests slip through, causing test failures with confusing error messages.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "devops",
+      "tests"
+    ],
+    "files": [
+      ".github/workflows/ci.yml"
+    ],
+    "effort": "1\u20133 hours"
+  },
+  {
+    "id": "G-18",
+    "title": "`Makefile` `test` target runs the full test suite including slow integration tests",
+    "body": "Running `make test` takes 8\u201312 minutes because it includes integration tests. Add a `make test-unit` target that runs only fast unit tests and a `make test-all` target for the full suite.",
+    "labels": [
+      "tier-1",
+      "good first issue",
+      "devops",
+      "tests",
+      "enhancement"
+    ],
+    "files": [
+      "Makefile"
+    ],
+    "effort": "1\u20132 hours"
+  },
+  {
+    "id": "G-19",
+    "title": "Pre-commit hook for linting doesn't run on files modified by `git add -p` (partial staging)",
+    "body": "When developers stage partial file changes with `git add -p`, the pre-commit hook lints the entire working tree file instead of only the staged changes, potentially rejecting a commit for unstaged code.",
+    "labels": [
+      "tier-2",
+      "devops",
+      "bug"
+    ],
+    "files": [
+      ".pre-commit-config.yaml"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "G-20",
+    "title": "Docker Compose `vector-db` service starts before its health check passes, causing intermittent startup failures",
+    "body": "The `api` service depends on the `vector-db` service but Docker Compose starts them concurrently. The API sometimes starts before the vector DB is ready, causing startup errors in CI.",
+    "labels": [
+      "tier-2",
+      "devops",
+      "docs"
+    ],
+    "files": [
+      "docker-compose.yml"
+    ],
+    "effort": "2\u20134 hours"
+  },
+  {
+    "id": "G-21",
+    "title": "CI pipeline caches Python dependencies but not Node modules, causing slow frontend CI runs",
+    "body": "`ci.yml` caches `.venv` between runs but always reinstalls `node_modules` from scratch. Add Node module caching using the `actions/cache` step keyed on `frontend/package-lock.json`.",
+    "labels": [
+      "tier-2",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      ".github/workflows/ci.yml"
+    ],
+    "effort": "2\u20133 hours"
+  },
+  {
+    "id": "G-22",
+    "title": "Add a GitHub Actions workflow that runs the RAG eval suite on PRs touching `rag/`",
+    "body": "When contributors modify the RAG pipeline, there's no automated check that review quality hasn't degraded. Add a CI workflow that runs the eval suite against benchmark portfolios and comments the results on the PR.",
+    "labels": [
+      "tier-3",
+      "devops",
+      "enhancement"
+    ],
+    "files": [
+      ".github/workflows/eval.yml"
+    ],
+    "effort": "5\u20138 hours"
+  },
+  {
+    "id": "G-23",
+    "title": "Add a dependency vulnerability scan to the CI pipeline",
+    "body": "The project has no automated check for known security vulnerabilities in its Python or JavaScript dependencies. Add a step that runs `pip audit` and `npm audit` and fails the build on high-severity findings.",
+    "labels": [
+      "tier-3",
+      "devops",
+      "bug"
+    ],
+    "files": [
+      ".github/workflows/ci.yml"
+    ],
+    "effort": "3\u20135 hours"
+  },
+  {
+    "id": "G-24",
+    "title": "Add a database migration validation step to CI that checks all migrations can be applied cleanly",
+    "body": "Schema migrations are tested manually before merging but not in CI. Add a step that spins up a fresh database, runs all migrations in order, and verifies the schema matches the SQLAlchemy models.",
+    "labels": [
+      "tier-3",
+      "devops",
+      "tests",
+      "enhancement"
+    ],
+    "files": [
+      ".github/workflows/ci.yml",
+      "scripts/validate_migrations.sh"
+    ],
+    "effort": "5\u20137 hours"
+  },
+  {
+    "id": "G-25",
+    "title": "`docker-compose.yml` doesn't set memory limits for the LLM proxy service, causing OOM kills on 8GB machines",
+    "body": "The development LLM proxy container has no memory limit and can consume all available RAM on low-memory machines, causing the OS to kill other services. Add resource limits appropriate for the minimum supported hardware.",
+    "labels": [
+      "tier-3",
+      "devops",
+      "docs"
+    ],
+    "files": [
+      "docker-compose.yml"
+    ],
+    "effort": "2\u20134 hours"
+  }
+]
