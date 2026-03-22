@@ -1,4 +1,4 @@
-from typing import Annotated, cast
+from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.schemas.user import Token, UserCreate, UserResponse
+from api.schemas.user import Token, UserCreate
 from core.database import get_db
 from core.models.user import User
 from core.security import create_access_token, hash_password, verify_password
@@ -16,13 +16,13 @@ log = structlog.get_logger()
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=UserResponse)
+@router.post("/register", response_model=Token)
 async def register(
     user_data: UserCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> UserResponse:
+) -> Token:
     """
-    Register a new user.
+    Register a new user and return a JWT access token.
     Returns 400 if email already exists.
     """
     try:
@@ -49,7 +49,8 @@ async def register(
 
         log.info("user_registered", user_id=str(new_user.id), email=user_data.email)
 
-        return cast(UserResponse, UserResponse.model_validate(new_user))
+        access_token = create_access_token(data={"sub": str(new_user.id)})
+        return Token(access_token=access_token, token_type="bearer")
 
     except HTTPException:
         raise
