@@ -62,12 +62,31 @@ make run
 
 Open http://localhost:5173 in your browser. The API is at http://localhost:8000 (Swagger docs at /docs).
 
+`make setup` seeds the database with three test accounts you can use immediately:
+
+| Email | Password |
+|---|---|
+| user1@example.com | password1 |
+| user2@example.com | password2 |
+| user3@example.com | password3 |
+
+To reset back to a clean seed state at any time: `make reset-db`
+
 ## Troubleshooting
 
 **Docker services won't start:**
 - Check Docker is running: `docker info`
-- Check port conflicts: `lsof -i :5432` / `lsof -i :6379` / `lsof -i :8001`
+- Check port conflicts:
+  - macOS/Linux: `lsof -i :5432` / `lsof -i :6379`
+  - Windows (Git Bash): `netstat -ano | findstr :5432`
 - If ports are in use, stop the conflicting service or change ports in `docker-compose.yml`
+
+**Windows: "password authentication failed" when running migrations:**
+PostgreSQL is mapped to port **5433** on Windows (not 5432) to avoid conflicts with any native PostgreSQL installation. If you see auth errors, make sure your `.env` uses the correct connection string:
+```
+DATABASE_URL=postgresql+asyncpg://pathreview:pathreview@localhost:5433/pathreview_dev
+```
+If you have PostgreSQL installed natively on Windows (e.g. from a previous project), it will occupy port 5432 and intercept connections meant for Docker. The `docker-compose.yml` already maps around this — just ensure your `.env` was copied from `.env.example` after cloning.
 
 **"Out of memory" during setup:**
 - Close other applications to free RAM
@@ -96,8 +115,9 @@ Open http://localhost:5173 in your browser. The API is at http://localhost:8000 
 **Windows: `make setup` fails with "No such file or directory: .venv/bin/pip":**
 - This should not occur with the current Makefile, which auto-detects Windows and uses `.venv/Scripts/`. If you see this, ensure you have the latest `Makefile` from the repo.
 
-**`alembic upgrade head` fails with "password authentication failed":**
+**`alembic upgrade head` fails with "password authentication failed" (macOS/Linux):**
 - Docker is not running, or the database container hasn't finished initializing. Run `docker compose up -d`, wait 15 seconds, and try again.
+- Check that your `DATABASE_URL` in `.env` uses the `postgresql+asyncpg://` scheme, not plain `postgresql://`.
 
 **`alembic upgrade head` fails with "No module named asyncpg":**
 - Run: `.venv/Scripts/pip install asyncpg` (Windows) or `.venv/bin/pip install asyncpg` (Mac/Linux).
