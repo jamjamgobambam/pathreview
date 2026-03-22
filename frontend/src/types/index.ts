@@ -12,15 +12,10 @@ export interface Profile {
   updated_at: string
 }
 
-export interface Suggestion {
-  title: string
-  description: string
-}
-
 export interface FeedbackSection {
   section_name: string
   content: string
-  suggestions: Suggestion[]
+  suggestions: string[]
   confidence: number
 }
 
@@ -29,7 +24,7 @@ export interface Review {
   profile_id: string
   status: 'pending' | 'processing' | 'complete' | 'failed'
   overall_score?: number
-  feedback_sections?: FeedbackSection[]
+  sections?: FeedbackSection[]
   error_message?: string
   created_at: string
   updated_at: string

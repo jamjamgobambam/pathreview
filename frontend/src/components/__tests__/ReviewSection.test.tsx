@@ -8,14 +8,8 @@ describe('ReviewSection', () => {
     section_name: 'Code Quality',
     content: 'Your code is well-structured and follows best practices.',
     suggestions: [
-      {
-        title: 'Add More Comments',
-        description: 'Consider adding inline comments for complex logic'
-      },
-      {
-        title: 'Improve Error Handling',
-        description: 'Add try-catch blocks for async operations'
-      }
+      'Add More Comments: Consider adding inline comments for complex logic',
+      'Improve Error Handling: Add try-catch blocks for async operations'
     ],
     confidence: 0.85
   }
@@ -70,10 +64,8 @@ describe('ReviewSection', () => {
     const button = screen.getByRole('button')
     fireEvent.click(button)
 
-    expect(screen.getByText('Add More Comments')).toBeInTheDocument()
-    expect(screen.getByText('Consider adding inline comments for complex logic')).toBeInTheDocument()
-    expect(screen.getByText('Improve Error Handling')).toBeInTheDocument()
-    expect(screen.getByText('Add try-catch blocks for async operations')).toBeInTheDocument()
+    expect(screen.getByText('Add More Comments: Consider adding inline comments for complex logic')).toBeInTheDocument()
+    expect(screen.getByText('Improve Error Handling: Add try-catch blocks for async operations')).toBeInTheDocument()
   })
 
   it('sets aria-expanded correctly', () => {

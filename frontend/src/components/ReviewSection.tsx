@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { FeedbackSection } from '../types'
+import type { FeedbackSection } from '../types'
 
 interface ReviewSectionProps {
   section: FeedbackSection
@@ -56,10 +56,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ section }) => {
                 {section.suggestions.map((suggestion, index) => (
                   <li key={index} className="flex gap-3 text-gray-700">
                     <span className="text-blue-600 font-semibold flex-shrink-0">•</span>
-                    <div>
-                      <p className="font-medium">{suggestion.title}</p>
-                      <p className="text-sm text-gray-600">{suggestion.description}</p>
-                    </div>
+                    <p>{suggestion}</p>
                   </li>
                 ))}
               </ul>

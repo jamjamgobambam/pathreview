@@ -4,9 +4,10 @@ Revision ID: 001
 Create Date: 2026-03-21 00:00:00.000000
 """
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op  # type: ignore[attr-defined]
 
 # revision identifiers, used by Alembic.
 revision = "001"
@@ -43,7 +44,9 @@ def upgrade() -> None:
         sa.Column("portfolio_url", sa.String(500), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name=op.f("fk_profiles_user_id_users"), ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["users.id"], name=op.f("fk_profiles_user_id_users"), ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_profiles")),
     )
     op.create_index(op.f("ix_profiles_user_id"), "profiles", ["user_id"])
@@ -60,7 +63,12 @@ def upgrade() -> None:
         sa.Column("content_hash", sa.String(64), nullable=True),
         sa.Column("chunk_count", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("ingested_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(["profile_id"], ["profiles.id"], name=op.f("fk_ingested_sources_profile_id_profiles"), ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["profile_id"],
+            ["profiles.id"],
+            name=op.f("fk_ingested_sources_profile_id_profiles"),
+            ondelete="CASCADE",
+        ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_ingested_sources")),
     )
     op.create_index(op.f("ix_ingested_sources_profile_id"), "ingested_sources", ["profile_id"])
@@ -77,7 +85,12 @@ def upgrade() -> None:
         sa.Column("overall_score", sa.Float(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(["profile_id"], ["profiles.id"], name=op.f("fk_reviews_profile_id_profiles"), ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["profile_id"],
+            ["profiles.id"],
+            name=op.f("fk_reviews_profile_id_profiles"),
+            ondelete="CASCADE",
+        ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_reviews")),
     )
     op.create_index(op.f("ix_reviews_profile_id"), "reviews", ["profile_id"])

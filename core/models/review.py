@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Index, String
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Index, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -33,6 +33,7 @@ class Review(Base):
     )  # "pending", "processing", "complete", "failed"
     sections: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Structured review output
     overall_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=datetime.utcnow
     )

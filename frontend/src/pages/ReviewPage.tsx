@@ -37,14 +37,14 @@ export const ReviewPage: React.FC = () => {
   }
 
   const handleExport = () => {
-    if (!fullReview || !fullReview.feedback_sections) return
+    if (!fullReview || !fullReview.sections) return
 
     const text = `PathReview - Portfolio Review Report
 =====================================
 
-Score: ${fullReview.overall_score || 'N/A'}
+Score: ${fullReview.overall_score !== undefined ? Math.round(fullReview.overall_score * 100) : 'N/A'}/100
 
-${fullReview.feedback_sections
+${fullReview.sections
   .map(
     (section) =>
       `${section.section_name} (Confidence: ${(section.confidence * 100).toFixed(0)}%)
@@ -52,7 +52,7 @@ ${fullReview.feedback_sections
 ${section.content}
 
 Suggestions:
-${section.suggestions.map((s) => `- ${s.title}: ${s.description}`).join('\n')}
+${section.suggestions.map((s) => `- ${s}`).join('\n')}
 `
   )
   .join('\n\n')}`
@@ -134,17 +134,17 @@ ${section.suggestions.map((s) => `- ${s.title}: ${s.description}`).join('\n')}
                 <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
                   <div
                     className="h-full bg-blue-600 transition-all"
-                    style={{ width: `${(fullReview.overall_score / 100) * 100}%` }}
+                    style={{ width: `${fullReview.overall_score * 100}%` }}
                   ></div>
                 </div>
-                <p className="mt-2 text-2xl font-bold text-blue-600">{fullReview.overall_score}/100</p>
+                <p className="mt-2 text-2xl font-bold text-blue-600">{Math.round(fullReview.overall_score * 100)}/100</p>
               </div>
             )}
 
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900">Feedback</h2>
-              {fullReview.feedback_sections && fullReview.feedback_sections.length > 0 ? (
-                fullReview.feedback_sections.map((section, index) => (
+              {fullReview.sections && fullReview.sections.length > 0 ? (
+                fullReview.sections.map((section, index) => (
                   <ReviewSection key={index} section={section} />
                 ))
               ) : (

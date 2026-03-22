@@ -1,14 +1,14 @@
-from pydantic import BaseModel, Field
 from datetime import datetime
 from uuid import UUID
-from typing import Optional, List
+
+from pydantic import BaseModel, Field
 
 
 class FeedbackSection(BaseModel):
     section_name: str
     content: str
     confidence: float = Field(ge=0.0, le=1.0)
-    suggestions: List[str]
+    suggestions: list[str]
 
 
 class ReviewCreate(BaseModel):
@@ -19,8 +19,9 @@ class ReviewResponse(BaseModel):
     id: UUID
     profile_id: UUID
     status: str
-    sections: Optional[List[FeedbackSection]]
-    overall_score: Optional[float]
+    sections: list[FeedbackSection] | None
+    overall_score: float | None
+    error_message: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -28,7 +29,7 @@ class ReviewResponse(BaseModel):
 
 
 class ReviewListResponse(BaseModel):
-    items: List[ReviewResponse]
+    items: list[ReviewResponse]
     total: int
     page: int
     page_size: int
