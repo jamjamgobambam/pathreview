@@ -14,14 +14,16 @@ Thank you for contributing to PathReview! This guide explains our development wo
 Create a branch from `main` using this format:
 
 ```
-<type>/<issue-id>-<short-description>
+<type>/<issue-number>-<short-description>
 ```
 
+Where `<issue-number>` is the GitHub issue number (the number shown under the issue title in the tracker — e.g., `#124`).
+
 Examples:
-- `fix/A-01-resume-parser-index-error`
-- `feat/B-10-first-impression-prompt`
-- `test/C-15-readme-scorer-unit-tests`
-- `docs/G-10-commit-convention`
+- `fix/124-resume-parser-index-error`
+- `feat/128-first-impression-prompt`
+- `test/115-readme-scorer-unit-tests`
+- `docs/110-update-setup-guide`
 
 Types: `fix`, `feat`, `test`, `docs`, `refactor`, `perf`, `chore`
 
