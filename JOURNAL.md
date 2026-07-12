@@ -25,30 +25,57 @@ over-redacting ordinary text.
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
 
-### Is this right for me? — selection notes
+### Is this right for me? — checklist reasoning
 
-I worked through the selection checklist before claiming this issue:
+Worked through the CodePath "Is This Issue Right for Me?" checklist:
 
-- **Scope is small and self-contained.** The change is limited to one module
-  (`safety/pii_scrubber.py`) plus its unit test file. No API, database, or
-  cross-cutting changes are required.
-- **Tier fit.** It carries the `tier-1` and `good first issue` labels, which
-  matches where I should be starting.
-- **I understand the problem and can define "done."** The scrubber's address
-  handling is incomplete and the existing address test makes no assertions, so
-  success is concrete and testable: new passing unit tests, and genuine address
-  formats redacted without over-redacting ordinary text.
-- **Skills match.** It needs Python, regular expressions, and pytest — all
-  things I want to practice, with a fast local feedback loop (run one test
-  file).
-- **No blocking dependencies.** It doesn't depend on any other open issue and
-  touches an isolated part of the safety layer.
-- **Availability.** No one else had commented on or claimed the issue when I
-  selected it.
-- **Effort is realistic.** It's a bounded regex-and-tests change I can complete
-  and verify locally within a good-first-issue time budget.
+**Part 1 — Understanding the Issue**
+
+- [x] *I can explain the problem and expected behavior in 2–3 sentences without
+  reading the issue.* In my words: the PII scrubber is meant to redact home
+  addresses from generated feedback, but its address matching misses common
+  real-world formats and the existing address test asserts nothing. After a fix,
+  addresses like "123 5th Avenue" or "221B Baker Street" get redacted and there
+  are real tests proving it.
+- [x] *I've located the relevant files and confirmed they exist.*
+  `safety/pii_scrubber.py` and `tests/unit/test_pii_scrubber.py` both exist.
+- [x] *I can describe a concrete before-and-after.* Before: `scrub("123 5th
+  Avenue")` returns the string unchanged (address leaks). After: it returns
+  `"[REDACTED]"`, and ordinary text like "Room 101 upstairs" is left untouched.
+
+**Part 2 — Tier Fit**
+
+- [x] *The tier is a realistic match.* This is a Tier 1 issue (label `tier-1`,
+  `good first issue`): a localized change in one module plus its test file, no
+  cross-module or system understanding required. Appropriate as an early
+  contribution rather than reaching for a Tier 3.
+
+**Part 3 — Codebase Readiness**
+
+- [x] *I've found and read the specific code the issue references.* Read the
+  `PIIScrubber` class — the `PII_PATTERNS` dict (specifically the
+  `street_address` regex), and the `scrub()` and `detect()` methods.
+- [x] *I understand the surrounding code well enough to plan the fix.* The
+  scrubber just applies each regex in `PII_PATTERNS` via `re.sub`/`re.finditer`;
+  the fix is to broaden the `street_address` pattern (allow digits in
+  street-name words, a unit letter on the house number) and add a `po_box`
+  pattern — no callers need to change.
+- [x] *I've read the test file and at least one test end-to-end.* Read
+  `tests/unit/test_pii_scrubber.py`, including `test_address_variations` (which
+  runs `scrub()` but makes no assertions) and `test_detect_returns_list_of_pii`.
+
+**Part 4 — Scope and Time**
+
+- [x] *Not already claimed (comments + ledger).* No comments claiming issue #73
+  on GitHub as of selection. NOTE: I could not view the cohort ledger myself —
+  needs a manual confirm that it isn't taken there.
+- [~] *Scope realistic for Weeks 8–9.* Objectively a small Tier 1 change (~3–6h
+  of the regex-and-tests kind). Whether that fits my personal schedule this week
+  is my own call to confirm.
+- [x] *No blockers or dependencies.* The issue body references no "blocked by"
+  issue and the code is self-contained.
 
 **Scope boundary:** I'll keep this change to address-format coverage in the PII
-scrubber. Related-but-separate problems I noticed — e.g. the phone-number regex
-failing on formats like `(555) 123-4567` — are out of scope and belong in their
+scrubber. A related-but-separate problem I noticed — the phone-number regex
+failing on formats like `(555) 123-4567` — is out of scope and belongs in its
 own issue.
