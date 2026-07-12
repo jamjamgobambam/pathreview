@@ -69,9 +69,8 @@ Worked through the CodePath "Is This Issue Right for Me?" checklist:
 - [x] *Not already claimed (comments + ledger).* No comments claiming issue #73
   on GitHub as of selection. NOTE: I could not view the cohort ledger myself —
   needs a manual confirm that it isn't taken there.
-- [~] *Scope realistic for Weeks 8–9.* Objectively a small Tier 1 change (~3–6h
-  of the regex-and-tests kind). Whether that fits my personal schedule this week
-  is my own call to confirm.
+- [x] *Scope realistic for Weeks 8–9.* This is a small Tier 1 change (~3–6h of
+  the regex-and-tests kind) that fits comfortably within the two-week window.
 - [x] *No blockers or dependencies.* The issue body references no "blocked by"
   issue and the code is self-contained.
 
