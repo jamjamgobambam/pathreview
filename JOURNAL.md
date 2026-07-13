@@ -20,10 +20,55 @@ canned score. A successful fix adds an upfront validation check that rejects
 profiles with no ingested content, and a new test file (the first route-level
 test file in the repo) verifying that behavior.
 
-**Scope reasoning:** [work through your course's "Is this right for me?"
-checklist here — e.g. estimated effort vs. your available time, whether you
-understood the affected code before claiming it, whether the issue was still
-valid (verified above).]
+**Scope reasoning:**
+
+*Part 1 — Understanding the issue*
+- [x] Explained in my own words: `POST /reviews` never checks whether a profile
+  has any ingested content (GitHub username, portfolio, or resume) before
+  creating a review. Because the background processing step is currently
+  placeholder logic, a profile with nothing ingested doesn't get an error back
+  — it silently receives a fake "complete" review with fabricated content and
+  a canned score. The fix should reject that case with a clear error and add a
+  test proving it.
+- [x] Affected area confirmed: `api/routes/reviews.py` (the endpoint) and
+  `core/services/review_service.py` (`create_review`, `process_review`) — both
+  read in full. The issue's own labels (`api`, `tests`, `docs`, `devops`)
+  confirm this is an API-layer issue, not ingestion or frontend.
+- [x] Concrete before/after: **Before** — POST a profile with no ingested
+  sources, get a 200 and, eventually, a fabricated "complete" review with
+  made-up sections. **After** — the same request returns a clear 4xx error
+  immediately, with a test asserting that behavior.
+
+*Part 2 — Tier fit*
+- [x] Tier 1 — matches the issue's own `tier-1` label, and this is my first
+  open-source contribution, so I'm not reaching for Tier 2/3 yet.
+
+*Part 3 — Codebase readiness*
+- [x] Read the specific code the issue references: `api/routes/reviews.py:22-62`
+  (`create_review_endpoint`) and all of `core/services/review_service.py`,
+  including the placeholder `_run_ingestion_pipeline` /
+  `_run_agent_orchestration` / `_run_rag_retrieval_generation` steps that
+  `process_review` calls.
+- [x] Understand it well enough to sketch a fix: add a check in
+  `create_review_endpoint` (or the `create_review` service function) that
+  rejects a profile with no ingested content via a 422, before a `Review` row
+  is even created.
+- [x] Read the relevant test file end-to-end: there's no existing route-level
+  test file for this endpoint — that's the gap itself. Read
+  `tests/unit/test_review_service.py` end-to-end instead, since it's the
+  closest existing pattern: it mocks the DB session directly with
+  `AsyncMock`/`Mock` and never goes through FastAPI's `TestClient` or the HTTP
+  layer. This confirms the new test file will be the first one in the repo
+  that tests through the actual route/HTTP layer, not just the service
+  function directly.
+
+*Part 4 — Scope and time*
+- [x] Not already claimed: verified zero comments before commenting, then
+  confirmed via the GitHub API that mine is the only comment.
+- [x] Realistic for Weeks 8–9: issue estimate is 2–5 hours, Tier 1, comfortably
+  within the two-week window.
+- [x] No blockers: read the full issue body — no "blocked by" reference to any
+  other issue.
 
 **Branch name:** test/88-review-no-ingested-documents
 
