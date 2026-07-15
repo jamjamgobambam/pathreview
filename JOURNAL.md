@@ -17,6 +17,6 @@ core screens.
 
 **Branch name:** test/105-review-page-accessibility-tests
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
