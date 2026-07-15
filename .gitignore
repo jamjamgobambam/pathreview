@@ -10,6 +10,7 @@ build/
 .venv/
 venv/
 *.egg
+.python-version
 
 # Environment
 .env
