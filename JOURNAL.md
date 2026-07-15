@@ -8,7 +8,11 @@
 
 **Problem summary:**
 
-The faithfulness checker currently requires at least two meaningful overlapping words between a claim and the retrieved context before marking the claim as supported. This causes short factual claims, such as "Knows Python.", to be incorrectly classified as unsupported even when the context clearly contains supporting information. The issue affects the `rag/evaluator/faithfulness_checker.py` component. A successful fix will allow short claims to be recognized as supported while preserving stricter matching for longer, more detailed claims.
+The faithfulness checker currently requires at least two meaningful overlapping words between a claim and the retrieved context before it marks the claim as supported. Because of this rule, short factual claims such as “Knows Python” are incorrectly scored as unsupported even when the context clearly mentions Python experience. The issue affects the claim-support logic in `rag/evaluator/faithfulness_checker.py`. A successful fix should allow short claims to be recognized from one meaningful keyword while still keeping stronger matching requirements for longer claims.
+
+**Is this right for me? Selection notes:**
+
+This issue is labeled Tier 1 and has a focused scope in one main component of the codebase. The issue description includes a clear example, identifies the relevant file, and lists related tests, so I can reproduce the problem and verify the fix. The work involves Python, string processing, and unit testing, which are skills I am comfortable using. I also confirmed that the issue was open and not assigned before claiming it.
 
 **Branch name:** `fix/152-short-claim-support`
 
