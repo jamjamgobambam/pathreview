@@ -17,6 +17,13 @@ extends the phone-number pattern matching to also catch the parenthesized
 format, so both `scrub()` and `detect()` correctly identify and redact it,
 and the four related tests pass.
 
+**Selection reasoning:** I chose this as a Tier 1 issue since it's my first
+time contributing to an unfamiliar multi-module codebase. The bug is
+isolated to a single function in one file, has clear reproduction steps
+and four named failing tests to validate against, so I can verify
+correctness without needing to understand the rest of the app's
+architecture.
+
 **Branch name:** fix/146-parenthesized-phone-redaction
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
