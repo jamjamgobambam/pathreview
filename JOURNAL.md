@@ -3,7 +3,9 @@
 **Reproduction commit link:** [link to commit documenting the reproduced issue]
 
 **Reproduction summary:**
-[1–2 sentences: How did you reproduce the issue? What did you observe?]
+In the terminal, I ran .venv/Scripts/python -c "from safety.bias_detector import BiasDetector; print(BiasDetector.detect_bias('The candidate only attended a bootcamp, so this project lacks the rigor of a formal CS education'))". 
+
+From there I saw that the test case failed in the output, as the bias detector didn't catched the bias. 
 
 **PLAN.md link:** [link to PLAN.md in your fork]
 
