@@ -4,6 +4,13 @@ import pytest
 
 from safety.bias_detector import BiasDetector
 
+# to test Issue #151 fail case
+
+# Paste in git bash
+# .venv/Scripts/python -c "from safety.bias_detector import BiasDetector;print(BiasDetector.detect_bias('The candidate only attended a bootcamp, so this project lacks the rigor of a formal CS education'))"
+# observed: (False, '')  (expected: flagged as dismissive educational-background language)
+# after looking at the detection patterns in bias_detector.py, the line that's supposed to catch it is: bootcamp|self-taught|online\s+course)\s+(?:education|training)\s+is\s+(?:insufficient|inadequate|lacks
+
 
 @pytest.mark.unit
 class TestBiasDetector:
@@ -117,7 +124,9 @@ class TestBiasDetector:
 
     def test_technical_feedback_not_flagged(self):
         """Test pure technical feedback not flagged."""
-        text = "Consider adding error handling to your API endpoints and documenting the parameters."
+        text = (
+            "Consider adding error handling to your API endpoints and documenting the parameters."
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -210,7 +219,9 @@ class TestBiasDetector:
 
     def test_multiple_bias_indicators(self):
         """Test text with multiple bias indicators."""
-        text = "young bootcamp graduates can't write code and immigrant developers lack fundamentals"
+        text = (
+            "young bootcamp graduates can't write code and immigrant developers lack fundamentals"
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
