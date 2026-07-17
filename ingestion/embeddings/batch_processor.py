@@ -6,7 +6,6 @@ from .provider import EmbeddingProvider
 
 logger = structlog.get_logger()
 
-
 class BatchEmbeddingProcessor:
     """Process chunks into embeddings in batches."""
 
