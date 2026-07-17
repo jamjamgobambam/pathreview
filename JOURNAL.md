@@ -17,7 +17,7 @@ The project as is only limits user request based on their authenticated ID, but 
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
 
 **Is this right for me?**: Yes
 - Part 1: I understand the issue at hand, what the fix looks like, and knows where to pin point directly to add in the IP rate limiter.
