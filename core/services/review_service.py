@@ -16,10 +16,13 @@ async def create_review(
     db,
     profile_id: UUID,
     user_id: UUID,
-) -> Review:
+) -> Review|None:
     """
     Create a new review with status="pending".
     """
+    if profile_id == user_id:
+        return None
+    
     review = Review(
         profile_id=profile_id,
         status="pending",

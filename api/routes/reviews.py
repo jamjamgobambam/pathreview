@@ -38,6 +38,8 @@ async def create_review_endpoint(
             profile_id=data.profile_id,
             user_id=current_user.id,
         )
+        if not review:
+            raise HTTPException(status_code=400, detail="User owns this profile")
 
         # Add background task for processing
         background_tasks.add_task(process_review, db, review.id, data.profile_id)
