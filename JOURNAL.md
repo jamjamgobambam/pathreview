@@ -11,6 +11,6 @@ Prompt templates drive the wording and structure of generated review output, so 
 
 **Branch name:** test/37-prompt-template-snapshots
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
