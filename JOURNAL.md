@@ -10,7 +10,10 @@
 The relevance scorer test says it checks partial overlap, but its query matches every keyword in the text.
 The scorer returns 1.0, so the assertion expects the wrong result.
 The fixture should omit some query terms so the test checks partial overlap.
-I chose this Tier 1 issue because it changes one test fixture and has a clear failing command.
+
+**Scope notes:** I read `tests/unit/test_relevance_scorer.py` and `rag/evaluator/relevance_scorer.py`.
+This Tier 1 change is one fixture, the test is the finish condition, I estimate three hours, and no blocker is listed.
+The current ledger allows duplicate claims.
 
 **Branch name:** `test/157-partial-overlap-fixture`
 
