@@ -1,6 +1,6 @@
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/stephanyTF/pathreview/commits/fix/151/narrow-bias-detector/?since=2026-07-16&until=2026-07-16 
 
 **Reproduction summary:**
 In the terminal, I ran .venv/Scripts/python -c "from safety.bias_detector import BiasDetector; print(BiasDetector.detect_bias('The candidate only attended a bootcamp, so this project lacks the rigor of a formal CS education'))". 
@@ -12,8 +12,7 @@ From there I saw that the test case failed in the output, as the bias detector d
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — shared for early feedback]
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
-
+N/A
 
 ## Week 7 — Issue selection
 
