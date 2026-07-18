@@ -31,5 +31,6 @@ workflow without needing deep familiarity with the RAG or agent systems yet.
 **Branch name:** fix/158-review-service-async-mocks
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
+![alt text](image.png)
 
 **Cohort ledger:** [x] Issue added to cohort ledger
