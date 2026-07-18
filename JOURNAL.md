@@ -14,3 +14,17 @@ The orchestrator loads cached tool results from Redis when a user requests a sec
 **Setup confirmation:** [ ] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/amilcarjose9/pathreview/commit/7e8123ff668fc7f63ed3145ca01e40e873f52a57
+
+**Reproduction summary:**
+Created a failing unit test that reproduces the session-store cache issue by showing a new Orchestrator instance re-executes a tool instead of reusing persisted session results. The test exposes the gap where session_state is loaded but not applied.
+
+**PLAN.md link:** [PLAN.md](PLAN.md)
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — shared for early feedback]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
