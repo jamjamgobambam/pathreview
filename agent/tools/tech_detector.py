@@ -150,15 +150,18 @@ class TechDetector(BaseTool):
         Returns:
             True if file should be skipped
         """
-        skip_patterns = [
-            "/node_modules/",
-            "/vendor/",
-            "/dist/",
-            "/build/",
-            "/.git/",
-            "/__pycache__/",
-            "/.venv/",
-            "/venv/",
-        ]
+        skip_dirs = {
+            "node_modules",
+            "vendor",
+            "dist",
+            "build",
+            ".git",
+            "__pycache__",
+            ".venv",
+            "venv",
+        }
 
-        return any(pattern in filepath for pattern in skip_patterns)
+        # Match on path segments rather than slash-wrapped substrings, so that
+        # top-level directories (e.g. "node_modules/lib/x.js", "build/a.js")
+        # are excluded as well as nested ones (e.g. "src/vendor/x.js").
+        return any(segment in skip_dirs for segment in filepath.split("/"))
