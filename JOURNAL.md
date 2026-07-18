@@ -1,18 +1,59 @@
 ## Week 7 — Issue selection
 
-**Issue link:** [paste link here]
+**Issue link:** https://github.com/ascherj/pathreview/issues/36
 
-**Issue title:** [paste issue title here]
+**Issue title:** Architecture doc doesn't explain the hybrid retrieval scoring formula
 
-**Tier:** [ ] Tier 1  [ ] Tier 2  [ ] Tier 3
+**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-[In 3–5 sentences, in your own words: what the issue is (not a copy-paste of
-the title), what is currently broken or missing, and what a successful fix
-would accomplish. Naming the part of the codebase it affects is helpful context.]
+`docs/ARCHITECTURE.md` explained that hybrid retrieval is based on vector similarity and BM25 keyword but does not include the scoring formula. The documentation lacked the formula and the default weights. Without such details, contributors and reviewers of retrieval changes cannot understand how ranking behaves without reverse-engineering the code.
 
-**Branch name:** [paste branch name here]
+**Branch name:** docs/36-hybrid-retrieval-scoring-formula
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+**"Is This Issue Right for Me?" checklist reasoning:**
+
+### Part 1 — Understanding the Issue
+
+[x] I can explain the problem and the expected behavior in 2–3 sentences without reading the issue.
+
+[x] I've located the relevant files and confirmed they exist in the codebase.
+
+I located the affected places and confirmed they exist:
+
+* `docs/ARCHITECTURE.md`
+* `rag/retriever/hybrid.py`
+
+[x] I can describe a concrete before-and-after: what the user sees before the fix and what they see after.
+
+Before the fix the doc lakcs scoring detail. After the fix, it has a section a reader can use to understand hybrid retrieval scoring.
+
+### Part 2 — Tier Fit
+
+[x] If this is my first open source contribution: I'm choosing Tier 1.
+
+This is my first contribution to this codebase, so I followed the guidance and chose Tier 1.
+
+### Part 3 — Codebase Readiness
+
+[x] I've found and read the specific code the issue references (not just the file — the function or section).
+
+[x] I've read enough surrounding context that I can write a rough plan for the fix without looking anything up.
+
+[Not Applicable] I've found the test file for my module and read at least one test end-to-end.
+
+I confirmed the gap is real by reading `docs/ARCHITECTURE.md` and `HybridRetriever.retrieve()` in `rag/retriever/hybrid.py`.
+
+### Part 4 — Scope and Time
+
+[x] I've checked the issue comments and the ledger's Claims count, and I'm fine with how many others are on this issue.
+
+[x] I've estimated the time this will take and I'm confident I can complete it before the Week 9 deadline.
+
+[x] This issue has no open blockers or dependencies on other unresolved issues.
+
+I was the first one to claim this issue. The issue estimates 2 to 3 hours, which fits comfortably in the Weeks 8 to 9 window alongside my other commitments. I checked the issue for blockers and dependencies and found none, and I reviewed the existing claims on the issue before claiming it myself.
