@@ -20,6 +20,13 @@ gracefully. A successful fix treats `None` text as an empty string so `check()` 
 the empty chunk and still returns a normal 0.0–1.0 faithfulness score, which is exactly
 what the existing `test_none_context_chunk_text` unit test expects.
 
+**Selection notes ("Is this right for me?"):**
+This Tier 1 issue has a clear reproduction, a localized root cause in one evaluator,
+and an existing regression test that defines success. It fits my scope because the fix
+requires no API, schema, dependency, or architectural changes—only safe handling of a
+nullable dictionary value. I can verify it by running the focused faithfulness checker
+test and confirming `check()` returns a score instead of raising `TypeError`.
+
 **Branch name:** fix/153-faithfulness-checker-none-text
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
