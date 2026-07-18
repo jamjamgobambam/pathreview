@@ -18,8 +18,18 @@ mocks need to be reworked (e.g. using AsyncMock for execute() and a
 MagicMock for the returned result object) so that 13 currently-failing
 tests pass.
 
+**Selection reasoning:**
+I chose this issue because it's scoped to a single test file
+(test_review_service.py) with a clearly reproducible failure command,
+which fits my comfort level as a first-time contributor to a large
+codebase. The fix only requires adjusting mock configuration (AsyncMock/
+MagicMock), not touching the service logic itself, so the blast radius
+is small and easy to verify by re-running pytest. This matches the
+Tier 1 label — a good first issue that lets me practice the branch/PR
+workflow without needing deep familiarity with the RAG or agent systems yet.
+
 **Branch name:** fix/158-review-service-async-mocks
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
