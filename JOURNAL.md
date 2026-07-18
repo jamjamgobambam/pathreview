@@ -6,7 +6,7 @@
 
 **Tier:** [ ] Tier 1 [x] Tier 2 [ ] Tier 3
 
-**Selection reasoning** I chose this Tier 2 issue because I'm comfortable with React, but haven't worked with shareable URL patterns yet. So the scope felt like a stretch without being too overwhelming.
+**Selection reasoning** I chose this Tier 2 issue because I've worked with React before but haven't implemented shareable URL patterns or public token-based access. Before claiming it, I located the relevant files — `frontend/src/pages/ReviewPage.tsx` for the button and `api/routes/reviews.py` for the backend access change — and confirmed the existing Share button stub is already there. There are no open blockers listed on the issue. I estimate 8–10 hours of work across Weeks 8–9, which fits my schedule.
 
 **Problem summary:**
 
