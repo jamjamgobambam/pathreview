@@ -27,6 +27,34 @@ green. This lives in `agent/tools/tech_detector.py` in the Agent system.
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
 
+### "Is this right for me?" — selection notes
+
+Worked through the checklist before claiming the issue:
+
+- **Open and unassigned?** Yes — no one is assigned, so I'm not duplicating work.
+- **Labeled for my level?** Yes — `tier-1` **and** `good first issue`; appropriate
+  as a first contribution to a large codebase.
+- **Can I reproduce it?** Yes — cloned, set up locally, and the two named tests
+  (`test_node_modules_excluded`, `test_build_directory_excluded`) fail exactly as
+  the issue describes; the issue's manual repro also reproduces (`primary_language`
+  comes back `JavaScript` instead of `Python`).
+- **Is the scope contained?** Yes — the bug lives in a single method
+  (`_should_skip_file`) in one file (`agent/tools/tech_detector.py`), ~10 lines.
+- **Clear acceptance criteria?** Yes — two failing tests define "done"; I code to
+  a target rather than guessing intent.
+- **Do I understand the root cause?** Yes — slash-wrapped substring matching
+  misses top-level directories (documented in Working notes below).
+- **Does it need deep domain knowledge?** No — it's string/path handling, not RAG
+  or agent internals, so it's tractable without understanding the whole system.
+
+**Scope reasoning:** I'm keeping this PR to *only* the vendored/build exclusion
+bug. While investigating I found a second, separate defect — primary language is
+selected alphabetically (`sorted(languages)[0]`) rather than by file count,
+despite the "most common" comment — but fixing the exclusion logic alone
+satisfies both acceptance tests, and bundling an unrelated behavior change would
+work against a clean, reviewable first PR. I've noted the counting bug as a
+candidate for a separate issue.
+
 ---
 
 ## Working notes
