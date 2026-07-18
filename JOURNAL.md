@@ -24,6 +24,6 @@ is open, unassigned, and has no linked branch or pull request.
 
 **Branch name:** test/159-structlog-caplog-capture
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
