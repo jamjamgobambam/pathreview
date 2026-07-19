@@ -13,7 +13,7 @@ would accomplish. Naming the part of the codebase it affects is helpful context.
 
 In safety/bias_detector.py we see regex patterns used here to create bias detectors. These bias detectors are too narrow and are misclassifying common phrases. A successful fix will widen regex patterns to detect common phrases instead of looking at specific phrases to detect bias. 
 
-**Branch name:** [paste branch name here]
+**Branch name:** [151-expanding-bias-detector-patterns]
 
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
@@ -25,13 +25,13 @@ In safety/bias_detector.py we see regex patterns used here to create bias detect
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** [[link to commit documenting the reproduced issue](https://github.com/snugcoder/pathreview/commit/54a5200621d29914b07fee43eba33661a745bfad)]
 
 **Reproduction summary:**
 [1–2 sentences: How did you reproduce the issue? What did you observe?]
 I reproduced the issue by running the test suite. I observed that the bias patterns were too specific and caused the test cases to fail. 
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** [[link to PLAN.md in your fork](https://github.com/snugcoder/pathreview/blob/fix/safety/151-expanding-bias-detector-patterns/PLAN.md)]
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — shared for early feedback]
 
