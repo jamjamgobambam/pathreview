@@ -27,7 +27,7 @@ all contained within `resume_parser.py` and `tests/unit/test_resume_parser.py`.
 
 **Branch name:** fix/147-resume-section-leading-whitespace
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
 
