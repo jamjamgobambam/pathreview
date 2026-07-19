@@ -24,9 +24,9 @@ This lives in the API layer's health/monitoring code (`api/routes/health.py` and
 
 **Branch name:** fix/155-health-check-redis-host
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
 
 ### Selection notes — "Is this right for me?" reasoning
 
