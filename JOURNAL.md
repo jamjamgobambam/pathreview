@@ -40,6 +40,6 @@ minimum of 2, so short but genuinely supported claims score correctly.
 
 **Branch name:** fix/152-faithfulness-checker-short-claims
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger

@@ -13,6 +13,10 @@ PYTHON := $(VENV_BIN)/python
 PIP := $(VENV_BIN)/pip
 PYTEST := $(VENV_BIN)/pytest
 
+# Windows' console codepage (cp1252) can't encode the unicode checkmarks
+# some scripts print; force UTF-8 mode so those scripts work everywhere.
+export PYTHONUTF8 := 1
+
 # ---- Setup ----
 
 setup: ## First-time setup: venv, deps, migrations, seed data
