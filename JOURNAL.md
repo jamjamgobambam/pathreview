@@ -12,7 +12,7 @@
 
 **Issue title:** Generator produces duplicate feedback sections when a user has multiple projects in the same tech stack
 
-**Tier:** [ ] Tier 1  [ ] Tier 2  [x] Tier 3
+**Tier:** [ ] Tier 1 [ ] Tier 2 [x] Tier 3
 
 **Problem summary:**
 The review generator treats each of a user's projects independently, so when
@@ -32,4 +32,4 @@ than a per-project checklist, affecting the RAG generation layer
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
