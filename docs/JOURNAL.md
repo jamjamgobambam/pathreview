@@ -1,18 +1,16 @@
 ## Week 7 — Issue selection
 
-**Issue link:** [paste link here]
+**Issue link:** [issue link](https://github.com/ascherj/pathreview/issues/11)
 
-**Issue title:** [paste issue title here]
+**Issue title:** Add support for ingesting a portfolio website URL
 
-**Tier:** [ ] Tier 1  [ ] Tier 2  [ ] Tier 3
+**Tier:** [ ] Tier 1  [x] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-[In 3–5 sentences, in your own words: what the issue is (not a copy-paste of
-the title), what is currently broken or missing, and what a successful fix
-would accomplish. Naming the part of the codebase it affects is helpful context.]
+This is a feature to allow for ingesting a portfolio website url. A pipeline is required to take the portfolio website url, extract contents and include it in the vector store. The vector store should be alognside GitHub and resume data.
 
-**Branch name:** [paste branch name here]
+**Branch name:** fix\11-add-ingestion-support-for-portfolio-url
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
