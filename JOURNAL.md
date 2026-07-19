@@ -12,3 +12,6 @@ The `docs/ARCHITECTURE.md` file currently describes that the RAG subsystem perfo
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+**Selection notes:**
+- **Initial Observation & Motivation**: While logging in as 'user2@example.com', I noticed a UX discrepenacy where category confidence score were displayed as 76%, 81%,, 69% next to their respectice section names in the feedback section of the frontend, which conflicts with the 58/100 overall evaluation score. In searching for "score" issues in the backlog led me to Issue #36, with simillar relation.
