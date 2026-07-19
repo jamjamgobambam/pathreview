@@ -16,19 +16,13 @@ Milano Hyacinthe
 
 ### Problem Summary
 
-The PathReview structural chunker currently depends on Markdown headings to
-identify document sections. When a valid document contains plain text but no
-headings, the chunker returns an empty list instead of producing one or more
-chunks.
-
-Because the ingestion pipeline receives no chunks, the document may be silently
-excluded from the RAG index. This means the document's content will not be
-available during retrieval even though the source document itself is valid and
-contains usable text.
-
-At this stage, I have not implemented a solution. The expected behavior and the
-correct fallback approach will be confirmed by inspecting the chunking
-interfaces, related implementations, existing tests, and project conventions.
+PathReview's structural chunker uses Markdown headings to identify document
+sections. When a valid plain-text document contains no headings, the chunker
+returns an empty list instead of producing usable chunks. This silently
+excludes the document from the ingestion and RAG pipeline, making its content
+unavailable during retrieval. A successful fix will ensure that non-empty
+documents without headings still produce appropriate chunks while preserving
+the project's existing chunking and metadata conventions.
 
 ### Why I Selected This Issue
 
@@ -90,6 +84,12 @@ The initial investigation will focus on:
 ### Working Branch
 
 `fix/149-handle-documents-without-headings`
+
+### Week 7 Completion Confirmation
+
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+**Cohort ledger:** [x] Issue added to cohort ledger
 
 ### Week 7 Commits
 
