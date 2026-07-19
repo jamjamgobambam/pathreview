@@ -1,7 +1,9 @@
 from uuid import UUID
+import asyncio
 import structlog
 import json
 from datetime import datetime
+from collections import defaultdict
 from sqlalchemy import select, and_
 
 from core.models.review import Review
@@ -10,6 +12,8 @@ from core.models.ingested_source import IngestedSource
 from api.schemas.review import FeedbackSection
 
 log = structlog.get_logger()
+
+_profile_locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
 
 
 async def create_review(
@@ -95,6 +99,16 @@ async def process_review(
     6. Set status="complete", store sections in review.sections
     7. On exception: set status="failed", log error
     """
+    lock = _profile_locks[str(profile_id)]
+    async with lock:
+        await _process_review_impl(db, review_id, profile_id)
+
+
+async def _process_review_impl(
+    db,
+    review_id: UUID,
+    profile_id: UUID,
+) -> None:
     try:
         # Get the review
         stmt = select(Review).where(Review.id == review_id)
