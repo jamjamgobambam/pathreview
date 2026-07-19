@@ -17,6 +17,25 @@ that render each of these states and assert none has detectable a11y
 violations. This gives the frontend a regression net for accessibility
 across the full lifecycle of one of the app's core screens.
 
+**Acceptance checklist:**
+- [ ] `jest-axe`'s `toHaveNoViolations` matcher wired into the test setup
+- [ ] Test renders the polling/loading state and asserts zero axe violations
+- [ ] Test renders the failed state and asserts zero axe violations
+- [ ] Test renders the complete state (with review sections) and asserts zero axe violations
+- [ ] All new tests pass via `make test-unit`
+
+**Why this issue fits (scope-fit reasoning):**
+- Tier 2, 4–6h estimated effort — matches what I can commit this week
+- `jest-axe` is already a devDependency in `frontend/package.json`, so no new
+  tooling setup is required, just test code
+- The repo already has React Testing Library test patterns to follow
+  (`ProfileForm.test.tsx`, `ReviewSection.test.tsx`), so I'm extending an
+  established pattern rather than inventing one
+- Scope is one new file (`ReviewPage.test.tsx`); no backend, API, or
+  component changes needed, keeping blast radius small
+- `useReviewStatus` is a mockable hook, so all three render states can be
+  driven in tests without a live backend
+
 **Branch name:** test/105-review-page-accessibility-tests
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
