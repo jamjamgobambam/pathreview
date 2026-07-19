@@ -21,12 +21,12 @@ I chose this issue because it has a clear reproduction case, a well-defined scop
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [Add GitHub commit link after committing your reproduction]
+**Reproduction commit link:** https://github.com/ascherj/pathreview/commit/6f3d37e7bb0677af652e40f5971b1256852571f8
 
 **Reproduction summary:**
 I reproduced the issue by using the provided resume parser example with resume text containing leading whitespace before section headers. The parser failed to detect the expected sections because _detect_sections() only matches section headers that begin at the start of a line.
 
-**PLAN.md link:** [Add GitHub link to PLAN.md after creating it]
+**PLAN.md link:** (https://github.com/yaminik03/pathreview/blob/fix/147-resume-section-whitespace/PLAN.md)
 
 **Walkthrough video (recommended):** [Optional Loom link]
 
