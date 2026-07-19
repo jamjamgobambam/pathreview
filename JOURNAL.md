@@ -1,6 +1,6 @@
 ## Week 7 — Issue selection
 
-**Issue link:** [[paste link here](https://github.com/ascherj/pathreview/issues/147#issuecomment-4975799593)]
+**Issue link:** [[paste link here](https://github.com/ascherj/pathreview/issues/147)]
 
 **Issue title:** [Resume section detection fails on text with leading whitespace]
 
