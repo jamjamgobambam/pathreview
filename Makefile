@@ -13,10 +13,13 @@ PYTHON := $(VENV_BIN)/python
 PIP := $(VENV_BIN)/pip
 PYTEST := $(VENV_BIN)/pytest
 
+# Interpreter used to bootstrap the venv (project requires Python >= 3.11)
+BOOTSTRAP_PYTHON := $(shell command -v python3.13 || command -v python3.12 || command -v python3.11 || command -v python3 || command -v python)
+
 # ---- Setup ----
 
 setup: ## First-time setup: venv, deps, migrations, seed data
-	python -m venv .venv || python3 -m venv .venv
+	$(BOOTSTRAP_PYTHON) -m venv .venv
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
 	$(PIP) install -e ".[dev]"
 	$(VENV_BIN)/pre-commit install
