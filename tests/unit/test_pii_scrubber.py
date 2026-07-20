@@ -252,3 +252,25 @@ class TestPIIScrubber:
 
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
+
+    @pytest.mark.xfail(
+        reason="Issue #146: phone_us pattern doesn't match parenthesized "
+        "US phone numbers like '(555) 123-4567', so scrub() leaves them "
+        "unredacted and detect() reports no PII for them.",
+        strict=True,
+    )
+    def test_parenthesized_phone_number_reproduction(self, scrubber):
+        """Reproduction for issue #146.
+
+        https://github.com/jamjamgobambam/pathreview/issues/146
+        """
+        text = "Call me at (555) 123-4567 or 555-123-4567"
+        scrubbed = scrubber.scrub(text)
+
+        # Observed today: 'Call me at (555) 123-4567 or [REDACTED]'
+        # Expected once fixed: both formats redacted.
+        assert "(555) 123-4567" not in scrubbed
+
+        detected = scrubber.detect("Call me at (555) 123-4567")
+        # Observed today: [] (empty — detect() finds nothing)
+        assert len(detected) > 0
