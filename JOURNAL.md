@@ -46,7 +46,7 @@ matches for the dashed format), and via `pytest tests/unit/test_pii_scrubber.py
 `test_phone_at_start_of_text`, all failing because `scrub()` leaves the number
 un-redacted and `detect()` returns an empty list.
 
-**PLAN.md link:** [fill in — link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/tahsintawhid/pathreview/blob/fix/146-parenthesized-phone-redaction/PLAN.md
 
 **Walkthrough video (recommended):** [optional — add if you record one]
 
