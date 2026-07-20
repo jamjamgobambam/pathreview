@@ -37,6 +37,17 @@ services:
 
   vector-db:
     image: chromadb/chroma:0.4.22
+    # Override entrypoint: the image's default /docker_entrypoint.sh force-reinstalls
+    # chroma-hnswlib without pinning numpy, which pulls in numpy>=2 and breaks
+    # chromadb's own code (np.float_ was removed in NumPy 2.0).
+    command:
+      - -c
+      - |
+        pip install --force-reinstall --no-cache-dir chroma-hnswlib "numpy<2"
+        export IS_PERSISTENT=1
+        export CHROMA_SERVER_NOFILE=65535
+        exec uvicorn chromadb.app:app --workers 1 --host 0.0.0.0 --port 8000 --proxy-headers --log-config chromadb/log_config.yml --timeout-keep-alive 30
+    entrypoint: ["/bin/bash"]
     ports:
       - "8001:8000"
     volumes:
@@ -44,7 +55,7 @@ services:
     environment:
       ANONYMIZED_TELEMETRY: "false"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/heartbeat')"]
       interval: 10s
       timeout: 5s
       retries: 5
