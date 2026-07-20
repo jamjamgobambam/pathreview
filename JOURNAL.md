@@ -10,19 +10,17 @@
 <!-- Confirmed from the issue's GitHub labels: bug, good first issue, rag, tier-1. -->
 
 **Problem summary:**
-<!-- DRAFT written from reading the code — read it, make sure you understand it,
-     then rewrite it in your own voice before submitting. -->
-The faithfulness checker in the RAG evaluation suite scores how well generated
-feedback is actually supported by the retrieved context chunks. In
-`rag/evaluator/faithfulness_checker.py`, it joins all the chunk texts together
-with `" ".join([chunk.get("text", "") for chunk in context_chunks])`. The
-`.get("text", "")` fallback only kicks in when the `text` key is *missing* — if
-a chunk has the key present but set to `None`, `.get()` returns `None`, and
-joining a list that contains `None` raises a `TypeError` that crashes the whole
-check. A successful fix makes the checker treat a `None` chunk text the same as
-an empty string (so it's skipped instead of crashing), keeps the existing
-scoring behavior unchanged for normal chunks, and adds a regression test in
-`tests/unit/test_faithfulness_checker.py` covering the `text: None` case.
+The faithfulness checker's job is to check whether the feedback the system
+generates is actually grounded in the retrieved context, instead of being made
+up. Right now it crashes when one of the context chunks has its `text` value set
+to `None`. The cause is in how the code builds the context string: our
+`chunk.get("text", "")` call only defaults to an empty string when the `text`
+key is missing entirely, so it doesn't account for the key being present with a
+value of `None` — that `None` then gets passed into `" ".join(...)` and raises a
+`TypeError`. A successful fix treats a `None` text value the same as an empty
+string so the checker skips it instead of crashing, while keeping the scoring
+behavior for normal chunks unchanged. I'll also add a regression test in
+`tests/unit/test_faithfulness_checker.py` that covers the `text: None` case.
 
 **Is this right for me? — scope reasoning:**
 <!-- DRAFT — adjust to reflect your own reasoning after working the checklist. -->
