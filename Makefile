@@ -16,7 +16,13 @@ PYTEST := $(VENV_BIN)/pytest
 # ---- Setup ----
 
 setup: ## First-time setup: venv, deps, migrations, seed data
-	python -m venv .venv || python3 -m venv .venv
+	@if command -v python3.12 >/dev/null 2>&1; then \
+		python3.12 -m venv .venv; \
+	elif command -v python3.13 >/dev/null 2>&1; then \
+		python3.13 -m venv .venv; \
+	else \
+		python3 -m venv .venv || python -m venv .venv; \
+	fi
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
 	$(PIP) install -e ".[dev]"
 	$(VENV_BIN)/pre-commit install
