@@ -57,3 +57,24 @@ I confirmed the gap is real by reading `docs/ARCHITECTURE.md` and `HybridRetriev
 [x] This issue has no open blockers or dependencies on other unresolved issues.
 
 I was the first one to claim this issue. The issue estimates 2 to 3 hours, which fits comfortably in the Weeks 8 to 9 window alongside my other commitments. I checked the issue for blockers and dependencies and found none, and I reviewed the existing claims on the issue before claiming it myself.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:**
+[link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I confirmed the issue directly against the codebase during issue selection.
+
+Current `docs/ARCHITECTURE.md` covers hybrid retrieval with no formula, no weights, and no example, while `rag/retriever/hybrid.py` implements a weighted scoring blend that is documented nowhere in `docs/`.
+
+Running the app is not applicable to reproducing a documentation gap. The reproduction is the side-by-side reading of the doc section and the retriever code.
+
+**PLAN.md link:**
+[link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):**
+Unnecessary for missing documentation.
+
+**Blockers or open questions:**
+No.
