@@ -9,7 +9,7 @@
 **Problem summary:**
 Currently, tests for auth middleware check if a token is valid or not. However, these tests do not include edge cases like expired tokens, malformed tokens, tokens assigned with a different secret, and missing `Authorization` headers, all of which follow a valid token format but aren't tokens that can be used. This PR adds those edge cases into the unit tests to ensure the bad tokens can be caught instead of silently ignored. 
 
-**Branch name:** auth-edge-cases-tests
+**Branch name:** feat/90-auth-edge-cases-tests
 
 **Setup confirmation:** [✅] App runs locally at localhost:5173
 
