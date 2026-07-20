@@ -5,6 +5,7 @@
 **Issue title:** [Add a "Copy link" button to share a public review summary]
 
 **Tier:** [ ] Tier 1  [ X ] Tier 2  [ ] Tier 3
+
 Tier 2 fits my current scope because the feature spans both the frontend and backend — it requires building a new UI button in React, a service layer for generating share tokens, and a new API route in Python. I have prior experience with full-stack development, so I'm comfortable working across those layers, but the token expiry logic and public-access design add enough complexity to make this a meaningful challenge rather than a trivial addition.
 
 **Problem summary:**
