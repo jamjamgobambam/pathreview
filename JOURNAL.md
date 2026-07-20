@@ -61,7 +61,7 @@ I was the first one to claim this issue. The issue estimates 2 to 3 hours, which
 ## Week 8 — Reproduction & solution planning
 
 **Reproduction commit link:**
-[link to commit documenting the reproduced issue]
+https://github.com/mitechzone/pathreview/commit/1fbe32739f50bc8a08fd4b15035cdafc51ea6c76
 
 **Reproduction summary:**
 I confirmed the issue directly against the codebase during issue selection.
@@ -71,7 +71,7 @@ Current `docs/ARCHITECTURE.md` covers hybrid retrieval with no formula, no weigh
 Running the app is not applicable to reproducing a documentation gap. The reproduction is the side-by-side reading of the doc section and the retriever code.
 
 **PLAN.md link:**
-[link to PLAN.md in your fork]
+https://github.com/mitechzone/pathreview/blob/docs/36-hybrid-retrieval-scoring-formula/PLAN.md
 
 **Walkthrough video (recommended):**
 Unnecessary for missing documentation.
