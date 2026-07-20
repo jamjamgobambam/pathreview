@@ -18,7 +18,7 @@ PathReview analyzes GitHub profiles, resumes, and project repositories to genera
 
 ```bash
 # Clone and enter the repo
-git clone https://github.com/jamjamgobambam/pathreview.git
+git clone https://github.com/ascherj/pathreview.git
 cd pathreview
 
 # Configure environment (add your OPENROUTER_API_KEY to .env)
