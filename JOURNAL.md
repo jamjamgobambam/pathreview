@@ -1,10 +1,16 @@
-# PathReview Contribution Journal
+## Week 7 — Issue selection
 
-## Week 7: Issue Selection & Environment Setup
+**Issue link:** https://github.com/ascherj/pathreview/issues/158
+**Issue title:** review_service unit tests misconfigure async mocks — 13 of 19 tests fail
+**Tier:** [x] Tier 1 [ ] Tier 2 [ ] Tier 3
 
-- **Issue Claimed:** #158
-- **Issue Title:** `review_service` unit tests misconfigure async mocks — 13 of 19 tests fail
-- **Tier:** Tier 1
-- **Selection Reasoning:** Fixing a broken test suite provides immediate, high-impact value to the codebase without risking production regression. It also offers excellent practical experience debugging Python async mock configurations (`AsyncMock` vs. `MagicMock`), which is a common real-world backend engineering challenge.
-- **Status:** Local development environment successfully configured via Docker and running. Issue tracker and cohort ledger updated.
-- **Problem Summary:** The test suite is experiencing widespread failures because database mock sessions are returning asynchronous coroutines where synchronous result objects are expected by chained calls like `.first()` and `.all()`.
+**Problem summary:**
+The test suite for `review_service.py` is experiencing widespread failures where 13 out of 19 total tests are completely broken. Currently, the database mock sessions are improperly returning asynchronous coroutine objects instead of synchronous result mocks when `result.scalars()` is called, causing downstream chained methods like `.first()` and `.all()` to throw an AttributeError. A successful fix will correctly restructure these test fixtures using a combination of AsyncMock and MagicMock so that the existing CRUD tests can execute cleanly and unblock the test suite runner.
+
+**Branch name:** fix/158-async-mocks
+**Setup confirmation:** [x] App runs locally at localhost:5173
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+### Selection Notes & Scope Reasoning:
+
+I evaluated this issue against the "Is this right for me?" checklist. While navigating a new multi-module project can be complex, this Tier 1 issue is highly scoped specifically to the `tests/unit/test_review_service.py` file, meaning it does not introduce architectural risk or require cross-module refactoring. Fixing a broken test suite provides immediate, high-impact value to the development pipeline without risking production regressions, making it the perfect scope fit for my current comfort level with the codebase.
