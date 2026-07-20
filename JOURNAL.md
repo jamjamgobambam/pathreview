@@ -36,6 +36,11 @@ Postgres + Redis still needs Docker Desktop installed and running.)
 (To be completed manually — I don't have access to the shared cohort spreadsheet/ledger link.)
 
 **Scope check ("Is this right for me?"):**
+- I chose Tier 1 deliberately: this is my first time working in `pathreview`'s
+  codebase, and I don't yet have a mental map of how `safety/`, `api/`, and the
+  rest of the modules connect, so I wanted an issue contained to one file rather
+  than one that would force me to trace behavior across the app while I'm still
+  orienting myself.
 - Single file, single regex change — no cross-module ripple.
 - Labeled `good first issue`, Tier 1, with a clear repro script in the issue body.
 - Four existing named unit tests already define "done" — no ambiguity about scope.
