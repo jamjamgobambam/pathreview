@@ -22,7 +22,7 @@ the code the user actually wrote.
 
 **Branch name:** fix/150-exclude-vendored-build-files
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
 
