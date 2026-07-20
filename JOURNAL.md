@@ -1,6 +1,9 @@
 ## Week 7 — Issue selection
 
 **Issue link:** https://github.com/ascherj/pathreview/issues/50
+
+
+
 **Issue title:** Add a `has_tests` boolean to the repo analysis output
 
 **Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
@@ -32,4 +35,6 @@ issue originally pointed.
 **Branch name:** feat/50-has-tests-detection
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
+
+
 **Cohort ledger:** [x] Issue added to cohort ledger
