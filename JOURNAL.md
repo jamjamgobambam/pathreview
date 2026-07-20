@@ -29,3 +29,30 @@ architecture.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [fill in after this commit — paste the GitHub commit URL]
+
+**Reproduction summary:**
+Confirmed the root cause: the `phone_us` regex in `safety/pii_scrubber.py` uses
+`[-.]?` as the separator between digit groups, which allows dashes and dots but
+not spaces. Since `(555) 123-4567` has a space (not a dash) right after the
+closing parenthesis, the regex fails to match at all. Verified via direct
+regex testing (`re.search` returns `None` for the parenthesized format but
+matches for the dashed format), and via `pytest tests/unit/test_pii_scrubber.py
+-k "phone"`, which shows 4 failing tests: `test_us_phone_number_redaction`,
+`test_us_phone_formats`, `test_detect_phone_pii`, and
+`test_phone_at_start_of_text`, all failing because `scrub()` leaves the number
+un-redacted and `detect()` returns an empty list.
+
+**PLAN.md link:** [fill in — link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [optional — add if you record one]
+
+**Blockers or open questions:**
+`test_us_phone_formats` also tests `"+1 555 123 4567"`, a space-separated
+format with no parentheses. It wasn't individually reported as failing since
+the test loop's assert stops at the first failure, but it shares the same
+root cause (space not in the separator character class) and will need to be
+verified once the fix is in place.
