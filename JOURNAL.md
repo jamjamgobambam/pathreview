@@ -3,14 +3,11 @@
 ## Week 7 — Issue selection
 
 **Issue link:** https://github.com/jamjamgobambam/pathreview/issues/153
-<!-- ⚠️ VERIFY: replace with the exact URL from your browser's address bar on the
-     issue page. This is my best guess based on the `upstream` remote. -->
 
 **Issue title:** Faithfulness checker crashes when a context chunk has `text: None`
 
 **Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
-<!-- ⚠️ VERIFY: confirm the tier from the label on the GitHub issue itself.
-     Marked Tier 1 because it's a small, single-file null-handling crash fix. -->
+<!-- Confirmed from the issue's GitHub labels: bug, good first issue, rag, tier-1. -->
 
 **Problem summary:**
 <!-- DRAFT written from reading the code — read it, make sure you understand it,
