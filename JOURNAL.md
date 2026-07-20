@@ -18,6 +18,14 @@ constraint, or a rejection of the second request — so that only one review can
 in progress for a given profile at a time. This affects `api/routes/reviews.py` and
 `core/services/review_service.py`.
 
+Scope-fit checklist — Is this right for me?
+
+This issue sits at the right difficulty for where I am right now — hard enough that I have to make a real design decision instead of applying a mechanical patch, but bounded enough (two files, one traceable root cause) that I can actually finish it and reproduce it with confidence rather than getting lost in an open-ended problem. The full reasoning behind that verdict is below.
+
+How I located the relevant files: The issue lists api/routes/reviews.py and core/services/review_service.py as relevant files. I didn't take that at face value — I read both files in full before committing to the issue, and traced the actual code path: POST /reviews in reviews.py calls create_review(), which hands off to process_review() in review_service.py. Neither function checks for an existing in-flight review before starting a new one, which is the actual root cause, not just a description of one.
+
+What's the root cause, concretely? create_review() has no guard against two requests for the same profile_id running concurrently. Each call independently triggers process_review(), which re-runs _run_ingestion_pipeline() — so two overlapping requests produce duplicate IngestedSource rows and two competing Review records with no coordination between them.
+
 **Branch name:** fix/82-concurrent-review-race
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
