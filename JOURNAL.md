@@ -7,9 +7,7 @@
 **Tier:** [ ] Tier 1  [✅] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-[In 3–5 sentences, in your own words: what the issue is (not a copy-paste of
-the title), what is currently broken or missing, and what a successful fix
-would accomplish. Naming the part of the codebase it affects is helpful context.]
+Currently, tests for auth middleware check if a token is valid or not. However, these tests do not include edge cases like expired tokens, malformed tokens, tokens assigned with a different secret, and missing `Authorization` headers, all of which follow a valid token format but aren't tokens that can be used. This PR adds those edge cases into the unit tests to ensure the bad tokens can be caught instead of silently ignored. 
 
 **Branch name:** auth-edge-cases-tests
 
