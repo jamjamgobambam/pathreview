@@ -14,3 +14,17 @@ The system currently misses valuable CI/CD and DevOps skills (like GitHub Action
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Builder106/pathreview/commit/d04a3dd0b803c77d5801973e32a4605b69833616
+
+**Reproduction summary:**
+I added a new failing unit test in `test_skill_extractor.py` that verifies the `SkillExtractor` is currently unable to extract CI/CD skills (e.g., GitHub Actions, pytest) from standard `.github/workflows/*.yml` workflow definitions. This proves that parsing support for workflow files is missing.
+
+**PLAN.md link:** https://github.com/Builder106/pathreview/blob/feat/14-github-actions-parser/PLAN.md
+
+**Walkthrough video (recommended):** [Not recorded yet, but repository is updated with the required deliverables]
+
+**Blockers or open questions:**
+`pyyaml` is not currently in `pyproject.toml`. I will need to clarify if it is acceptable to add it as a new dependency to parse YAML properly, or if a robust regex-based extraction mechanism should be used instead.
