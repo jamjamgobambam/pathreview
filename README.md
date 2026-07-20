@@ -42,14 +42,14 @@ For detailed setup instructions including platform-specific notes, see [docs/SET
 
 PathReview is structured as a multi-service Python + React application with five major subsystems:
 
-| Subsystem | Directory | Description |
-|---|---|---|
-| API Layer | `api/` | FastAPI REST API with authentication, validation, and rate limiting |
-| Ingestion Pipeline | `ingestion/` | Document parsing, chunking, and embedding generation |
-| RAG System | `rag/` | Hybrid retrieval, LLM-based review generation, and quality evaluation |
-| Agent System | `agent/` | Multi-tool orchestration with planning, state management, and error handling |
-| Safety Layer | `safety/` | Content filtering, bias detection, PII scrubbing, and prompt defense |
-| Frontend | `frontend/` | React + TypeScript dashboard with Vite |
+| Subsystem          | Directory      | Description                                                                  |
+| ------------------ | -------------- | ---------------------------------------------------------------------------- |
+| API Layer          | `api/`       | FastAPI REST API with authentication, validation, and rate limiting          |
+| Ingestion Pipeline | `ingestion/` | Document parsing, chunking, and embedding generation                         |
+| RAG System         | `rag/`       | Hybrid retrieval, LLM-based review generation, and quality evaluation        |
+| Agent System       | `agent/`     | Multi-tool orchestration with planning, state management, and error handling |
+| Safety Layer       | `safety/`    | Content filtering, bias detection, PII scrubbing, and prompt defense         |
+| Frontend           | `frontend/`  | React + TypeScript dashboard with Vite                                       |
 
 For a detailed architecture overview, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
