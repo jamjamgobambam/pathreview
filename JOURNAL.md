@@ -12,3 +12,5 @@ In summary, the code check if the database is working using 'SELECT 1'. However,
 **Branch name:** fix/154-healthcheck-SQL-string
 
 **Setup confirmation:** [ x] App runs locally at localhost:5173
+
+**Cohort ledger:** [ x] Issue added to cohort ledger
