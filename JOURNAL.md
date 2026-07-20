@@ -25,3 +25,19 @@ Part 4: No one else has commented claiming this issue (at time of selection, coh
 **Cohort ledger:** [x] Issue added to cohort ledger
 
 **AI Usage:** I used Claude to review the `review_service.py` and `test_review_service.py` to give me a rundown of the exisiting functions, why they are used and to highlight cases where unit tests are missing.
+
+<hr>
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/jdingeman/pathreview/commit/abcb666babe288113e36092ebb7c4a7d4e504af1
+
+**Reproduction summary:**
+I isolated the tests by running `pytest tests/unit/test_review_service.py > temp_test_review_service_output.txt 2>&1` so I could see the test results. I found that several of the existings tests are failing due to syntax issues, though it is outside the scope of this fix. The tests only cover `create_review`, `get_review` and `list_reviews` but not `process_review`
+
+**PLAN.md link:** PLAN.md
+
+**Walkthrough video (recommended):** _Covered by temp_test_review_service_output.txt_
+
+**Blockers or open questions:**
+I am unsure about the setup of the existing tests and if my tests should be implemented the same way since the exisitng ones fail due to syntax. See temp_test_review_service_output.txt
