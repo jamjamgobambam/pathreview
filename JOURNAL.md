@@ -24,8 +24,13 @@ parenthesized format, and gets the four related tests in
 **Branch name:** fix/146-pii-scrubber-parenthesized-phone
 
 **Setup confirmation:** [ ] App runs locally at localhost:5173
-(Docker Desktop install is in progress on this machine — will confirm once
-`docker compose up -d` / `make setup` / `make run` complete successfully.)
+(Docker Desktop is not yet installed on this machine — the `brew install --cask docker`
+step needs an interactive sudo password prompt that couldn't be completed non-interactively.
+I set up a Python venv and installed the backend dev dependencies directly, and confirmed the
+fix by running `pytest tests/unit/test_pii_scrubber.py` — all four target tests
+(`test_us_phone_number_redaction`, `test_us_phone_formats`, `test_detect_phone_pii`,
+`test_phone_at_start_of_text`) now pass. Full `make setup` / `make run` against
+Postgres + Redis still needs Docker Desktop installed and running.)
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
 (To be completed manually — I don't have access to the shared cohort spreadsheet/ledger link.)
