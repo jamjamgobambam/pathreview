@@ -22,7 +22,7 @@ templates live.
 
 **Branch name:** test/37-prompt-template-snapshot-tests
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
 
