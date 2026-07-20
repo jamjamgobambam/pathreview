@@ -27,7 +27,7 @@ the user actually experienced.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/umacy/pathreview/commit/REPRO_COMMIT_SHA
+**Reproduction commit link:** https://github.com/umacy/pathreview/commit/914ba39
 
 **Reproduction summary:**
 I added a Vitest reproduction (`frontend/src/utils/__tests__/dateFormatters.test.ts`)
