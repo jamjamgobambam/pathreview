@@ -39,7 +39,7 @@ In the terminal, I ran .venv/Scripts/python -c "from safety.bias_detector import
 
 From there I saw that the test case failed in the output, as the bias detector didn't catched the bias. 
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** (https://github.com/stephanyTF/pathreview/blob/fix/151/narrow-bias-detector/PLAN.md)
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — shared for early feedback]
 
