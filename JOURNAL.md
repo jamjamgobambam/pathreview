@@ -19,6 +19,6 @@ against current portfolio data.
 
 **Branch name:** fix/43-clear-agent-session-state
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
