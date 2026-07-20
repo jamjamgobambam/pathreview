@@ -1,43 +1,73 @@
-# Plan: Snapshot tests for prompt template version drift
+## Solution plan
 
-## Issue
-[paste your issue link here]
+**Issue:** Issue  #37: Add snapshot tests for prompt templates to catch accidental changes
 
-## Problem
-Prompt templates directly shape review quality, but the existing test
-(`test_template_snapshot_content_hash`) only checked that a hash was a
-32-character string — it never compared against a fixed baseline. This
-meant a developer could silently edit a template's text and CI would
-still pass, with no signal that review-affecting prompt content had
-changed without a version bump.
 
-## Approach
-- Added `tests/unit/prompt_template_snapshots.py`: a checked-in baseline
-  storing a SHA-256 hash per (template_name, version) pair.
-- Added `tests/unit/generate_prompt_snapshots.py`: a script to regenerate
-  the baseline. Only meant to be run when intentionally adding or
-  changing a template version.
-- Replaced the old no-op hash test in `test_prompt_templates.py` with a
-  new `TestPromptTemplateSnapshots` class:
-  - `test_template_content_matches_snapshot` — parametrized over every
-    template/version, fails if content no longer matches the recorded hash.
-  - `test_no_untracked_template_versions` — fails if a template/version
-    exists in code but has no snapshot recorded.
-  - `test_no_orphaned_snapshots` — fails if a snapshot exists for a
-    template/version that's since been removed from the code.
 
-## Why this enforces version bumps
-Editing v1's text in place changes its hash, so the test fails. The
-intended fix is to add a new version key (v2) with the updated text,
-leaving v1's hash as a historical record, then regenerate snapshots.
+### Understand
+The existing `test_template_snapshot_content_hash` test computed a
+combined MD5 hash of all prompt template content but never compared it
+against a fixed baseline — it only asserted the hash was a 32-character
+string. Since prompt templates directly shape review quality, this meant
+a developer could silently edit a template's wording and CI would still
+pass, with no signal that review-affecting content changed without a
+conscious version bump. Expected behavior: editing a template's text
+without adding a new version key should fail tests. Actual behavior
+(before fix): any edit passed silently.
 
-This is a soft guard — a developer could technically regenerate the
-baseline without bumping the version. Enforcement ultimately relies on
-reviewers noticing a diff to `prompt_template_snapshots.py` in a PR that
-doesn't also show a new version key being added in `prompt_templates.py`.
+### Map
+- `rag/generator/prompt_templates.py` — source of truth, contains
+  `PROMPT_TEMPLATES` dict and `get_template()`. Not modified, only read.
+- `tests/unit/test_prompt_templates.py` — removed the no-op hash test,
+  added a new `TestPromptTemplateSnapshots` class.
+- `tests/unit/prompt_template_snapshots.py` (new) — checked-in baseline
+  of per-version SHA-256 hashes.
+- `tests/unit/generate_prompt_snapshots.py` (new) — script to regenerate
+  the baseline when a version is intentionally added or changed.
 
-## Testing
-- Ran `python -m pytest tests/unit/test_prompt_templates.py -v` — 43 passed.
-- Verified failure mode by editing skills_feedback v1 text without a
-  version bump; confirmed the test failed with the expected guidance
-  message; reverted the change and confirmed 43 passed again.
+### Plan
+1. Add a baseline snapshot file storing one hash per (template_name, version).
+2. Add a generator script that computes hashes from `PROMPT_TEMPLATES`
+   and writes the baseline file.
+3. Replace the old no-op snapshot test with a parametrized test that
+   compares each live template's hash against its recorded baseline hash.
+4. Add coverage for drift in the other direction: a template/version
+   with no snapshot recorded, and a snapshot with no matching template
+   left in code.
+5. Run the generator once to populate real baseline hashes, verify all
+   tests pass, then verify the guard actually fails when template text
+   changes without a version bump.
+
+### Inputs & outputs
+- Input: `PROMPT_TEMPLATES` dict (name -> version -> template string) in
+  `prompt_templates.py`.
+- Output: a pass/fail test result. Failing output includes a message
+  telling the developer to add a new version key rather than edit the
+  existing one in place, plus the exact regeneration command to run
+  once that's done.
+
+### Risks & unknowns
+- This is a soft guard: a developer could regenerate the baseline
+  without actually bumping the version key, defeating the purpose.
+  Real enforcement depends on a reviewer noticing a
+  `prompt_template_snapshots.py` diff without a corresponding new
+  version key in `prompt_templates.py` — I should call this out in the
+  PR description in Week 9.
+- Encoding: `Path.write_text()` defaults to the OS locale encoding on
+  Windows, which broke on an em-dash in my docstring. Fixed by passing
+  `encoding="utf-8"` explicitly — worth double-checking other file-write
+  calls in the codebase for the same issue if I touch them later.
+- Uncertain whether the maintainer wants MD5 or SHA-256 for the hash —
+  I used SHA-256 since it's the modern default, but the original test
+  used MD5, so this might get flagged in review.
+
+### Edge cases
+- A template name exists in code but has no snapshot recorded (new
+  template added) — caught by `test_no_untracked_template_versions`.
+- A snapshot exists for a template/version that's been removed from
+  code (stale entry) — caught by `test_no_orphaned_snapshots`.
+- A version's text changes without a version bump — caught by
+  `test_template_content_matches_snapshot`.
+- Multiple versions of the same template (e.g. v1 and v2 coexisting) —
+  each gets its own independent hash entry, so old versions keep
+  working even after a new one is added.
