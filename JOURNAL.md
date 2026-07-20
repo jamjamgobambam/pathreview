@@ -1,10 +1,22 @@
 ## Week 7 — Issue selection
 
-**Issue link:** [ascherj#151](https://github.com/ascherj/pathreview/issues/151)
+**Issue link:** https://github.com/ascherj/pathreview/issues/151
 
 **Issue title:** Bias detector patterns are too narrow to match common phrasings
 
 **Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
+
+**Scope-fit reasoning:**
+Using the "Is this right for me?" checklist: the issue is scoped to a single
+file (`bias_detector.py`), the fix is behavioral rather than architectural
+(extending pattern matching, not redesigning a system), and there's an
+existing test suite (9 failing tests) that defines exactly what "done"
+looks like — which removes a lot of ambiguity for a first issue in an
+unfamiliar codebase. It's labeled `tier-1` and doesn't touch other services
+(no auth, no DB schema changes), so the blast radius if I get something
+wrong is small. I chose it over other Tier 1 options specifically because
+the failing tests give me a concrete, checkable definition of success
+rather than open-ended judgment calls about what "good enough" means.
 
 **Problem summary:**
 The bias detector module currently relies on regex patterns that only match
