@@ -13,7 +13,7 @@ Today PathReview's review-quality evaluation exists only as an in-process `EvalS
 
 **Branch name:** `feat/40-offline-eval-runner`
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
 
@@ -58,19 +58,24 @@ Most relevant files for issue #40 (all read during this Week 7 orientation):
 
 ### Local setup verification (Week 7)
 
-Honest record of the environment check performed this session (macOS, Apple Silicon / arm64):
+Verified this session on macOS (Apple Silicon / arm64). Docker has since been installed, so the previously blocked local setup was completed and both endpoints were confirmed responding.
 
-| Prerequisite | Required (docs/SETUP.md) | Installed | Status |
+| Tool | Required (docs/SETUP.md) | Installed / used | Status |
 |---|---|---|---|
 | Git | 2.39+ | 2.50.1 | OK |
-| Python | 3.11+ | 3.14.0 | Present, but newer than the 3.11 target — possible dependency-wheel risk |
+| Python (project `.venv`) | 3.11+ | 3.14.0 | OK — all dependencies installed and the app runs on 3.14 |
 | Node.js | 18+ | 22.17.1 | OK |
 | npm | 9+ | 10.9.2 | OK |
-| Docker | 24+ | not installed | **Missing — blocker** |
-| Docker Compose | 2.20+ | not installed | **Missing — blocker** |
+| Docker | 24+ | 29.6.1 | OK |
+| Docker Compose | 2.20+ | v5.3.0 | OK |
 | make | — | GNU Make 3.81 | OK |
 
-- **`.env`:** present and git-ignored (no secret values were read, printed, or committed). `LLM_PROVIDER=mock` is the default, so no real API key is needed to run.
-- **Docker services / `make setup` / `make run`:** **not run.** `make setup` requires the Postgres container for `alembic upgrade head` and `scripts/seed_db.py`, and Docker is not installed, so per the setup guide these steps cannot proceed. I did not fake or force them.
-- **Frontend (localhost:5173) / API (localhost:8000/docs):** **not verified** — hence the setup checkbox above is left unchecked.
-- **Remediation to unblock setup later:** install a container runtime for Apple Silicon (Docker Desktop, or Colima/OrbStack), then `docker compose up -d` → wait for healthy services → `make setup` → `make run`, and open http://localhost:5173. If `pip install` fails under Python 3.14, use `pyenv` to select Python 3.11 for the project virtualenv, as noted in `docs/SETUP.md`.
+- **Docker services (`docker compose up -d`):** `db` (PostgreSQL, healthy) and `redis` (healthy) — the services `make setup`/`make run` actually need. `vector-db` (ChromaDB) is a known non-blocker (see warnings).
+- **`make setup`:** succeeded — created the `.venv`, installed the Python dependencies, ran `alembic upgrade head`, and seeded the database. The only hiccup was the final `npm install` hitting a pre-existing permission problem in the global npm cache (`~/.npm`); it completed after pointing npm at a clean cache directory. No tracked project files were changed to make setup work.
+- **`make run`:** succeeded — `uvicorn api.main:app` reached "Application startup complete" (connected to PostgreSQL) and the Vite dev server started.
+- **Frontend:** `http://localhost:5173` → HTTP **200**, serving the PathReview Vite/React app (`<title>PathReview - AI Portfolio Review Assistant</title>`).
+- **API docs:** `http://localhost:8000/docs` → HTTP **200**, FastAPI Swagger UI for the PathReview API; `/openapi.json` loads with 9 routes.
+- **`.env`:** present and git-ignored; no secret values were read, printed, or committed. `LLM_PROVIDER=mock`, so no real API key is required.
+- **Non-blocking warnings:** (1) the `vector-db` (ChromaDB `0.4.22`) container exits at startup with `AttributeError: np.float_ was removed in the NumPy 2.0 release` — an incompatibility inside that pinned image; it is not required for `make setup`, `make run`, the frontend, or the API docs, all of which succeed without it, so no Docker-config change was made. (2) The global npm cache permission issue noted above (worked around, not a project defect). (3) `docker-compose.yml` emits an "obsolete `version` attribute" notice — cosmetic only.
+
+Scope note: this confirms local setup and endpoint availability only — it does not exercise the full review-generation flow, and no issue #40 work was started.
