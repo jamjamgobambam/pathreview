@@ -14,3 +14,11 @@ The health check endpoint's database probe, in `api/routes/health.py`, runs the 
 **Setup confirmation:** [ ] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+"Is this issue right for me?" checklist:
+
+Understanding the issue: The DB health check probe runs the raw SQL string "SELECT 1" directly. SQLAlchemy 2.x requires textual SQL to be wrapped in sqlalchemy.text(), so the probe throws an ArgumentError and /health reports the database as down even when it's reachable. "Done" means GET /health returns a healthy status instead of raising that error.
+Affected area: api/routes/health.py (API layer).
+Tier fit: Tier 1 / good first issue — appropriate scope for an early contribution.
+Codebase readiness: Read the relevant function in api/routes/health.py in full. Located and read the corresponding test file end-to-end.
+Scope and time: Checked issue comments and ledger Claims count for #154. Estimated at 3–6 hours, within the Tier 1 range. No stated blockers on the issue.
