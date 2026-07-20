@@ -32,7 +32,7 @@ architecture.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [fill in after this commit — paste the GitHub commit URL]
+**Reproduction commit link:** https://github.com/tahsintawhid/pathreview/commit/702d8e7fcbfeb317d43507da8072b9035da62808
 
 **Reproduction summary:**
 Confirmed the root cause: the `phone_us` regex in `safety/pii_scrubber.py` uses
