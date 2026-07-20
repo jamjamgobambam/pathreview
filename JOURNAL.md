@@ -75,3 +75,32 @@ test file in the repo) verifying that behavior.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [fill in once this commit is made — not committed yet, pending review]
+
+**Reproduction summary:**
+Reproduced two ways. Live: registered a throwaway user, created a profile
+with no github_username/portfolio_url/resume, and POSTed a review for it —
+it reached `status: "complete"` on the very first poll, with three fully
+fabricated feedback sections ("Technical Skills", "Project Experience",
+"Career Growth") and `overall_score: 0.81`, and `error_message: null`,
+despite the profile having zero real content. Code-level: added
+`test_no_ingested_content_should_not_produce_fabricated_review` to
+`tests/unit/test_review_service.py`, which calls the same placeholder
+pipeline functions (`_run_agent_orchestration`, `_run_rag_retrieval_generation`,
+`_run_safety_checks`) directly with an empty-content profile and asserts they
+shouldn't produce a safety-check-passing, fully-sectioned result from
+nothing — confirmed failing via `.venv/bin/pytest tests/unit/test_review_service.py -v`.
+
+**PLAN.md link:** [fill in once committed — will be https://github.com/OmJam/pathreview/blob/test/88-review-no-ingested-documents/PLAN.md]
+
+**Walkthrough video (recommended):** [not yet recorded]
+
+**Blockers or open questions:**
+Whether the fix belongs purely in the route layer (`api/routes/reviews.py`)
+or needs the defense-in-depth duplicate check in `process_review` too (see
+PLAN.md Risks — leaning toward both); whether to fix the `error_message`
+column not being populated on the two pre-existing failure paths as a
+drive-by while touching this code, or leave that for a separate issue.
