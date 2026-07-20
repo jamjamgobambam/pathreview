@@ -6,6 +6,11 @@
 
 **Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
+**Tier reasoning:** The issue is localized and seems appropriate for the time frame.
+The issue description is clear with reproducible steps and describe well what "done"
+state looks like. The relevant files are also pointed out along with the unit tests.
+There are quite a few others working on this issue, but it is okay given the time constraints.
+
 **Problem summary:**
 The skill extractor is failing to extract JavaScript and TypeScript in its 
 language detection function. The detector is able to detect some keywords still if
