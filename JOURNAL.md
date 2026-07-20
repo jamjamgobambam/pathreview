@@ -20,10 +20,21 @@ I chose this issue because it has a clear title and description, which makes me 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/mariiaonokhina/pathreview/commit/946592cf7f728cde8525c2c64ca8276c1900993b
 
 **Reproduction summary:**
 [1–2 sentences: How did you reproduce the issue? What did you observe?]
+There are 2 ways to reproduce this issue. First, I created a file called `test.py` (wasn't commited in the PR) and pasted the following code from the issue description:
+
+```python
+from safety.bias_detector import BiasDetector
+print(BiasDetector.detect_bias('The candidate only attended a bootcamp, so this project lacks the rigor of a formal CS education'))
+# observed: (False, '')  (expected: flagged as dismissive educational-background language)
+```
+
+When I ran the file, it returned that there is no bias (False), which is wrong.
+
+Also, I ran `pytest tests/unit/test_bias_detector.py -v` and it showed that 9 tests are failing in the bias detector.
 
 **PLAN.md link:** [link to PLAN.md in your fork]
 
