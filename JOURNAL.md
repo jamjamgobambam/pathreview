@@ -11,7 +11,7 @@ The `POST /reviews` API route is missing a test for the case where a profile exi
 
 **Branch name:** test/88-reviews-no-ingested-documents
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
 
