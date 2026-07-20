@@ -22,11 +22,9 @@ is genuinely partial, without changing any logic in
 `rag/evaluator/relevance_scorer.py`.
 
 **Selection reasoning ("Is this issue right for me?" checklist):**
-**Selection reasoning ("Is this issue right for me?" checklist):**
 1. **Is it actually open?** Yes — I checked and #157 has no merged fix yet.
-   (There's an open, unmerged PR #164 from another student attempting it,
-   but multiple people are allowed to work the same issue in this course,
-   so this doesn't disqualify it.)
+   (Multiple people are allowed to work the same issue in this course,
+   so other claim comments doesn't disqualify my selection.)
 2. **Is the scope clear?** Yes — the problem is specific and reproducible.
    Running `pytest tests/unit/test_relevance_scorer.py -q` reliably
    reproduces the exact failure (`assert 1.0 < 0.9`), so there's no
