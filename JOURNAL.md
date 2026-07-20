@@ -14,3 +14,6 @@ The review history page is showing review timestamps as if they were in UTC inst
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+**Selection notes:** 
+I chose this issue because it has a clear title and description, which makes me fully understand what needs to be done and what files and functions were affected. It is a Tier 1 issue because it's my first open source contribution. The issue is not claimed and it's definitely realistic to complete within 2 weeks.
