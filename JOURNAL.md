@@ -40,15 +40,15 @@ tracker assigns, but flagging the mismatch explicitly rather than silently
 inflating or deflating my own effort estimate to match the label.
 
 **Known unknowns — resolved during investigation:**
-- **Resolved:** `pip-audit` has no built-in severity-threshold flag
-  (`--fail-on`/`--severity` do not exist). Confirmed via `pypa/pip-audit`
-  GitHub issues #654 and #670, where this exact feature has been requested
-  and remains unimplemented as of this writing. By default `pip-audit`
-  exits non-zero on *any* finding. To honor the issue's "fail on
-  high-severity" requirement, the CI step requests `-f json` output and
-  filters for `HIGH`/`CRITICAL` with `jq` before deciding whether to fail
-  the build. Documenting this as a deliberate design choice, not a
-  workaround for something I forgot to check.
+- **Resolved:(superseded, view below):** Initially assumed `pip-audit`
+  would need JSON output + `jq` filtering to approximate severity
+  thresholds. Real testing showed this was itself wrong in a more basic
+  way: bare `pip-audit` audits the *entire installed environment*
+  (confirmed it picked up unrelated Jupyter/Poetry devcontainer tooling,
+  not this project's dependencies at all). Fixed by scoping to the project
+  directory: `pip-audit .` (per official docs,it resolves dependencies
+  from `pyproject.toml` when given a path). I confirmed the scoped run only
+  reports on packages actually declared in `pyproject.toml`. 
 - **Resolved:** `pip-audit` is not currently installed locally (`command
   not found`) and is not listed in `pyproject.toml`'s `[project.optional-
   dependencies].dev` list. Decision: install it as an explicit CI-only step
@@ -66,6 +66,7 @@ inflating or deflating my own effort estimate to match the label.
 
 **Branch name:** `feat/128-dependency-vulnerability-scan`
 
+
 *(`CONTRIBUTING.md`'s branch-type list is `fix`, `feat`, `test`, `docs`,
 `refactor`, `perf`, `chore` — no `ci` type, even though `ci` is a valid
 **commit** type. Choosing `feat` over `chore` because this adds new
@@ -74,4 +75,31 @@ internal tooling maintenance.*
 
 **Setup confirmation:** [ ] Can confirm the app runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [ ]  N/A - > tech fellow*
+
+## Week 8 : Reproduction & solution planning
+**Reproduction summary:**
+Confirmed the gap is real, not assumed, by actually running both audit
+tools against this repo's real dependencies. Scoped `pip-audit .` (bare
+`pip-audit` was initially misleading. It audits the *entire installed
+environment*, not just this project's deps; using `.` scopes it to
+`pyproject.toml`) surfaced two real findings: `chromadb` 1.5.9 has an
+unfixed pre-auth code-injection/RCE vulnerability (PYSEC-2026-311), and
+`ecdsa` 0.19.2 has an unfixed Minerva timing-attack weakness the
+maintainers have declared out of scope (PYSEC-2026-1325). `npm audit`
+against `frontend/` found 11 real vulnerabilities including 1 critical
+(`vitest`, CVSS 9.8) and 2 high (`form-data`, `ws`). Verified that a
+draft CI job running `pip-audit . --ignore-vuln PYSEC-2026-1325` and
+`npm audit --audit-level=high` both correctly exit non-zero right now —
+confirming the tooling would actually catch what today's `ci.yml` misses
+entirely.
+**Blockers or open questions:**
+Two real open questions carried into Week 9, not blockers exactly, but
+decisions that need to be made before the PR is final: (1) whether to
+flag the `chromadb` RCE to course staff/maintainer directly given its
+severity, since fixing it is out of scope for #128 but leaving it
+undocumented would be irresponsible; (2) `docs/CONTRIBUTING.md` has no
+`ci` scope or branch-type entry, so the exact commit/branch convention for
+this change is a judgment call rather than a documented standard — see
+PLAN.md Risks section.
+ 
