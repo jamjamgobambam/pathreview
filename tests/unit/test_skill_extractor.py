@@ -242,3 +242,22 @@ class TestSkillExtractor:
         assert skill.category == "Language"
         assert skill.confidence == 0.95
         assert len(skill.evidence) == 1
+
+    def test_github_actions_workflow_detection(self, extractor):
+        """Test CI/CD skill detection from GitHub Actions workflow."""
+        text = """
+        name: CI
+        on: [push]
+        jobs:
+          build:
+            runs-on: ubuntu-latest
+            steps:
+            - uses: actions/checkout@v2
+            - name: Run tests
+              run: pytest
+        """
+        result = extractor.extract_skills(text, filename=".github/workflows/ci.yml")
+
+        skill_names = [s.name.lower() for s in result]
+        assert any("github actions" in s for s in skill_names)
+        assert any("pytest" in s for s in skill_names)
