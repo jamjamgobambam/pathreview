@@ -24,3 +24,37 @@ contributors can reason about (and safely adjust) retrieval ranking.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+### Selection notes — "Is this issue right for me?" checklist
+
+**Part 1 — Understanding the issue.** In my own words: the architecture doc
+says retrieval is "hybrid" (vector + BM25 keyword) but never says *how* the
+two scores are combined, so a reader can't predict or tune ranking. The
+affected area is the RAG docs (labels: `docs`, `rag`), and the one referenced
+file — `docs/ARCHITECTURE.md` — exists; its RAG section currently gives the
+blend exactly one sentence. "Done" looks like: before, the doc mentions
+blending with no formula; after, it has a section stating the formula
+(`score = 0.7 * normalized_vector + 0.3 * normalized_keyword`, per
+`HybridRetriever` in `rag/retriever/hybrid.py`), the default weights, the
+max-normalization step, and a worked example with sample numbers.
+
+**Part 2 — Tier fit.** Tier 1 is right for me: this is my first contribution
+to this codebase, and the change is a self-contained documentation update to
+a single file. It fits the "documentation update" scope in the tier table.
+
+**Part 3 — Codebase readiness.** I read `rag/retriever/hybrid.py`
+end-to-end, not just located it: `HybridRetriever.__init__` sets
+`vector_weight=0.7` / `keyword_weight=0.3`, and `retrieve()` normalizes each
+score set by its max, blends per chunk, filters by `min_score=0.3`, and
+returns the top `max_chunks=10`. That's everything the doc section needs, so
+I can draft the fix without further lookups. On tests: there is no
+`test_hybrid.py` today (only `test_keyword_search.py` covers the retriever
+package), but since this issue changes only documentation, no new test is
+required — the "read the test file" item doesn't gate a docs fix.
+
+**Part 4 — Scope and time.** Estimated effort on the issue is 2–3 hours,
+which fits comfortably in the Weeks 8–9 window: read the code (done), write
+the doc section with a worked example, and verify the numbers against the
+implementation. The issue lists no "blocked by" dependencies and stands
+alone. Remaining to-do: check the Claims column in the cohort ledger and
+comment on the issue to record my claim.
