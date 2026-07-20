@@ -2,14 +2,13 @@
 
 **Issue link:** [https://github.com/ascherj/pathreview/issues/147]
 
-**Issue title:** [paste issue title here]
+**Issue title:** [Resume section detection fails on text with leading whitespace
+ #147]
 
 **Tier:** [ x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-[In 3–5 sentences, in your own words: what the issue is (not a copy-paste of
-the title), what is currently broken or missing, and what a successful fix
-would accomplish. Naming the part of the codebase it affects is helpful context.]
+[This issue affects the section-detection logic in `ingestion/parsers/resume_parser.py`, specifically the `_detect_sections()` method. The current regular expressions assume that headings such as “Education,” “Experience,” and “Skills” begin at the first character of a line. However, text extracted from PDFs often contains leading spaces or tabs, causing valid headings to be ignored and `detected_sections` to remain empty. A successful fix would update the matching logic to accept optional leading horizontal whitespace while preserving accurate section detection and avoiding new false positives.]
 
 **Branch name:** [fix/147-Resume-section-detection-leading-whitespace]
 
