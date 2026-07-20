@@ -9,6 +9,9 @@
 **Problem summary:**
 Right now, PathReview's retriever ranks chunks using only vector similarity and keyword overlap scores. This means the final context sent to the generator may include chunks that match on surface keywords but aren't actually relevant to the user's query. The fix is to add an optional re-ranking pass that calls a smaller LLM to score each chunk's relevance before the top-k are handed to the generator. This lives in the rag/retriever module, primarily in a new reranker.py file and integration with hybrid.py. A successful implementation would improve answer quality by filtering out false-positive retrievals.
 
+**Issue selection reasoning (Is this right for me?):**
+I can explain the issue without looking at it: the retriever currently ranks chunks by vector and keyword scores alone, but that misses relevance nuance that only an LLM can catch. The fix adds an optional reranker step before generation. I found the relevant files (rag/retriever/hybrid.py exists, reranker.py is new) and read the retriever logic enough to sketch a plan. I checked the test directory and found existing retriever tests I can mirror. I chose Tier 3 because I have prior, though minimal, experience with RAG pipelines and LLM APIs, and the scope is contained to one new module plus one integration point. The 7-10 hour estimate fits within the two-week implementation window given my schedule. No blockers or dependencies on other issues.
+
 **Branch name:** feat/34-setup-&-short-description
 
 **Branch link:** https://github.com/Modeste01/pathreview/tree/feat/34-setup-%26-short-description
