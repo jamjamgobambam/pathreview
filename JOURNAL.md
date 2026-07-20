@@ -17,3 +17,17 @@ I have a particular interest in CI/CD and DevOps work, and issues involving GitH
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** (added in this commit, see `tests/unit/test_workflow_parser_reproduction.py`)
+
+**Reproduction summary:**
+Added `tests/unit/test_workflow_parser_reproduction.py`, which confirms `ingestion.parsers.workflow_parser` does not exist and shows that `SkillExtractor.extract_skills` cannot detect "GitHub Actions," "Pytest," or "Deployment" from a real GitHub Actions workflow YAML — it only matches the literal word "docker" in text, with no structural parsing of jobs/steps. Both tests pass today, which is expected: they document the current (missing) behavior.
+
+**PLAN.md link:** [PLAN.md](PLAN.md)
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+Still deciding whether workflow ingestion should be its own `source_type` in `ingestion/pipeline.py` or folded into the existing "repo" source type — see Risks & unknowns in PLAN.md.
