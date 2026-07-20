@@ -28,3 +28,21 @@ PathReview re-embeds every submitted document, even when the content hasn't chan
 
 **Cohort ledger:** [x] Issue added to cohort ledger
 
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/sh4wnbk/pathreview/commit/5230769
+
+**Reproduction summary:**
+Added `tests/unit/test_ingestion_pipeline.py`, which ingests identical README content twice and asserts the second pass is skipped. The test fails: both passes embed, and the captured log shows why, with `_check_skip` logging `Could not check if source already ingested error="Mock object has no attribute 'query'"` on each run. That is an `AttributeError` from calling the synchronous `.query()` API on an `AsyncSession`, swallowed by a bare `except Exception`, so the pipeline proceeds as though no check had happened. `_record_ingested_source` logs `Recording ingested source` on both passes while writing no database row.
+
+**PLAN.md link:** https://github.com/sh4wnbk/pathreview/blob/feat/13-content-hash-skip-reembedding/PLAN.md
+
+**Walkthrough video (recommended):** not recorded
+
+**Blockers or open questions:**
+No blockers. Four open items carried into Week 9:
+
+- None of the project's quality gates pass on unmodified `main`. `make test-unit` reports 53 failures across `test_bias_detector.py`, `test_pii_scrubber.py`, `test_resume_parser.py`, `test_review_service.py`, and others; `make check` fails at `ruff check .` with 183 errors; the pre-commit mypy hook fails with 12 type errors in `ingestion/chunking/`, `ingestion/embeddings/`, and `ingestion/pipeline.py`. The Week 8 commits were made with `--no-verify` for that reason, documented in the commit message. Ruff, black, and mypy all pass on the added test file, and the suite moves from 53 failures to 54, the single addition being the reproduction test that turns green once the fix lands.
+- `IngestionPipeline` has no callers anywhere in the repository, confirmed by `grep -rn "IngestionPipeline("`. Converting its methods to `async` therefore breaks nothing, but the contract is being chosen rather than matched, and the unit tests are its only consumer.
+- Whether `_record_ingested_source` should commit or flush is unsettled. Committing makes the pipeline self-contained; flushing would leave transaction control to a caller that does not yet exist.
+- `core/services/review_service.py` constructs `IngestedSource` with a `raw_data=` keyword matching no column on the model. It is a separate ingestion path that never touches `IngestionPipeline`, so it stays out of scope and will be noted for the reviewer in the pull request.
