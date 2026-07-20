@@ -36,7 +36,7 @@ When I ran the file, it returned that there is no bias (False), which is wrong.
 
 Also, I ran `pytest tests/unit/test_bias_detector.py -v` and it showed that 9 tests are failing in the bias detector.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/mariiaonokhina/pathreview/blob/fix/151-broaden-bias-detector-patterns/PLAN.md 
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — shared for early feedback]
 
