@@ -78,3 +78,51 @@ Worked through the CodePath "Is This Issue Right for Me?" checklist:
 scrubber. A related-but-separate problem I noticed — the phone-number regex
 failing on formats like `(555) 123-4567` — is out of scope and belongs in its
 own issue.
+
+## Week 8 — Reproduction
+
+Confirmed the issue is real on an untouched `main` (working tree clean, no code
+changes made during reproduction).
+
+**Where it lives:**
+- `safety/pii_scrubber.py:18` — the `street_address` regex in `PII_PATTERNS`.
+- `tests/unit/test_pii_scrubber.py:193` — `test_address_variations`, which has
+  no assertions.
+
+**How to reproduce (functional leak):**
+
+```python
+from safety.pii_scrubber import PIIScrubber
+s = PIIScrubber()
+print(s.scrub("123 5th Avenue"))     # -> "123 5th Avenue"   (should be [REDACTED])
+print(s.scrub("221B Baker Street"))  # -> "221B Baker Street" (should be [REDACTED])
+print(s.scrub("PO Box 1234"))        # -> "PO Box 1234"       (should be [REDACTED])
+print(s.detect("221B Baker Street")) # -> []                  (nothing flagged)
+```
+
+Observed vs. expected:
+
+| Input | `scrub()` today | Expected |
+|---|---|---|
+| `123 Main St` | `[REDACTED]` | `[REDACTED]` (already works) |
+| `123 5th Avenue` | `123 5th Avenue` | `[REDACTED]` |
+| `123 42nd Street` | `123 42nd Street` | `[REDACTED]` |
+| `221B Baker Street` | `221B Baker Street` | `[REDACTED]` |
+| `PO Box 1234` | `PO Box 1234` | `[REDACTED]` |
+
+**Root cause:** the name portion `[A-Za-z\s]+` rejects digits, so numbered
+street names (`5th`, `42nd`) never match; `\d+` alone won't accept a lettered
+house number (`221B`); and there is no PO-box pattern at all.
+
+**How to reproduce (test-coverage gap):**
+
+```
+$ .venv/bin/python -m pytest tests/unit/test_pii_scrubber.py -q -k "address"
+3 passed
+```
+
+The address tests pass even though the leaks above exist, because
+`test_address_variations` calls `scrub()` in a loop but never asserts anything —
+so there is effectively no real address-format coverage.
+
+Reproduction is deterministic (pure regex; no network or LLM involved).
