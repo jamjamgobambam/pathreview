@@ -79,7 +79,26 @@ scrubber. A related-but-separate problem I noticed — the phone-number regex
 failing on formats like `(555) 123-4567` — is out of scope and belongs in its
 own issue.
 
-## Week 8 — Reproduction
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/raeesahiram/pathreview/commit/024b02339727694f5ae7f9ba7822bd50fd620bf4
+
+**Reproduction summary:**
+I ran `scrub()` / `detect()` against a set of real address formats and observed
+that `123 5th Avenue`, `221B Baker Street`, and `PO Box 1234` pass through
+unredacted (and `detect()` returns `[]`), while the existing address tests still
+report as passing because `test_address_variations` has no assertions.
+
+**PLAN.md link:** https://github.com/raeesahiram/pathreview/blob/main/PLAN.md
+
+**Walkthrough video (recommended):** _(not recorded)_
+
+**Blockers or open questions:**
+Whether ZIP-code redaction is expected as part of "address formats." I've scoped
+it out of the fix for now (a bare 5-digit pattern would over-redact any number)
+and will confirm before finalizing in Week 9.
+
+### Reproduction detail
 
 Confirmed the issue is real on an untouched `main` (working tree clean, no code
 changes made during reproduction).
