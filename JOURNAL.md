@@ -14,11 +14,24 @@ PathReview uses prompt templates to generate its reviews, and even small wording
 The work will be done in tests/unit/test_prompt_templates.py and will cover the prompt templates in the rag module.
 
 **Selection notes — "Is this right for me?" checklist:**
-- **Scope is contained:** The work lives in a single file (tests/unit/test_prompt_templates.py) and adds tests rather than changing production code, so the blast radius is small.
-- **Matches my skills:** It's a testing task in Python — no need to redesign the RAG pipeline, just capture and assert on existing template content.
-- **Effort fits the week:** Estimated at 3–5 hours, which is realistic for a first contribution.
-- **Success is clearly defined:** "Done" is unambiguous — a test that fails when a template changes without a version bump. That makes it easy to know when I'm finished.
-- **Good first issue:** Labeled tier-1 and "good first issue," which is the recommended starting point for my first contribution to a large codebase.
+
+*Part 1 — Understanding the issue*
+- **In my own words:** Prompt templates are the core of the reviews this project produces, so a test should exist that fails if a template's text changes without bumping its version — that way a change can't slip in silently.
+- **Part affected:** The issue affects the `rag` module's prompt templates (`rag/generator/prompt_templates.py`); my test guards them and lives in `tests/unit/test_prompt_templates.py`.
+- **What "done" looks like (before → after):** Before the fix, a developer can edit a template and the whole test suite still passes, so the change ships unnoticed. After the fix, editing a template without a version bump makes the snapshot test fail, forcing the developer to either revert or consciously bump the version and update the stored snapshot.
+
+*Part 2 — Tier fit*
+- This is my first contribution to a large open-source codebase, so I chose a Tier 1 issue. #37 is labeled `tier-1` and `good first issue`, which is the recommended starting point.
+
+*Part 3 — Codebase readiness*
+- **Found the code:** `PROMPT_TEMPLATES` is a two-level nested dict — outer keys are the 5 template names, inner keys are version labels (`"v1"`) mapping to the template text; `get_template(name, version="v1")` reads from it.
+- **Rough plan:** The existing `test_template_snapshot_content_hash` already computes an MD5 hash of all template content but never asserts it against a known value. I'll store an expected hash (ideally per template) in the test and assert the current hash matches it, so any content change fails the test and a version bump + snapshot update is the deliberate escape hatch.
+- **Read the test file:** Read `test_all_5_templates_exist` end-to-end — it builds a set of the 5 expected names and asserts it equals `set(PROMPT_TEMPLATES.keys())`, catching both missing and extra templates. These tests are fixture-free and assertion-based.
+
+*Part 4 — Scope and time*
+- **Claims:** 3 students in the ledger and ~13 claim comments on the issue. Claims are non-exclusive and grading is on my own artifacts, and I've already done the readiness work for this issue, so I'm comfortable staying on #37.
+- **Time:** Estimated at 3–5 hours (Tier 1 range), and I'm confident I can complete it within Weeks 8–9.
+- **Blockers:** No "blocked by" references or dependencies on other unresolved issues; the code it touches already exists and is self-contained.
 
 **Branch name:** test/37-prompt-template-snapshot-tests
 
