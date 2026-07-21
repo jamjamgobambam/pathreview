@@ -3,7 +3,7 @@
 **Issue link:** https://github.com/ascherj/pathreview/issues/150
 **Issue title:** Tech detector counts vendored and build-output files, skewing language detection
 
-**Tier:** [ ] Tier 1  [ ] Tier 2  [ ] Tier 3
+**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
 The `TechDetector` class in `agent/tools/tech_detector.py` scans all files passed to it when
