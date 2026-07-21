@@ -67,6 +67,8 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TCH"]
 "core/models/*.py" = ["E501"]
 "scripts/*.py" = ["E501"]
 "alembic/versions/*.py" = ["E501"]
+# FastAPI uses Depends()/File() as argument defaults by design.
+"api/routes/*.py" = ["B008"]
 
 [tool.black]
 target-version = ["py311"]

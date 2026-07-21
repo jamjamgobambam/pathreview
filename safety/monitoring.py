@@ -1,8 +1,9 @@
 """Safety event monitoring."""
 
+from datetime import datetime
+
 import redis
 import structlog
-from datetime import datetime, timedelta
 
 logger = structlog.get_logger()
 
@@ -16,7 +17,7 @@ class SafetyMonitor:
         "injection_attempt",
         "content_filtered",
         "bias_detected",
-        "rate_limited"
+        "rate_limited",
     }
 
     def __init__(self, redis_client: redis.Redis):
@@ -42,7 +43,12 @@ class SafetyMonitor:
 
         try:
             # Log to structlog
-            logger.warning("safety_event", event_type=event_type, **details)
+            logger.warning(
+                "safety_event",
+                event_type=event_type,
+                timestamp=timestamp,
+                **details,
+            )
 
             # Store count in Redis for monitoring
             key = f"safety:events:{event_type}"
@@ -66,7 +72,7 @@ class SafetyMonitor:
         key = f"safety:events:{event_type}"
 
         try:
-            count = self.redis.get(key)
+            count = self.redis.get(key)  # TODO: this is where teh count comes from
             return int(count) if count else 0
 
         except Exception as e:
