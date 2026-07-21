@@ -17,6 +17,6 @@ PathReview's RAG pipeline currently ranks retrieved document chunks using a hybr
 
 **Branch name:** feat/34-llm-reranker
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
