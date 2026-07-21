@@ -37,4 +37,4 @@ The work will be done in tests/unit/test_prompt_templates.py and will cover the 
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
