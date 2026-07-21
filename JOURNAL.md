@@ -23,6 +23,6 @@ errors gracefully so a Redis hiccup never breaks the health check itself.
 
 **Branch name:** fix/68-health-safety-event-count
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [X] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [X] Issue added to cohort ledger
