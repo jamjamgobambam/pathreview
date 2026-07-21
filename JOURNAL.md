@@ -18,9 +18,13 @@ PathReview currently runs lint, typecheck, unit, integration, and frontend tests
 
 **Branch name:** `chore/128-add-dependency-vulnerability-scans`
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+**Issue claim comment:** https://github.com/ascherj/pathreview/issues/128#issuecomment-5034547950
+
+**Cohort ledger entry:** Yie Sheng Chen · `speculaas` · #128 · [cohort spreadsheet](https://docs.google.com/spreadsheets/d/1oclK-70-klhGofiaw6krk8-zV_wZiumsR-Xnd_l5ZR8/edit?gid=1079392097#gid=1079392097)
 
 ### "Is this right for me?" checklist reasoning
 
