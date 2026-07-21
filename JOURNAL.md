@@ -1,18 +1,16 @@
 ## Week 7 — Issue selection
 
-**Issue link:** [paste link here]
+**Issue link:** https://github.com/ascherj/pathreview/issues/52
 
-**Issue title:** [paste issue title here]
+**Issue title:** Add a contribution_streak field to the GitHub analysis (longest consecutive days of commits) #52
 
-**Tier:** [ ] Tier 1  [ ] Tier 2  [ ] Tier 3
+**Tier:** [ ] Tier 1  [✓] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-[In 3–5 sentences, in your own words: what the issue is (not a copy-paste of
-the title), what is currently broken or missing, and what a successful fix
-would accomplish. Naming the part of the codebase it affects is helpful context.]
+This issue is looking to implement a new feature for the users. It looks at the GitHub contribution history of the user and finds the largest streak and displays it to the user, which is what a successful implementation would look like. This is mainly done with the GitHub API and the code is located in agents/tools/github_tool.py
 
-**Branch name:** [paste branch name here]
+**Branch name:** feat/52-github-streak-tracker
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [✓] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [✓] Issue added to cohort ledger
