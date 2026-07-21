@@ -34,3 +34,18 @@ Are there any blockers or dependencies?
 Some issues say "blocked by #X" or reference another issue that needs to be resolved first. Check the issue for any such dependencies.
 
 [x]This issue has no open blockers or dependencies on other unresolved issues.
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [commit on branch `test/159-configure-structlog-caplog` — add link after pushing]
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty -q`. The test failed on `assert "Empty chunks list" in caplog.text` because `caplog.text` was empty — yet the warning `Empty chunks list provided to BatchEmbeddingProcessor` appeared in captured stdout. This confirms structlog emits the event but never routes it through stdlib `logging`, so `caplog` can't see it.
+
+**PLAN.md link:** [https://github.com/oherna25/pathreview/blob/test/159-configure-structlog-caplog/PLAN.md](https://github.com/oherna25/pathreview/blob/test/159-configure-structlog-caplog/PLAN.md)
+
+**Walkthrough video (recommended):** [add Loom link, ≤2 min]
+
+**Blockers or open questions:**
+No hard blockers. Open questions carried into Week 9: (1) whether to reuse `configure_logging()` from `core/logging.py` in tests vs. a dedicated test-only structlog config, and (2) confirming structlog's `cache_logger_on_first_use` / module-level `get_logger()` caching doesn't cause the fix to be ignored for already-imported modules.
