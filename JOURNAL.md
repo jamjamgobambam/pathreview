@@ -40,11 +40,14 @@ restoring meaningful real-time feedback for long-running reviews.
 - **I can reproduce and explain it.** I traced the data flow end to end: backend
   returns `progress_pct` → hook polls the status endpoint every 3s → page ignores
   the field and shows a static spinner. That gives me a clear before/after.
-- **Tier awareness.** This is labeled **Tier 3** (estimated 5–8 hours). It is
-  above the Tier 1 starting point recommended for a first contribution, so the
-  main risk is scope creep around "real-time" expectations. I'm keeping the goal
-  narrow: surface the existing `progress_pct` in a progress bar during polling,
-  not redesign the review pipeline or add websockets.
+- **Tier awareness and skill fit.** This is labeled **Tier 3** (advanced,
+  estimated 5–8 hours), which is above the Tier 1 starting point recommended for a
+  first contribution. I'm comfortable taking it because the work is frontend React/
+  TypeScript — an area I'm confident in — and my end-to-end trace showed the hard
+  part (backend progress reporting) is already done, leaving a bounded UI wiring
+  task. The main risk is scope creep around "real-time" expectations, so I'm
+  keeping the goal narrow: surface the existing `progress_pct` in a progress bar
+  during polling, not redesign the review pipeline or add websockets.
 - **Open questions / risks to watch:** confirm `progress_pct` is populated during
   processing (not just 0 → 100); decide on graceful fallback if the field is
   missing; add/adjust a test for the hook. These are contained and don't expand
