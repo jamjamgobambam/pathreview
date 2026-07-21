@@ -15,11 +15,11 @@ The `/health` endpoint currently includes a `safety_events_last_hour` field, but
 - The issue is labeled Tier 1 and identifies two relevant Python files, so the scope is bounded enough for a first contribution.
 - The current behavior is easy to observe because the health response always reports zero safety events.
 - The repository already has a `SafetyMonitor` abstraction and Redis-backed counters, so the change can extend existing patterns rather than introduce an unrelated monitoring system.
-- The phrase "last hour" needs clarification because the current counters use a 24-hour expiry and do not enforce a one-hour window. I will confirm the intended counting design before implementation.
+- The phrase "last hour" needs special handling because the current counters use a 24-hour expiry and do not enforce a one-hour window. I selected a genuinely time-based design so the reported metric matches its name.
 - The change should include focused tests covering aggregation, no-event behavior, and monitoring failures.
 
 **Branch name:** `feat/68-safety-event-health-count`
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
