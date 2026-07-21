@@ -9,18 +9,19 @@
 **Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-The RAG layer relies on prompt templates whose exact wording drives the quality
-of the reviews PathReview generates. Right now nothing guards those templates, so
-a developer can edit one and silently change model behavior without anyone
-noticing or bumping its version. This issue asks for snapshot tests that capture
-each template's current content and fail whenever it changes without a matching
-version bump. A successful fix makes template edits a deliberate, reviewable
-action — the test forces the author to consciously re-version a template instead
-of changing it by accident. The work lives in tests/unit/test_prompt_templates.py
-and covers the prompt templates in the rag module.
+PathReview uses prompt templates to generate its reviews, and even small wording changes can affect the results. Right now, those changes can happen without being noticed or requiring the template version to be updated. This issue adds tests that detect changes to the templates and require a version bump, making edits intentional and easier to review.
+
+The work will be done in tests/unit/test_prompt_templates.py and will cover the prompt templates in the rag module.
+
+**Selection notes — "Is this right for me?" checklist:**
+- **Scope is contained:** The work lives in a single file (tests/unit/test_prompt_templates.py) and adds tests rather than changing production code, so the blast radius is small.
+- **Matches my skills:** It's a testing task in Python — no need to redesign the RAG pipeline, just capture and assert on existing template content.
+- **Effort fits the week:** Estimated at 3–5 hours, which is realistic for a first contribution.
+- **Success is clearly defined:** "Done" is unambiguous — a test that fails when a template changes without a version bump. That makes it easy to know when I'm finished.
+- **Good first issue:** Labeled tier-1 and "good first issue," which is the recommended starting point for my first contribution to a large codebase.
 
 **Branch name:** test/37-prompt-template-snapshot-tests
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
