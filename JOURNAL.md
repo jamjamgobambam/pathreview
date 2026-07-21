@@ -9,7 +9,7 @@
 **Problem summary:**
 When a user wants a new review, the previous session cache is not cleared. This means that a new review is going to take consideration of the previous session, even though it has nothing to do with it. Inside "agent/memory/session_store.py", there should be some error or missing functionality to clear the session state.
 
-**Branch name:** [paste branch name here]
+**Branch name:** fix/34-agent-session-state-error
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
