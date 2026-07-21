@@ -43,8 +43,22 @@ services:
       - chromadata:/chroma/chroma
     environment:
       ANONYMIZED_TELEMETRY: "false"
+    # chroma 0.4.22 predates numpy 2.0 and doesn't cap it; numpy 2.0 removed
+    # np.float_, which crashes import. The image's own entrypoint rebuilds
+    # chroma-hnswlib and pulls numpy 2.x back in, so we replicate that rebuild
+    # with numpy<2 pinned in the same install, then run the stock uvicorn cmd.
+    entrypoint:
+      - /bin/bash
+      - -c
+      - >-
+        pip install --force-reinstall --no-cache-dir chroma-hnswlib 'numpy<2' &&
+        export IS_PERSISTENT=1 &&
+        export CHROMA_SERVER_NOFILE=65535 &&
+        exec uvicorn chromadb.app:app --workers 1 --host 0.0.0.0 --port 8000
+        --proxy-headers --log-config chromadb/log_config.yml --timeout-keep-alive 30
+    # image has no curl; use python (always present) to hit the heartbeat
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/heartbeat')"]
       interval: 10s
       timeout: 5s
       retries: 5
