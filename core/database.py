@@ -1,8 +1,8 @@
 """Database configuration and session management for async SQLAlchemy."""
 
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 
 from core.config import settings
@@ -40,9 +40,16 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Create all database tables."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    """Create all database tables (idempotent - safe to call multiple times)."""
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as e:
+        # Log but don't fail - tables may already exist from migrations
+        import structlog
+
+        log = structlog.get_logger()
+        log.debug("database_initialization", note="tables may already exist", error=str(e))
 
 
 async def drop_db() -> None:
