@@ -9,16 +9,19 @@
 **Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-PathReview's safety module is supposed to strip personal information out of
-user-submitted text before it goes anywhere else, but the phone-number regex
-in `safety/pii_scrubber.py` only matches dashed numbers like `555-123-4567`.
-The parenthesized format `(555) 123-4567` — one of the most common ways US
-numbers are written on resumes — passes through `scrub()` unredacted, and
-`detect()` doesn't flag it as PII at all. I reproduced this locally in two
-lines of Python. A successful fix widens the pattern to cover parenthesized
-(and ideally other common) formats so that the four currently-failing tests
-in `tests/unit/test_pii_scrubber.py` pass without breaking the rest of the
-suite.
+PathReview runs every piece of user-submitted text through a PII scrubber in
+the `safety/` module before storing or processing it, so personal details
+like phone numbers are supposed to get replaced with `[REDACTED]`. The bug is
+that the regex in `safety/pii_scrubber.py` only recognizes dashed phone
+numbers like `555-123-4567` — if the same number is written as
+`(555) 123-4567`, which is probably the most common way people format numbers
+on resumes, both `scrub()` and `detect()` miss it completely. I confirmed
+this on my machine with the two-line snippet from the issue: the
+parenthesized number came back untouched and `detect()` returned an empty
+list. A successful fix means widening the pattern to handle parenthesized
+(and other common US) formats, verified by the four tests in
+`tests/unit/test_pii_scrubber.py` that currently fail going green, with no
+other tests breaking.
 
 **"Is this right for me?" notes:**
 - Reproducible in under a minute: two-line Python snippet from the issue
