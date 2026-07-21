@@ -15,10 +15,12 @@ The `/health` endpoint in `api/routes/health.py` tries to build a Redis client u
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
 
 **Selection notes (fit checklist):**
 - Scope: touches exactly one file (`api/routes/health.py`) plus a new/updated test — small, well-bounded for a first contribution.
 - Comfort: Tier 1 (`good first issue`) label, and I verified the root cause myself by reading `core/config.py` alongside `health.py` before claiming — it's a straightforward attribute mismatch, not a design question.
 - Risk: low — the fix doesn't change the health check's contract (still returns the same JSON shape / status codes), just makes the Redis check work correctly.
 - Learning value: touches Pydantic Settings, the `redis-py` client API, and error-swallowing anti-patterns (`except Exception` masking bugs), which felt like a good first exposure to this codebase's conventions.
+
+**Progress update:** Fix implemented in `api/routes/health.py` (Redis client now built via `redis.Redis.from_url(settings.redis_url)`), with unit tests added in `tests/unit/test_health_check.py` covering both the healthy path and a real Redis ping failure. `ruff`, `black`, and `mypy` all pass on the changed files via the repo's pre-commit hooks. Commit: `c23239c` on this branch.
