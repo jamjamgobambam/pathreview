@@ -2,11 +2,17 @@
 
 SHELL := /bin/bash
 
+# Force UTF-8 stdio so Unicode output (e.g. checkmarks in seed_db.py) doesn't
+# crash on Windows terminals that default to a legacy codepage like cp1252.
+export PYTHONUTF8 = 1
+
 # Detect Windows (Git Bash) vs Unix
 ifeq ($(OS),Windows_NT)
   VENV_BIN := .venv/Scripts
+  NPM := npm.cmd
 else
   VENV_BIN := .venv/bin
+  NPM := npm
 endif
 
 PYTHON := $(VENV_BIN)/python
@@ -22,7 +28,7 @@ setup: ## First-time setup: venv, deps, migrations, seed data
 	$(VENV_BIN)/pre-commit install
 	$(VENV_BIN)/alembic upgrade head
 	$(PYTHON) scripts/seed_db.py
-	cd frontend && npm install
+	cd frontend && $(NPM) install
 	@echo ""
 	@echo "Setup complete. Run 'make run' to start the application."
 
@@ -31,7 +37,7 @@ setup: ## First-time setup: venv, deps, migrations, seed data
 run: ## Start backend + frontend dev servers
 	@trap 'kill %1 %2 2>/dev/null' EXIT; \
 	source $(VENV_BIN)/activate && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
-	cd frontend && npm run dev & \
+	cd frontend && $(NPM) run dev & \
 	wait
 
 # ---- Tests ----
