@@ -53,3 +53,29 @@ $USER`, re-login, then `docker compose up -d && make setup && make run`.*
 - **Risk noted:** several classmates have also claimed #146 (parallel work
   is normal in this cohort since everyone submits from their own fork), so
   my PR needs to stand on its own quality, not on being first.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/DeDeMouse/pathreview/commit/63cfafbc462949089bde133c027d2481db2ccc08
+
+**Reproduction summary:**
+On a clean checkout I ran the scrubber's unit suite and the issue's REPL
+snippet: the four issue-named tests fail, and `(555) 123-4567` /
+`+1 555 123 4567` pass through `scrub()` unchanged with `detect()` returning
+`[]`, while dashed/dotted formats redact correctly — so the bug is isolated
+to space/paren handling in the `phone_us` regex (full transcript in PLAN.md
+§1–2).
+
+**PLAN.md link:** https://github.com/DeDeMouse/pathreview/blob/fix/146-pii-scrubber-paren-phone/PLAN.md
+
+**Walkthrough video (recommended):** _not recorded yet — will add before
+asking for early feedback_
+
+**Blockers or open questions:**
+`test_mixed_pii_and_text` fails from a *separate* bug (the `street_address`
+pattern + `IGNORECASE` matches the "pl" in "applications", swallowing
+"Python"), so it will still be red after my phone fix. Open question for
+Week 9: fix it in the same PR to keep the suite green, or file it as its own
+issue and note the pre-existing failure in the PR description? Currently
+leaning toward filing it separately. (Docker group fix is still pending on
+my machine, but this issue's dev loop is pure Python and unaffected.)
