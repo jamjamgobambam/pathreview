@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
 from core.database import get_db
+from core.models.user import User
 from core.services.review_service import (
     create_review,
     get_review,
@@ -17,14 +17,16 @@ from core.services.review_service import (
 log = structlog.get_logger()
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
+CURRENT_USER_DEP = Depends(get_current_user)
+DB_DEP = Depends(get_db)
 
 
 @router.post("", response_model=ReviewResponse)
 async def create_review_endpoint(
     data: ReviewCreate,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
+    current_user: User = CURRENT_USER_DEP,
+    db=DB_DEP,
 ):
     """
     Create a new review for a profile.
@@ -59,14 +61,14 @@ async def create_review_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create review",
-        )
+        ) from exc
 
 
 @router.get("/{review_id}", response_model=ReviewResponse)
 async def get_review_endpoint(
     review_id: UUID,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
+    current_user: User = CURRENT_USER_DEP,
+    db=DB_DEP,
 ):
     """
     Get a review by ID.
@@ -95,15 +97,15 @@ async def get_review_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve review",
-        )
+        ) from exc
 
 
 @router.get("", response_model=ReviewListResponse)
 async def list_reviews_endpoint(
     page: int = 1,
     page_size: int = 20,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
+    current_user: User = CURRENT_USER_DEP,
+    db=DB_DEP,
 ):
     """
     List reviews for current user with pagination.
@@ -133,14 +135,14 @@ async def list_reviews_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to list reviews",
-        )
+        ) from exc
 
 
 @router.get("/{review_id}/status")
 async def get_review_status(
     review_id: UUID,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
+    current_user: User = CURRENT_USER_DEP,
+    db=DB_DEP,
 ):
     """
     Get review status and progress.
@@ -173,4 +175,4 @@ async def get_review_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve review status",
-        )
+        ) from exc

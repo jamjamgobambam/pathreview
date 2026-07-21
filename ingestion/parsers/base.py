@@ -4,6 +4,7 @@ from dataclasses import dataclass
 @dataclass
 class ParseResult:
     """Result of parsing a source document."""
+
     text: str
     metadata: dict
     source_type: str

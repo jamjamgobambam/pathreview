@@ -2,8 +2,8 @@
 
 import pytest
 
-from ingestion.parsers.readme_parser import ReadmeParser
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.readme_parser import ReadmeParser
 
 
 @pytest.mark.unit
@@ -114,7 +114,7 @@ class TestReadmeParser:
 
     def test_parse_readme_bytes_with_utf8(self, parser):
         """Test parsing README bytes with UTF-8 characters."""
-        readme_bytes = "# Café README\nThis has émojis 🎉".encode("utf-8")
+        readme_bytes = "# Café README\nThis has émojis 🎉".encode()
         result = parser.parse(readme_bytes)
 
         assert isinstance(result, ParseResult)

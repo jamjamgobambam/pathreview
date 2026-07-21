@@ -62,6 +62,7 @@ class TestTechDetector:
         # Should not include JSON or data-only language
         detected_lower = [lang.lower() for lang in data["all_languages"]]
         # .ipynb should be treated as Python, not JSON
+        assert "json" not in detected_lower
 
     def test_node_modules_excluded(self, detector):
         """Test node_modules/ directory is excluded from counts."""
@@ -90,6 +91,7 @@ class TestTechDetector:
         result = detector.execute({"files": files})
 
         # Python should be primary despite vendor files
+        assert result.success
 
     def test_build_directory_excluded(self, detector):
         """Test build directory is excluded."""
@@ -128,6 +130,7 @@ class TestTechDetector:
         result = detector.execute({"files": files})
 
         # Should detect Python as primary language
+        assert result.success
 
     def test_github_actions_detection(self, detector):
         """Test GitHub Actions detection."""
@@ -140,6 +143,7 @@ class TestTechDetector:
 
         data = result.data
         # Should detect both Python and CI/CD
+        assert "Python" in data["all_languages"]
 
     def test_makefile_detection(self, detector):
         """Test Makefile detection."""
@@ -151,6 +155,7 @@ class TestTechDetector:
         result = detector.execute({"files": files})
 
         # Should detect Makefile as build tool
+        assert result.success
 
     def test_typescript_detection(self, detector):
         """Test TypeScript detection."""
@@ -256,6 +261,7 @@ class TestTechDetector:
         result = detector.execute({"files": files})
 
         # Should detect frameworks
+        assert result.success
 
     def test_unknown_extensions(self, detector):
         """Test handling of unknown file extensions."""
@@ -282,8 +288,8 @@ class TestTechDetector:
 
         result = detector.execute({"files": files})
 
-        data = result.data
         # Should still detect languages despite case
+        assert result.success
 
     def test_multiple_extensions_same_file(self, detector):
         """Test file with multiple dots in name."""
@@ -363,3 +369,4 @@ class TestTechDetector:
 
         data = result.data
         # Should detect C++ (from .cpp files)
+        assert "C++" in data["all_languages"]

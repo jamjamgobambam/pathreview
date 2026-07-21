@@ -1,9 +1,14 @@
 """Tests for output_parser.py"""
 
-import pytest
 import json
 
-from rag.generator.output_parser import parse_review_output, FeedbackSection, _parse_plaintext_output
+import pytest
+
+from rag.generator.output_parser import (
+    FeedbackSection,
+    _parse_plaintext_output,
+    parse_review_output,
+)
 
 
 @pytest.mark.unit
@@ -32,11 +37,13 @@ class TestOutputParser:
 
     def test_raw_json_without_fence(self):
         """Test parsing raw JSON without code fence."""
-        raw_output = json.dumps({
-            "skills": "Advanced Python and JavaScript",
-            "projects": "Strong portfolio of web apps",
-            "recommendations": ["Add DevOps experience", "Write more documentation"]
-        })
+        raw_output = json.dumps(
+            {
+                "skills": "Advanced Python and JavaScript",
+                "projects": "Strong portfolio of web apps",
+                "recommendations": ["Add DevOps experience", "Write more documentation"],
+            }
+        )
 
         result = parse_review_output(raw_output)
 
@@ -45,7 +52,9 @@ class TestOutputParser:
 
     def test_plain_text_fallback(self):
         """Test that plain text returns FeedbackSection without crash."""
-        raw_output = "This is plain text feedback about the portfolio. No JSON here. Great work overall!"
+        raw_output = (
+            "This is plain text feedback about the portfolio. No JSON here. Great work overall!"
+        )
 
         result = parse_review_output(raw_output)
 
@@ -78,7 +87,7 @@ class TestOutputParser:
             section_name="skills",
             content="Python, JavaScript expertise",
             confidence=0.95,
-            suggestions=["Learn Rust", "Study DevOps"]
+            suggestions=["Learn Rust", "Study DevOps"],
         )
 
         assert section.section_name == "skills"
@@ -88,20 +97,16 @@ class TestOutputParser:
 
     def test_json_with_multiple_sections(self):
         """Test parsing JSON with multiple sections."""
-        raw_output = json.dumps({
-            "technical_skills": {
-                "languages": ["Python", "JavaScript"],
-                "suggestions": ["Add Rust", "Learn Kubernetes"]
-            },
-            "soft_skills": {
-                "communication": "Good",
-                "suggestions": ["Improve documentation"]
-            },
-            "projects": {
-                "quality": "High",
-                "suggestions": []
+        raw_output = json.dumps(
+            {
+                "technical_skills": {
+                    "languages": ["Python", "JavaScript"],
+                    "suggestions": ["Add Rust", "Learn Kubernetes"],
+                },
+                "soft_skills": {"communication": "Good", "suggestions": ["Improve documentation"]},
+                "projects": {"quality": "High", "suggestions": []},
             }
-        })
+        )
 
         result = parse_review_output(raw_output)
 
@@ -113,10 +118,9 @@ class TestOutputParser:
 
     def test_confidence_scores_in_sections(self):
         """Test that feedback sections have confidence scores."""
-        raw_output = json.dumps({
-            "skills": "Expert Python developer",
-            "projects": "Impressive portfolio"
-        })
+        raw_output = json.dumps(
+            {"skills": "Expert Python developer", "projects": "Impressive portfolio"}
+        )
 
         result = parse_review_output(raw_output)
 
@@ -136,10 +140,7 @@ class TestOutputParser:
 
     def test_json_array_fallback(self):
         """Test handling of JSON array (not dict)."""
-        raw_output = json.dumps([
-            "First feedback item",
-            "Second feedback item"
-        ])
+        raw_output = json.dumps(["First feedback item", "Second feedback item"])
 
         result = parse_review_output(raw_output)
 
@@ -182,12 +183,14 @@ class TestOutputParser:
 
     def test_section_suggestions_extraction(self):
         """Test that suggestions are extracted from JSON sections."""
-        raw_output = json.dumps({
-            "skills": {
-                "current": "Python, JavaScript",
-                "suggestions": ["Learn Go", "Master Kubernetes"]
+        raw_output = json.dumps(
+            {
+                "skills": {
+                    "current": "Python, JavaScript",
+                    "suggestions": ["Learn Go", "Master Kubernetes"],
+                }
             }
-        })
+        )
 
         result = parse_review_output(raw_output)
 
@@ -207,16 +210,15 @@ class TestOutputParser:
 
     def test_nested_json_structure(self):
         """Test parsing nested JSON structures."""
-        raw_output = json.dumps({
-            "feedback": {
-                "technical": {
-                    "skills": {
-                        "primary": ["Python", "JavaScript"],
-                        "secondary": ["Rust", "Go"]
+        raw_output = json.dumps(
+            {
+                "feedback": {
+                    "technical": {
+                        "skills": {"primary": ["Python", "JavaScript"], "secondary": ["Rust", "Go"]}
                     }
                 }
             }
-        })
+        )
 
         result = parse_review_output(raw_output)
 
@@ -274,10 +276,7 @@ class TestOutputParser:
 
     def test_no_suggestions_key(self):
         """Test JSON without suggestions key."""
-        raw_output = json.dumps({
-            "skills": "Python expert",
-            "experience": "5 years"
-        })
+        raw_output = json.dumps({"skills": "Python expert", "experience": "5 years"})
 
         result = parse_review_output(raw_output)
 

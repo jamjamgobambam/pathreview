@@ -1,32 +1,35 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from uuid import UUID
-import structlog
 import mimetypes
+from uuid import UUID
 
-from api.schemas.profile import ProfileCreate, ProfileResponse, ProfileUpdate
+import structlog
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.profile import Profile
+from api.schemas.profile import ProfileCreate, ProfileResponse, ProfileUpdate
 from core.database import get_db
+from core.models.user import User
 from core.services.profile_service import (
     create_profile,
+    delete_profile,
     get_profile,
     update_profile,
-    delete_profile,
 )
 
 log = structlog.get_logger()
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
+CURRENT_USER_DEP = Depends(get_current_user)
+DB_DEP = Depends(get_db)
+RESUME_FILE = File(default=None)
 
 
 @router.post("", response_model=ProfileResponse)
 async def create_profile_endpoint(
     github_username: str = Form(default=None),
     portfolio_url: str = Form(default=None),
-    resume_file: UploadFile = File(default=None),
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
+    resume_file: UploadFile = RESUME_FILE,
+    current_user: User = CURRENT_USER_DEP,
+    db=DB_DEP,
 ):
     """
     Create a new profile with optional resume upload.
@@ -59,16 +62,15 @@ async def create_profile_endpoint(
             if file_mime == "application/pdf":
                 try:
                     import PyPDF2
+
                     pdf_reader = PyPDF2.PdfReader(content)
-                    resume_text = "\n".join(
-                        page.extract_text() for page in pdf_reader.pages
-                    )
+                    resume_text = "\n".join(page.extract_text() for page in pdf_reader.pages)
                 except Exception as exc:
                     log.error("pdf_parsing_failed", error=str(exc))
                     raise HTTPException(
                         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                         detail="Failed to parse PDF resume",
-                    )
+                    ) from exc
             else:
                 # Markdown or plain text
                 resume_text = content.decode("utf-8")
@@ -105,14 +107,14 @@ async def create_profile_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create profile",
-        )
+        ) from exc
 
 
 @router.get("/{profile_id}", response_model=ProfileResponse)
 async def get_profile_endpoint(
     profile_id: UUID,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
+    current_user: User = CURRENT_USER_DEP,
+    db=DB_DEP,
 ):
     """
     Get a profile by ID.
@@ -141,15 +143,15 @@ async def get_profile_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve profile",
-        )
+        ) from exc
 
 
 @router.put("/{profile_id}", response_model=ProfileResponse)
 async def update_profile_endpoint(
     profile_id: UUID,
     data: ProfileUpdate,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
+    current_user: User = CURRENT_USER_DEP,
+    db=DB_DEP,
 ):
     """
     Update a profile.
@@ -190,14 +192,14 @@ async def update_profile_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update profile",
-        )
+        ) from exc
 
 
 @router.delete("/{profile_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_profile_endpoint(
     profile_id: UUID,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
+    current_user: User = CURRENT_USER_DEP,
+    db=DB_DEP,
 ):
     """
     Delete a profile and cascade delete reviews and ingested sources.
@@ -235,4 +237,4 @@ async def delete_profile_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete profile",
-        )
+        ) from exc

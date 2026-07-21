@@ -1,8 +1,8 @@
 """Tests for rate_limiter.py"""
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, MagicMock, patch
-import time
 
 from safety.rate_limiter import RateLimiter
 
@@ -81,7 +81,7 @@ class TestRateLimiter:
         mock_redis.zadd = Mock()
         mock_redis.expire = Mock()
 
-        with patch('time.time', return_value=1000):
+        with patch("time.time", return_value=1000):
             limiter.check_rate_limit("user123", limit=10, window_seconds=60)
 
         # zremrangebyscore should be called to remove entries older than window_start
@@ -127,7 +127,7 @@ class TestRateLimiter:
         mock_redis.zadd = Mock()
         mock_redis.expire = Mock()
 
-        with patch('time.time', return_value=1000):
+        with patch("time.time", return_value=1000):
             limiter.check_rate_limit("user123", limit=10)
 
         # zadd should be called with key and score
@@ -162,7 +162,7 @@ class TestRateLimiter:
         mock_redis.zadd = Mock()
         mock_redis.expire = Mock()
 
-        with patch('time.time', return_value=1000):
+        with patch("time.time", return_value=1000):
             limiter.check_rate_limit("user123", limit=10, window_seconds=custom_window)
 
         # Window start should be calculated from custom window
@@ -175,7 +175,7 @@ class TestRateLimiter:
         mock_redis.zremrangebyscore = Mock(side_effect=Exception("Redis error"))
 
         # Should handle error gracefully
-        with patch('safety.rate_limiter.logger'):
+        with patch("safety.rate_limiter.logger"):
             allowed, remaining = limiter.check_rate_limit("user123", limit=10)
 
         # Per code comment, "Fail open on Redis error"
@@ -255,12 +255,12 @@ class TestRateLimiter:
         mock_redis.expire = Mock()
 
         # First call at time 1000
-        with patch('time.time', return_value=1000):
+        with patch("time.time", return_value=1000):
             limiter.check_rate_limit("user123", limit=10, window_seconds=60)
             first_call_time = mock_redis.zadd.call_args[0][1]
 
         # Second call at time 1030
-        with patch('time.time', return_value=1030):
+        with patch("time.time", return_value=1030):
             limiter.check_rate_limit("user123", limit=10, window_seconds=60)
             second_call_time = mock_redis.zadd.call_args[0][1]
 

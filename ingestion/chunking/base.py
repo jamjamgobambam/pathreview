@@ -4,6 +4,7 @@ from dataclasses import dataclass
 @dataclass
 class Chunk:
     """A single chunk of text with metadata."""
+
     text: str
     metadata: dict
 
