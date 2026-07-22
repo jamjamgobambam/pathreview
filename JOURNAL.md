@@ -42,6 +42,7 @@ all. Per-component coverage is unit-only (`test_prompt_defense.py`,
 end-to-end and even pairwise.
 
 **PLAN.md link:**
+[PLAN.md](./PLAN.md)
 
 **Walkthrough video (recommended):**
 
