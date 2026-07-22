@@ -4,7 +4,7 @@
 
 **Issue title:** Agent session state is not cleared between reviews for the same user
 
-**Tier:** [ ] Tier 1  [x] Tier 2  [ ] Tier 3
+**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
 The agent orchestrator persists per-user tool results in a Redis-backed session
