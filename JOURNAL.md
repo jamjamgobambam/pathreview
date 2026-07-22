@@ -39,3 +39,23 @@ Right now the ingestion pipeline only pulls in data from GitHub and resumes, so 
 - [x] No "blocked by #X" language in the issue body, and no other unresolved dependency was mentioned.
 
 **Overall scope reasoning:** The issue is well-scoped and the referenced files check out — including one pleasant surprise, `portfolio_url` is already on the Pydantic schemas, so the real net-new work is the `web_parser.py` module and the `ingest_portfolio` pipeline method, following the existing `ingest_readme`/`ingest_resume` pattern almost exactly. The one open item is manually confirming the claims count in the cohort ledger before committing to start.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I stood up a local HTTP server as a stand-in portfolio site, set a profile's Portfolio URL to point at it, and ran a full review through the app. The fake server's access log stayed empty the entire time — no request was ever made to the portfolio URL — and the review completed with results that were unaffected by the portfolio field, confirming that portfolio content is never fetched or used, despite the field existing end-to-end (DB column, API schema, frontend form).
+
+**Reproduction steps:**
+1. Started a throwaway "portfolio site" locally: `mkdir -p /tmp/fake-portfolio && echo "<h1>Jane Doe</h1><p>...</p>" > /tmp/fake-portfolio/index.html`, then `cd /tmp/fake-portfolio && python3 -m http.server 8001` (kept its terminal visible to watch for incoming requests).
+2. Ran the app locally (`make run`) and initiated the flow to submit a review.
+3. As part of the review, I submitted `http://localhost:8001` as the Portfolio URL.
+4. Checked the `http.server 8001` log throughout and after the run, and zero requests were received, proving nothing in the app ever fetches the submitted URL.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
