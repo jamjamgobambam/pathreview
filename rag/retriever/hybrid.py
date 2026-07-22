@@ -58,6 +58,12 @@ class HybridRetriever:
         vector_scores_max = max([r["score"] for r in vector_results], default=1.0)
         keyword_scores_max = max([r.get("bm25_score", 0) for r in keyword_results], default=1.0)
 
+        # REPRODUCTION / FEATURE GAP NOTE (Issue #34):
+        # Currently, the retriever only combines vector similarity and keyword scores.
+        # Without LLM re-ranking, top retrieved chunks sometimes include noisy or off-topic text.
+        # To fix this, I am adding an optional LLM re-ranking step in rag/retriever/reranker.py 
+        # to score and filter chunk relevance before passing the top results to the generator.
+
         # Blend results
         blended = {}
         all_ids = set(vector_map.keys()) | set(keyword_map.keys())
