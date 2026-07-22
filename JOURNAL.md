@@ -1,24 +1,16 @@
-# Module 3 Journal
+## Week 7 – Issue selection
 
-## Issue
+**Issue link:** https://github.com/ascherj/pathreview/issues/36
 
-- Issue number: #36
-- Issue title: Architecture doc doesn't explain the hybrid retrieval scoring formula
-- Branch: docs/36-hybrid-retrieval-scoring
+**Issue title:** Architecture doc doesn't explain the hybrid retrieval scoring formula
 
-## Week 7
+**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
-### Work completed
+**Problem summary:**
+The architecture documentation says that hybrid retrieval combines vector and keyword search scores, but it does not explain the formula used to combine them. It also does not provide the default weights or an example calculation. A successful fix will add a clear section to `docs/ARCHITECTURE.md` explaining the scoring formula, the weights, and a simple example. This will help contributors understand how search results are ranked.
 
-- Forked and cloned the repository.
-- Set up the project locally.
-- Confirmed the application runs at localhost:5173.
-- Claimed issue #36.
-- Created a working branch for the issue.
+**Branch name:** docs/36-hybrid-retrieval-scoring
 
-### Next steps
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
-- Review `docs/ARCHITECTURE.md`.
-- Find the code that defines the hybrid retrieval scoring formula.
-- Document the vector and keyword score weights.
-- Add a clear scoring example.
+**Cohort ledger:** [x] Issue added to cohort ledger
