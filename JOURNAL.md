@@ -21,7 +21,7 @@ Worked through the "Is this right for me?" checklist — this is Tier 1, docs-on
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/ajwadtahmid/pathreview/commit/PENDING
+**Reproduction commit link:** https://github.com/ajwadtahmid/pathreview/commit/9f82436
 
 **Reproduction summary:**
 Ran every endpoint in docs/API.md against the local stack (`make run`, seeded
