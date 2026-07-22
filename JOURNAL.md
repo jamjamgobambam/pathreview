@@ -17,3 +17,16 @@ I can locate the exact file this issue affects: safety/prompt_defense.py, and th
 **Setup confirmation:** App runs locally at localhost:5173
 
 **Cohort ledger:** Issue added to cohort ledger
+## Week 8 — Reproduction and solution planning
+
+**Reproduction commit link:** https://github.com/nikki2906/pathreview/commit/74e5b74fda37ba5f34d935fde63bcec3846d086c
+
+**Reproduction summary:**
+I added a test showing that calling sanitize on text containing a newline based injection pattern, such as a separator line followed by System colon ignore instructions, returns the text completely unchanged. The is_injection_attempt method still flags the sanitized output as an injection attempt afterward, proving that sanitize does not actually remove what it can detect.
+
+**PLAN.md link:** https://github.com/nikki2906/pathreview/blob/fix/64-newline-sanitization/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded this week.
+
+**Blockers or open questions:**
+PromptDefense is not called anywhere in the actual resume processing flow, so fixing sanitize alone does not yet protect real user input end to end. I am not sure if that is in scope for this issue or worth flagging as a separate follow up issue.

@@ -1,0 +1,23 @@
+cat > PLAN.md << 'EOF'
+## Solution plan
+
+**Issue:** Prompt injection defense doesn't sanitize newline characters in user-supplied resume text — https://github.com/ascherj/pathreview/issues/64
+
+### Understand
+The PromptDefense class already has correct detection logic. The method is_injection_attempt checks input against a list called INJECTION_PATTERNS, which includes regex patterns for separator lines like a line break followed by dashes, and role switching attempts like a line break followed by System colon, Human colon, or Assistant colon. However, the sanitize method, which is supposed to clean the text, only strips angle brackets and template delimiters. It never uses INJECTION_PATTERNS at all. So text can pass through sanitize completely unchanged and still contain a working injection payload. The expected behavior is that after sanitization, is_injection_attempt should return False on the same text. The actual behavior is that it still returns True, which I proved with my reproduction test.
+
+### Map
+The file safety slash prompt_defense.py is where sanitize and INJECTION_PATTERNS both live, so the fix goes here. The file tests slash unit slash test_prompt_defense.py contains the existing tests, which only test is_injection_attempt and never assert that sanitize actually removes newline patterns, so I will add more tests here too. One thing I noticed but is out of scope for this issue is that PromptDefense is not called anywhere in the actual resume upload and processing flow, such as agent slash orchestrator.py or agent slash tools slash skill_extractor.py. That looks like a separate integration gap.
+
+### Plan
+First, I will update the sanitize method in safety slash prompt_defense.py to loop through INJECTION_PATTERNS and remove matches using a regex substitution, instead of only doing the hardcoded character replacements it does now. Second, I will decide what each matched pattern should be replaced with, likely an empty string or a single space, so that legitimate resume content around the match is not accidentally joined together. Third, I will add new unit tests confirming that sanitize removes each of the newline based patterns, including separator lines, role switching, and ignore or forget or override instructions. Fourth, I will re-run the full test_prompt_defense test suite to make sure existing passing tests still pass, since the fix should not over strip normal resume text. Fifth, I will re-run my reproduction test from Week 8 to confirm that is_injection_attempt now returns False after sanitize is applied.
+
+### Inputs and outputs
+The input is raw user supplied resume text, which may or may not contain injection attempts. The output should be a sanitized string with injection patterns removed, while legitimate resume content such as skills, projects, and normal line breaks stays intact.
+
+### Risks and unknowns
+One risk is being too aggressive with the fix. Resumes naturally contain line breaks and dashes, for example in bullet points or date ranges like 2020 dash dash 2022, so a regex that is not scoped carefully could accidentally strip legitimate formatting. I am also unsure whether removing the matched pattern entirely is the right approach, versus replacing it with a space, to avoid accidentally joining two unrelated words or sentences together. There is also an existing test called test_benign_mentions_not_flagged that already flags an ambiguous case, where the word system appears in a normal sentence, and my fix needs to make sure that does not get worse. Finally, since PromptDefense is not currently wired into the actual resume flow, fixing sanitize alone will not protect real users yet. I plan to mention this as a follow up point in my pull request description, but I will not fix that part in this pull request since it is outside the scope named in the issue.
+
+### Edge cases
+I need to handle an empty string input, since there is already an existing test for this that needs to keep passing. I also need to handle text with multiple injection patterns appearing back to back, such as a separator line followed immediately by a role switch attempt. I need to handle legitimate resume text where the word System appears in the middle of a sentence rather than at the start of a new line. Finally I want to check whether the regex patterns need to also account for Windows style line endings, which use a carriage return before the newline character, instead of just a plain newline character.
+EOF
