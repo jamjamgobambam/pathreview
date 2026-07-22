@@ -50,3 +50,15 @@ Steps to reproduce against a local server (`make run`, API at `localhost:8000`):
    **Actual result:** `status: "complete"`, `overall_score: 0.81`, `error_message: null`, and three fully-populated feedback sections ("Technical Skills", "Project Experience", "Career Growth") — none of which reflect real analysis, since nothing was ever ingested.
 
 **Expected behavior (not yet implemented):** the review should end in `status="failed"` with a descriptive `error_message` (the column already exists on `Review` but is never set on this path), rather than fabricating a successful result. No test currently exists for this path (`process_review`, `_run_ingestion_pipeline`, and this scenario are entirely uncovered in `tests/unit/test_review_service.py`).
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [962e503](https://github.com/asnts18/pathreview/commit/962e503)
+
+**Reproduction summary:**
+Created a fresh user, then a profile with no `github_username`, `portfolio_url`, or `resume_text` set, then triggered `POST /reviews` against it. The review reached `status: "complete"` with a fabricated `overall_score: 0.81` and three canned feedback sections, instead of failing — confirming that `process_review()` never checks whether ingestion actually produced anything before generating feedback.
+
+**PLAN.md link:** [PLAN.md](https://github.com/asnts18/pathreview/blob/test/88-review-endpoint-test/PLAN.md)
+
+**Blockers or open questions:**
+Still deciding whether "no documents ingested" should be judged from the profile's own fields (`github_username`/`portfolio_url`/`resume_text`) or from the `ingested_sources` table directly — these should normally agree, but could diverge if a profile has stale `IngestedSource` rows from a prior partial run. See Risks & unknowns in `PLAN.md` for details.
