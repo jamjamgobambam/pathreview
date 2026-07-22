@@ -17,3 +17,42 @@ This issue has a focused scope and points to one main area of the codebase. It p
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [add after pushing the reproduction commit]
+
+**Reproduction summary:**
+I reproduced the issue by passing `(555) 123-4567` and `555-123-4567` through `PIIScrubber`. The dashed number was redacted, but the parenthesized number remained visible, and `detect()` returned an empty list.
+
+**Reproduction command:**
+
+```powershell
+@'
+from safety.pii_scrubber import PIIScrubber
+
+scrubber = PIIScrubber()
+
+text = "Call me at (555) 123-4567 or 555-123-4567"
+
+print("Original:", text)
+print("Scrubbed:", scrubber.scrub(text))
+print("Detected:", scrubber.detect("Call me at (555) 123-4567"))
+'@ | .\.venv\Scripts\python.exe -
+```
+
+**Observed result:**
+
+```text
+Original: Call me at (555) 123-4567 or 555-123-4567
+Scrubbed: Call me at (555) 123-4567 or [REDACTED]
+Detected: []
+```
+
+**PLAN.md link:** [add after PLAN.md is created and pushed]
+
+**Walkthrough video (recommended):** Not recorded
+
+**Blockers or open questions:**
+I still need to inspect the current phone-number regular expression and related tests before finalizing the solution plan.
