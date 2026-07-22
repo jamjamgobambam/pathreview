@@ -34,3 +34,29 @@ workflow without needing deep familiarity with the RAG or agent systems yet.
 ![alt text](image.png)
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/tbnguye9/pathreview/commit/b41420d6413b53a4011b70427b5b1f4e5398861d
+
+**Reproduction summary:**
+Ran `python -m pytest tests/unit/test_review_service.py -q` in the local
+venv and observed `13 failed, 6 passed` with `AttributeError: 'coroutine'
+object has no attribute 'first'` / `'all'`. Confirmed the root cause: each
+failing test builds the DB result object as an `AsyncMock`, so calling
+`result.scalars()` returns a coroutine, and the service's synchronous
+`.first()` / `.all()` call on that coroutine raises. The service logic is
+correct — only the test mocks are misconfigured. Reproduction steps and a
+mock experiment proving the fix direction are in
+[docs/reproduction-158.md](docs/reproduction-158.md).
+
+**PLAN.md link:** https://github.com/tbnguye9/pathreview/blob/fix/158-review-service-async-mocks/PLAN.md
+
+**Walkthrough video (recommended):** _(not recorded yet — optional)_
+
+**Blockers or open questions:**
+Need to confirm CI's Python version matches my local 3.14 so `unittest.mock`
+semantics are identical. Also deciding whether to hoist the repeated mock
+setup into a shared fixture (cleaner, prevents regression) or keep the diff
+minimal with an inline change per test — will pick based on maintainer
+preference in Week 9.
