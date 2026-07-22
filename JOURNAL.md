@@ -32,3 +32,21 @@ test and confirming `check()` returns a score instead of raising `TypeError`.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** TBD after committing this Week 8 documentation
+
+**Reproduction summary:**
+I reproduced the issue against the `main` version of `rag/evaluator/faithfulness_checker.py`
+by running `FaithfulnessChecker().check("Knows Python.", [{"text": None}])`. The observed
+failure was `TypeError: sequence item 0: expected str instance, NoneType found` from the
+`" ".join(...)` call that receives `None` from `chunk.get("text", "")`.
+
+**PLAN.md link:** https://github.com/wzltmp/pathreview/blob/fix/153-faithfulness-checker-none-text/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded yet
+
+**Blockers or open questions:**
+No current blockers. Before opening the PR, I still need to run the full required checks:
+`make check` and `make test-unit`.
