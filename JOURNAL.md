@@ -25,7 +25,7 @@ changes to the pipeline don't silently break review processing.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [we'll fill this in after committing]
+**Reproduction commit link:** https://github.com/namitalamichhane/pathreview/commit/cb51d7f
 
 **Reproduction summary:**
 Ran `pytest tests/unit/test_review_service.py --cov=core.services.review_service --cov-report=term-missing`
