@@ -16,3 +16,18 @@
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** PENDING
+
+**Reproduction summary:**
+Ran the app locally and compared the auto-generated OpenAPI schema at `localhost:8000/docs` against the pre-fix version of `docs/API.md` (commit 888af31). Confirmed `POST /profiles` is multipart form data with an optional resume file, and `POST /reviews` is JSON with just `profile_id` — neither was documented before this fix.
+
+**PLAN.md link:** https://github.com/RithikaMathew/pathreview/blob/docs/89-post-profiles-schema/PLAN.md
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+
