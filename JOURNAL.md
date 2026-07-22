@@ -21,5 +21,13 @@ This scope feels like a good fit for me because it is focused enough to complete
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction documentation:**
-I reproduced the issue by calling `IngestionPipeline.ingest_repo_metadata()` twice with the same `profile_id` and the same fake GitHub repo metadata. To keep the reproduction focused, I used the existing `MockEmbeddingProvider`, a fake database session, and a recording fake vector DB that counts every `add()` call. The first ingestion returned `skipped=False` with `chunk_count=1`, which is expected. The second ingestion also returned `skipped=False` with `chunk_count=1` instead of skipping the already-ingested repo. The vector DB recorded two writes for the same embedding ID, `repo_profile-123_portfolio-api_0e4bee1292ebf612_chunk_0`, confirming that re-ingesting the same repository can create duplicate vector entries.
+**Reproduction documentation:** \
+I reproduced the issue by calling `IngestionPipeline.ingest_repo_metadata()` twice with the same `profile_id` and the same fake GitHub repo metadata. To keep the reproduction focused, I used the existing `MockEmbeddingProvider`, a fake database session, and a recording fake vector DB that counts every `add()` call. The first ingestion returned `skipped=False` with `chunk_count=1`, which is expected. The second ingestion also returned `skipped=False` with `chunk_count=1` instead of skipping the already-ingested repo. The vector DB recorded two writes for the same embedding ID, confirming that re-ingesting the same repository can create duplicate vector entries.
+
+**Reproduction commit link:** https://github.com/RuiZhangg/pathreview/commit/28a22101
+
+**Reproduction summary:** Refer to above documentation
+
+**PLAN.md link:** https://github.com/RuiZhangg/pathreview/blob/fix/6-duplicate-embeddings-error/PLAN.md
+
+**Blockers or open questions:** None
