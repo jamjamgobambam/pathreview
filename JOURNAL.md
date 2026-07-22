@@ -23,9 +23,7 @@ that creates these public links and checks whether they have expired.
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
-<!-- Action item: add your name, GitHub username (prasanna-4), and issue #101 to the
-     Section 1A tab of the cohort ledger, then check this box. -->
+**Cohort ledger:** [x] Issue added to cohort ledger
 
 ### "Is this right for me?" — scope reasoning
 
