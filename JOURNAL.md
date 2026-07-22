@@ -23,7 +23,7 @@ file and required no changes to the `core/config.py` settings themselves.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/unt-akanksha/pathreview/commit/82c2032
+**Reproduction commit link:** https://github.com/unt-akanksha/pathreview/commit/adf2337
 
 **Reproduction summary:**
 I called `GET /health` locally and confirmed it returned a 503 with
