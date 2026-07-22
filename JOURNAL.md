@@ -20,6 +20,16 @@ writing the new ones — so retrieval always reflects the latest version. This
 affects the RAG layer, specifically `rag/retriever/vector_store.py` and
 `ingestion/pipeline.py`.
 
+**Selection reasoning:**
+I chose this as a Tier 3 issue because I am still building my comfort with the
+RAG layer, and this bug is well-scoped rather than open-ended. It is isolated to
+two files (`rag/retriever/vector_store.py` and `ingestion/pipeline.py`), it has a
+clear reproduction path (edit and re-ingest a document, then observe stale chunks
+in retrieval), and the maintainer's 6–9 hour estimate suggests a fix that is
+ambitious enough to stretch me but bounded enough to finish within Module 3. It
+also lines up with what I want to learn this module — how ingestion and vector
+storage interact — so the scope fits both my current skill level and my goals.
+
 **Branch name:** fix/27-vector-store-stale-embeddings-error
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
