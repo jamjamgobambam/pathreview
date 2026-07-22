@@ -18,5 +18,5 @@ scaffold notes, replace with my own 3-5 sentences before submitting:
 [REPLACE THIS LINE WITH MY OWN WORDS]
 
 **Branch name:** fix/146-pii-scrubber-parenthesized-phone
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 **Cohort ledger:** [x] Issue added to cohort ledger
