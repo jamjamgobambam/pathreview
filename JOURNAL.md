@@ -7,7 +7,7 @@
 **Tier:** [ ] Tier 1  [x] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-Currently, the pathreview safety components (PromptDefense, ContentFilter, BiasDetector, and PIIScrubber) only have individual unit tests, meaning there is no test verifying how they interact together sequentially. The goal is to build an integration test suite with fixtures that simulate full requests flowing through the entire safety middleware chain. A successful implementation will ensure that data correctly passes or fails at the appropriate layers (e.g., prompt injection blocked first, then content filtered, then PII scrubbed), proving the architecture works end-to-end.
+Currently, the pathreview safety components (PromptDefense, ContentFilter, BiasDetector, and PIIScrubber) only have individual unit tests, meaning there is no test verifying how they interact together sequentially. The goal is to build an integration test suite with fixtures that simulate full requests flowing through the entire safety middleware chain. A successful implementation will ensure that data correctly passes or fails at the appropriate layers (e.g., prompt injection blocked first, then content filtered, then PII scrubbed), proving the architecture works end-to-end. Based on the "Is this right for me?" checklist: (Part 1) I can explain the problem and expected behavior clearly. (Part 2) This Tier 2 issue is a realistic match for my skills since I have Python testing experience. (Part 3) I found the relevant `safety/` components and tests and understand the context well enough to write a plan. (Part 4) The scope is achievable before Week 9 and there are no blockers.
 
 **Branch name:** feat/75-safety-integration-tests
 
