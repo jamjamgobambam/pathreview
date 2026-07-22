@@ -76,6 +76,8 @@ async def health_check(db=Depends(get_db)):
     try:
         # This would be populated by actual safety event logging
         health_status["safety_events_last_hour"] = 0
+        # The safety events last hour hardcode return 0 instead of showing recent safety events.
+        # Reproduce the issue through health check endpoint and check the logs for safety_events_check_failed error.
     except Exception as exc:
         log.error("safety_events_check_failed", error=str(exc))
 
