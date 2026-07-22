@@ -108,6 +108,14 @@ class StructuralChunker(BaseChunker):
 
             else:
                 # Regular content line
+                # BUG (issue #149): The guard below only collects lines when heading_stack is
+                # truthy. For documents with no headings, heading_stack is always empty and
+                # current_section_lines starts empty, so this condition is never True.
+                # Result: all lines are silently discarded, _extract_sections() returns [],
+                # and chunk() returns [] — the document is dropped from the vector index.
+                # Fix (planned in PLAN.md): add a fallback in chunk() so that when sections
+                # is empty after _extract_sections(), the full document text is wrapped in a
+                # single synthetic section before the loop runs.
                 if heading_stack or current_section_lines:  # Only collect if we have a heading
                     current_section_lines.append(line)
 
