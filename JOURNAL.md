@@ -45,3 +45,43 @@ changing how logs look in dev/production.
   knowledge — while staying small in surface area.
 - **Real infrastructure fix, not a fixture tweak:** it repairs test capture for
   the entire suite, which makes for a substantive Week 10 reflection.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** _(filled in the follow-up commit once the hash is known)_
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_batch_processor.py -k empty -v` in my local venv.
+`test_empty_chunks_list_returns_empty` fails because `caplog.text` is the empty
+string — yet the warning **is** emitted: it shows under pytest's *Captured stdout*
+(`[warning  ] Empty chunks list provided to BatchEmbeddingProcessor`), not under
+*Captured log*. That proves structlog writes to stdout and never reaches the
+stdlib `logging` pipeline that `caplog` hooks into. Tracing it, I found
+`core/logging.py::configure_logging()` — the only code that wires structlog into
+stdlib logging — is called **only in `scripts/seed_db.py`**, never in the app
+under test or the test suite, so during tests structlog runs with its default
+stdout logger.
+
+Observed failure:
+```
+FAILED tests/unit/test_batch_processor.py::...::test_empty_chunks_list_returns_empty
+E   AssertionError: assert ('Empty chunks list' in '' or False)
+E    +  where '' = <LogCaptureFixture>.text
+--- Captured stdout call ---
+2026-07-21 20:05:18 [warning  ] Empty chunks list provided to BatchEmbeddingProcessor
+1 failed, 10 passed
+```
+
+**PLAN.md link:** https://github.com/NeamenEmun/pathreview/blob/fix/159-structlog-pytest-caplog/PLAN.md
+
+**Walkthrough video (recommended):** _(not recorded)_
+
+**Blockers or open questions:**
+- Fix test-side only (autouse fixture in `tests/conftest.py`) vs. also making
+  `configure_logging()` caplog-compatible and calling it at app startup. Leaning
+  test-side to keep the change minimal, pending the issue #159 discussion.
+- Need to confirm empirically that the import-time bound logger in
+  `ingestion/embeddings/batch_processor.py` picks up the test fixture's
+  reconfiguration (depends on `cache_logger_on_first_use=False`).
