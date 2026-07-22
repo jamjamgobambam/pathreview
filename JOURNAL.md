@@ -7,15 +7,14 @@
 **Tier:** [ ] Tier 1  [x] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-The `safety/` package ships each component (prompt defense, content filter, bias
-detector, PII scrubber) with its own unit test, but nothing exercises them as a
-chained pipeline in the order requests actually flow through the API
+Unit tests exist for the individual `safety/` components (prompt defense, content
+filter, bias detector, PII scrubber), but no test runs a request through the
+full safety stack in the order listed in the issue
 (prompt defense → content filter → bias detector → PII scrubber). The
 `tests/integration/` directory currently has only an `__init__.py`, so the
-`test_safety_middleware.py` fixture requested by the issue does not exist yet.
-A successful fix adds that integration test module with fixtures covering both
-pass and fail cases for each layer, giving regression coverage for the full
-middleware stack as it's wired in `api/`.
+`test_safety_middleware.py` module requested by the issue does not exist yet.
+A successful fix adds that integration test module with fixtures covering pass
+and fail cases for each layer. (Estimated effort per the issue: 4–7 hours.)
 
 **Branch name:** feat/75-safety-middleware-integration-tests
 
