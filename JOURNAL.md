@@ -21,7 +21,7 @@ I evaluated this issue against the "Is this right for me?" checklist. While navi
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/WenAlgo998/pathreview/commit/cb2668a6e3ad9f5a5b0277bd2c655fd83318242d
 
 **Reproduction summary:**
 Ran `pytest tests/unit/test_review_service.py -q` in my local environment and observed 13 test failures and 6 passes, reproducing `AttributeError: 'coroutine' object has no attribute 'first'` caused by misconfigured async mocks.
