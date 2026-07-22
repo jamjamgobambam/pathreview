@@ -14,3 +14,17 @@ Currently, the pathreview safety components (PromptDefense, ContentFilter, BiasD
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/wonsik99/pathreview/commit/8ea5e37
+
+**Reproduction summary:**
+I created a failing test skeleton in `tests/integration/test_safety_integration.py` that attempts to run through the safety modules and fails by design, proving the integration test is currently missing.
+
+**PLAN.md link:** https://github.com/wonsik99/pathreview/blob/feat/75-safety-integration-tests/PLAN.md
+
+**Walkthrough video (recommended):** 
+
+**Blockers or open questions:**
+None at this time.
