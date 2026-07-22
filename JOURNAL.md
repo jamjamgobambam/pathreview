@@ -92,3 +92,10 @@ query and chunk text overlap on all 4 terms ("Python", "Django", "web",
 "framework"), producing a full-overlap score of `1.0` instead of a genuine
 partial-overlap score, causing the test's `0.3 < score < 0.9` assertion to
 fail. The scorer itself behaves correctly; the fixture data is the problem.
+
+**PLAN.md link:** https://github.com/tahiya-nm/pathreview/blob/fix/157-relevance-scorer-partial-overlap-fixture/PLAN.md
+
+**Blockers or open questions:**
+Still need to confirm exactly how `RelevanceScorer.score()` calculates
+overlap (simple keyword match vs. something weighted) before finalizing
+the fixture edit.
