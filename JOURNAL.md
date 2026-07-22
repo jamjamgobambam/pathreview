@@ -25,3 +25,9 @@ Currently, several integration tests in the test suite are failing or being skip
 **Setup confirmation:** [x] App runs locally.
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+**Reproduction summary:**
+I verified the issue by implementing a dedicated unit test at `tests/unit/test_fixtures.py` that asserts the existence and verifies the schema structure of `tests/fixtures/sample_profiles/basic_profile.json`.
+
+**Bug Reproduction:**
+   When the fixture is missing, running the test with `.venv/Scripts/pytest tests/unit/test_fixtures.py` reliably reproduces failure.
