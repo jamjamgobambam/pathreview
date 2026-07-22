@@ -48,3 +48,32 @@ is recognized as supported when the context contains "Python".
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/BharathChalla/pathreview/commit/a805d72
+
+**Reproduction summary:**
+Reproduced by instantiating `FaithfulnessChecker` directly and running the
+issue's own example: `checker.check("Knows Python. Knows SQL.", [{"text": "python expert"}, {"text": "sql expert"}])`.
+On `main` this returns `0.0` instead of the expected `1.0` — confirmed both
+that `_extract_claims` was dropping "Knows SQL" (9 characters, under the old
+10-character floor) and that `_is_supported` was rejecting "Knows Python"
+for having only 1 overlapping non-stopword token against a 2-token minimum.
+The linked commit's new regression test (`test_short_claims_can_be_supported`)
+encodes this exact reproduction case, and the three tests the issue names
+(`test_partial_support_returns_middle_score`, `test_multiple_context_chunks`,
+`test_multiple_claims_varying_support`) were failing on `main` for the same
+root cause before the fix.
+
+**PLAN.md link:** https://github.com/BharathChalla/pathreview/blob/fix/152-faithfulness-short-claims/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded.
+
+**Blockers or open questions:**
+None going into Week 9 — the fix, tests, and PR (#262) are already up given
+how the reproduction and root-cause investigation played out this week. One
+open judgment call noted in PLAN.md's Risks section: the new comma/"and"
+claim-splitting could over-fragment feedback that uses "and" in a
+non-listing sense (e.g. "fast and reliable"); flagged as a known limitation
+rather than solved.
