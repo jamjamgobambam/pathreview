@@ -21,12 +21,12 @@ The `GitHubTool` currently pulls a static snapshot of repository metadata, but i
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/tifflia/pathreview/commit/98107e61bcd014b4e804908377dfaeab15221608
 
 **Reproduction summary:**
 I called `GitHubTool.execute()` against a real public repo and inspected the returned metadata: the call succeeds but the dict has no `contribution_streak` key, confirming the gap lives in `_fetch_repo_metadata()` in `agent/tools/github_tool.py`, which only queries `/repos/{owner}/{repo}` and never the `/commits` endpoint. I captured this as an `xfail(strict=True)` reproduction test in `tests/unit/test_github_tool.py`.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/tifflia/pathreview/blob/feat/52-github-contribution-streak/JOURNAL.md
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+While creating my reproduction test, I noticed that when I tried to follow the format of other unit tests the linter failed and mypy caught some type errors. I wonder if that was supposed to happen and whether that means all of the other unit tests are not up to date in formatting and need to be fixed.
