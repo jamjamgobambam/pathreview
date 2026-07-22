@@ -27,3 +27,17 @@ are treated as empty strings and `check()` can continue safely.
 - [x] I identified the affected area (`rag.evaluator.faithfulness_checker`) and the related unit test (`test_none_context_chunk_text`).
 - [x] Tier acknowledged: this is a Tier 1 issue, which matches my current comfort level because the fix is localized and low-risk.
 - [x] Scope-fit reasoning: this issue is a good fit because it is a focused bug fix (handling `None` safely in chunk text processing) that should be solvable in one code path with supporting test coverage.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [add commit URL after pushing your reproduction commit]
+
+**Reproduction summary:**
+I reproduced the issue with:
+`C:/Users/jess/Documents/codepathAI2026/pathreview/.venv/Scripts/python.exe -m pytest tests/unit/test_faithfulness_checker.py -k none_context_chunk_text -q`.
+The test fails with `TypeError: sequence item 0: expected str instance, NoneType found` in `rag/evaluator/faithfulness_checker.py` when `check()` builds `context_text` using `" ".join(...)` and a chunk contains `{"text": None}`.
+
+**PLAN.md link:** https://github.com/jess4342/pathreview/blob/fix/faithfulness-checker-none-text/PLAN.md
+
+**Blockers or open questions:**
+Need to decide whether to sanitize only `None` values or all non-string `text` values (e.g., numbers, lists) to keep this code path robust.
