@@ -29,7 +29,7 @@ and several keywords aside from "import" and "require" should be detected.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** [Note and summarize reproduction steps](https://github.com/nathnet/pathreview/commit/3d9f87ad6b215d3dbc393537c7d4d6fc4367ae5d)
 
 **Reproduction summary:**
 I followed the step-by-step production code provided in the issues in my local python interpreter.
