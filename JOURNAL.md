@@ -1,6 +1,6 @@
 ## Week 7 — Issue selection
 
-**Issue link:** https://github.com/ascherj/pathreview/issues/149
+**Issue link:** https://github.com/Sujjal1/pathreview/fix/149-structural-chunker-no-headings
 
 **Issue title:** Structural chunker silently drops documents that contain no headings
 
@@ -14,6 +14,6 @@ This is a Tier 1 bug in the ingestion chunking pipeline with a clear scope and a
 
 **Branch name:** fix/149-structural-chunker-no-headings
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
