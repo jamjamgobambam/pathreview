@@ -18,3 +18,6 @@ The issue is that the database health check or probe within the ap/routes/health
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+**Selection_Reasoning**
+I've never contributed to an opensource project and many of the formalities are new to me so I wanted to choose a issue that was self-contained. It's also my first time navigating such a large codebase so I wanted to choose a tier 1 problem since they only affect a small number of files, therefore, it gives me the chance to slowly ease open source contribution. I found that the issue was well defined and I could accurately predict the affected files or where to start looking, I've also handled past debugging issue much like this on so I feel especially confident with this nature of issue. In addition to this, I don't have much time these following weeks so I wanted to choose a problem that was more adjusted with my expected work output.
