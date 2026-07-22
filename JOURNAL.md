@@ -5,17 +5,15 @@
 **Tier:** [x] Tier 1
 
 **Problem summary:**
-<!--
-scaffold notes, replace with my own 3-5 sentences before submitting:
-- broken: phone regex anchors on \b (word boundary), ( isn't a word char,
-  so it never matches when a number opens with a parenthesized area code
-  like (555) 123-4567. Dashed format 555-123-4567 still matches fine.
-- effect: scrub() leaves those numbers in plaintext, detect() reports zero
-  PII found even though a phone number is right there
-- fix: broaden the regex to also match when the number opens with (,
-  verified by 4 named failing tests in tests/unit/test_pii_scrubber.py
--->
-[REPLACE THIS LINE WITH MY OWN WORDS]
+The phone-number regex in pii_scrubber.py uses a \b word-boundary anchor,
+but ( is not a word character, so the pattern never matches when a number
+opens with a parenthesized area code like (555) 123-4567. Dashed formats
+like 555-123-4567 still match correctly. Because of this, scrub() leaves
+parenthesized numbers in plaintext instead of redacting them, and detect()
+returns an empty list even when a phone number is clearly present, which is
+a real gap in a safety layer meant to catch PII. The fix is to broaden the
+regex to also accept a leading parenthesis, verified by the four failing
+tests already named in the issue.
 
 **Branch name:** fix/146-pii-scrubber-parenthesized-phone
 **Setup confirmation:** [x] App runs locally at localhost:5173
