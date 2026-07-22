@@ -24,3 +24,17 @@ The public service functions in `core/services/` have only brief descriptions in
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to the [AI201 Su26 PathReview Cohort Issue Ledger](https://docs.google.com/spreadsheets/d/1oclK-70-klhGofiaw6krk8-zV_wZiumsR-Xnd_l5ZR8/edit)
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [Commit 4cc4f43 — reproduce incomplete service docstrings](https://github.com/wazimmerman/pathreview/commit/4cc4f43acafcb4e2499e73f26573e0d3a348fb08)
+
+**Reproduction summary:**
+I ran an AST-based audit over every public function in `core/services/` and reproduced the gap with eight failures: all eight functions lack the requested Google-style `Args`, `Returns`, and `Raises` sections. The reproduction also confirmed that the issue's named `notification_service.py` file is absent, leaving four public functions in `profile_service.py` and four in `review_service.py` as the current scope.
+
+**PLAN.md link:** [Issue #119 solution plan](https://github.com/wazimmerman/pathreview/blob/docs/119-add-service-docstrings/PLAN.md)
+
+**Walkthrough video (recommended):** Not recorded (recommended, not graded).
+
+**Blockers or open questions:**
+The issue names `core/services/notification_service.py`, but that file does not exist in this checkout, so I plan not to create a new service unless the maintainer identifies a renamed or omitted target. I also want to confirm whether the issue expects a literal `Raises:` section on `process_review`; that function catches ordinary processing exceptions and records failure internally, so claiming that those exceptions propagate would be inaccurate.
