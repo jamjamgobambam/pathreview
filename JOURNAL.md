@@ -17,3 +17,17 @@ The current retriever ranks document chunks by combining vector and keyword scor
 **Branch name:** `feat/34-llm-reranker`
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Siqi-Du/pathreview/commit/54e8738
+
+**Reproduction summary:**
+I observed that `HybridRetriever` currently ranks chunks solely using vector similarity and keyword scores without LLM re-ranking. As a result, off-topic chunks with keyword overlap or high vector similarity can be passed to the generator. Added a reproduction note in `rag/retriever/hybrid.py` to document this feature gap.
+
+**PLAN.md link:** https://github.com/Siqi-Du/pathreview/blob/feat/34-llm-reranker/PLAN.md
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — optional]
+
+**Blockers or open questions:**
+None. Ready to implement `LLMReranker` and integrate it into `HybridRetriever`.
