@@ -57,6 +57,50 @@ candidate for a separate issue.
 
 ---
 
+## Week 8 — Reproduction & solution plan
+
+**Issue:** [#150](https://github.com/ascherj/pathreview/issues/150) — Tech
+detector counts vendored and build-output files, skewing language detection
+
+**Reproduced locally?** [x] Yes — reliably
+
+**Reproduction steps:**
+```bash
+# Failing tests (acceptance target):
+.venv/bin/pytest tests/unit/test_tech_detector.py \
+  -k "node_modules_excluded or build_directory_excluded" -v
+#   -> both FAIL: assert primary_language == "Python" but got "JavaScript"
+
+# Manual repro from the issue:
+.venv/bin/python -c "from agent.tools.tech_detector import TechDetector; \
+print(TechDetector().execute({'files': \
+['main.py','core/app.py','node_modules/lib/a.js','node_modules/lib/b.js', \
+'node_modules/x/c.js','node_modules/y/d.js','build/bundle.js','build/vendor.js']}) \
+.data['primary_language'])"
+#   -> before fix: 'JavaScript'  (expected 'Python')
+```
+
+**Where the bug lives:** `agent/tools/tech_detector.py`, method
+`_should_skip_file()` (~L143–164) — it matches skip patterns as slash-wrapped
+substrings (`"/node_modules/"`), so top-level `node_modules/` and `build/` paths
+(no leading slash) are not excluded.
+
+**Solution plan:** see [PLAN.md](PLAN.md). Summary: match on path *segments*
+(`filepath.split("/")`) against a set of skip-dir names, covering top-level and
+nested vendored/build dirs.
+
+**Files I'll touch:** `agent/tools/tech_detector.py` (one method). No test
+changes — the two failing tests define "done".
+
+**Risks / unknowns:** possible over-exclusion of an oddly-named source file (low
+impact — no language extension); Windows `\` paths out of scope; ~51 unrelated
+pre-existing suite failures are not caused by this change.
+
+**Status:** reproduction confirmed and fix implemented on this branch (commit
+`f413972`); all `tech_detector` tests pass.
+
+---
+
 ## Working notes
 
 ### 2026-07-17 — Environment setup
