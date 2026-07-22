@@ -22,3 +22,22 @@ against current portfolio data.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/tquangdang/pathreview/commit/54e06230eb385ad623f878e042c7bcae61dcfe27
+
+**Reproduction summary:**
+Wrote a unit test that runs two reviews for the same profile — first with a
+resume, then with it removed. It shows the removed tool's result
+(`skill_extractor`) still persists in the session after the second review,
+proving the agent's session state is not cleared between reviews.
+
+**PLAN.md link:** https://github.com/tquangdang/pathreview/blob/fix/43-clear-agent-session-state/PLAN.md
+
+**Walkthrough video (recommended):** not recorded yet
+
+**Blockers or open questions:**
+Confirming whether any consumer intentionally relies on session state carrying
+across reviews, and how the fix should interact with the ContextManager
+in-memory memoization cache.
