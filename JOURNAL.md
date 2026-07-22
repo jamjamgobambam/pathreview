@@ -26,3 +26,40 @@ and several keywords aside from "import" and "require" should be detected.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I followed the step-by-step production code provided in the issues in my local python interpreter.
+The issues are as described with the SkillExtractor only extracting JavaScript and TypeScript
+if provided in a certain way (filename, and import statements). But the extractor fails to detect
+mentions of filenames or other JS/TS keywords inside the text itself.
+
+**Reproduction note:**
+First I went over to issue [#148](https://github.com/ascherj/pathreview/issues/148) to read through the issue again.
+I then took the `steps to reproduce` section and went over to my terminal and started with `py`.
+After the Python intepreter is up, I pasted the reproduction steps line-by-line:
+```
+from ingestion.parsers.skill_extractor import SkillExtractor
+e = SkillExtractor()
+print(e.extract_skills('Wrote index.js using const arrow functions and async/await callbacks'))
+print([d.name for d in e.extract_skills('Built app.tsx and types.ts with strict TypeScript interfaces')])
+print([d.name for d in e.extract_skills('Built app.tsx and types.ts with strict TypeScript interfaces', 'test.ts')])
+print([d.name for d in e.extract_skills('Built app.tsx and types.ts with strict TypeScript interfaces and import tests')])
+```
+The results are as described in the issues. The first print statement returns an empty list despite 
+a clear mention of "index.js", "const", "arrow functions", "async/await callbacks". The second print also
+returns only "React" as the detected skill despite the presence of "app.tsx", "types.ts", and 
+"TypeScript interfaces" in the message. This indicates that the skill extractor is unable to parse
+JavaScript and TypeScript related keywords from the text. The third and fourth print statement confirms that
+the `_detect_languages()` is called and can parse if the filename is provided. This shows that
+the extractor is working, but not covering all the extraction cases.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
