@@ -59,6 +59,16 @@ A plan-execute orchestrator that coordinates multiple analysis tools. Each tool 
 ### RAG System (`rag/`)
 Hybrid retrieval (vector similarity + BM25 keyword) fetches relevant context from the user's ingested documents. The generator uses prompt templates to produce structured, evidence-based feedback. The evaluator scores retrieval relevance and generation faithfulness.
 
+<!-- Reproduction note for issue #36: this paragraph is the entire extent of the current
+     hybrid retrieval explanation. It names the two signals but never states how they are
+     combined. The actual logic lives in rag/retriever/hybrid.py (HybridRetriever.retrieve):
+     vector and BM25 scores are each normalized to 0-1 by dividing by the max score in their
+     result set, then blended as `vector_weight * vector_score + keyword_weight * keyword_score`
+     using default weights vector_weight=0.7, keyword_weight=0.3 (set in
+     HybridRetriever.__init__). Results below min_score=0.3 are dropped before the top
+     max_chunks are returned. None of this - the formula, the default weights, or a worked
+     example - appears in this doc. That's the gap this issue asks to close. -->
+
 ### Safety Layer (`safety/`)
 Middleware wrapping the generation pipeline. Components run in sequence: prompt injection defense → content filter → bias detector → PII scrubber. All safety events are logged with structured metadata for monitoring.
 
