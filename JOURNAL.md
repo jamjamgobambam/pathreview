@@ -1,3 +1,5 @@
+# JOURNAL
+
 ## Week 7 — Issue selection
 
 **Issue link:** https://github.com/ascherj/pathreview/issues/101
@@ -17,3 +19,19 @@ I picked a Tier 2 issue since I'm very comfortable with React from building fron
 **Setup confirmation:** [✔] App runs locally at localhost:5173
 
 **Cohort ledger:** [✔] Issue added to cohort ledger
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ChinoUkaegbu/pathreview/commit/00997be5dba1b2456fd3334325b1834f0cd68592
+
+**Reproduction summary:**
+I found that the "Share" button in `ReviewPage.tsx` already exists and copies a link, but it copies the private, authenticated review URL — which fails for anyone but the logged-in owner since `GET /reviews/{review_id}` requires auth and filters by owner ID, with no public/token-based route or expiration logic anywhere in the codebase.
+
+**PLAN.md link:** https://github.com/ChinoUkaegbu/pathreview/blob/feat/101-copy-link-share-summary/PLAN.md
+
+**Walkthrough video (recommended):** https://drive.google.com/file/d/1-ddXpmBNxSHcOqXTOvw0nA8hOatsjg7c/view?usp=sharing
+
+**Blockers or open questions:**
+Still unsure whether share tokens should be actively invalidated when a new one is generated (or if multiple valid tokens per review is fine), and want to confirm the best pattern for mixing an authenticated and a public route within the same FastAPI router.
