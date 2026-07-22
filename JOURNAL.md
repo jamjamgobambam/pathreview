@@ -25,7 +25,7 @@ test, making the assertions pass against correct scorer behavior.
 
 **Branch name:** fix/156-readme-scorer-word-count-fixture
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
 
