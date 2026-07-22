@@ -43,3 +43,17 @@ minimum of 2, so short but genuinely supported claims score correctly.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/grenver/pathreview/commit/6d9352dc92c32ea08ad0242cca4302afb160e031
+
+**Reproduction summary:**
+Ran the issue's exact repro script locally: `FaithfulnessChecker().check("Knows Python. Knows SQL.", [{"text": "python expert"}, {"text": "sql expert"}])` returns `0.0`. Tracing it further, I found the bug is actually two compounding issues in `faithfulness_checker.py` — `_extract_claims()`'s `len(s.strip()) > 10` filter silently drops "Knows SQL" before it's ever scored (only 1 of 2 claims gets extracted), and `_is_supported()`'s fixed `>= 2` token-overlap threshold means the one remaining claim ("Knows Python") can never be marked supported since it only has one meaningful token ("python"). Documented both with inline comments at the exact lines in the commit above; confirmed via `pytest tests/unit/test_faithfulness_checker.py` that this produces 4 failing tests (the 3 named in the issue, plus one unrelated pre-existing bug I flagged separately in PLAN.md).
+
+**PLAN.md link:** https://github.com/grenver/pathreview/blob/fix/152-faithfulness-checker-short-claims/PLAN.md
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+No blockers. Still deciding on the exact scaling formula for the overlap threshold (ratio-based vs. a sliding minimum) — noted as an open risk in PLAN.md and something I may bring to office hours before finalizing the implementation in Week 9.
