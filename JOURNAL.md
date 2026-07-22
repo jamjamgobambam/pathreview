@@ -32,6 +32,6 @@ failing the build if migrations don't apply cleanly.
 
 **Branch name:** feat/129-migration-validation-ci
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
