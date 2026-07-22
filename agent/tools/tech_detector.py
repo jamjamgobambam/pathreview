@@ -1,6 +1,9 @@
 """Technology stack detector tool."""
 
+from collections import Counter
+
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -75,7 +78,7 @@ class TechDetector(BaseTool):
                     "primary_language": "Unknown",
                     "all_languages": [],
                     "frameworks": [],
-                }
+                },
             )
 
         try:
@@ -84,11 +87,7 @@ class TechDetector(BaseTool):
 
         except Exception as e:
             logger.error("tech_detector_error", error=str(e))
-            return ToolResult(
-                success=False,
-                data={},
-                error=str(e)
-            )
+            return ToolResult(success=False, data={}, error=str(e))
 
     def _detect_tech(self, files: list[str]) -> dict:
         """Detect technologies from file list.
@@ -99,40 +98,47 @@ class TechDetector(BaseTool):
         Returns:
             Dict with detected languages and frameworks
         """
-        # Filter out vendor/build directories
-        filtered_files = [
-            f for f in files
-            if not self._should_skip_file(f)
-        ]
+        filtered_files = [f for f in files if not self._should_skip_file(f)]
 
-        languages = set()
+        language_counts: Counter[str] = Counter()
+        first_seen: dict[str, int] = {}
         frameworks = set()
 
         # Detect by file extension
-        for filepath in filtered_files:
+        for index, filepath in enumerate(filtered_files):
+            normalized_path = filepath.lower()
             for ext, lang in self.EXT_TO_LANG.items():
-                if filepath.endswith(ext):
-                    languages.add(lang)
+                if normalized_path.endswith(ext):
+                    language_counts[lang] += 1
+                    first_seen.setdefault(lang, index)
 
         # Detect by config files
-        for filepath in filtered_files:
+        for index, filepath in enumerate(filtered_files):
+            normalized_path = filepath.lower()
             for config_file, (framework, lang) in self.CONFIG_INDICATORS.items():
-                if filepath.endswith(config_file):
-                    languages.add(lang)
+                if normalized_path.endswith(config_file.lower()):
+                    language_counts[lang] += 1
+                    first_seen.setdefault(lang, index)
                     if framework not in ("Docker", "Infrastructure", "CI/CD", "Build"):
                         frameworks.add(framework)
 
         # Determine primary language (most common)
         primary = "Unknown"
-        if languages:
-            lang_list = sorted(languages)
-            primary = lang_list[0]
+        if language_counts:
+            primary = min(
+                language_counts,
+                key=lambda lang: (-language_counts[lang], first_seen[lang], lang),
+            )
 
-        all_languages = sorted(languages)
+        all_languages = sorted(language_counts)
         all_frameworks = sorted(frameworks)
 
-        logger.info("tech_detected", primary_lang=primary,
-                   languages_count=len(all_languages), frameworks_count=len(all_frameworks))
+        logger.info(
+            "tech_detected",
+            primary_lang=primary,
+            languages_count=len(all_languages),
+            frameworks_count=len(all_frameworks),
+        )
 
         return {
             "primary_language": primary,
@@ -150,15 +156,18 @@ class TechDetector(BaseTool):
         Returns:
             True if file should be skipped
         """
-        skip_patterns = [
-            "/node_modules/",
-            "/vendor/",
-            "/dist/",
-            "/build/",
-            "/.git/",
-            "/__pycache__/",
-            "/.venv/",
-            "/venv/",
-        ]
+        skip_patterns = {
+            "node_modules",
+            "vendor",
+            "dist",
+            "build",
+            ".git",
+            "__pycache__",
+            ".venv",
+            "venv",
+        }
 
-        return any(pattern in filepath for pattern in skip_patterns)
+        normalized_path = filepath.replace("\\", "/").lower()
+        path_parts = [part for part in normalized_path.split("/") if part]
+
+        return any(part in skip_patterns for part in path_parts)
