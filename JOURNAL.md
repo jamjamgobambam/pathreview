@@ -35,7 +35,7 @@ test and confirming `check()` returns a score instead of raising `TypeError`.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** TBD after committing this Week 8 documentation
+**Reproduction commit link:** https://github.com/wzltmp/pathreview/commit/7b62494
 
 **Reproduction summary:**
 I reproduced the issue against the `main` version of `rag/evaluator/faithfulness_checker.py`
