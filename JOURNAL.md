@@ -14,3 +14,9 @@ Short, accurate claims get scored 0.0 by the faithfulness evaluator. The problem
 **_Setup confirmation:_** [X] App runs locally at localhost:5173
 
 **_Cohort ledger:_** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction summary:**
+Reproduced short claims faithfulness scoring issues locally by running `pytest tests/unit/test_faithfulness_checker.py`.
+Observed assertions failing where `FaithfulnessChecker.check()` returned `0.0` or raised a `TypeError` on short claims/chunks (e.g., `"Python expert. Knows Rust. Skilled with Docker."`), failing to parse single/short sentence claims correctly.
