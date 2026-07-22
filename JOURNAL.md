@@ -41,7 +41,7 @@ I've estimated the time this will take and I'm confident I can complete it befor
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** [\[link to commit documenting the reproduced issue\]](https://github.com/jesswsong/pathreview/commit/656d3676f46ed98ba541e9be415a214ab073073f)
 
 **Reproduction summary:**
 I added a failing test (`tests/unit/test_health_safety_events.py`) that records 8
