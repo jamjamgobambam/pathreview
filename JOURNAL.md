@@ -25,12 +25,12 @@ PathReview's RAG pipeline currently ranks retrieved document chunks using a hybr
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit — to be updated after push]
+**Reproduction commit link:** https://github.com/TianxinS/pathreview/commit/c8318c7
 
 **Reproduction summary:**
 Added `tests/unit/test_reranker.py` with 6 failing tests that document the expected interface for `LLMReranker`. All 6 fail because `rag/retriever/reranker.py` does not exist and `HybridRetriever.__init__` has no `reranker` parameter — confirming the feature gap is real and precisely located.
 
-**PLAN.md link:** [link to PLAN.md — to be updated after push]
+**PLAN.md link:** https://github.com/TianxinS/pathreview/blob/feat/34-llm-reranker/PLAN.md
 
 **Walkthrough video (recommended):** N/A
 
