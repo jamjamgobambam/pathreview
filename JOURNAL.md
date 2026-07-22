@@ -23,6 +23,6 @@ triggers a fresh generation. This work touches the RAG generator
 
 **Branch name:** feat/32-portfolio-query-cache
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
