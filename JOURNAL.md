@@ -17,7 +17,7 @@ Currently, tests for auth middleware check if a token is valid or not. However, 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/atile4/pathreview/commit/f26aa836567c233fd32890817addbad87abf3679
 
 **Reproduction steps:**
 1. Started the app locally (`make run`) and registered a test user via
