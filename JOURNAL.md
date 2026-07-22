@@ -36,3 +36,19 @@ were extracted, wraps the entire document text in a single `Chunk` object and re
 **Setup confirmation:** [ ] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/nghiatra2006-jpg/pathreview/commit/10ed100f83aa69f9af826684c7d6b735bc8cc0d0
+
+**Reproduction summary:**
+Running `pytest tests/unit/test_structural_chunker.py::TestStructuralChunker::test_document_with_no_headings` fails with `assert 0 >= 1` — `chunk()` returns an empty list for a plain-text document because the guard in `_extract_sections()` discards all lines when `heading_stack` is empty, so no sections are ever built.
+
+**PLAN.md link:** https://github.com/nghiatra2006-jpg/pathreview/blob/fix/149-structural-chunker-no-headings/PLAN.md
+
+**Walkthrough video (recommended):** *(not recorded)*
+
+**Blockers or open questions:**
+Need to confirm before implementing that `strategy_selector.py` does not rely on an empty return from `chunk()` as a signal, and that `SemanticChunker` preserves `heading_path` metadata when sub-chunking the no-headings fallback section.
