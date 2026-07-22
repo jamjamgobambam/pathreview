@@ -18,3 +18,35 @@ Formats like (555) 123-4567 go through the function unredacted and dashed format
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+<!-- [1–2 sentences: How did you reproduce the issue? What did you observe?] -->
+In the terminal, I created a short python script that created a PIIScrubber() object, and passed a text input with a parenthisized phone number (555) 123-4567 and the dashed format 555-123-4567  into the scrub() and detect() methods. Both functions were observed to only recognize/redact the dashed format and not flag/redact the parenthisized format, confirming the bug. 
+
+```bash
+python3 -c "
+from safety.pii_scrubber import PIIScrubber
+s = PIIScrubber()
+print(s.scrub('Call me at (555) 123-4567 or 555-123-4567'))
+print(s.detect('Call me at (555) 123-4567'))
+print(s.detect('Call me at 555-123-4567'))
+"
+```
+
+**Output:**
+```
+Call me at (555) 123-4567 or [REDACTED]
+[]
+[{'type': 'phone_us', 'value': '555-123-4567', 'start': 11, 'end': 24}]
+```
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+<!-- **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded] -->
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
