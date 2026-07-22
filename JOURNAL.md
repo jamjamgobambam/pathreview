@@ -36,7 +36,7 @@ and confirmed 22% coverage, below the 40% threshold in the issue. Coverage repor
 13 pre-existing tests for `get_review`/`list_reviews` are currently failing due to
 an unrelated AsyncMock setup bug — noted as a blocker/observation, not part of this issue's scope.
 
-**PLAN.md link:** [we'll fill this in next]
+**PLAN.md link:** https://github.com/namitalamichhane/pathreview/blob/test/109-review-service-coverage/PLAN.md
 
 **Walkthrough video (recommended):** 
 
