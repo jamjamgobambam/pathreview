@@ -1,6 +1,6 @@
 ## Week 7 — Issue selection
 
-**Issue link:** [paste GitHub issue URL here]
+**Issue link:** https://github.com/ascherj/pathreview/issues/153
 
 **Issue title:** Faithfulness checker crashes when a context chunk has `text: None`
 
