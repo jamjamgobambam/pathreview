@@ -23,7 +23,7 @@ This issue has a clear expected result and identifies the main file involved. I 
 
 ## Week 8 - Reproduction & solution planning
 
-**Reproduction commit link:** will add after commit
+**Reproduction commit link:** https://github.com/typicaleoxx/pathreview/commit/bbfd4aa928ce86d4e8f88bf1122ac300067c32f6
 
 **Reproduction summary:**
 I inspected `agent/tools/github_tool.py` and confirmed that the current tool only retrieves repository metadata. It does not retrieve contribution history, calculate consecutive commit days, or return a `contribution_streak` field.
