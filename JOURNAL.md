@@ -42,7 +42,7 @@ Right now the ingestion pipeline only pulls in data from GitHub and resumes, so 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/arushibhatia/pathreview/commit/9716efd6b604347cb1bcf5b5382e0f210652f07d
 
 **Reproduction summary:**
 I stood up a local HTTP server as a stand-in portfolio site, set a profile's Portfolio URL to point at it, and ran a full review through the app. The fake server's access log stayed empty the entire time — no request was ever made to the portfolio URL — and the review completed with results that were unaffected by the portfolio field, confirming that portfolio content is never fetched or used, despite the field existing end-to-end (DB column, API schema, frontend form).
@@ -53,9 +53,8 @@ I stood up a local HTTP server as a stand-in portfolio site, set a profile's Por
 3. As part of the review, I submitted `http://localhost:8001` as the Portfolio URL.
 4. Checked the `http.server 8001` log throughout and after the run, and zero requests were received, proving nothing in the app ever fetches the submitted URL.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** [PLAN.md](https://github.com/arushibhatia/pathreview/blob/feat/11-add-support-for-ingesting-portfolio-website-url/PLAN.md)
 
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+**Walkthrough video (recommended):** Didn't do, but below is a screenshot of the lack of logs on the local dummy server to validate that nothing was fetched from the portfolio.
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
