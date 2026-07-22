@@ -1,5 +1,14 @@
 ## Week 7 — Issue selection
 
+<!--   Email: user1@example.com
+  Password: password1
+
+  Email: user2@example.com
+  Password: password2
+
+  Email: user3@example.com
+  Password: password3 -->
+
 **Issue link:** https://github.com/ascherj/pathreview/issues/105
 
 **Issue title:** Add accessibility tests for the review page using `jest-axe`
@@ -41,3 +50,29 @@ across the full lifecycle of one of the app's core screens.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/thisiswhale/pathreview/commit/7cc60f1eb7d3a1147f97794d75a5551ab537ec4e
+
+**Reproduction summary:**
+This is a missing-coverage issue, not a bug, so "reproducing" it meant
+confirming the gap: `ls frontend/src/pages/__tests__/` fails (directory
+doesn't exist), and `jest-axe` is present only as a devDependency with no
+usage anywhere in `frontend/src`. Also confirmed `ReviewPage.tsx` has three
+conditionally-rendered states (polling, failed, complete) that would each
+need their own axe check, per the plan's Understand section.
+
+**PLAN.md link:** https://github.com/thisiswhale/pathreview/blob/test/105-review-page-accessibility-tests/PLAN.md
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+- Whether `jest-axe`'s `toHaveNoViolations` matcher is already registered
+  globally in a `setupTests`/`vitest.config.ts` file, or needs adding per-file
+- Whether to wrap `ReviewPage` in `MemoryRouter` or mock `react-router-dom`
+  directly for `useParams`/`useNavigate` — following whichever existing
+  tests already lean toward
+- jsdom (used by vitest) doesn't do real layout/paint, so `jest-axe` may not
+  catch color-contrast violations in this environment — scoping expectations
+  to what's actually testable
