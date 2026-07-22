@@ -21,6 +21,6 @@ format, and leaves the existing phone/email/SSN cases still passing.
 
 **Branch name:** fix/146-parenthesized-phone-redaction
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [X] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [X] Issue added to cohort ledger
