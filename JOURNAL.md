@@ -11,9 +11,9 @@ The skill extractor is missing JavaScript and TypeScript in cases where the text
 
 **Branch name:** fix/148-skill-extractor-js-ts-detection
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
 
 **Selection notes:**
-I checked the issue against the project layout and the branch naming rules in `docs/CONTRIBUTING.md`. The issue is narrow, reproducible, and centered in a single parser module, which keeps it realistic for Week 7. It also passed the "right for me" scope check because I already validated the local environment and confirmed the affected area before making the fix.
+I checked the issue against the project layout and the branch naming rules in `docs/CONTRIBUTING.md`. The issue is narrow, reproducible, and centered in a single parser module, which keeps it realistic for Week 7. It also passed the "right for me" scope check because I validated the local environment, confirmed the app runs locally at `localhost:5173`, and verified the affected area before making the fix.
