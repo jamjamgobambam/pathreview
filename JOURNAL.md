@@ -15,3 +15,15 @@ The repository-analysis pipeline does not currently indicate whether a project c
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/TheDarkFyre/pathreview/commit/6ec80998fa0cae23df58d05f08fc81d6de845e99
+
+**Reproduction summary:**
+Wrote a mocked unit test (`tests/unit/test_github_tool.py`) that calls `GitHubTool.execute()` for a repo known to have real tests and asserts `has_tests` is in the returned metadata — it fails, since `agent/tools/github_tool.py` never computes or includes that field at all. I also confirmed `ingestion/parsers/repo_analyzer.py` has separate `has_tests` detection logic, but it's dead code: it depends on a `file_structure` key nothing ever populates, and its only caller has zero call sites anywhere in the app.
+
+**PLAN.md link:** https://github.com/TheDarkFyre/pathreview/blob/feat/50-has-tests-detection/PLAN.md
+
+**Blockers or open questions:**
+Still need to confirm whether `GitHubTool` is ever constructed with an `api_token` in practice — my planned fix adds one more GitHub API call per repo (root contents listing) to detect tests, and unauthenticated requests are already rate-limited to 60/hr, so I want to check real usage before finalizing in Week 9. Also scoped the fix to root-level test indicators only (won't catch nested test dirs like `backend/tests/`) — noted as a known limitation in PLAN.md rather than something to solve now.
