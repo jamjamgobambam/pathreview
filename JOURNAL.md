@@ -22,3 +22,24 @@ changes to the pipeline don't silently break review processing.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [we'll fill this in after committing]
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_review_service.py --cov=core.services.review_service --cov-report=term-missing`
+and confirmed 22% coverage, below the 40% threshold in the issue. Coverage report shows
+`process_review` (lines 98-194) and its helper functions `_run_ingestion_pipeline`,
+`_run_agent_orchestration`, `_run_rag_retrieval_generation` (lines 202-279), and
+`_run_safety_checks` (lines 369-390) are almost entirely untested. Also discovered
+13 pre-existing tests for `get_review`/`list_reviews` are currently failing due to
+an unrelated AsyncMock setup bug — noted as a blocker/observation, not part of this issue's scope.
+
+**PLAN.md link:** [we'll fill this in next]
+
+**Walkthrough video (recommended):** 
+
+**Blockers or open questions:**
+The 13 failing pre-existing tests are a separate bug (broken AsyncMock setup for db.execute).
+Need to decide whether to leave them as-is or flag separately, since fixing them isn't part of issue #109's scope.
