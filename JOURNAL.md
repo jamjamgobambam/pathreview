@@ -14,6 +14,6 @@ This is a good fit for my current scope because the bug is well-bounded to a sin
 
 **Branch name:** fix/158-review-service-async-mock-tests
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
