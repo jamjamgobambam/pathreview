@@ -10,16 +10,7 @@
 
 **Problem summary:**
 The unit test `test_readme_with_all_quality_signals` in
-`tests/unit/test_readme_scorer.py` is supposed to prove that a rich,
-well-structured README earns a high quality score. It asserts
-`word_count > 100` and `word_count_category == "comprehensive"`. The problem is
-the README string used as the test fixture only contains about 51 words, so
-those two assertions fail — not because the scorer is wrong, but because the
-fixture is too small to reach the thresholds. The scoring logic in
-`agent/tools/readme_scorer.py` counts words with `content.split()` and labels
-anything under 100 words as `minimal` and anything with 500+ words as
-`comprehensive`, so 51 words is correctly categorized as `minimal`. A
-successful fix extends the fixture README with enough genuine content (500+
+`tests/unit/test_readme_scorer.py` is supposed to prove that a rich README earns a high quality score. It asserts `word_count > 100` and `word_count_category == "comprehensive"`. The problem is the README string used as the test fixture only contains about 51 words, sothose two assertions fail since not because the scorer is wrong, but because the fixture is too small to reach the thresholds. The scoring logic in `agent/tools/readme_scorer.py` counts words with `content.split()` and labels anything under 100 words as `minimal` and anything with 500 or more words as `comprehensive`, so 51 words is correctly categorized as `minimal`. A successful fix extends the fixture README with enough genuine content (500+
 words) so the test actually exercises the `comprehensive` branch it claims to
 test, making the assertions pass against correct scorer behavior.
 
@@ -27,7 +18,7 @@ test, making the assertions pass against correct scorer behavior.
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x ] Issue added to cohort ledger
 
 ---
 
