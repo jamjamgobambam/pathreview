@@ -1,3 +1,31 @@
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [`8fa4eee - docs(safety): add planning framework for fixing issue`](https://github.com/ru1nw/pathreview/commit/8fa4eee5f6b1579ffdc0055453c7c5cb49fe297a)
+
+**Reproduction summary:**
+
+I reproduced the issue using the unit test file, since the scrubber isn't
+actually used in the project just yet.
+
+Calling `pytest tests/unit/test_pii_scrubber.py` revealed that 4 of the test
+cases related to scrubbing US phone numbers weren't passing, and the failing
+formats all included the parenthesized format.
+
+After using Claude Code to understand the issue more, the issue turned out to
+be caused by the regex pattern not matching spaces in phone numbers, which the
+parenthesized format used.
+
+**PLAN.md link:** [`PLAN.md` in fork](https://github.com/ru1nw/pathreview/blob/fix/146-pii-not-scrub-phone/PLAN.md)
+
+**Walkthrough video (recommended):** none
+
+**Blockers or open questions:**
+
+If there's more time, I might include more formats and test cases to cover more
+bases.
+
+---
+
 ## Week 7 — Issue selection
 
 **Issue link:** [https://github.com/ascherj/pathreview/issues/146](https://github.com/ascherj/pathreview/issues/146)
