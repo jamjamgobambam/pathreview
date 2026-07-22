@@ -14,4 +14,4 @@ In the resume_parser.py, leading indents or whitespaces are forcing new sections
 
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
-**Cohort ledger:** [X] Issue added to cohort ledger
+**Cohort ledger:** [X] Issue added to cohort ledger 
