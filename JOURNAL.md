@@ -15,7 +15,7 @@ The unit test `test_readme_with_all_quality_signals` in `tests/unit/test_readme_
 
 **Setup confirmation:** [ ] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [X] Issue added to cohort ledger
 
 **"Is this right for me?" checklist reasoning:**
 Scope: the change is contained to a single test file (`tests/unit/test_readme_scorer.py`), which matches the Tier 1 definition of "scoped to a single file or config." Reproducibility: the failure is deterministic — running `pytest tests/unit/test_readme_scorer.py -q` shows the failing assertion (`assert 51 > 100`) with no external services, API keys, or Docker dependencies required. Understandability: I can explain the bug end-to-end (fixture contradicts its assertions) without needing to understand the RAG or agent orchestration layers. Risk: no application code changes, so there is no chance of breaking other modules; the definition of done is clear (the test passes against unmodified scorer code). This is my first contribution to a large multi-service codebase, so a well-scoped test fix lets me focus on learning the project's contribution standards (branch naming, Conventional Commits, make check / make test-unit) with room to take on a second, harder issue if I finish early.
