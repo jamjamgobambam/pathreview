@@ -6,6 +6,9 @@
 
 **Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
+**Tier justification:**
+This is my first open-source contribution, so per the checklist's Part 2 guidance I'm choosing Tier 1 regardless of other factors. It's also a genuine fit on scope, not just a safe default: the issue is labeled `tier-1` on the tracker itself, and my own investigation of the codebase confirms it's self-contained — the fix lives in `agent/orchestrator.py` (and possibly `agent/memory/context_manager.py`), and `Orchestrator`/`SessionStore` aren't wired into the rest of the app or called anywhere else, so fixing it doesn't require understanding how other modules (RAG, API, ingestion) interact with it. That matches the Tier 1 description exactly: a localized fix in one or two files that doesn't require whole-system understanding.
+
 **Problem summary:**
 When a user wants a new review, the previous session cache is not cleared. This means that a new review is going to take consideration of the previous session, even though it has nothing to do with it. Inside "agent/memory/session_store.py", there should be some error or missing functionality to clear the session state.
 
