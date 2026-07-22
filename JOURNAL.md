@@ -9,33 +9,46 @@
 **Tier:** [ ] Tier 1  [x] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-<!-- TODO: Rewrite this in YOUR OWN WORDS before submitting — "in your own words"
-     is a grading criterion, and identical/AI-sounding phrasing can be flagged.
-     The draft below is accurate; make it sound like you and confirm you understand it. -->
-Right now PathReview only lets a logged-in user view their own review summary —
-there is no way to share it with someone who does not have an account. This issue
-asks for a "Copy link" button on the review page that produces a shareable URL to a
-read-only version of the summary. The link must open without requiring a login and
-must stop working after 30 days. A successful fix spans the whole stack: a new
-frontend service (`shareService.ts`) to request the link, a button wired into
-`ReviewPage.tsx`, and a backend endpoint in `api/routes/reviews.py` that creates and
-validates time-limited public share tokens.
+When you finish a review in PathReview you can see a summary of it, but only while
+you are logged into your own account. There is currently no way to hand that summary
+to someone else, such as a mentor or a peer, unless they also have an account and log
+in. Issue #101 asks me to add a "Copy link" button on the review page that generates a
+link anyone can open, even without logging in, showing a read-only version of the
+summary. So that these public links do not live forever, the link should expire 30 days
+after it is created. Making this work means changes across the stack: a new frontend
+service to request the link, the button itself on the review page, and a new API route
+that creates these public links and checks whether they have expired.
 
 **Branch name:** feat/101-share-review-link
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
-<!-- TODO: Add your name, GitHub username (prasanna-4), and issue #101 to your
-     section's tab in the cohort issue ledger, then check this box. -->
+<!-- Action item: add your name, GitHub username (prasanna-4), and issue #101 to the
+     Section 1A tab of the cohort ledger, then check this box. -->
 
 ### "Is this right for me?" — scope reasoning
-<!-- TODO: Work through the actual "Is this right for me?" checklist linked in the
-     Module 3 resources and note your real reasoning here. Notes below are a start. -->
-- **Tier / effort:** Tier 2, estimated 5–8 hours. More involved than a Tier 1 bug fix.
-- **Surface area:** Touches three layers — React frontend (`ReviewPage.tsx`), a new
-  frontend service (`shareService.ts`, which does not exist yet), and the Python API
-  (`api/routes/reviews.py`). It is a full-stack feature, not a contained fix.
-- **Key design decisions:** how to generate a public share token, where to store it,
-  and how to enforce the 30-day expiry and no-login read-only access.
-- **Why I think I can do it / risks to watch:** <!-- TODO: your own assessment -->
+
+- **Do I understand what is being asked?** Yes. The feature is easy to describe in one
+  sentence, a button that copies a public, read-only, 30-day link to a review summary,
+  and I can picture how a user would use it, which tells me the requirements are clear.
+- **Is the scope manageable?** It is labeled Tier 2 with an estimate of 5 to 8 hours. It
+  is bigger than a single-file bug fix because it spans three layers: the React frontend
+  (`ReviewPage.tsx`), a new frontend service (`shareService.ts`, which does not exist
+  yet and I will create), and the Python API (`api/routes/reviews.py`). The issue names
+  all of these files, so I know where the work lives instead of having to hunt for it.
+- **Do I have the skills?** I work as a frontend developer intern at Hyland Software,
+  mostly in Angular, so I am comfortable with component-based frontend work, services,
+  and state management. PathReview's frontend is React rather than Angular, so the
+  concepts carry over but I will be learning React's specific patterns as I go, which is
+  part of why I wanted a frontend issue.
+- **What are the key decisions?** How to generate a share token, where to store it and
+  its creation date, how to enforce the 30-day expiry, and how to serve the read-only
+  view without requiring authentication.
+- **Why I chose it:** I want to strengthen my frontend skills and land a real, merged
+  open-source contribution. The Tier 1 frontend issues available were small polish or
+  test tasks; I chose this Tier 2 feature instead because it is a complete, user-facing
+  piece of work that better reflects the kind of frontend engineering I do and want to
+  grow in. The parts I will watch most closely are the expiry logic and the no-login
+  access path, since those are where edge cases are most likely to hide, so I will make
+  sure I have tests around token creation and expiry before I consider it done.
