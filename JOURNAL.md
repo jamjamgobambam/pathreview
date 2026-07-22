@@ -30,7 +30,7 @@ are treated as empty strings and `check()` can continue safely.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [add commit URL after pushing your reproduction commit]
+**Reproduction commit link:** https://github.com/jess4342/pathreview/commit/c857ad603c037d3a6c84e4a1206af359dfa8d754
 
 **Reproduction summary:**
 I reproduced the issue with:
