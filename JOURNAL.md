@@ -49,3 +49,33 @@ actual source (e.g. Python). The two previously failing tests,
   of scope for #150 and all existing tests pass without touching it.
 
 Conclusion: good Tier 1 fit for a first contribution to this codebase.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/paulshao2698/pathreview/commit/e6d680f3757dc5de248da2d5f73909f093448ed2
+
+**Reproduction summary:**
+I ran the exact file list from the issue through `TechDetector` in my local
+venv and against the base (pre-fix) code it reported `primary_language ==
+"JavaScript"` — the 6 vendored `node_modules/`/`build/` `.js` files outvoted
+the 2 real `.py` files. I also confirmed it by running the repo's own tests
+against the pre-fix code: `test_node_modules_excluded` and
+`test_build_directory_excluded` both fail with `AssertionError: assert
+'JavaScript' == 'Python'` (`2 failed, 25 deselected`). The reproduction is
+scripted in `repro_issue_150.py`.
+
+**PLAN.md link:** https://github.com/paulshao2698/pathreview/blob/fix/150-exclude-vendored-build-files/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded (optional / not graded).
+
+**Blockers or open questions:**
+- The `.venv` is Python 3.14; a couple of backend dependencies may lack 3.14
+  wheels, which could affect running the full app (frontend at :5173 already
+  runs; backend + Docker DB still to be brought up). Does not block the #150
+  Python fix, which is verified by the unit tests.
+- Noted but out of scope: `primary_language` is documented as "most common" but
+  is actually the alphabetically-first entry of a set (occurrences are never
+  counted). Leaving this untouched for #150 — flagging in case a follow-up
+  issue is warranted.
