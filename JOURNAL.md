@@ -19,12 +19,12 @@ The test `test_readme_scorer.py` fails because the test README only contains 51 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** [\[link to commit documenting the reproduced issue\]](https://github.com/t1ffnyw/pathreview/commit/17dd2fcaa87e30bb2a634ff43793c099b907b59c)
 
 **Reproduction summary:**
 I reproduced the error by with the command `pytest tests/unit/test_readme_scorer.py`. The test showed that 22 cases passed and 1 failed. The failed case was an AssertionError due to the line `assert 51 > 100` inside the function `test_readme_with_all_quality_signals()`. Looking at the README used for the test, the word count of the README is 51, while the test expects it to have at least 100 words. Therefore, the assetion `assert data["word_count"] > 100` fails and the entire test fails. 
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** [link to PLAN.md in your fork](PLAN.md)
 
 **Blockers or open questions:**
 N/A
