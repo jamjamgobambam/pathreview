@@ -16,4 +16,4 @@ This issue has a clearly defined problem, reproduction example, and expected res
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [X] Issue added to cohort ledger
