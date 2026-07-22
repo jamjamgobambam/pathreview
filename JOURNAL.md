@@ -20,3 +20,19 @@ PathReview's RAG pipeline currently ranks retrieved document chunks using a hybr
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit — to be updated after push]
+
+**Reproduction summary:**
+Added `tests/unit/test_reranker.py` with 6 failing tests that document the expected interface for `LLMReranker`. All 6 fail because `rag/retriever/reranker.py` does not exist and `HybridRetriever.__init__` has no `reranker` parameter — confirming the feature gap is real and precisely located.
+
+**PLAN.md link:** [link to PLAN.md — to be updated after push]
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:**
+Need to confirm whether the project has a shared LLM client factory in `agent/orchestrator.py` that `LLMReranker` should reuse, or whether it should accept a raw `openai.OpenAI` client like `ReviewGenerator` does.
