@@ -19,3 +19,17 @@ This issue has a clear expected result and identifies the main file involved. I 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Week 8 - Reproduction & solution planning
+
+**Reproduction commit link:** will add after commit
+
+**Reproduction summary:**
+I inspected `agent/tools/github_tool.py` and confirmed that the current tool only retrieves repository metadata. It does not retrieve contribution history, calculate consecutive commit days, or return a `contribution_streak` field.
+
+**PLAN.md link:** https://github.com/typicaleoxx/pathreview/blob/feat/52-contribution-streak/PLAN.md
+
+
+**Blockers or open questions:**
+I still need to confirm whether the streak should use all user contributions or only commits from the repository provided in `repo_name`, and whether the project prefers GitHub GraphQL or REST API data.
