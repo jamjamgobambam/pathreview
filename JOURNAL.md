@@ -4,7 +4,7 @@
 
 **Issue title:** Faithfulness checker crashes when a context chunk has `text: None`
 
-**Tier:** [ ] Tier 1  [ ] Tier 2  [ ] Tier 3
+**Tier:** [ X ] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
 The FaithfulnessChecker's `check()` method throws a TypeError whenever a context
@@ -21,6 +21,6 @@ checker degrades gracefully instead of crashing. The change lives in
 
 **Branch name:** fix/153-faithfulness-none-chunk-text
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [ X ] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [ X ] Issue added to cohort ledger
