@@ -21,7 +21,7 @@ I would have to add an ingest_portfolio() method that mirrors the existing inges
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/kousalyaa13/pathreview/commit/2796474c747de3f6e68259dba6abec66273f3837
 
 **Reproduction summary:**
 Since this is a feature gap rather than a bug, reproducing it meant tracing what happens to a portfolio URL and showing that nothing real ever gets fetched. I searched the codebase for the portfolio path and found that the ingestion is only faked. In core/services/review_service.py, around lines 229 to 252, a profile's portfolio_url gets turned into a hard-coded string, "Portfolio data from" plus the URL, and that string is what gets stored. The site itself is never downloaded. On top of that there's no ingest_portfolio method in ingestion/pipeline.py and no web_parser.py in ingestion/parsers/, so even if the review service wanted to ingest the page, there's nothing to do it. The result is that no real content from the portfolio ever reaches the vector store, which is exactly the gap the issue describes.
