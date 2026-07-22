@@ -17,6 +17,12 @@ Short, accurate claims get scored 0.0 by the faithfulness evaluator. The problem
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction summary:**
-Reproduced short claims faithfulness scoring issues locally by running `pytest tests/unit/test_faithfulness_checker.py`.
-Observed assertions failing where `FaithfulnessChecker.check()` returned `0.0` or raised a `TypeError` on short claims/chunks (e.g., `"Python expert. Knows Rust. Skilled with Docker."`), failing to parse single/short sentence claims correctly.
+**Reproduction commit link:** https://github.com/ocabezas95/pathreview/commit/6f60da3e705d350cee6fc50ab66c1e8bf4fa267c
+
+**Reproduction summary:** Reproduced short claims faithfulness scoring issues locally by running `pytest tests/unit/test_faithfulness_checker.py`. Observed assertions failing where `FaithfulnessChecker.check()` returned `0.0` or raised a `TypeError` on short claims/chunks, failing to parse single/short sentence claims correctly.
+
+**PLAN.md link:** https://github.com/ocabezas95/pathreview/blob/fix/152-short-claims-faithfulness/PLAN.md
+
+**Walkthrough video (recommended):** None
+
+**Blockers or open questions:** None
