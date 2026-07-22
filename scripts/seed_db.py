@@ -1,8 +1,13 @@
 """Database seeding script to create sample users, profiles, and reviews."""
 
 import asyncio
+import sys
 from datetime import datetime, timedelta
 from uuid import uuid4
+
+if sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
+    sys.stderr.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
 
 from sqlalchemy import select
 
