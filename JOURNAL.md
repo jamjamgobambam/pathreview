@@ -26,3 +26,15 @@ The RAG prompt generator (`rag/generator/prompt_templates.py`) stores five versi
 - Scope/time: checked the ledger claims count and issue comments — comfortable with how many others are on this issue. 3–5 hr estimate fits within Weeks 8–9. No blockers or dependencies listed on the issue.
 
 All boxes checked — proceeding with this issue.
+
+
+## Reproduction notes (issue #37)
+
+**Steps to reproduce:**
+1. Ran `python -m pytest tests/unit/test_prompt_templates.py -v` on a clean checkout — all 37 tests pass, including `test_template_snapshot_content_hash`.
+2. Edited the wording of the `skills_feedback` template in `rag/generator/prompt_templates.py` (changed template text under the `v1` key, no version bump).
+3. Re-ran `python -m pytest tests/unit/test_prompt_templates.py::TestPromptTemplates::test_template_snapshot_content_hash -v` — test still **PASSED**.
+
+**Observation:** `test_template_snapshot_content_hash` computes an MD5 hash of template content but only asserts `isinstance(content_hash, str)` and `len(content_hash) == 32` — it never compares against a fixed expected hash. This confirms the bug: template wording can change silently with zero test failures, and no version bump is enforced.
+
+Reverted the temporary edit afterward — no production code changes made on this branch yet.
