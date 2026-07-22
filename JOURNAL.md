@@ -16,3 +16,17 @@ The `GitHubTool` currently pulls a static snapshot of repository metadata, but i
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I called `GitHubTool.execute()` against a real public repo and inspected the returned metadata: the call succeeds but the dict has no `contribution_streak` key, confirming the gap lives in `_fetch_repo_metadata()` in `agent/tools/github_tool.py`, which only queries `/repos/{owner}/{repo}` and never the `/commits` endpoint. I captured this as an `xfail(strict=True)` reproduction test in `tests/unit/test_github_tool.py`.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
