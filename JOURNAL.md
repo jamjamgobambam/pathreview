@@ -19,3 +19,17 @@ I went through the "Is this right for me?" checklist before claiming this. It's 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/AhmedOHassan/pathreview/commit/f0a6cc0f6ed63c28d0193de23de93184c997fa82
+
+**Reproduction summary:**
+I ran the app locally and tried calling a few endpoints using only what docs/API.md tells me. I assumed JSON bodies for auth/login and profile creation since that's the natural guess, but login actually needs an OAuth2 form body and profile creation needs multipart form data with a file upload, neither of which I could tell from the doc. I documented this in a comment at the top of docs/API.md.
+
+**PLAN.md link:** https://github.com/AhmedOHassan/pathreview/blob/docs/117-api-curl-examples/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded yet
+
+**Blockers or open questions:**
+Still need to confirm the seeded test accounts from docs/SETUP.md actually work right after a fresh make setup, and I need to figure out the cleanest way to include a sample resume file in the curl example for POST /profiles since there isn't one in the repo already.
