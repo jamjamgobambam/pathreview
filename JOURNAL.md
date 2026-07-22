@@ -1,18 +1,18 @@
 ## Week 7 — Issue selection
 
-**Issue link:** [paste link here]
+**Issue link:** https://github.com/ascherj/pathreview/issues/43
 
-**Issue title:** [paste issue title here]
+**Issue title:** Agent session state is not cleared between reviews for the same user
 
-**Tier:** [ ] Tier 1  [ ] Tier 2  [ ] Tier 3
+**Tier:** [X] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-[In 3–5 sentences, in your own words: what the issue is (not a copy-paste of
-the title), what is currently broken or missing, and what a successful fix
-would accomplish. Naming the part of the codebase it affects is helpful context.]
+A bug is in the orchestrator.py file. Before running tools, it creates it's own session id from a user profile. So if the smae profile is reviewed again, the orchestrator starts from whatever session data was already stored for that profile instead of clearing it first. So although the new review creates a new session, the agent will still reuse the old per-profile session state unless that state is cleared.
 
-**Branch name:** [paste branch name here]
+To fix that, I would need to make sure the orchestrator will use the new session id instead to remove that stale tool. 
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Branch name:** fix/43-agent-session-state-not-cleared
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Setup confirmation:** [X] App runs locally at localhost:5173
+
+**Cohort ledger:** [X] Issue added to cohort ledger
