@@ -20,7 +20,7 @@ I chose this issue because it is a focused Tier 1 bug with a clear reproduction 
 
 ## Week 8 - Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/yaritzay27/pathreview/commit/7eedefb
+**Reproduction commit link:** https://github.com/yaritzay27/pathreview/commit/0fd27b9
 
 **Reproduction summary:**
 I reproduced the issue by running `ResumeParser` on resume text where `Education:` had leading spaces and `Skills:` had a leading tab. The parser returned an empty `detected_sections` list, confirming that the current `_detect_sections` logic misses valid indented section headers. I also reproduced the issue locally with .venv/bin/python by parsing resume text containing indented Education and tab-indented Skills headers. The parser returned [], showing that valid section headers with leading whitespace are not detected.
