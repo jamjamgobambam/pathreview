@@ -40,3 +40,35 @@ query words show up in the chunk, so the overlap is complete. The main thing
 I'll have to watch out for is picking new test data that actually gives a
 partial score in the 0.3–0.9 range, and making sure I don't break any of the
 other tests in the file.
+
+## Week 8 - Issue Reproduction & Solution Planning
+
+**Reproduction:**
+I set up the Python side of the project locally (a `.venv` with the dev dependencies from
+`pyproject.toml` — no Docker needed since this test only imports the scorer) and reproduced the
+bug by running:
+
+```
+pytest tests/unit/test_relevance_scorer.py -q
+```
+
+It came back `1 failed, 18 passed`. The failing test is `test_query_with_partial_overlap`, and it
+fails with:
+
+```
+assert 0.3 < score < 0.9
+E   assert 1.0 < 0.9
+[info] relevance_scored  avg_score=1.0 chunks_count=1 query_len=4
+```
+
+So I confirmed exactly what the issue said: the query has 4 words and the sample chunk contains all
+4 of them, so the scorer returns 1.0, which is outside the 0.3–0.9 range the test expects. The
+scorer is doing the right thing — the test's data is what's wrong.
+
+**Solution plan:**
+I wrote up the full plan in [PLAN.md](PLAN.md). The short version: the fix is to change the sample
+chunk in that one test so it only contains *some* of the query words (drop "Django"), which makes
+it a real partial-overlap case and gives a score of 0.75 (inside 0.3–0.9). The only file that
+changes is `tests/unit/test_relevance_scorer.py` — the scorer itself stays the same because it's
+already correct. The main risk I noted is not touching the tokenizer, since a few other tests in
+the file depend on how it currently works.
