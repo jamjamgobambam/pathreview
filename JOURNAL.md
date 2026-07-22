@@ -23,4 +23,4 @@ The public service functions in `core/services/` have only brief descriptions in
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to the [AI201 Su26 PathReview Cohort Issue Ledger](https://docs.google.com/spreadsheets/d/1oclK-70-klhGofiaw6krk8-zV_wZiumsR-Xnd_l5ZR8/edit)
