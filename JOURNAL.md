@@ -26,3 +26,15 @@ it's a focused, low-blast-radius Tier 1 fix.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/phan228/pathreview/tree/fix/151-bias-detector-patterns
+
+**Reproduction summary:**
+I called the detector directly with a common biased phrasing that falls outside its rigid regex templates — `python -c "from safety.bias_detector import BiasDetector; print(BiasDetector.detect_bias('Bootcamp grads just aren\'t as capable as real CS majors.'))"` — and it returned `(False, '')`, confirming the narrow patterns let clearly biased statements slip through as false negatives.
+
+**PLAN.md link:** https://github.com/phan228/pathreview/blob/fix/151-bias-detector-patterns/PLAN.md
+
+**Blockers or open questions:** None
+
