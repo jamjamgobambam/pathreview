@@ -11,7 +11,7 @@ There is a bug that occurs when the faithfulness checker receives a chunk of tex
 
 **Branch name:** [fix/153-faithfulness-none-text]
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [ ] App runs locally at localhost:5173   
 After opening the cloned repo in Git Bash, I attempted to start the Docker services with, `docker compose up -d`, and received the error message `bash: docker: command not found`. When I opened Docker Desktop directly, it reported that virtualization support was not detected.
 
 **Cohort ledger:** [✓] Issue added to cohort ledger
