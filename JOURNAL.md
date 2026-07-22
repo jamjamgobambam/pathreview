@@ -21,7 +21,7 @@ This issue has a focused scope and points to one main area of the codebase. It p
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [add after pushing the reproduction commit]
+**Reproduction commit link:** https://github.com/ahmadzai38/pathreview/commit/47ef77d
 
 **Reproduction summary:**
 I reproduced the issue by passing `(555) 123-4567` and `555-123-4567` through `PIIScrubber`. The dashed number was redacted, but the parenthesized number remained visible, and `detect()` returned an empty list.
@@ -50,7 +50,7 @@ Scrubbed: Call me at (555) 123-4567 or [REDACTED]
 Detected: []
 ```
 
-**PLAN.md link:** [add after PLAN.md is created and pushed]
+**PLAN.md link:** https://github.com/ahmadzai38/pathreview/blob/fix/146-parenthesized-phone-redaction/PLAN.md
 
 **Walkthrough video (recommended):** Not recorded
 
