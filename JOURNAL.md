@@ -25,3 +25,24 @@ missing text content.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/vaishnavibollapalli/pathreview/commit/c762598
+
+**Reproduction summary:**
+Ran the existing test `test_none_context_chunk_text` in
+`tests/unit/test_faithfulness_checker.py` and confirmed it fails with
+`TypeError: sequence item 0: expected str instance, NoneType found` at line
+34 of `rag/evaluator/faithfulness_checker.py`, where `chunk.get("text", "")`
+returns `None` instead of the default when the chunk's `"text"` key is
+explicitly `None`.
+
+**PLAN.md link:** https://github.com/vaishnavibollapalli/pathreview/blob/fix/153-faithfulness-checker-none-text/PLAN.md
+
+**Walkthrough video (recommended):** [add Loom link here if you record one]
+
+**Blockers or open questions:**
+Still need to grep `ingestion/` and `agent/` to confirm whether the same
+`.get("text", ...)` pattern appears elsewhere before finalizing the full fix
+scope for Week 9.
