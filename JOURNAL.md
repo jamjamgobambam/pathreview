@@ -17,12 +17,12 @@ When a user wants a new review, the previous session cache is not cleared. This 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [commit this JOURNAL.md update, then paste its link here]
+**Reproduction commit link:** https://github.com/nlazaro/pathreview/commit/60f71257574370eea5e00a0c4ca98c01473433da
 
 **Reproduction summary:**
 Traced the bug to `agent/orchestrator.py`. `Orchestrator.__init__` (line 29) creates a single `ContextManager` instance that lives for the lifetime of the `Orchestrator` object instead of being reset per `.run()` call, so tool results are memoized across separate reviews by `(tool_name, hash(input))`. `market_analyzer`'s input is hardcoded to `{"detected_skills": {}}` (line 130) regardless of the profile's actual data, so its hash never changes and the first review's result is silently reused for every later review — the same "stale tool results instead of re-running the tools" symptom described in the issue. `agent/memory/session_store.py` itself works correctly in isolation (`get`/`set`/`delete` are all sound); the loaded `session_state` is also merged with `.update()` rather than cleared (lines 49, 66), which could leak stale keys from a prior review into a new one.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/nlazaro/pathreview/blob/fit/43-agent-session-state-error/PLAN.md
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
