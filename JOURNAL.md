@@ -57,47 +57,26 @@ candidate for a separate issue.
 
 ---
 
-## Week 8 — Reproduction & solution plan
+## Week 8 — Reproduction & solution planning
 
-**Issue:** [#150](https://github.com/ascherj/pathreview/issues/150) — Tech
-detector counts vendored and build-output files, skewing language detection
+**Reproduction commit link:** https://github.com/yarinacs/pathreview/commit/e67c0b3
 
-**Reproduced locally?** [x] Yes — reliably
+**Reproduction summary:**
+Ran the two named failing tests and the issue's manual snippet against my local
+environment: for a repo of 2 Python files + 6 vendored JS files (`node_modules/`,
+`build/`), `TechDetector` returns `primary_language = "JavaScript"` instead of
+the expected `"Python"`, because the vendored/build files are counted.
 
-**Reproduction steps:**
-```bash
-# Failing tests (acceptance target):
-.venv/bin/pytest tests/unit/test_tech_detector.py \
-  -k "node_modules_excluded or build_directory_excluded" -v
-#   -> both FAIL: assert primary_language == "Python" but got "JavaScript"
+**PLAN.md link:** https://github.com/yarinacs/pathreview/blob/fix/150-exclude-vendored-build-files/PLAN.md
 
-# Manual repro from the issue:
-.venv/bin/python -c "from agent.tools.tech_detector import TechDetector; \
-print(TechDetector().execute({'files': \
-['main.py','core/app.py','node_modules/lib/a.js','node_modules/lib/b.js', \
-'node_modules/x/c.js','node_modules/y/d.js','build/bundle.js','build/vendor.js']}) \
-.data['primary_language'])"
-#   -> before fix: 'JavaScript'  (expected 'Python')
-```
+**Walkthrough video (recommended):** [not recorded — optional, not graded]
 
-**Where the bug lives:** `agent/tools/tech_detector.py`, method
-`_should_skip_file()` (~L143–164) — it matches skip patterns as slash-wrapped
-substrings (`"/node_modules/"`), so top-level `node_modules/` and `build/` paths
-(no leading slash) are not excluded.
-
-**Solution plan:** see [PLAN.md](PLAN.md). Summary: match on path *segments*
-(`filepath.split("/")`) against a set of skip-dir names, covering top-level and
-nested vendored/build dirs.
-
-**Files I'll touch:** `agent/tools/tech_detector.py` (one method). No test
-changes — the two failing tests define "done".
-
-**Risks / unknowns:** possible over-exclusion of an oddly-named source file (low
-impact — no language extension); Windows `\` paths out of scope; ~51 unrelated
-pre-existing suite failures are not caused by this change.
-
-**Status:** reproduction confirmed and fix implemented on this branch (commit
-`f413972`); all `tech_detector` tests pass.
+**Blockers or open questions:**
+One open question for Week 9: whether to also address a *separate* defect I found
+— primary language is chosen alphabetically (`sorted(languages)[0]`), not by file
+count, despite the "most common" comment. I plan to keep it out of scope for #150
+and suggest a separate issue, but will confirm with a mentor. Otherwise no
+blockers — the fix is already implemented and passing on this branch.
 
 ---
 

@@ -1,109 +1,68 @@
-# Solution Plan — Issue #150
+## Solution plan
 
-**Issue:** [#150 — Tech detector counts vendored and build-output files, skewing
-language detection](https://github.com/ascherj/pathreview/issues/150)
-**Tier:** 1 (good first issue)
-**Branch:** `fix/150-exclude-vendored-build-files`
+**Issue:** [#150 — Tech detector counts vendored and build-output files, skewing language detection](https://github.com/ascherj/pathreview/issues/150)
 
----
+### Understand
 
-## 1. Problem
+**Root cause:** `_should_skip_file()` in `agent/tools/tech_detector.py`
+(~L143–164) matches skip patterns as slash-wrapped substrings, e.g.
+`"/node_modules/" in filepath`. A **top-level** path such as
+`node_modules/lib/index.js` has no leading slash, so `"/node_modules/"` is not a
+substring of it and the file is **not** skipped. Its `.js` extension then gets
+counted toward language detection.
 
-`agent/tools/tech_detector.py` infers a repository's primary programming language
-from file extensions. It is supposed to ignore vendored dependencies and build
-output, but it fails to exclude **top-level** `node_modules/` and `build/`
-directories. Their bundled/third-party JavaScript then gets counted, so a
-mostly-Python repo is misreported as JavaScript.
+**Expected vs. actual:** For a repo of 2 Python files + 6 vendored/bundled JS
+files (in `node_modules/` and `build/`), the tool should report
+`primary_language = "Python"`. **Actual:** it reports `"JavaScript"` because the
+vendored JS files are counted.
 
-## 2. How to reproduce
+### Map
 
-**Failing tests (the acceptance target):**
-```bash
-.venv/bin/pytest tests/unit/test_tech_detector.py \
-  -k "node_modules_excluded or build_directory_excluded" -v
-```
-- `tests/unit/test_tech_detector.py::test_node_modules_excluded`
-- `tests/unit/test_tech_detector.py::test_build_directory_excluded`
+- **`agent/tools/tech_detector.py`** — the only file I expect to change.
+  - `TechDetector._should_skip_file()` — the buggy exclusion helper (the fix).
+  - `TechDetector._detect_tech()` — calls `_should_skip_file()` to filter the
+    file list before counting extensions (context; no change needed).
+- **`tests/unit/test_tech_detector.py`** — already contains the two failing
+  tests (`test_node_modules_excluded`, `test_build_directory_excluded`); no
+  change expected — they define "done".
 
-Both assert `primary_language == "Python"` and (before the fix) get
-`"JavaScript"`.
+### Plan
 
-**Manual repro (from the issue):**
-```python
-from agent.tools.tech_detector import TechDetector
-t = TechDetector()
-files = ['main.py','core/app.py','node_modules/lib/index.js',
-         'node_modules/lib/util.js','node_modules/x/a.js','node_modules/y/b.js',
-         'build/bundle.js','build/vendor.js']
-print(t.execute({'files': files}).data['primary_language'])
-# Before fix: 'JavaScript'   Expected: 'Python'
-```
+1. Reproduce: run the two failing tests + the issue's manual repro; confirm
+   `JavaScript` is returned.
+2. Replace the slash-wrapped substring list in `_should_skip_file()` with a set
+   of skip-dir names and match on **path segments** (`filepath.split("/")`).
+3. Run the two target tests → green; run the full `test_tech_detector.py` → no
+   regressions; re-run the manual repro → `Python`.
+4. Commit as one `fix(agent): ...` (Conventional Commits) and push.
 
-## 3. Root cause
+### Inputs & outputs
 
-`_should_skip_file()` (tech_detector.py, ~L143–164) matches skip patterns as
-**slash-wrapped substrings**:
-```python
-skip_patterns = ["/node_modules/", "/build/", ...]
-return any(pattern in filepath for pattern in skip_patterns)
-```
-A top-level path like `node_modules/lib/index.js` has **no leading slash**, so
-`"/node_modules/"` is not a substring of it → the file is not skipped → its `.js`
-extensions are counted.
+- **Input:** `_should_skip_file(filepath: str)` — a single repository file path
+  (forward-slash separated), e.g. `"node_modules/lib/index.js"` or
+  `"src/main.py"`.
+- **Output:** `bool` — `True` if the file is inside a vendor/build directory and
+  should be excluded from detection, else `False`. Downstream, this makes
+  `_detect_tech()` count only genuine source files, so `primary_language`
+  reflects the real code.
 
-## 4. Proposed solution
+### Risks & unknowns
 
-Match on **path segments** instead of slash-wrapped substrings: split the path on
-`/` and skip the file if any segment is a known vendor/build directory. This
-handles both top-level (`node_modules/...`) and nested (`src/vendor/...`) cases.
+- **Over-exclusion:** a source file/dir literally named like a skip word (e.g. a
+  file named `build`) would be skipped. Low impact — it has no recognized
+  language extension anyway.
+- **Path separators:** assumes `/`-style GitHub paths (same assumption as the
+  original code). Windows `\` paths are out of scope.
+- **Repo baseline:** ~51 unit tests fail in unrelated modules on `main` already;
+  not caused by this change and out of scope.
+- **Unknown:** whether the maintainer also wants the separate "primary language
+  should be most-common, not alphabetical" defect addressed — I plan to keep it
+  out of scope and suggest a separate issue.
 
-```python
-skip_dirs = {"node_modules", "vendor", "dist", "build",
-             ".git", "__pycache__", ".venv", "venv"}
-return any(segment in skip_dirs for segment in filepath.split("/"))
-```
+### Edge cases
 
-## 5. Files to touch
-
-| File | Change |
-|---|---|
-| `agent/tools/tech_detector.py` | Rewrite `_should_skip_file()` to segment-based matching (~10 lines, one method) |
-| `tests/unit/test_tech_detector.py` | No change — the two failing tests already define "done" |
-
-## 6. Step-by-step
-
-1. Reproduce: run the two failing tests, confirm red.
-2. Edit `_should_skip_file()` to segment-based matching.
-3. Run the two target tests → green.
-4. Run the whole `tests/unit/test_tech_detector.py` → no regressions.
-5. Run the issue's manual repro → `Python`.
-6. Commit as a single `fix(agent): ...` (Conventional Commits), push, open PR.
-
-## 7. Testing & validation
-
-- Target tests: `test_node_modules_excluded`, `test_build_directory_excluded`.
-- Regression guard: full `tests/unit/test_tech_detector.py` (27 tests).
-- Behavioral check: the issue's manual repro returns `Python`.
-
-## 8. Risks & unknowns
-
-- **Over-exclusion:** matching a bare segment could skip a legitimately-named
-  file/dir (e.g. a source file literally named `build`). Low impact — such a file
-  has no recognized language extension anyway; acceptable for this tool.
-- **Path separators:** the codebase uses `/`-style (GitHub) paths, matching the
-  original code. Windows `\` paths are out of scope (unchanged from before).
-- **Pre-existing repo state:** the wider unit suite has ~51 failures in unrelated
-  modules that also fail on `main`; they are not caused by this change and are
-  not in scope.
-
-## 9. Out of scope (candidate for a separate issue)
-
-Primary language is selected **alphabetically** (`sorted(languages)[0]`), not by
-file count, despite the "most common" comment. Fixing the exclusion bug alone
-satisfies both acceptance tests; bundling a behavior change would make the PR
-harder to review. Recommend filing this as its own issue.
-
-## 10. Status
-
-Reproduced and implemented on this branch (commit `f413972`); all target tests
-pass. This document records the plan/approach; see `JOURNAL.md` for the log.
+- Top-level vendored/build dir: `node_modules/lib/x.js`, `build/a.js` → skipped.
+- Nested vendored dir: `src/vendor/x.js`, `packages/app/dist/y.js` → skipped.
+- Genuine source at root or nested: `main.py`, `core/app.py` → **not** skipped.
+- Absolute-ish path with leading slash: `/home/u/node_modules/x.js` → skipped.
+- Empty file list → `_detect_tech` already returns `"Unknown"` (unchanged).
