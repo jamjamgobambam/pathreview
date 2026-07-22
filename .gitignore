@@ -15,6 +15,7 @@ venv/
 .env
 .env.local
 .env.*.local
+instruction.txt
 
 # IDE
 .vscode/
