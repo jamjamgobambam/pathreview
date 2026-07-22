@@ -1,5 +1,16 @@
 # API Reference
 
+<!--
+Reproduction note (issue #117): I ran the app locally with make run and hit these
+endpoints from the terminal. Every endpoint below only gives me a method and a path,
+no example request. For POST /auth/login I had to open api/routes/auth.py to find out
+it expects OAuth2 form fields (username/password), not JSON, which isn't something I
+could have guessed from this doc alone. For POST /profiles I had to check
+api/routes/profiles.py to learn it's multipart form data with a resume_file upload, not
+JSON either. This confirms the gap: a new contributor has no way to verify the API
+works without reading route source files first.
+-->
+
 Base URL: `http://localhost:8000`
 
 ## Endpoints
