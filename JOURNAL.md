@@ -23,3 +23,26 @@ and fail cases for each layer. (Estimated effort per the issue: 4–7 hours.)
 **Cohort ledger:** [X] Issue added to cohort ledger
 
 **Selection reason** I have software development experience and have contributed to open source projects in the past, so I think this issue has the right difficulty for me.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** 
+
+
+**Reproduction summary:**
+Confirmed locally (Python 3.11.13, `LLM_PROVIDER=mock`, branch
+`feat/75-safety-middleware-integration-tests`) that the issue is a missing-test
+gap: `tests/integration/` holds only an empty `__init__.py` (no
+`tests/integration/test_safety_middleware.py`), `python -m pytest
+tests/integration --collect-only` collects 0 items, and no test anywhere chains
+two or more safety components — `ContentFilter` has no test referencing it at
+all. Per-component coverage is unit-only (`test_prompt_defense.py`,
+`test_bias_detector.py`, `test_pii_scrubber.py`), so the four-layer pipeline
+(prompt defense → content filter → bias detector → PII scrubber) is unexercised
+end-to-end and even pairwise.
+
+**PLAN.md link:**
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
