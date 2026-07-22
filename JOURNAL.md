@@ -17,3 +17,17 @@
 
 **Issue checklist reasoning:**
 This is a Tier 1 / "good first issue" labeled purely as documentation work — no code paths to modify, no tests to write or break, and a stated estimate of 2–3 hours. Scope is tightly bounded to one file (`docs/ARCHITECTURE.md`), which limits merge-conflict risk and review back-and-forth. The main prerequisite is actually locating the hybrid scoring logic in the `rag` module's code to describe it accurately rather than guessing, which I'll do before writing the doc update.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/oimahawong/pathreview/commit/968c806
+
+**Reproduction summary:**
+I traced the doc gap to `rag/retriever/hybrid.py` (`HybridRetriever.retrieve`) and confirmed the exact formula, default weights (`vector_weight=0.7`, `keyword_weight=0.3`), and `min_score=0.3` threshold that `docs/ARCHITECTURE.md` never mentions. I added an inline comment at the relevant line in `docs/ARCHITECTURE.md` documenting these specifics so the fix is grounded in the real implementation rather than guesswork.
+
+**PLAN.md link:** https://github.com/oimahawong/pathreview/blob/docs/36-hybrid-retrieval-scoring-formula/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded this week.
+
+**Blockers or open questions:**
+I couldn't find any call site in the codebase that actually constructs `HybridRetriever(...)` outside its own file — no tests, no service-layer wiring located yet. I'm not yet certain the 0.7/0.3 defaults are the values used in production versus overridden somewhere I haven't found. I'll either track down the call site in Week 9 or document the weights explicitly as "constructor defaults" rather than confirmed production values.
