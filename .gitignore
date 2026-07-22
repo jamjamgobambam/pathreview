@@ -44,3 +44,8 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+
+# Local tooling / course files (not part of the project)
+.claude
+CLAUDE.md
+p7_docs/
