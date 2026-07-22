@@ -17,3 +17,15 @@ The repo analysis output does not currently expose a simple signal for whether a
 **Setup confirmation:** [x] App runs locally at localhost:5173; dependencies were installed and the application and tests ran successfully.
 
 **Cohort ledger:** [x] Issue added to the cohort ledger on July 18, 2026.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [9dae6df — test: reproduce missing has_tests metadata](https://github.com/Yas7777/pathreview/commit/9dae6df99b1017ed15c6de4fb99a42283459f4c3)
+
+**Reproduction summary:**
+I reproduced the feature gap with a focused unit test that mocks a repository tree containing `tests/test_example.py`. `GitHubTool.execute()` succeeds, but accessing the expected `has_tests` output raises `KeyError` because the field is not produced.
+
+**PLAN.md link:** [PLAN.md](https://github.com/Yas7777/pathreview/blob/feat/50-has-tests-repo-analysis/PLAN.md)
+
+**Blockers or open questions:**
+The issue references `agent/tools/repo_analyzer.py`, but that file is absent on this branch; the current path appears to be `agent/orchestrator.py` → `agent/tools/github_tool.py`. Maintainer guidance may also be needed on how to represent an unavailable or truncated Git tree without incorrectly returning `has_tests: false`.
