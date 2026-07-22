@@ -11,9 +11,9 @@ This issue is about a bug in the agent workflow where state from one review can 
 
 **Branch name:** chore/43-week7-setup
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
 
 **Selection notes:**
 This issue is a good fit for a Week 7 submission because it is focused on project setup and contribution workflow rather than a large feature implementation. The scope is limited enough for a first contribution, and the work mainly involves documenting or clarifying setup expectations rather than changing core application behavior.
