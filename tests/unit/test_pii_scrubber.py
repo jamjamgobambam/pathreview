@@ -1,5 +1,8 @@
 """Tests for pii_scrubber.py"""
 
+# run `pytest tests/unit/test_pii_scrubber.py` to reproduce issue 146
+# 4 failed tests related (and 1 unrelated) to the issue noted below
+
 import pytest
 
 from safety.pii_scrubber import PIIScrubber
@@ -31,6 +34,7 @@ class TestPIIScrubber:
         assert "alice@example.com" not in scrubbed
         assert "bob@company.org" not in scrubbed
 
+    # fails, related to issue 146
     def test_us_phone_number_redaction(self, scrubber: PIIScrubber) -> None:
         """Test US phone number is redacted."""
         text = "Call me at (555) 123-4567"
@@ -39,6 +43,7 @@ class TestPIIScrubber:
         assert "[REDACTED]" in scrubbed
         assert "555" not in scrubbed or "1234567" not in scrubbed
 
+    # fails, related to issue 146
     def test_us_phone_formats(self, scrubber: PIIScrubber) -> None:
         """Test various US phone number formats."""
         formats = [
@@ -119,6 +124,7 @@ class TestPIIScrubber:
         assert len(email_detections) > 0
         assert "alice@example.com" in email_detections[0]["value"]
 
+    # fails, related to issue 146
     def test_detect_phone_pii(self, scrubber: PIIScrubber) -> None:
         """Test detect() finds phone number PII."""
         text = "Phone: (555) 123-4567"
@@ -176,6 +182,7 @@ class TestPIIScrubber:
             scrubbed = scrubber.scrub(text)
             assert email not in scrubbed or "[REDACTED]" in scrubbed
 
+    # fails, related to issue 146
     def test_phone_at_start_of_text(self, scrubber: PIIScrubber) -> None:
         """Test phone number at start of text."""
         text = "(555) 123-4567 is my phone number."
@@ -219,6 +226,7 @@ class TestPIIScrubber:
         scrubbed = scrubber.scrub(text)
         assert scrubbed == text
 
+    # fails, but NOT related to issue 146 (phone number correctly scrubbed)
     def test_mixed_pii_and_text(self, scrubber: PIIScrubber) -> None:
         """Test text with mix of PII and regular content."""
         text = """

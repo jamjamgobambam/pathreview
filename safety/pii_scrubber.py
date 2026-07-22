@@ -13,7 +13,14 @@ class PIIScrubber:
     # Regex patterns for common PII
     PII_PATTERNS = {
         "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+        # ---issue 146---
+        # this is where the issue lives. the regex seems to not be scrubbing US
+        # phone numbers in the parenthesized format correctly. however, i do see
+        # the regex containing checks for parentheses. need to investigate
+        # further using Claude Code to decrypt the regex and see what the
+        # pattern is actually checking first.
         "phone_us": r"\b(?:\+?1[-.]?)?\(?([0-9]{3})\)?[-.]?([0-9]{3})[-.]?([0-9]{4})\b",
+        # ---issue end---
         "phone_intl": r"\+[0-9]{1,3}[-.]?[0-9]{1,14}",
         "ssn": r"\b(?!000|666)[0-9]{3}-(?!00)[0-9]{2}-(?!0000)[0-9]{4}\b",
         "street_address": (
