@@ -39,3 +39,24 @@ the scope is realistic for Weeks 8–9?
 I've estimated the time this will take and I'm confident I can complete it before the Week 9 deadline. This issue has no open blockers or dependencies on other unresolved issues.
 
 
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I added a failing test (`tests/unit/test_health_safety_events.py`) that records 8
+safety events through `SafetyMonitor` and then calls the `/health` handler. The
+test confirms `SafetyMonitor.get_event_count` reports the 8 events, but the health
+response's `safety_events_last_hour` comes back as `0` (`assert 0 == 8`). This
+pinpoints the gap: `api/routes/health.py` (the block at lines 78–83) hardcodes
+`safety_events_last_hour = 0` and never imports or calls `SafetyMonitor`, so the
+count in `safety/monitoring.py` is never surfaced. The test is marked
+`xfail(strict=True)` so it documents the bug now and will flip to a passing
+signal once the fix wires the two files together.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
