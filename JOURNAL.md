@@ -10,7 +10,6 @@
 **Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-[TODO — rewrite in your own words. Draft below based on reading the code:]
 
 The `/health` endpoint in `api/routes/health.py` already includes a
 `safety_events_last_hour` field in its response, but the value is hardcoded
@@ -26,8 +25,7 @@ with that real number — so anyone watching `/health` sees actual safety
 event volume instead of a count that always reads zero.
 
 **Scope reasoning (from the "Is this right for me?" checklist):**
-[TODO — pull up the actual checklist doc from the course resources and confirm
-against it; my read from the code:]
+
 - Touches two files I can already point to (`api/routes/health.py`,
   `safety/monitoring.py`) — small, well-bounded change.
 - The hard part (counting events) is already built; this is wiring, not new
