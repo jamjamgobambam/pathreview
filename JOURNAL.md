@@ -50,7 +50,7 @@ changing how logs look in dev/production.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** _(filled in the follow-up commit once the hash is known)_
+**Reproduction commit link:** https://github.com/NeamenEmun/pathreview/commit/38394f9d31bd27a4016c0e90ca899b314b413a11
 
 **Reproduction summary:**
 Ran `pytest tests/unit/test_batch_processor.py -k empty -v` in my local venv.
