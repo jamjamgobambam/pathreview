@@ -1,6 +1,7 @@
 """Check if generated feedback is supported by retrieved context."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -20,8 +21,11 @@ class FaithfulnessChecker:
             Faithfulness score 0.0-1.0 (ratio of supported claims)
         """
         if not feedback or not context_chunks:
-            logger.info("faithfulness_empty_input", has_feedback=bool(feedback),
-                       has_chunks=bool(context_chunks))
+            logger.info(
+                "faithfulness_empty_input",
+                has_feedback=bool(feedback),
+                has_chunks=bool(context_chunks),
+            )
             return 0.0
 
         # Extract key claims from feedback (sentences)
@@ -31,9 +35,7 @@ class FaithfulnessChecker:
             return 0.5  # Default to neutral if no extractable claims
 
         # Concatenate context text
-        context_text = " ".join([
-            chunk.get("text", "") for chunk in context_chunks
-        ])
+        context_text = " ".join([chunk.get("text", "") for chunk in context_chunks])
 
         # Check each claim for support
         supported = 0
@@ -43,8 +45,9 @@ class FaithfulnessChecker:
 
         score = supported / len(claims) if claims else 0.0
 
-        logger.info("faithfulness_checked", claims_count=len(claims),
-                   supported_count=supported, score=score)
+        logger.info(
+            "faithfulness_checked", claims_count=len(claims), supported_count=supported, score=score
+        )
 
         return score
 
@@ -59,7 +62,10 @@ class FaithfulnessChecker:
             List of claims (sentences)
         """
         # Split by sentence (simple regex)
-        sentences = re.split(r'[.!?]+', text)
+        sentences = re.split(r"[.!?]+", text)
+        # BUG #152: this length filter drops short-but-valid claims before they're
+        # ever scored. Repro: _extract_claims("Knows Python. Knows SQL.") returns
+        # only ["Knows Python"] because "Knows SQL" (9 chars) fails len() > 10.
         claims = [s.strip() for s in sentences if s.strip() and len(s.strip()) > 10]
         return claims[:10]  # Limit to 10 claims for scoring
 
@@ -81,8 +87,30 @@ class FaithfulnessChecker:
         # Require at least some meaningful overlap
         overlap = claim_tokens & context_tokens
         # Filter out common stop words
-        stop_words = {'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been',
-                     'and', 'or', 'but', 'in', 'of', 'to', 'for', 'that'}
+        stop_words = {
+            "a",
+            "an",
+            "the",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "and",
+            "or",
+            "but",
+            "in",
+            "of",
+            "to",
+            "for",
+            "that",
+        }
         meaningful_overlap = overlap - stop_words
 
+        # BUG #152: fixed threshold of 2 means a claim with only one meaningful
+        # token (e.g. "Knows Python" -> {"python"}) can never be marked supported,
+        # even when the context fully backs it (e.g. "python expert"). Repro:
+        # FaithfulnessChecker().check("Knows Python. Knows SQL.",
+        #   [{"text": "python expert"}, {"text": "sql expert"}]) -> 0.0
         return len(meaningful_overlap) >= 2
