@@ -5,7 +5,6 @@ from pypdf import PdfReader
 
 from .base import BaseParser, ParseResult
 
-
 SECTION_HEADERS = {
     "experience",
     "education",
@@ -75,7 +74,7 @@ class ResumeParser(BaseParser):
                 source_type="resume",
             )
         except Exception as e:
-            raise ValueError(f"Failed to parse PDF: {str(e)}")
+            raise ValueError(f"Failed to parse PDF: {str(e)}") from e
 
     def _parse_markdown(self, content: str) -> ParseResult:
         """Extract text from markdown resume, stripping markdown syntax."""
@@ -130,7 +129,10 @@ class ResumeParser(BaseParser):
         text_lower = text.lower()
 
         for section in SECTION_HEADERS:
-            # Look for section header patterns
+            # Issue #147: patterns require headers at column 0 (^ or \n immediately before
+            # the name). PDF extracts and indented fixtures leave leading whitespace on lines
+            # like "    Experience:", so nothing matches and detected_sections stays empty.
+            # Repro: pytest tests/unit/test_resume_parser.py::TestResumeParser::test_detect_sections
             patterns = [
                 rf"^{re.escape(section)}\s*$",
                 rf"^{re.escape(section)}\s*[:|-]",
