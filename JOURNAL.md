@@ -1,18 +1,17 @@
 ## Week 7 — Issue selection
 
-**Issue link:** [paste link here]
+**Issue link:** https://github.com/ascherj/pathreview/issues/44
 
-**Issue title:** [paste issue title here]
+**Issue title:** Orchestrator catches all exceptions from tool calls and continues without logging the failure
+ #44
 
-**Tier:** [ ] Tier 1  [ ] Tier 2  [ ] Tier 3
+**Tier:** [ ] Tier 1  [ x ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-[In 3–5 sentences, in your own words: what the issue is (not a copy-paste of
-the title), what is currently broken or missing, and what a successful fix
-would accomplish. Naming the part of the codebase it affects is helpful context.]
+The orchestrator in the agent workflow is swallowing tool-call failures and continuing execution without surfacing enough diagnostic detail. In practice, a broken tool can fail in the background while the rest of the plan proceeds, making it hard to tell which tool failed, why it failed, or whether retries were already attempted. The issue affects the orchestration flow in agent/orchestrator.py and the retry handling in agent/error_handling.py. A successful fix would make these failures visible, structured, and actionable so the system can log them clearly and stop or handle them more intelligently when needed.
 
-**Branch name:** [paste branch name here]
+**Branch name:** fix/44-orchestrator-logging-issue
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [ x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [ x ] Issue added to cohort ledger
