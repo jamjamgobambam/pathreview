@@ -38,3 +38,20 @@ issue originally pointed.
 
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Kshukla10/pathreview/commit/9fc5a9180a1d921bb5aef89e829ce6e832b2e8cd
+
+**Reproduction summary:**
+I fetched real GitHub repo data and ran it through the test-detection code.
+It never receives a file list in the first place, so it always says "no
+tests" even when tests exist — I wrote two committed pytest tests proving
+this in tests/unit/test_repo_analyzer.py.
+
+**PLAN.md link:** https://github.com/Kshukla10/pathreview/blob/feat/50-has-tests-detection/PLAN.md
+
+**Blockers or open questions:**
+Need to confirm whether we're using an authenticated GitHub connection to
+avoid rate limits, and whether file_structure should be a flat string or a
+list — leaning toward string based on how the existing detection code uses it.
