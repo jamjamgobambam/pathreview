@@ -17,3 +17,17 @@ This is a good fit for my current scope because the bug is well-bounded to a sin
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 - Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/mackenziesimons/pathreview/commit/924f2f0e553f18c1c8b1ec147229227d526e9388
+
+**Reproduction summary:**
+I reproduced the issue by running pytest tests/unit/test_review_service.py -q in the project environment. The suite reported 13 failed and 6 passed, with failures caused by mock result chains returning coroutines where first() and all() are expected.
+
+**PLAN.md link:** https://github.com/mackenziesimons/pathreview/blob/fix/158-review-service-async-mock-tests/PLAN.md
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+Need to confirm the cleanest shared fixture pattern so execute() remains AsyncMock while scalars(), first(), and all() behave as non-async result methods.
