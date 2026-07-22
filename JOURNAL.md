@@ -45,3 +45,50 @@ is genuinely partial, without changing any logic in
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+
+## Week 8 — Reproduction
+
+**Reproduction steps:**
+Ran the following command locally to confirm the issue exists in my environment:
+`pytest tests/unit/test_relevance_scorer.py -q`
+
+**Observed output:**
+```..F................                                                                      [100%]
+=========================================== FAILURES ===========================================
+_____________________ TestRelevanceScorer.test_query_with_partial_overlap ______________________
+
+self = <tests.unit.test_relevance_scorer.TestRelevanceScorer object at 0x10797a650>
+scorer = <rag.evaluator.relevance_scorer.RelevanceScorer object at 0x1079ea710>
+
+    def test_query_with_partial_overlap(self, scorer):
+        """Test query with partial overlap returns score between 0 and 1."""
+        query = "Python Django web framework"
+        chunks = [
+            {
+                "text": "Django is a Python web framework for rapid development"
+            },
+        ]
+    
+        score = scorer.score(query, chunks)
+    
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+>       assert 0.3 < score < 0.9  # Partial overlap should be in middle range
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 1.0 < 0.9
+
+tests/unit/test_relevance_scorer.py:60: AssertionError
+------------------------------------- Captured stdout call -------------------------------------
+2026-07-21 20:24:24 [info     ] relevance_scored               avg_score=1.0 chunks_count=1 query_len=4
+=================================== short test summary info ====================================
+FAILED tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_query_with_partial_overlap - assert 1.0 < 0.9
+1 failed, 18 passed in 0.32s
+```
+
+**Confirmation:** This confirms the bug described in issue #157 — the fixture
+query and chunk text overlap on all 4 terms ("Python", "Django", "web",
+"framework"), producing a full-overlap score of `1.0` instead of a genuine
+partial-overlap score, causing the test's `0.3 < score < 0.9` assertion to
+fail. The scorer itself behaves correctly; the fixture data is the problem.
