@@ -22,8 +22,21 @@ normalization step, the default weights, and the `min_score` cutoff, illustrated
 with a worked example. The behavior being documented lives in
 `rag/retriever/hybrid.py` (`HybridRetriever`).
 
+**Selection reasoning:**
+I chose a Tier 1 issue deliberately for my first contribution. I'm still
+building familiarity with this codebase (a multi-service Python + React app),
+so a documentation issue lets me learn how the RAG retrieval subsystem actually
+works before I attempt behavior-changing code in later weeks — the tier matches
+my current comfort level. The scope is well-bounded and a good fit: the fix
+touches a single file (`docs/ARCHITECTURE.md`) and requires no changes to
+application code, tests, or migrations. The hard part is comprehension, not
+engineering — I need to read `rag/retriever/hybrid.py`, understand how the two
+scores are normalized, weighted, and thresholded, and then explain it clearly.
+That is a self-contained, low-risk task I'm confident I can complete well, while
+still giving me a real foothold in the retrieval code I'll build on next week.
+
 **Branch name:** docs/36-hybrid-retrieval-scoring-formula
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
