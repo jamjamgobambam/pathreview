@@ -32,7 +32,7 @@ than the current implementation.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** REPRO_COMMIT_URL_PLACEHOLDER
+**Reproduction commit link:** [commit link](https://github.com/BPATHAK10/pathreview/commit/8c6c3c81eabb95aa91dbc1921e5ecd343de6a198)
 
 **Reproduction summary:**
 I reproduced the empty-profile path by driving `core/services/review_service.py` directly
@@ -54,12 +54,8 @@ so the empty-document contract is entirely unpinned. Reproduction steps:
 
 **PLAN.md link:** https://github.com/BPATHAK10/pathreview/blob/test/88-reviews-no-ingested-docs/PLAN.md
 
-**Walkthrough video (recommended):**
-
 **Blockers or open questions:**
 The main open question is the intended contract for an empty profile: should the review still
 complete, short-circuit to a distinct status, or simply not error? I want to confirm this with
 the maintainers before writing the assertion in Week 9 so I don't codify the current
-placeholder behavior if it's unintended. Secondary: 13 of 19 existing tests in
-`tests/unit/test_review_service.py` fail locally due to an `AsyncMock`/asyncio-mode setup
-issue unrelated to this issue — I'll model my new test on one of the passing tests.
+placeholder behavior if it's unintended.
