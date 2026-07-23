@@ -39,7 +39,7 @@ failing unit tests, so I can reproduce it and verify a fix locally.
 **Reproduction summary:**
 I reproduced Issue #152 by running `pytest tests/unit/test_faithfulness_checker.py -v`. The three tests associated with the issue—`test_partial_support_returns_middle_score`, `test_multiple_context_chunks`, and `test_multiple_claims_varying_support`—all failed consistently because the checker returned a faithfulness score of `0.0` and identified zero supported claims. The retrieved context contained the relevant technical terms, including Python, JavaScript, and Docker, but short claims with only one strong overlapping token were still classified as unsupported.
 
-**PLAN.md link:** [add link after PLAN.md is committed and pushed]
+**PLAN.md link:** (https://github.com/ascherj/pathreview/commit/30ab1328f4b1c9dfb15efd43c6fcab4505ae533d)
 
 **Blockers or open questions:**
 I need to determine how `_is_supported()` can accept one-token matches for short, specific technical claims without allowing common or weak single-token matches to create false positives. The test suite also contains an unrelated existing failure involving a context chunk whose `text` value is `None`; I will keep that outside the scope of Issue #152 unless the maintainers indicate otherwise.
