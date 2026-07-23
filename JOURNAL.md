@@ -34,7 +34,7 @@ failing unit tests, so I can reproduce it and verify a fix locally.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [add commit link after pushing]
+**Reproduction commit link:** (https://github.com/ascherj/pathreview/commit/e4af14567f9468c932572c9e72bbd08617af54cf)
 
 **Reproduction summary:**
 I reproduced Issue #152 by running `pytest tests/unit/test_faithfulness_checker.py -v`. The three tests associated with the issue—`test_partial_support_returns_middle_score`, `test_multiple_context_chunks`, and `test_multiple_claims_varying_support`—all failed consistently because the checker returned a faithfulness score of `0.0` and identified zero supported claims. The retrieved context contained the relevant technical terms, including Python, JavaScript, and Docker, but short claims with only one strong overlapping token were still classified as unsupported.
