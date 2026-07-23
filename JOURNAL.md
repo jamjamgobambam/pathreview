@@ -15,7 +15,7 @@ PathReview uses structlog for application logging, but the shared pytest configu
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
 
 ### Issue-fit checklist and selection notes
 
@@ -26,6 +26,5 @@ PathReview uses structlog for application logging, but the shared pytest configu
 - [x] The issue does not require a live LLM, external API, or architectural redesign.
 - [x] The scope fits the Module 3 schedule better than the Tier 3 agent lifecycle test in issue #59.
 - [x] I identified the main scope risk: a global logging change could affect unrelated tests, duplicate output, or leak state between tests.
-- [ ] I reproduced the failure locally after completing setup.
 
 I initially considered issue #59, which requests a fully stubbed end-to-end test of the agent's plan, execute, and synthesize lifecycle. I selected issue #159 instead because it offers a smaller and more measurable first contribution while still requiring me to understand PathReview's shared testing and logging conventions. This scope gives me enough time to reproduce the problem, study the existing patterns, implement a focused change, and verify that it does not disrupt other tests.
