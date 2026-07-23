@@ -27,6 +27,7 @@ Currently, several integration tests in the test suite are failing or being skip
 **Cohort ledger:** [x] Issue added to cohort ledger
 
 **Reproduction commit link:** 
+https://github.com/ascherj/pathreview/commit/c6837e3aad379d65b79cc48293c7a47e8422837a
 
 **Reproduction summary:**
 I verified the issue by implementing a dedicated unit test at `tests/unit/test_fixtures.py` that asserts the existence and verifies the schema structure of `tests/fixtures/sample_profiles/basic_profile.json`.
@@ -41,5 +42,6 @@ I verified the issue by implementing a dedicated unit test at `tests/unit/test_f
    ```
 
 **PLAN.md link:** 
+https://github.com/ascherj/pathreview/blob/d1fe6edf5d114cd80406a0602831f9b530b74903/PLAN.md
 
 **Blockers or open questions:**
