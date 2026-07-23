@@ -15,3 +15,12 @@
 **Setup confirmation:** App runs locally at localhost:5173
 
 **Cohort ledger:** Issue added to cohort ledger
+
+**Reproduction commit link:** https://github.com/trihiennguye-ux/pathreview/commit/efd3b6b7dd1a56278dc7cdd725542337b796cab9
+
+**Reproduction summary:**
+- I reproduced the issue through health check endpoint and check the logs for safety_events_check_failed error. I noticed the safety_events_last_hour return 0 instead of the actual value, this is because the endpoint does not read from the Redis-backed monitoring state.
+
+**PLAN.md link:** https://github.com/trihiennguye-ux/pathreview/blob/feat/68-safety-event-count-health-check/docs/PLAN.md
+
+**Blockers or open questions:**
