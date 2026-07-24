@@ -30,12 +30,12 @@ The unit tests for the `review_service` currently fail because they incorrectly 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/mmicat/pathreview/commit/a6e797a
 
 **Reproduction summary:**
 I ran pytest tests/unit/test_review_service.py -q in the activated virtual environment. I observed 13 out of 19 tests failing with an AttributeError: 'coroutine' object has no attribute 'first', confirming that the AsyncMock configuration is causing the query results to incorrectly evaluate as coroutines.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/mmicat/pathreview/blob/fix/158-review-service-async-mocks/PLAN.md
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
