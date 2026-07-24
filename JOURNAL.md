@@ -17,3 +17,19 @@ The `/health` endpoint currently reports basic service status, but it does not e
 
 **Issue selection notes:**
 This issue is a good fit because it is a Tier 1 task with a clearly defined scope and expected outcome. I located the files referenced in the issue, understand that the goal is to expose a new `safety_events_last_hour` field in the health endpoint, and confirmed there are no blockers or dependencies. Based on the estimated effort, I believe it is realistic to complete within the Week 8–9 timeline.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I reproduced the issue by calling the `/api/health` endpoint in my local environment. Although the response already contains the `safety_events_last_hour` field, it always returns a placeholder value of `0`. After tracing the implementation, I found that `api/routes/health.py` hardcodes this value instead of retrieving actual safety event counts from the monitoring component.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** Not recorded.
+
+**Blockers or open questions:**
+The health endpoint needs to report the total number of safety events across all valid safety event types. The remaining investigation is to determine the best way to aggregate these counts using the existing `SafetyMonitor` implementation while following the project's existing design patterns.
