@@ -56,12 +56,41 @@ curl http://localhost:8000/profiles/{profile_id} \
 
 ### Health
 
-`GET /health` — Returns service status and dependency health.
+`GET /health` — Returns service status and dependency health. No auth required.
+
+```bash
+curl http://localhost:8000/health
+```
+
+```json
+{
+  "status": "healthy",
+  "dependencies": {
+    "postgres": "healthy",
+    "redis": "healthy",
+    "vector_db": "healthy"
+  },
+  "safety_events_last_hour": 0,
+  "timestamp": "2026-07-24T06:34:03.036433"
+}
+```
+`200` if every dependency is healthy, `503` (with the same body shape, plus
+whichever fields are `"unhealthy"`) if any dependency check fails.
+
+> **Note:** in local dev you may see `postgres` reported as `"unhealthy"` here
+> even though every DB-backed endpoint below works correctly. That's a known
+> bug in the health check itself (`api/routes/health.py` runs a raw SQL string
+> instead of a wrapped `text()` construct) — unrelated to this doc fix and
+> tracked separately.
 
 ### Authentication
 
-`POST /auth/register` — Create a new account.
-`POST /auth/login` — Obtain a JWT access token.
+`POST /auth/register` — Create a new account. See the
+[Authentication walkthrough](#authentication-walkthrough) above.
+
+`POST /auth/login` — Obtain a JWT access token. See the
+[Authentication walkthrough](#authentication-walkthrough) above — note the
+form-encoded body requirement.
 
 ### Profiles
 
