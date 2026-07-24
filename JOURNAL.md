@@ -24,3 +24,20 @@ The app logs with structlog, but the test suite still relies on pytest's `caplog
 - Skills match: Python testing and logging config, not a full feature build.
 - Risk: other people also claimed #159. I am still taking it because there is no open PR yet and the fix is narrow enough to finish cleanly.
 - Out of scope for this issue: rewriting how the app logs in production, or converting every test off of `caplog`.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** (filled after push on this branch)
+
+**Reproduction summary:**
+I ran:
+`.venv/bin/pytest tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty -v`
+
+Result: FAILED. stdout showed the warning (`Empty chunks list provided to BatchEmbeddingProcessor`), but `caplog.text` was `''`, so the assertion on caplog failed. That matches the issue: structlog prints the event, pytest caplog never sees it. `tests/conftest.py` has no structlog/stdlib wiring today. The log call lives in `ingestion/embeddings/batch_processor.py` (`logger.warning(...)`).
+
+**PLAN.md link:** https://github.com/parker-cassar/pathreview/blob/fix/159-structlog-caplog/PLAN.md
+
+**Loom / walkthrough:** [ ] Recorded or scheduled (still need to record the ~2 min reproduce + plan Loom)
+
+**Blockers or open questions:**
+- None blocking Week 8. Open question for implementation: whether a small test-only structlog config in `conftest.py` is enough, or whether reusing `core.logging.configure_logging()` also feeds caplog cleanly. Plan is to try test-specific stdlib setup first.
