@@ -19,3 +19,26 @@ When we call the `GET /health` endpoint, the application crashes with an `Attrib
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [Add the GitHub commit URL after pushing this reproduction commit]
+
+**Reproduction summary:**
+
+I reproduced the issue by starting the local services and calling `GET /health`.
+The endpoint returned HTTP 503 and reported Redis as unhealthy even though the
+Redis Docker container was healthy. The Redis health check failed because
+`api/routes/health.py` accesses `settings.redis_host`, but the `Settings` model
+in `core/config.py` defines only `redis_url`.
+
+**PLAN.md link:** [Add the GitHub link to PLAN.md after pushing this branch]
+
+**Walkthrough video (recommended):** Not recorded
+
+**Blockers or open questions:**
+
+The health check expects separate `redis_host` and `redis_port` values, while
+the existing configuration provides a single `redis_url`. I need to confirm
+whether the preferred fix is to reuse `redis_url` directly or introduce
+separate typed settings without creating duplicate configuration sources.
