@@ -14,3 +14,18 @@ Right now the ingestion pipeline only infers skills from import statements and R
 **Setup confirmation:** [x] (https://github.com/ascherj/pathreview/issues/14) App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/somabadri/pathreview/commit/88d643cb55fc0bbcd14698cc04e13e33d2635e00
+
+**Reproduction summary:**
+This is a new feature rather than a bug, so there's no failing behavior to reproduce — instead I confirmed the gap by tracing the ingestion pipeline and confirming no code path reads `.github/workflows/*.yml`. The commit above locates the placeholder `ingestion/parsers/workflow_parser.py` where the new parser will be added.
+
+**PLAN.md link:** https://github.com/somabadri/pathreview/blob/feat/14-github-action-parser-for-skills/PLAN.md
+
+**Walkthrough video (recommended):** N/A — no walkthrough video since this is a new feature with no existing behavior to demo.
+
+**Blockers or open questions:**
+How to structure the implicit skill mappings for workflow-derived skills (actions used, run commands → GitHub Actions/Docker/pytest/deployment). Still deciding between hardcoding a keyword map similar to `skill_extractor.py`'s existing `FRAMEWORKS`/`TOOLS` dicts, or a different approach.
