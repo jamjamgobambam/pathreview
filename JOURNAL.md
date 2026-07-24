@@ -44,3 +44,29 @@ Currently, there is a bug in `tech_detector.py` where it fails to exclude `node_
     - [x] I've checked the issue comments and the ledger's Claims count, and I'm fine with how many others are on this issue.
     - [x] I've estimated the time this will take and I'm confident I can complete it before the Week 9 deadline.
     - [x] This issue has no open blockers or dependencies on other unresolved issues.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** 
+
+**Reproduction summary:**
+I reproduced the issue by running the test case for it and observing that the test fails because it mislabeled the test repository. The specific test that I observe the failure in is in this:
+
+```
+def test_node_modules_excluded(self, detector):
+    """Test node_modules/ directory is excluded from counts."""
+    files = [
+        "src/main.py",
+        "node_modules/package1/index.js",
+        "node_modules/package2/lib.js",
+        "utils.py",
+    ]
+
+    result = detector.execute({"files": files})
+
+    data = result.data
+    assert data["primary_language"] == "Python"
+    # node_modules shouldn't dominate
+```
+
+**PLAN.md link:** http://github.com/Dennis-1am/pathreview/blob/tree/fix/150-tech-detector-fails-to-detect-config-files-and-mislabels-repo/PLAN.md
