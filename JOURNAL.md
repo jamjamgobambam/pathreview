@@ -17,3 +17,19 @@ I've read the the file this issue touches (`agent/tools/github_tool.py`) and loc
 **Setup confirmation:** App runs locally at localhost:5173
 
 **Cohort ledger:** Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** 
+
+ 
+**Reproduction summary:**
+- `agent/tools/github_tool.py` already fetches repo metadata via the GitHub API and includes a `_has_readme()` helper — the same shape I'd follow for `_has_tests()`. No test-detection logic exists there yet.
+- `agent/tools/repo_analyzer.py` doesn't exist yet, despite the issue referencing it as if it does. I'll either create it or add the detection logic alongside `tech_detector.py`, which already does similar file-pattern detection — need to check that file before deciding where this belongs.
+- `tests/unit/` has 20 test files, but none for `github_tool` or a repo analyzer, confirming this is a green-field addition with no prior coverage to build on.
+
+**PLAN.md link:** [link to PLAN.md](PLAN.md)
+
+**Walkthrough video (recommended):** 
+
+**Blockers or open questions:**
