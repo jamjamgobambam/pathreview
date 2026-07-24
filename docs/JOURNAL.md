@@ -7,7 +7,6 @@
 
 
 \*\*Issue title:\*\* \[Add an integration test that runs the full RAG pipeline against a mock LLM
-
 ]
 
 
@@ -20,7 +19,7 @@
 
 \[3–5 sentences, your own words]
 
-The Integration Tests is missing for each component of the RAG Pipeline. It needs to be developed as there is currently no integration testing. 
+The Integration Tests is missing for each component of the RAG Pipeline. It needs to be developed as there is currently no integration testing.
 
 The full query/pipeline is: retrieval → reranking → generation → parsing
 The goal is to add one to the tests/integration/test\_rag\_pipeline.py file
@@ -61,7 +60,7 @@ there's no test verifying the components actually work together correctly.
 
 I've opened those app and modules. I have confirmed the function/class names I'll need to
 
-import and mock 
+import and mock
 
 
 
@@ -97,5 +96,39 @@ the pipeline's actual call chain, wire up the mock LLM, write realistic
 
 fixtures for each stage, and assert on the final parsed output.
 
-I've checked for "blockers" that may prevent me from completing this feature additioni and found none. 
+I've checked for "blockers" that may prevent me from completing this feature addition and found none.
+
+&#x20;
+
+
+
+\*\*Reproduction commit link:\*\* https://github.com/matthewpeck6/pathreview/tree/test/38-integration-test\_rag-pipeline
+
+
+
+\*\*Reproduction summary:\*\*
+
+Confirmed `tests/integration/` contained only `\_\_init\_\_.py`. Added an `xfail`stub test to `test\_rag\_pipeline.py`; running `pytest tests/integration/ -v`
+
+now shows `XFAIL` instead of collecting zero tests, confirming the gap is real and pinpointing exactly where the new test needs to live.
+
+
+
+\*\*PLAN.md link:\*\* https://github.com/matthewpeck6/pathreview/tree/test/38-integration-test\_rag-pipeline/docs/PLAN.md
+
+
+
+\*\*JOURNAL.md link:\*\* https://github.com/matthewpeck6/pathreview/blob/test/38-integration-test\_rag-pipeline/docs/JOURNAL.md
+
+
+
+\*\*Walkthrough video (recommended):\*\* https://drive.google.com/file/d/1QLX\_bdS22cbf8uDHbsW0zOAhvgPhdNdh/view?usp=sharing
+
+
+
+\*\*Blockers or open questions:\*\*
+
+I am still confirming exact mock LLM provider and how the system works. 
+
+Furthermore, there is no subfolder with code for the reranker steps in pathreview/rag. retrieval (exist) → reranking (DNE) → generation (exist) → parsing (exist) 
 
