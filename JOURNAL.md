@@ -50,3 +50,11 @@ logs confirmed the exact root cause:
 as text('SELECT 1')"`. The logs also show a separate, unrelated error
 (`'Settings' object has no attribute 'redis_host'`, issue #155) in the
 Redis check — confirming my issue is isolated to the Postgres check only.
+**Reproduction commit link:** https://github.com/laurale31/pathreview/commit/a57447b
+
+**PLAN.md link:** https://github.com/laurale31/pathreview/blob/fix/154-health-check-sqlalchemy-text/PLAN.md
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+
