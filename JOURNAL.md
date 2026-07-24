@@ -24,3 +24,18 @@ When a README is edited and re-ingested, the ingestion pipeline adds new embeddi
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger`
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Aniruthan-0709/pathreview/commit/fffceaa
+
+**Reproduction summary:**
+Added a failing unit test (`tests/unit/test_stale_embeddings_repro.py`) that drives the real `IngestionPipeline` against an in-memory ChromaDB collection. Ingesting a README, then re-ingesting an edited version, leaves both versions' chunks in the store — the edited README gets a new content-hashed `source_id` and its chunks are added without deleting the old ones. Observed: after re-ingesting v2, v1's unique marker text is still retrievable (4 chunks in the store instead of 2), confirming the retriever can return stale content.
+
+**PLAN.md link:** https://github.com/Aniruthan-0709/pathreview/blob/fix/27-stale-vectordb-embeddings/PLAN.md
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:**
+- Where should the "current version" hash live — read back from chunk metadata (keeps the fix inside the files the issue names) or implement real `IngestedSource` persistence? Leaning toward metadata for scope.
+- Delete/add ordering: a naive "delete old then add new" risks wiping the good version if embedding fails. Deciding whether to delete only after the new chunks embed successfully.
