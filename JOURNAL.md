@@ -37,3 +37,53 @@ I reproduced Issue #147 by running the existing resume parser unit tests in my l
 **Blockers or open questions:**
 
 At this stage I believe the issue is localized to `_detect_sections()`, but I still need to confirm the smallest implementation that preserves all existing section-detection behavior while supporting leading whitespace.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+Implemented the fix for Issue #147 by updating the resume parser to detect section headers with leading whitespace. Verified the existing regression tests covering this behavior now pass and completed project-wide validation to confirm no additional failures related to this issue were introduced.
+
+**Next steps:**
+
+Open a pull request, complete the project documentation, and respond to any reviewer feedback if received.
+
+**Blockers:**
+
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:**
+
+https://github.com/ascherj/pathreview/pull/283
+
+**Branch:**
+
+`fix/147-resume-section-whitespace`
+
+**What you built:**
+
+Updated the resume parser to correctly detect resume section headers that contain leading whitespace, which commonly occurs after PDF text extraction. The implementation was intentionally limited to the section detection logic to keep the fix scoped to Issue #147.
+
+**Tests added or updated:**
+
+No new tests were added because the existing regression tests already covered this behavior. Verified that the targeted resume parser regression tests now pass.
+
+**Self-review confirmation:**
+
+Project-wide validation completed by running:
+
+- `make test-unit`
+- `make lint`
+- `make typecheck`
+
+The repository contains pre-existing unrelated test, lint, and type-check failures outside the scope of Issue #147. No additional failures related to resume section detection were introduced by this change.
+
+**Draft PR feedback received from:**
+
+None.
