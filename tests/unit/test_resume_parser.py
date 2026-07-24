@@ -181,3 +181,26 @@ class TestResumeParser:
         assert "John Doe" in result.text
         assert "Software Engineer" in result.text
         assert "Python" in result.text
+
+    def test_detect_sections_with_leading_whitespace(self, parser):
+        """Test section detection handles headers with leading whitespace (Issue #147)."""
+        text = """
+            Experience:
+            Senior Developer at TechCorp
+
+              Education:
+            BS Computer Science
+
+         Skills: Python, JavaScript
+        """
+        sections = parser._detect_sections(text)
+
+        assert isinstance(sections, list)
+        assert len(sections) > 0, "Bug #147: No sections detected due to leading whitespace"
+        
+        sections_lower = [s.lower() for s in sections]
+        assert any("experience" in s for s in sections_lower), "Failed to detect Experience section"
+        assert any("education" in s for s in sections_lower), "Failed to detect Education section"
+        assert any("skills" in s for s in sections_lower), "Failed to detect Skills section"
+
+
