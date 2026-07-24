@@ -19,7 +19,7 @@ SQLAlchemy 2.x won't execute raw SQL without wrapping it in `text()`, but the he
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [will add once this JOURNAL.md update is pushed]
+**Reproduction commit link:** [3f418ab](https://github.com/ascherj/pathreview/commit/3f418ab6d454fee61e026823386260a869039505)
 
 **Reproduction summary:**
 Postgres and Redis were already running via `docker-compose`, so I just started the API with `make run` in one terminal window and ran `curl -i localhost:8000/health` in another terminal window. It came back `503`, postgres marked `unhealthy`. Server logs showed error: `Textual SQL expression 'SELECT 1' should be explicitly declared as text('SELECT 1')`, pointing straight at `api/routes/health.py:31`, where `db.execute("SELECT 1")` passes a bare string to an `AsyncSession`. SQLAlchemy 2.x won't coerce that automatically anymore — it needs `text("SELECT 1")` — so the check fails even though the database is perfectly healthy. Confirmed error was consistently reproducible.
