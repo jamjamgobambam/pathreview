@@ -1,84 +1,72 @@
-# Plan — Issue #148: Skill extractor fails to detect JavaScript and TypeScript
+## Solution plan
 
-## Root cause
+**Issue:** [Skill extractor fails to detect JavaScript and TypeScript](https://github.com/ascherj/pathreview/issues/148)
 
-`_detect_languages()` in `ingestion/parsers/skill_extractor.py` only detects JS/TS
-through two checks: the `filename` argument's extension (`.js`/`.ts`), or the
-regex `\b(import|require)\s+` against the text. This misses common real-world
-cases:
+### Understand
+`_detect_languages()` in `ingestion/parsers/skill_extractor.py` only detects
+JS/TS through two checks: the `filename` argument's extension (`.js`/`.ts`),
+or the regex `\b(import|require)\s+` against the text. Expected behavior:
+JS/TS should be detected from plain code content the same way Python is
+(via keyword/pattern matching, no filename required). Actual behavior:
+`extract_skills()` returns `[]` for JS text using `const`/`async`/`require('fs')`
+(no space after `require`, so the regex misses it), and returns only
+`['React']` for TypeScript text (`.tsx` mentions trigger the React detector's
+substring match, but nothing detects TypeScript itself). The class already
+defines a `JS_TS_KEYWORDS` set with the right keywords — it's just never
+referenced in `_detect_languages()`. Separately, `_detect_tools()` only
+matches the literal word "docker," so Dockerfile syntax (`FROM`, `RUN`,
+`EXPOSE`) and docker-compose YAML (`services:`, `ports:`) go undetected —
+same root pattern (substring matching too narrow), different method.
 
-- `require('fs')` — no space between `require` and `(`, so `\brequire\s+` doesn't match
-- `export interface`, `export class` — "export" is never checked at all
-- Plain code with `const`, `let`, `function`, `async/await` but no `import`/`require`
+### Map
+- `ingestion/parsers/skill_extractor.py` — `_detect_languages()` (JS/TS logic),
+  `_detect_tools()` (Docker/Compose logic) — both need new pattern matching
+- `tests/unit/test_skill_extractor.py` — the 4 failing tests already define
+  target behavior; may add 1-2 edge-case tests of my own
 
-Notably, the class already defines a `JS_TS_KEYWORDS` set with exactly the
-right keywords (`const`, `let`, `var`, `function`, `class`, `async`, `await`,
-`export`, `import`, `require`) — it's just never referenced in
-`_detect_languages()`. This is the main gap to close.
+### Plan
+1. Add JS/TS keyword-based detection in `_detect_languages()` using the
+   existing (currently unused) `JS_TS_KEYWORDS` set, following the same
+   evidence-list pattern already used for Python.
+2. Add TypeScript-specific signals (`export interface`, `export class`,
+   `: Promise<`) so TypeScript is labeled correctly, not just detected as
+   generic JavaScript or mislabeled as React.
+3. Add Dockerfile syntax detection to `_detect_tools()` (`FROM `, `RUN `,
+   `EXPOSE `, `COPY ` at line starts).
+4. Add docker-compose syntax detection (`services:` combined with `ports:`
+   or `build:`).
+5. Run `make test-unit`, confirm all 4 target tests pass and the 13
+   currently-passing tests still pass.
 
-Separately, `_detect_tools()` only detects Docker/Compose via the literal
-substring `"docker"` in the text. Dockerfile syntax (`FROM`, `RUN`, `EXPOSE`)
-and docker-compose YAML syntax (`version:`, `services:`, `ports:`) never
-contain that literal word, so both go undetected. Same root pattern as the
-JS/TS bug: keyword/substring matching too narrow to catch real syntax.
+### Inputs & outputs
+**Input:** raw text (source code, resume, README) and an optional `filename`
+string, passed to `extract_skills(text, filename)`.
+**Output:** a list of `SkillDetection` objects (`name`, `category`,
+`confidence`, `evidence`). My fix changes which skills get added to that
+list and what evidence they carry — it doesn't change the function
+signature or the `SkillDetection` shape.
 
-## Files to change
+### Risks & unknowns
+- Keywords like `class`, `async`, `import` also appear in Python — my JS/TS
+  matching needs to avoid false-positiving on Python-only text. Plan to
+  require multiple distinct keyword matches before flagging, not just one.
+- `_detect_react()`'s existing `.tsx` substring match must keep working
+  alongside my new TypeScript detection — both should fire on the same text,
+  not compete.
+- Dockerfile keywords (`FROM`, `RUN`) are common English words; need
+  reasonably specific patterns (e.g., `FROM` at line start followed by an
+  image reference) to avoid false positives in unrelated text.
+- Confidence scores must follow the existing formula
+  (`min(0.95, 0.6 + len(evidence) * 0.1)`) for consistency with Python
+  detection in the same file.
 
-- `ingestion/parsers/skill_extractor.py` — the only file with logic changes
-- `tests/unit/test_skill_extractor.py` — no new tests needed (the 4 failing
-  tests already specify the target behavior), but I may add 1-2 additional
-  edge-case tests
-
-## Sub-tasks, in order
-
-1. **Fix JS/TS keyword detection** in `_detect_languages()`: use the existing
-   `JS_TS_KEYWORDS` set to scan the text for word-boundary matches (similar
-   style to how Python detection already checks for `def`/`import` via regex),
-   in addition to the existing filename/import/require checks. This fixes
-   `test_javascript_detection`.
-2. **Fix TypeScript-specific detection**: ensure `export interface`/`export
-   class` patterns are recognized, and that the language label becomes
-   "TypeScript" rather than generic "JavaScript" when TS-specific syntax
-   (`interface`, `: Promise<`, etc.) is present, not just when the filename
-   ends in `.ts`. This fixes `test_text_with_typescript_files`.
-3. **Add Dockerfile syntax detection** to `_detect_tools()`: check for
-   Dockerfile instruction keywords (`FROM `, `RUN `, `EXPOSE `, `COPY `) at
-   the start of lines, not just the literal word "docker". Fixes
-   `test_devops_tool_detection`.
-4. **Add docker-compose syntax detection**: check for compose-specific YAML
-   structure (`services:` combined with `ports:` or `build:`), not just the
-   literal word "docker". Fixes `test_docker_compose_detection`.
-5. **Run full test suite** (`make test-unit`) and confirm:
-   - All 4 previously-failing tests now pass
-   - None of the 13 previously-passing tests break
-   - (`test_database_technology_detection`'s pre-existing `UnboundLocalError`
-     typo is left alone — out of scope for this issue)
-
-## Risks / edge cases
-
-- **Over-matching**: keywords like `class`, `import`, `async` also appear in
-  Python and other languages. Need to make sure JS/TS keyword matching
-  doesn't cause false positives on Python-only text (e.g., Python also uses
-  `class` and `async`). Mitigation: require at least 2 distinct JS/TS
-  keyword matches before flagging, similar to how confidence scales with
-  evidence count elsewhere in the file, and rely on the union of signals
-  rather than any single keyword.
-- **React vs. TypeScript conflation**: `_detect_react()` currently treats
-  any `.tsx` mention as React evidence. Need to make sure fixing TypeScript
-  detection doesn't remove the (valid) React detection for `.tsx` files —
-  both should be detectable from the same text.
-- **Confidence scoring consistency**: any new evidence list must follow the
-  existing pattern (`min(0.95, 0.6 + len(evidence) * 0.1)`) rather than
-  inventing a new scoring scheme, to stay consistent with Python detection
-  in the same method.
-- **Docker false positives**: Dockerfile-style keywords like `FROM`, `RUN`
-  are common English words / could appear in unrelated contexts (e.g., "RUN
-  the tests"). Need reasonably specific patterns (e.g., `FROM` at line start
-  followed by an image reference) to avoid false positives.
-
-## Out of scope
-
-- `test_database_technology_detection`'s `UnboundLocalError` (pre-existing
-  typo in the test file itself, unrelated to this issue)
-- Any other language/framework detection logic not touched by the 4 failing
-  tests
+### Edge cases
+- Text with both JS and Python content mixed together (should detect both,
+  not just one)
+- Text mentioning `.tsx` without any React-specific code (should still
+  detect TypeScript correctly, and React only if real React indicators exist)
+- Empty text / plain English with no code (should return `[]`, not error)
+- Dockerfile snippets with lowercase instructions (`from`, `run`) — should
+  detection be case-insensitive?
+- `test_database_technology_detection`'s pre-existing `UnboundLocalError`
+  (typo in the test file, unrelated to this issue) — explicitly out of scope
