@@ -26,6 +26,17 @@ When a user submits two review requests simultaneously, both requests start the 
 
 ---
 
-## Week 8 — Implementation
+## Week 8 — Reproduction & solution planning
 
-*To be filled in Week 8.*
+**Reproduction commit link:** https://github.com/recentbontipiece/pathreview/commit/61e78c8
+
+**Reproduction summary:**
+Added two async tests in `tests/unit/test_review_service.py` that prove the race condition in issue #82: `test_process_review_serializes_same_profile_concurrency` verifies two concurrent `process_review` calls for the same profile run serially, while `test_process_review_allows_different_profiles_concurrently` verifies different profiles can still run in parallel. Without the per-profile `asyncio.Lock`, both calls would interleave and read/write shared state concurrently.
+
+**PLAN.md link:** https://github.com/recentbontipiece/pathreview/blob/fix/82-concurrent-review-requests/PLAN.md
+
+**Walkthrough video (recommended):** [Not recorded]
+
+**Blockers or open questions:**
+- In-process `asyncio.Lock` is sufficient for the current single-process dev server, but will silently break if the app scales to multiple workers. The review noted this; the adjacent PR for issue #32 may also touch the same locking primitive, so I may need to rebase or coordinate if that merges first.
+- The shared request/background DB session gap is real but intentionally left out of scope for this PR per the reviewer's suggestion.
