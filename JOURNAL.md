@@ -44,7 +44,7 @@ completed with generic placeholder feedback) instead of a 4xx error — the miss
 check lives in `create_review_endpoint` in `api/routes/reviews.py`, which accepts
 the request without verifying the profile has any content.
 
-**PLAN.md link:** [fill after PLAN.md is written and pushed]
+**PLAN.md link:** [[commit link](https://github.com/priscillayouziqian/ai201-pathreview/commit/190fa9a4cebb93264d648cc426750e8260626d2b)]
 
 **Blockers or open questions:**
 No blockers. One design decision (raised in feedback) is resolved: the validation
