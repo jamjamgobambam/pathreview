@@ -1,6 +1,7 @@
 """Bias detection in generated feedback."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -11,10 +12,18 @@ class BiasDetector:
 
     # Genuinely dismissive phrases about educational background
     DISMISSIVE_PATTERNS = [
-        r"(?:bootcamp|self-taught|online\s+course)\s+(?:education|training)\s+is\s+(?:insufficient|inadequate|lacks)",
-        r"(?:bootcamp|self-taught)\s+(?:graduates?|developers?)\s+(?:lack|missing)\s+(?:rigor|fundamentals|proper\s+training)",
-        r"(?:bootcamp|coding\s+bootcamp)\s+(?:doesn't|does\s+not)\s+prepare\s+(?:you|developers?)",
-        r"(?:self-taught|bootcamp)\s+is\s+(?:not|never)\s+(?:equal|comparable)\s+to\s+(?:university|traditional|formal)",
+        r"(?i)\b(?:(bootcamp|self-taught|online course)\b\W+(?:\w+\W+){0,6} \
+            (insufficient|inadequate|(lacks rigor|fundamentals|proper\s+training))\b\
+            |(insufficient|inadequate|(lacks rigor|fundamentals|proper\s+training))\b\
+            \W+(?:\w+\W+){0,6}(bootcamp|self-taught\b))",
+        r"(?i)\b(?:(bootcamp|coding bootcamp)\b\W+(?:\w+\W+){0,6}(doesn't|does not|can not|can't)\b\
+            \W+(?:\w+\W+){0,6}(prepare|code)\b\W+(?:\w+\W+){0,6}(developers|you)|(developers|you)\b\
+            \W+(?:\w+\W+){0,6}(aren't|are not)\b\W+(?:\w+\W+){0,6}\
+            (bootcamp|coding bootcamp|code\b))",
+        r"(?i)\b(?:(bootcamp|coding bootcamp|self-taught)\b\W+(?:\w+\W+){0,6}(is|not)\b\
+            \W+(?:\w+\W+){0,6}(equal|comparable)\b\W+(?:\w+\W+){0,6}(university|traditional|formal))",
+        r"(?i)\b(?:(bootcamp)\b\W+(?:\w+\W+){0,6}(graduates|developers)\b\W+(?:\w+\W+){0,6}\
+            (can not|can't)\b\W+(?:\w+\W+){0,6}(code)\b)",
     ]
 
     # Demographic assumptions (about age, background, identity)
