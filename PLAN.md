@@ -8,13 +8,13 @@ The `/api/health` endpoint already includes a `safety_events_last_hour` field, b
 
 ### Map
 
-The main files involved are:
+The main files and functions involved are:
 
-* `api/routes/health.py`, where the health response is assembled
-* `safety/monitoring.py`, where safety event logging and counting already exist
-* `tests/`, especially the unit tests covering the health route and safety monitoring behavior
+- `api/routes/health.py` – the `health_check()` function assembles the health response and currently returns a placeholder value for `safety_events_last_hour`.
+- `safety/monitoring.py` – the `SafetyMonitor.get_event_count()` method retrieves Redis-backed event counts and will be extended or reused to compute the total across all valid safety event types.
+- `tests/` – the unit tests covering the health endpoint and safety monitoring behavior will be updated or expanded to verify the new functionality.
 
-I expect to touch the health route and the safety monitor helper, then add or update tests that verify the new behavior.
+I expect to modify the `health_check()` function and the `SafetyMonitor` helper, then add or update unit tests to validate the implementation.
 
 ### Plan
 
