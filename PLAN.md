@@ -3,7 +3,7 @@
 ## Solution plan
 
 **Issue:** #156 — README scorer test fixture is too short for its own word-count assertion
-**Link:** [PASTE ISSUE LINK]
+**Link:** https://github.com/ascherj/pathreview/issues/156
 
 ### Understand
 
