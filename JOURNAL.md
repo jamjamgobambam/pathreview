@@ -34,7 +34,7 @@ claims are non-exclusive so I'm comfortable proceeding.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [fill after pushing — the commit that adds this section]
+**Reproduction commit link:** [[commit link](https://github.com/priscillayouziqian/ai201-pathreview/commit/f1687f7b8a9274b1fa7c7cf46383b4b69650c2b9)]
 
 **Reproduction summary:**
 Running the API locally, I logged in through Swagger, created a profile with all
