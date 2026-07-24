@@ -28,12 +28,12 @@ defines "done," so the scope is well-bounded per the "Is this issue right for me
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit below]
+**Reproduction commit link:** [0c7a92f](https://github.com/nuv2453-ah/pathreview/commit/0c7a92f)
 
 **Reproduction summary:**
 Reproduced the issue by running `FaithfulnessChecker().check('Knows Python.', [{'text': None}])` in a local Python shell — confirmed it raises `TypeError: sequence item 0: expected str instance, NoneType found` on line 34 of `rag/evaluator/faithfulness_checker.py`. Also confirmed the failing test `test_none_context_chunk_text` in `make test-unit` shows the same crash.
 
-**PLAN.md link:** [link to PLAN.md in fork]
+**PLAN.md link:** [PLAN.md](https://github.com/nuv2453-ah/pathreview/blob/fix/153-faithfulness-checker-none-text/PLAN.md)
 
 **Walkthrough video (recommended):** N/A
 
