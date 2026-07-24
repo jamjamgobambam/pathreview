@@ -229,7 +229,7 @@ class TestPIIScrubber:
         I'm skilled in AWS and Kubernetes deployment.
         """
         scrubbed = scrubber.scrub(text)
-
+        print(scrubbed)
         assert "TechCorp" in scrubbed  # Regular text preserved
         assert "Python" in scrubbed
         assert "AWS" in scrubbed
