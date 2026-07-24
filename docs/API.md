@@ -198,9 +198,97 @@ returns `404`.
 
 ### Reviews
 
-`POST /reviews` — Request a new portfolio review for a profile.
-`GET /reviews/{review_id}` — Retrieve a completed review.
-`GET /reviews` — List reviews for the authenticated user (paginated).
+All `/reviews` endpoints require `Authorization: Bearer $TOKEN`.
+
+`POST /reviews` — Request a new portfolio review for a profile. This kicks
+off ingestion and agent orchestration as a **background task**, so the
+response always comes back with `"status": "pending"` — poll
+`GET /reviews/{review_id}/status` (below) until it's `"complete"`.
+
+```bash
+curl -X POST http://localhost:8000/reviews \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"profile_id":"e9df238a-1105-47a3-bc1c-c47b12e549b2"}'
+```
+
+```json
+{
+  "id": "d0ee3242-1b09-49fc-8659-77e8a3c7ecf5",
+  "profile_id": "e9df238a-1105-47a3-bc1c-c47b12e549b2",
+  "status": "pending",
+  "sections": null,
+  "overall_score": null,
+  "error_message": null,
+  "created_at": "2026-07-24T13:37:51.586503Z",
+  "updated_at": "2026-07-24T13:37:51.586505Z"
+}
+```
+`200` on success (the review record itself, always `pending` at creation
+time).
+
+`GET /reviews/{review_id}/status` — Poll for progress. (Not in the original
+docs — confirmed working in the router.)
+
+```bash
+curl http://localhost:8000/reviews/{review_id}/status \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```json
+{"review_id": "d0ee3242-1b09-49fc-8659-77e8a3c7ecf5", "status": "complete", "progress_pct": 0}
+```
+`200` on success. `404` if the review doesn't exist or isn't owned by the
+current user.
+
+`GET /reviews/{review_id}` — Retrieve a review (once `status` is
+`"complete"`, `sections` and `overall_score` are populated).
+
+```bash
+curl http://localhost:8000/reviews/{review_id} \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```json
+{
+  "id": "d0ee3242-1b09-49fc-8659-77e8a3c7ecf5",
+  "profile_id": "e9df238a-1105-47a3-bc1c-c47b12e549b2",
+  "status": "complete",
+  "sections": [
+    {
+      "section_name": "Technical Skills",
+      "content": "Detailed feedback on technical skills based on portfolio analysis",
+      "confidence": 0.85,
+      "suggestions": ["Add more detail on AI/ML experience", "Include specific technologies and frameworks"]
+    }
+  ],
+  "overall_score": 0.81,
+  "error_message": null,
+  "created_at": "2026-07-24T13:37:51.586503Z",
+  "updated_at": "2026-07-24T13:37:51.597410Z"
+}
+```
+`200` on success. `404` if the review doesn't exist or isn't owned by the
+current user.
+
+`GET /reviews` — List reviews for the authenticated user, paginated with
+`page`/`page_size` query params.
+
+```bash
+curl "http://localhost:8000/reviews?page=1&page_size=20" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```json
+{
+  "items": [ { "id": "d0ee3242-1b09-49fc-8659-77e8a3c7ecf5", "status": "complete", "...": "..." } ],
+  "total": 1,
+  "page": 1,
+  "page_size": 20
+}
+```
+`200` on success. Note: an out-of-range `page_size` (e.g. `500`, above the
+100 max) does **not** error — it silently clamps to `20`.
 
 ## Interactive Docs
 
