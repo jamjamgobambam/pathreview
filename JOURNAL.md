@@ -37,3 +37,15 @@ I will need to understand the current logic for removing the whitespace and find
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/LaurenM64/pathreview/tree/fix/147-resume-whitespace
+
+**Reproduction summary:**
+I created a test in test_resume_parser.py that had extra whitespace added in a variety of cases.  Running the tests created the specified error where the resume parser could not parse those cases and failed.  
+
+**PLAN.md link:** https://github.com/LaurenM64/pathreview/blob/fix/147-resume-whitespace/PLAN.md
+
