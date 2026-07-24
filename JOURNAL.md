@@ -22,12 +22,12 @@ This issue is a good fit because it is a Tier 1 task with a clearly defined scop
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/ascherj/pathreview/commit/950cac57c1089c5a6c4842dc30a31be5d5a4fec8
 
 **Reproduction summary:**
 I reproduced the issue by calling the `/api/health` endpoint in my local environment. Although the response already contains the `safety_events_last_hour` field, it always returns a placeholder value of `0`. After tracing the implementation, I found that `api/routes/health.py` hardcodes this value instead of retrieving actual safety event counts from the monitoring component.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/vineeth-utd/pathreview/blob/fix/68-safety-event-count-health/PLAN.md
 
 **Walkthrough video (recommended):** Not recorded.
 
