@@ -106,15 +106,6 @@ new version.
 
 ### Risks & unknowns
 
-- **How do we track "the current version"? (your SCD question.)** The issue only
-  requires that stale embeddings stop being retrievable. The simplest correct
-  approach is **SCD Type 1 — overwrite**: hard-delete the old chunks and insert
-  the new ones, keeping no history. **SCD Type 2** (keep old versions with an
-  `is_current` flag and filter on read) is more than #27 asks for — it grows the
-  store unboundedly and forces every retrieval query to add an `is_current=true`
-  filter, which touches the whole read path. **Recommendation: Type 1 for this
-  fix**, and note Type 2 as a future enhancement only if version history/audit
-  is ever a requirement.
 - **Where does the "current hash" live — vector store or a DB row?** The raw
   README text isn't stored in the vector DB (only chunk text + embedding +
   metadata are). Reading the hash back from chunk metadata keeps the fix inside
