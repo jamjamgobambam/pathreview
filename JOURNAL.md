@@ -46,3 +46,21 @@ The following are parts of the codebase that requires changes.
 **Setup confirmation:** App runs locally at localhost:5173 (with minor changes to point to `127.0.0.1:5173` as `node` resolves localhost to `::1` IPv6 address on macOS)
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:**
+This issue is a new feature rather than a bug so skipping this section.
+
+**Reproduction summary:**
+This issue is a new feature rather than a bug so skipping this section.
+
+**PLAN.md link:** 
+[PLAN.md](./PLAN.md)
+
+**Walkthrough video (recommended):**
+<NA>
+
+**Blockers or open questions:**
+<NA>
+
