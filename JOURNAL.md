@@ -24,4 +24,22 @@ PathReview generates portfolio reviews using versioned prompt templates stored i
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
+Setup verified by running `make setup` and `make run`; app loads at http://localhost:5173 with backend API at http://localhost:8000.
+
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+---
+
+## Week 7 deliverables checklist
+
+- [x] Issue link and title in JOURNAL.md
+- [x] Problem summary in JOURNAL.md (3–5 sentences, own words)
+- [x] "Is this right for me?" checklist reasoning in selection notes
+- [x] Fork with branch following CONTRIBUTING.md naming convention (`test/37-prompt-template-snapshot-tests`)
+- [x] At least one setup commit pushed to fork
+- [x] Issue claimed on GitHub (#37)
+- [x] Issue added to cohort ledger
+- [ ] Branch URL submitted via course portal
+
+**Branch URL for submission:**
+https://github.com/sans-2186/pathreview/tree/test/37-prompt-template-snapshot-tests
