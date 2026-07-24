@@ -45,7 +45,7 @@ The `test_query_with_partial_overlap` test inside of `test_relevance_scorer.py` 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [Commit](/../../commit/c1e1d574230f147aae8f739d11bf8f50f44b7da0)
+**Reproduction commit link:** [Commit `c1e1d57`](https://github.com/krishpatel2067/pathreview/commit/c1e1d574230f147aae8f739d11bf8f50f44b7da0)
 
 **Reproduction summary:**
 
@@ -57,4 +57,5 @@ The `test_query_with_partial_overlap` test inside of `test_relevance_scorer.py` 
 **PLAN.md link:** [PLAN.md](./PLAN.md)
 
 **Blockers or open questions:**
+
 None. I have a solid grasp on the issue and have a solution in mind.
