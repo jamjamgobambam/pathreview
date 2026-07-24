@@ -27,7 +27,7 @@ The project as is only limits user request based on their authenticated user ID,
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [to be added by user]
+**Reproduction commit link:** https://github.com/CherryQuartzio/pathreview/commit/a3a8a9bab7762b79a03144ef742925442465035b
 
 **Reproduction summary:**
 I added a test `test_reproduce_ip_rate_limit_gap` in `tests/unit/test_rate_limiter.py` that simulates 10 requests from the same IP address but with 10 different user IDs. Because `check_rate_limit` only checks the provided identifier, all 10 requests are allowed, reproducing the issue where an IP can bypass the limit by varying user IDs (or when unauthenticated).
