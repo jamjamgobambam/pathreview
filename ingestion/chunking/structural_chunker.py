@@ -108,10 +108,19 @@ class StructuralChunker(BaseChunker):
 
             else:
                 # Regular content line
+                # BUG (#149): content is only collected once a heading has been
+                # seen (heading_stack is non-empty). For a document with NO
+                # headings, this branch never appends anything, so
+                # current_section_lines stays empty and no section is produced.
                 if heading_stack or current_section_lines:  # Only collect if we have a heading
                     current_section_lines.append(line)
 
         # Save final section
+        # BUG (#149): the final-section guard also requires heading_stack to be
+        # non-empty, so even accumulated content is discarded when the document
+        # has no headings -> chunk() returns [] and the document is dropped from
+        # the RAG index. Reproduced by tests/unit/test_structural_chunker.py::
+        # test_document_with_no_headings.
         if current_section_lines and heading_stack:
             sections.append({
                 "content": "\n".join(current_section_lines).strip(),
