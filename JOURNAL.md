@@ -27,7 +27,7 @@ The app logs with structlog, but the test suite still relies on pytest's `caplog
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** (filled after push on this branch)
+**Reproduction commit link:** https://github.com/parker-cassar/pathreview/commit/bd2dec64128583ee3d5e8a44daa9cf483f427758
 
 **Reproduction summary:**
 I ran:
