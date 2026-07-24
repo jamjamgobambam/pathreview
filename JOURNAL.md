@@ -1,3 +1,5 @@
+# Journal
+
 ## Week 7 — Issue selection
 
 **Issue link:** https://github.com/ascherj/pathreview/issues/157
@@ -40,3 +42,17 @@ The `test_query_with_partial_overlap` test inside of `test_relevance_scorer.py` 
 
 **Cohort ledger:** 
 - [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+[1–2 sentences: How did you reproduce the issue? What did you observe?]
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
