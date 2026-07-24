@@ -31,3 +31,25 @@ claims are non-exclusive so I'm comfortable proceeding.
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [fill after pushing — the commit that adds this section]
+
+**Reproduction summary:**
+Running the API locally, I logged in through Swagger, created a profile with all
+fields (GitHub, portfolio, résumé) left empty, and called `POST /reviews` for it.
+The endpoint returned HTTP 200 with `status: "pending"` (and the review later
+completed with generic placeholder feedback) instead of a 4xx error — the missing
+check lives in `create_review_endpoint` in `api/routes/reviews.py`, which accepts
+the request without verifying the profile has any content.
+
+**PLAN.md link:** [fill after PLAN.md is written and pushed]
+
+**Blockers or open questions:**
+No blockers. One design decision (raised in feedback) is resolved: the validation
+belongs in the route layer — inside `create_review_endpoint`, before the
+background task is scheduled — returning 422, mirroring how `POST /profiles`
+returns 422 for an invalid résumé file. Aside: `_run_ingestion_pipeline` builds
+`IngestedSource(raw_data=...)` but the model has no `raw_data` column — a separate
+latent bug, out of scope here.
