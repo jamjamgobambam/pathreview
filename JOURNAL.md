@@ -51,3 +51,70 @@ I checked the issue count and am confortable with the number of other people wor
 - Comfortable with current number of claims
 - Estimated 4-7 hours for this Tier 2 issue
 - Can complete before Week 9 deadline
+
+## Week 8 — Reproduction & solution planning
+
+**Steps to reproduce**
+
+1. launch service: $ make run
+2. create new user: click on register
+
+```
+2026-07-21 18:20:41 [info     ] user_registered                email=user1@gmail.com request_id=c729f0f7-8df5-4050-b68b-8b4f88e0b6ec user_id=ef04b23b-45cd-4bdb-a947-9552591ca746
+INFO:     127.0.0.1:49657 - "POST /auth/register HTTP/1.1" 200 OK
+```
+
+3. create a review: click on start a new review
+
+- input: github: user1, resume: resume template pdf found online, portfolio url: https://user1.com
+
+4. observed in terminal logs that POST /reviews and observed the the RAG pipeline was invoked in the terminal logs:
+
+```
+2026-07-21 18:24:18 [info     ] review_created                 profile_id=32141eab-51c7-4787-9f1f-31f24137c91d request_id=995e121f-8690-4243-a00c-0ca85e3ae361 review_id=19165315-2b3b-4c8c-8b37-92915c0da212 user_id=ef04b23b-45cd-4bdb-a947-9552591ca746
+INFO:     127.0.0.1:50221 - "POST /reviews HTTP/1.1" 200 OK
+
+
+2026-07-21 18:24:18 [info     ] review_processing_started      profile_id=32141eab-51c7-4787-9f1f-31f24137c91d request_id=995e121f-8690-4243-a00c-0ca85e3ae361 review_id=19165315-2b3b-4c8c-8b37-92915c0da212
+2026-07-21 18:24:18 [error    ] github_ingestion_failed        error="'raw_data' is an invalid keyword argument for IngestedSource" request_id=995e121f-8690-4243-a00c-0ca85e3ae361 username=user1
+2026-07-21 18:24:18 [error    ] portfolio_ingestion_failed     error="'raw_data' is an invalid keyword argument for IngestedSource" request_id=995e121f-8690-4243-a00c-0ca85e3ae361 url=https://user1.com
+2026-07-21 18:24:18 [info     ] ingestion_pipeline_completed   request_id=995e121f-8690-4243-a00c-0ca85e3ae361 review_id=19165315-2b3b-4c8c-8b37-92915c0da212 sources_count=2
+2026-07-21 18:24:18 [info     ] agent_orchestration_completed  request_id=995e121f-8690-4243-a00c-0ca85e3ae361 review_id=19165315-2b3b-4c8c-8b37-92915c0da212 sections_count=2
+2026-07-21 18:24:18 [info     ] rag_retrieval_completed        request_id=995e121f-8690-4243-a00c-0ca85e3ae361 review_id=19165315-2b3b-4c8c-8b37-92915c0da212
+2026-07-21 18:24:18 [info     ] safety_checks_passed           request_id=995e121f-8690-4243-a00c-0ca85e3ae361
+
+
+2026-07-21 18:24:18 [info     ] review_processing_completed    overall_score=0.81 request_id=995e121f-8690-4243-a00c-0ca85e3ae361 review_id=19165315-2b3b-4c8c-8b37-92915c0da212
+```
+
+5. repeated steps 3 and 4 with the same input I listed
+6. confirmed that the RAG pipeline was re-run and a second review was created in the terminal logs:
+
+```
+2026-07-21 18:24:51 [info     ] review_created                 profile_id=378840d5-8e24-4dac-95f7-259baf0dd651 request_id=3e4018da-c780-4049-aba6-7cc8282d4387 review_id=daa4bfe3-a07c-46f0-a9d5-3b63f690bda5 user_id=ef04b23b-45cd-4bdb-a947-9552591ca746
+INFO:     127.0.0.1:50248 - "POST /reviews HTTP/1.1" 200 OK
+
+
+2026-07-21 18:24:51 [info     ] review_processing_started      profile_id=378840d5-8e24-4dac-95f7-259baf0dd651 request_id=3e4018da-c780-4049-aba6-7cc8282d4387 review_id=daa4bfe3-a07c-46f0-a9d5-3b63f690bda5
+2026-07-21 18:24:51 [error    ] github_ingestion_failed        error="'raw_data' is an invalid keyword argument for IngestedSource" request_id=3e4018da-c780-4049-aba6-7cc8282d4387 username=user1
+2026-07-21 18:24:51 [error    ] portfolio_ingestion_failed     error="'raw_data' is an invalid keyword argument for IngestedSource" request_id=3e4018da-c780-4049-aba6-7cc8282d4387 url=https://user1.com
+2026-07-21 18:24:51 [info     ] ingestion_pipeline_completed   request_id=3e4018da-c780-4049-aba6-7cc8282d4387 review_id=daa4bfe3-a07c-46f0-a9d5-3b63f690bda5 sources_count=2
+2026-07-21 18:24:51 [info     ] agent_orchestration_completed  request_id=3e4018da-c780-4049-aba6-7cc8282d4387 review_id=daa4bfe3-a07c-46f0-a9d5-3b63f690bda5 sections_count=2
+2026-07-21 18:24:51 [info     ] rag_retrieval_completed        request_id=3e4018da-c780-4049-aba6-7cc8282d4387 review_id=daa4bfe3-a07c-46f0-a9d5-3b63f690bda5
+2026-07-21 18:24:51 [info     ] safety_checks_passed           request_id=3e4018da-c780-4049-aba6-7cc8282d4387
+
+
+2026-07-21 18:24:51 [info     ] review_processing_completed    overall_score=0.81 request_id=3e4018da-c780-4049-aba6-7cc8282d4387 review_id=daa4bfe3-a07c-46f0-a9d5-3b63f690bda5
+```
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+[1–2 sentences: How did you reproduce the issue? What did you observe?]
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
