@@ -3,13 +3,14 @@
 ### Check-in 1 (mid-week)
 
 **Current progress:**
-[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+- Replaced all the old regex patterns with new ones that improved the passing rate of the test cases by 25%. (31/32 test cases passed).
 
 **Next steps:**
-[What are you working on for the rest of the week?]
+- trying to reach 100% percentage test case pass by focusing on the current failing test case
+- implement hugging face appraoch and compare performance
 
 **Blockers:**
-[Anything slowing you down? Or leave blank.]
+- long regex patterns interfer with the limit on line length but breaking into new lines will affect the performance so have to bypass the format checker.
 
 ---
 
@@ -17,7 +18,7 @@
 
 **PR link:** [link to your submitted pull request]
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** fix/151/narrow-bias-detector 
 
 **What you built:**
 [1–3 sentences summarizing what your fix does and how it works]
