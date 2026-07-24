@@ -1,26 +1,19 @@
-## Week 7 — Issue selection
+## Week 8 — Reproduction & solution planning
 
-**Issue link:** https://github.com/ascherj/pathreview/issues/148
+**Reproduction commit link:** https://github.com/FahmidaAz/pathreview/commit/4fe7555
 
-**Issue title:** Skill extractor fails to detect JavaScript and TypeScript
+**Reproduction summary:**
+Ran the existing test suite for `tests/unit/test_skill_extractor.py` and
+confirmed 4 tests fail exactly as the issue describes. Also manually
+reproduced via the Python shell using the exact repro snippet from the
+issue — `extract_skills()` returned `[]` for JavaScript text and `['React']`
+(no TypeScript) for TypeScript text.
 
-**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
+**PLAN.md link:** https://github.com/FahmidaAz/pathreview/blob/fix/148-skill-extractor-js-ts-detection/PLAN.md
 
-**Problem summary:**
-The `extract_skills()` function in the ingestion pipeline scans portfolio
-text to detect which languages and tools a candidate has used. It
-correctly detects Python, DevOps tools, and databases, but fails entirely
-on JavaScript (returns no detections for clear JS code) and only
-partially detects TypeScript (matches "React" but misses TypeScript
-itself, even when the text references .ts/.tsx files). I confirmed this
-locally: `extract_skills()` returned `[]` for a JavaScript sample and
-only `['React']` for a TypeScript sample. A correct fix will add the
-missing detection patterns for JS/TS so they're reported like every
-other supported language, without changing how existing Python/DevOps
-detection behaves.
+**Walkthrough video (recommended):** (leave blank if you don't record one)
 
-**Branch name:** fix/148-skill-extractor-js-ts-detection
-
-**Setup confirmation:** [x] App runs locally at localhost:5173
-
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Blockers or open questions:**
+Need to decide exactly how many distinct JS/TS keyword matches should be
+required before flagging a language, to avoid false positives on
+Python-only text that happens to use `class`/`async`.
