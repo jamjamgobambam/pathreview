@@ -95,3 +95,32 @@ pipeline.py is only reached if some code explicitly instantiates IngestionPipeli
 •	pipeline.ingest_readme(profile_id, repo_name, readme_content)
 
 
+**AI Help**
+
+There were a mess of errors between linting, formatting, and broken tests. I tried running the commands, but was unable to fix the linting errors: none of the --fix suffixes it suggested worked, and documentation on the Internet was limited without the explicit understanding that pyproject.toml was enforcing the rules. This should have been made clear to us students.
+
+I had to bring in Claude to help me. 
+
+**Claude Output**
+
+- Result: the commit gate (ruff + black + mypy) passes ✅
+- What actually blocked you
+- Formatting was a red herring. The real blocker was mypy — your just-installed pre-commit hook enforces types across a codebase that was never fully annotated, producing 532 errors.
+
+- What I changed (your chosen "relax config" approach + minimal safe code)
+- Config — pyproject.toml, matching how this codebase was actually written:
+
+- disallow_untyped_defs = false — cleared ~500 missing-annotation errors
+- warn_return_any = false — cleared 4 no-any-return (SQLAlchemy/redis return Any)
+- implicit_optional = true — cleared 4 implicit-Optional errors
+- Small, behavior-neutral code fixes for the ~20 baseline errors config can't silence:
+- var-annotated annotations on empty collections — semantic_chunker.py, structural_chunker.py, skill_extractor.py, two test files
+- dict[str, Any] / list[dict[str, Any]] annotations — health.py, market_analyzer.py
+
+**type: ignore[attr-defined] on the known Alembic false positive — env.py**
+- A latent bug fix: repo_analyzer.py:27 — parse() was annotated str | bytes but its body and docstring handle dict. I widened it to str | bytes | dict to match reality (no behavior change).
+- Verified, stated plainly
+- Tests: my edits caused zero regressions. The suite has 54 pre-existing failures (this repo has ~130 known seeded bugs). I proved the one test that looked suspicious (test_heading_path_format) fails with my annotation reverted too — so it's not mine. Note two of those failures are your #149 target (test_document_with_no_headings, test_heading_path_format), still red because #149 isn't fixed yet.
+
+**Important**
+The config relaxation is a team-wide gate change. It's reversible, and I kept check_untyped_defs = true so mypy still checks inside functions. Worth a heads-up to your team / a note in the PR.
