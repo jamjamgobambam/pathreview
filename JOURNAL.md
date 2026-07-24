@@ -23,3 +23,17 @@ The `/health` API endpoint reports whether core dependencies (Postgres, Redis, v
 - **I understand the problem.** The response field already exists but is a hardcoded `0` placeholder, and the data source (`SafetyMonitor`, which counts events in Redis) already exists too — so the core of the work is *wiring* the two together rather than building something from scratch.
 - **There's a real wrinkle I've already spotted.** The issue asks for events in the "last hour," but `SafetyMonitor` doesn't enforce a one-hour window (its Redis counter has a 24-hour expiry and the `window_hours` argument is explicitly "not enforced"), and it counts one event type at a time. So I'll need to sum across all event types and decide how to handle the time window — I'm flagging this for PLAN.md.
 - **Low blast radius.** The change is additive to a monitoring field and doesn't alter core request/review flows, so the risk of breaking existing behavior is low.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/jenvrosen/pathreview/commit/7db760c2c5e17f156240c88a17f8b6ad928c72fd
+
+**Reproduction summary:**
+Wrote `tests/unit/test_health_safety_events_reproduction.py`, which records safety events through `SafetyMonitor` (proving the data exists and is countable) and then invokes the real `/health` endpoint. The endpoint returns `safety_events_last_hour: 0` even though safety events occurred — confirming the field is a hardcoded placeholder disconnected from `SafetyMonitor`. The desired-behavior assertion is marked `xfail(strict)` so CI stays green while the bug is documented.
+
+**PLAN.md link:** https://github.com/jenvrosen/pathreview/blob/fix/68-health-check-safety-event-count/PLAN.md
+
+**Walkthrough video (recommended):** *(not recorded yet)*
+
+**Blockers or open questions:**
+The issue asks for events in the "last hour," but `SafetyMonitor` doesn't actually enforce a one-hour window — its Redis counter has a 24-hour TTL and the `window_hours` argument is "not enforced." Going into Week 9 I need to decide whether to implement true one-hour windowing (e.g. Redis sorted sets keyed by timestamp) or keep the existing rolling counter and make the field's meaning honest. Planning to get mentor input before choosing.
