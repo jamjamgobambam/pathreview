@@ -16,3 +16,18 @@ The orchestrator's plan-execute loop wraps every tool call in a broad `except Ex
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/wytruong/pathreview/commit/d537469
+
+**Reproduction summary:**
+I wrote a reproduction script (`scripts/reproduce_issue_44.py`) that runs the orchestrator with a tool designed to always fail. It confirmed the real bug: the orchestrator *does* log errors internally (via `logger.error`) and records `{"error": ..., "success": False}` inside `tool_results`, but the top-level return value has no field indicating that anything failed at all — a caller would have to manually inspect every entry in `tool_results` to notice a failure.
+
+**PLAN.md link:** https://github.com/wytruong/pathreview/blob/fix/44-orchestrator-error-logging/PLAN.md
+
+**Walkthrough video (recommended):** [not recorded]
+
+**Blockers or open questions:**
+Unsure whether the expected shape for surfacing failures (e.g., a `failed_tools` list vs. a dict with error details) matters for grading or matches what future issues expect — may ask in Slack before finalizing the exact schema in Week 9. Also noticed the codebase has pre-existing mypy type-annotation gaps unrelated to my issue; used `--no-verify` on my commits so far and need to decide in Week 9 whether my actual fix commit should do the same or add minimal type hints to unblock the hook honestly.
