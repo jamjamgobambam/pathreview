@@ -29,4 +29,6 @@ Found something during reproduction that's related but out of scope: the redis b
 
 ### Edge cases
 
-Postgres genuinely down or unreachable — the fix has to keep reporting that as `"unhealthy"`, not swallow real connectivity errors along with the fixed syntax error. Worth double-checking once a test client gets added that the fix behaves the same under a sync `TestClient` as it does under `curl`.
+Postgres genuinely down or unreachable — the fix has to keep reporting that as `"unhealthy"`, not swallow real connectivity errors along with the fixed syntax error.
+
+Postgres reachable but the query hangs — a connection accepted, then `SELECT 1` stalls (pool exhausted, a lock, a slow failover). Right now nothing times out the `execute()` call, so a hung query would hang the whole `/health` request instead of reporting unhealthy. Worth deciding whether this fix should add a timeout, or whether that's a separate issue.
