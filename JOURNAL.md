@@ -27,3 +27,17 @@ The test `test_query_with_partial_overlap` is intended to verify how the relevan
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** TBD
+
+**Reproduction summary:**
+I reproduced Issue #157 by running `pytest tests/unit/test_relevance_scorer.py -q`. The test suite reported `1 failed, 18 passed`, with `test_query_with_partial_overlap` failing because the scorer returned `1.0` while the assertion expected a score between `0.3` and `0.9`. The fixture contains all four query terms—`Python`, `Django`, `web`, and `framework`—so it represents full overlap rather than the intended partial overlap.
+
+**PLAN.md link:** TBD
+
+**Walkthrough video (recommended):** Not recorded yet
+
+**Blockers or open questions:**
+None at this stage.
