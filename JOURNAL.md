@@ -24,4 +24,4 @@ PathReview generates portfolio reviews using versioned prompt templates stored i
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
