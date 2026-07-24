@@ -44,7 +44,7 @@ This is a feature to allow for ingesting a portfolio website url. A pipeline is 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue] <!-- TODO: fill in after committing this JOURNAL.md update -->
+**Reproduction commit link:** [95002dc — docs: reproduce issue #11 — confirm portfolio_url ingestion gap](https://github.com/narayanansriram/pathreview/commit/95002dc)
 
 **Reproduction summary:**
 Since this is a feature gap rather than a bug, I reproduced it by writing `scripts/check_portfolio_ingestion.py`, which queries the local dev database directly. The `profiles` table already has 4 rows with a `portfolio_url` set (e.g. `https://yasio.dev/`), confirming the field is accepted and persisted end-to-end at the API/schema/DB layer. But the `ingested_sources` table has 0 rows with `source_type='web'` — confirming that `portfolio_url` is never passed to the ingestion pipeline, so no chunks are ever extracted, embedded, or stored for it, unlike GitHub/resume data.
