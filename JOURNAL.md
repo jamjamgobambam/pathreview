@@ -21,7 +21,7 @@ I've read the the file this issue touches (`agent/tools/github_tool.py`) and loc
 ## Week 8 — Reproduction & solution planning
 
 **Reproduction commit link:** 
-
+https://github.com/fyf820/pathreview/commit/1ba8a122077083ccd100333fbb23b00819667ff1
  
 **Reproduction summary:**
 - `agent/tools/github_tool.py` already fetches repo metadata via the GitHub API and includes a `_has_readme()` helper — the same shape I'd follow for `_has_tests()`. No test-detection logic exists there yet.
@@ -31,5 +31,6 @@ I've read the the file this issue touches (`agent/tools/github_tool.py`) and loc
 **PLAN.md link:** [link to PLAN.md](PLAN.md)
 
 **Walkthrough video (recommended):** 
+[video](https://drive.google.com/file/d/1R4i9djhqMbMb0Xcr4T3YLzRhPwFEphc6/view?usp=sharing)
 
 **Blockers or open questions:**
