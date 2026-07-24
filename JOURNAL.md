@@ -17,3 +17,32 @@ The issue occurs in the rag/evaluator/faithfulness_checker.py when a context chu
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I reproduced issue #153 by running:
+
+```python
+from rag.evaluator.faithfulness_checker import FaithfulnessChecker
+
+FaithfulnessChecker().check("Knows Python.", [{"text": None}])
+```
+The program throws:
+
+```python
+TypeError: sequence item 0: expected str instance, NoneType found
+```
+![alt text](<Pasted Graphic.png>)
+
+This occurs because chunk.get("text", "") returns None when the key exists with a None value, causing " ".join() to fail since the check() function only accepts string type.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
