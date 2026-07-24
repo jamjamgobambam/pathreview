@@ -1,6 +1,7 @@
 """Bias detection in generated feedback."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -8,6 +9,10 @@ logger = structlog.get_logger()
 
 class BiasDetector:
     """Detect biased language in feedback."""
+
+    # these regex patterns below miss strings where the intent is the same
+    # but the words are different. Tests in `tests/unit/test_bias_detector.py`
+    # catch this already
 
     # Genuinely dismissive phrases about educational background
     DISMISSIVE_PATTERNS = [
