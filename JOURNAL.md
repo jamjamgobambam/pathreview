@@ -22,7 +22,7 @@ When we call the `GET /health` endpoint, the application crashes with an `Attrib
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [Add the GitHub commit URL after pushing this reproduction commit]
+**Reproduction commit link:** https://github.com/Masaki0827/pathreview/commit/bd2afd230f27a299f980221308653af187130f20
 
 **Reproduction summary:**
 
@@ -32,7 +32,7 @@ Redis Docker container was healthy. The Redis health check failed because
 `api/routes/health.py` accesses `settings.redis_host`, but the `Settings` model
 in `core/config.py` defines only `redis_url`.
 
-**PLAN.md link:** [Add the GitHub link to PLAN.md after pushing this branch]
+**PLAN.md link:** https://github.com/Masaki0827/pathreview/blob/fix/155-health-check-redis-settings/PLAN.md
 
 **Walkthrough video (recommended):** Not recorded
 
