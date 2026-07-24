@@ -27,3 +27,18 @@ PathReview analyzes GitHub repositories, but it currently does not report whethe
 - The implementation mainly uses Python and GitHub repository file information.
 - The issue is small enough to understand without changing the entire application.
 - It will help me learn how an existing codebase analyzes repositories and returns structured results.
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [will add after creating the commit]
+
+**Reproduction summary:**
+
+I ran `GitHubTool` against the PathReview repository, which contains automated tests. The tool successfully returned repository metadata including `has_readme`, but the returned data did not contain a `has_tests` field.
+
+**PLAN.md link:** [will add after creating PLAN.md]
+
+**Walkthrough video (recommended):** Not recorded
+
+**Blockers or open questions:**
+
+I still need to determine the best GitHub API endpoint for retrieving the repository file tree and whether the existing test-detection logic in `ingestion/parsers/repo_analyzer.py` can be reused.
