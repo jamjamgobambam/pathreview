@@ -11,7 +11,7 @@
 the title), what is currently broken or missing, and what a successful fix
 would accomplish. Naming the part of the codebase it affects is helpful context.]
 
-The project as is only limits user request based on their authenticated ID, but not by their origin IP address. The goal is to add in the IP limiter as an additional check within the rate limiter component as a secondary layer. If all things are implemented correctly, the project will automatically deny further requests from any users within the same IP if the limit has been reached.
+The project as is only limits user request based on their authenticated user ID, but unauthenticated requests (e.g., to public endpoints) are not rate limited at all. The goal is to add in the IP limiter as an additional check within the rate limiter component as a secondary layer. If all things are implemented correctly, the project will automatically deny further requests from any users within the same IP if the limit has been reached.
 
 **Branch name:** feat/70-rate-limit-per-ip
 
@@ -24,3 +24,17 @@ The project as is only limits user request based on their authenticated ID, but 
 - Part 2: Since I'm not a stranger to making pull requests, I can work with a Tier 2 issue involving communication between layers.
 - Part 3: I managed to locate the appropriate code, where I think my changes will take place as well as the associated test file.
 - Part 4: There are only 2 other people claiming this issue from other sessions, so I'm fine with it. I should have the time to do it within the upcoming weeks. This requested changes does not rely on anything else, so I can work on it right away.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [to be added by user]
+
+**Reproduction summary:**
+I added a test `test_reproduce_ip_rate_limit_gap` in `tests/unit/test_rate_limiter.py` that simulates 10 requests from the same IP address but with 10 different user IDs. Because `check_rate_limit` only checks the provided identifier, all 10 requests are allowed, reproducing the issue where an IP can bypass the limit by varying user IDs (or when unauthenticated).
+
+**PLAN.md link:** [https://github.com/cherryquartzio/pathreview/blob/feat/70-rate-limit-per-ip/PLAN.md](https://github.com/cherryquartzio/pathreview/blob/feat/70-rate-limit-per-ip/PLAN.md)
+
+**Walkthrough video (recommended):** [N/A]
+
+**Blockers or open questions:**
+No blockers. The next step is to update the signature of `check_rate_limit` to accept and check against `ip_address` in addition to the primary identifier.
