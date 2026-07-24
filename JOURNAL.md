@@ -54,17 +54,6 @@ Redis check — confirming my issue is isolated to the Postgres check only.
 
 **PLAN.md link:** https://github.com/laurale31/pathreview/blob/fix/154-health-check-sqlalchemy-text/PLAN.md
 
-**Walkthrough video (recommended):**
-
-**Blockers or open questions:**
-
-
-**Reproduction commit link:** https://github.com/laurale31/pathreview/commit/a57447b
-
-**PLAN.md link:** https://github.com/laurale31/pathreview/blob/fix/154-health-check-sqlalchemy-text/PLAN.md
-
-**Walkthrough video (recommended):**
-
 **Blockers or open questions:**
 No route-level test conventions exist yet in this project (tests/integration/
 exists but is empty, and tests/unit/ has no test_health.py). Planning to
