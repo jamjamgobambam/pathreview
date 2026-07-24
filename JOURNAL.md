@@ -43,3 +43,20 @@ Setup verified by running `make setup` and `make run`; app loads at http://local
 
 **Branch URL for submission:**
 https://github.com/sans-2186/pathreview/tree/test/37-prompt-template-snapshot-tests
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/sans-2186/pathreview/commit/ebcece3
+
+**Reproduction summary:**
+I confirmed the gap by showing that a one-word edit to `skills_feedback` v1 (e.g. `"Analyze"` → `"Analyse"`) changes the template hash, yet the existing `test_template_snapshot_content_hash` still passes because it only asserts the hash is a 32-character string — not a known expected value. New tests in `tests/unit/test_issue_37_snapshot_reproduction.py` demonstrate this behavior explicitly.
+
+**PLAN.md link:** https://github.com/sans-2186/pathreview/blob/test/37-prompt-template-snapshot-tests/PLAN.md
+
+**Walkthrough video (recommended):** *(not recorded — optional for Slack/office hours feedback)*
+
+**Blockers or open questions:**
+- Whether to store expected hashes as Python constants in the test file vs. a JSON fixture in `tests/fixtures/` (leaning toward constants for simplicity).
+- Confirm whether a combined all-templates hash is needed in addition to per-template snapshots, or if per-template SHA-256 checks are sufficient.
