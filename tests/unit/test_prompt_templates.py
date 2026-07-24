@@ -184,6 +184,8 @@ class TestPromptTemplates:
 
         # Expected hash - update if templates intentionally change
         # This helps detect unintended changes to templates
+        # ISSUE #37 REPRODUCTION: This stub only checks hash format (str, len 32),
+        # not an expected value — see tests/unit/test_issue_37_snapshot_reproduction.py
         assert isinstance(content_hash, str)
         assert len(content_hash) == 32  # MD5 hash length
 
