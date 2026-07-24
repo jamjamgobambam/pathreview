@@ -54,7 +54,7 @@ The `test_query_with_partial_overlap` test inside of `test_relevance_scorer.py` 
 3. Run the test file with the bug: `pytest tests/unit/test_relevance_scorer.py -q`.
 4. Observe that the `test_query_with_partial_overlap` fails due to `assert 1.0 < 0.9`. The bug isn't just the test failing incorrectly but also that the test code doesn't conform to the test name.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** [PLAN.md](./PLAN.md)
 
 **Blockers or open questions:**
 None. I have a solid grasp on the issue and have a solution in mind.
