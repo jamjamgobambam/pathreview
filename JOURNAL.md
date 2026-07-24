@@ -25,8 +25,6 @@ The unit tests for the review routes do not cover the case where a valid profile
 **Reproduction summary:**
 I created a valid profile without a résumé, GitHub username, portfolio URL, or ingested sources, then submitted `POST /reviews` using that profile’s ID. The endpoint incorrectly returns a pending review instead of a controlled 4xx error indicating there is no content to review.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
-
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+**PLAN.md link:** https://github.com/Rura-M/pathreview/blob/tests/88-POST-/reviews-endpoint-has-no-test-for-when-the-profile-has-no-ingested-documents-/PLAN.md
 
 **Blockers or open questions:**
