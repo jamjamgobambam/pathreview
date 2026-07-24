@@ -23,6 +23,7 @@ class PIIScrubber:
     "phone_us": r"(?<!\d)(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})\b",
     "phone_intl": r"\+[0-9]{1,3}[-.\s]?[0-9]{1,4}[-.\s]?[0-9]{1,4}[-.\s]?[0-9]{1,9}\b",
     "ssn": r"\b(?!000|666)[0-9]{3}-(?!00)[0-9]{2}-(?!0000)[0-9]{4}\b",
+    "ssnV2": r"\b(?!000|666|9\d\d)[0-9]{3}-(?!00)[0-9]{2}-(?!0000)[0-9]{4}\b",
     "street_address": r"\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Court|Ct|Circle|Cir|Park|Pl|Plaza|Place|Way|Parkway|Pkwy|Point|Pt|Pike|Run|Summit|Terrace|Ter|Trail|Trl|Tunnel|Turnpike|View|Vista|Village|Vlg|Valley|Vly)\b",
 }
 

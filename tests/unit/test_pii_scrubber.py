@@ -237,6 +237,27 @@ class TestPIIScrubber:
         assert "john.smith@company.com" not in scrubbed
         assert "555-123-4567" not in scrubbed
 
+    def test_pii_my_take(self, scrubber):
+            """Test text with mix of PII and regular content."""
+            text = """
+
+            my id is 111-111-1111
+            my id in the sequal is (111) 111-1111
+            my id in the prequel is 111 111 1111
+            
+            my home address is 123 big city road
+            I live in California 
+            I work for Evilcorp
+            
+            My ssn is 666-66-6666 
+            My ssn in the sequal is 123-45-6789
+            
+            """
+            scrubbed = scrubber.scrub(text)
+            print(scrubbed)
+            assert 1 == 2 # lazy way to see the print
+            
+            
     def test_scrub_idempotent(self, scrubber):
         """Test that scrubbing twice produces same result."""
         text = "Email: test@example.com"

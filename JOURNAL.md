@@ -79,3 +79,19 @@ If I started over, I would spend more time reading through the existing files be
 ### 5. What are you most proud of from this module?
 
 I'm most proud that I stayed persistent even when I was stuck for several hours. Instead of giving up, I continued investigating until I understood how the codebase worked and found the correct solution. Solving Issue #47 taught me the value of patience and careful reading when working in unfamiliar projects.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ascherj/pathreview/issues/146
+
+**Reproduction summary:**
+[1–2 sentences: How did you reproduce the issue? What did you observe?]
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+N/A
