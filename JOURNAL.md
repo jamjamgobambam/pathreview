@@ -23,3 +23,21 @@ The PII scrubber in `safety/pii_scrubber.py` is responsible for detecting and re
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue # 146 added to cohort ledger
+
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [will fill in after committing]
+
+**Reproduction summary:**
+I reproduced issue #146 by running `pytest tests/unit/test_pii_scrubber.py -q` with the virtual environment active, which produced `5 failed, 20 passed`. The four phone-related tests (`test_us_phone_number_redaction`, `test_us_phone_formats`, `test_detect_phone_pii`, `test_phone_at_start_of_text`) fail because the parenthesized format `(555) 123-4567` is not redacted. I also confirmed it interactively:
+`PIIScrubber().scrub('Call me at (555) 123-4567 or 555-123-4567')` returns `'Call me at (555) 123-4567 or [REDACTED]'` — the dashed number is redacted but the parenthesized one is left exposed and `detect()` returns an empty list for it.
+
+**PLAN.md link:** [will fill in after pushing PLAN.md]
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:**
+[leave blank or add any]
