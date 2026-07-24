@@ -47,7 +47,7 @@ Currently, there is a bug in `tech_detector.py` where it fails to exclude `node_
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** 
+**Reproduction commit link:** https://github.com/Dennis-1am/pathreview/commit/9fbd1d6f7839231abf799de89b46d1f3c0a2108b
 
 **Reproduction summary:**
 I reproduced the issue by running the test case for it and observing that the test fails because it mislabeled the test repository. The specific test that I observe the failure in is in this:
