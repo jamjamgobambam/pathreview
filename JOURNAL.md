@@ -38,3 +38,16 @@ All boxes checked — proceeding with this issue.
 **Observation:** `test_template_snapshot_content_hash` computes an MD5 hash of template content but only asserts `isinstance(content_hash, str)` and `len(content_hash) == 32` — it never compares against a fixed expected hash. This confirms the bug: template wording can change silently with zero test failures, and no version bump is enforced.
 
 Reverted the temporary edit afterward — no production code changes made on this branch yet.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ronak-adhikari/pathreview/commit/a778bce
+
+**Reproduction summary:**
+Ran the existing `test_template_snapshot_content_hash` test, then edited the wording of the `skills_feedback` template with no version bump. The test still passed — confirming it never actually validates content, only that the hash is a 32-character string.
+
+**PLAN.md link:** https://github.com/ronak-adhikari/pathreview/blob/test/37-prompt-template-snapshot-tests/PLAN.md
+
+
+**Blockers or open questions:**
+Deciding between one combined snapshot hash vs. per-template hashes — leaning per-template for better diagnostics, will finalize in Week 9.
