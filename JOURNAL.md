@@ -1,3 +1,17 @@
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [\[Commit Link\]](https://github.com/zhannasunny/pathreview/commit/88e64c45e148a38c522007271bdf89738b70c4f9)
+
+**Reproduction summary:**
+Ran `Orchestrator.run()` twice for the same `profile_id` using an in-memory fake Redis and stub tools: review 1 with a GitHub project + README, then review 2 after removing the project. The stale `github_tool` result from review 1 was still present in the stored session after review 2, because `run()` loads the previous state and does `session_state.update(results)` instead of clearing it — confirming the bug.
+
+**PLAN.md link:** [PLAN.md](./PLAN.md)
+
+**Walkthrough video (recommended):** 
+
+**Blockers or open questions:**
+Need to confirm how the API layer instantiates `Orchestrator`/`SessionStore` — whether a single `Orchestrator` (and its `ContextManager` memoization cache) is reused across reviews, which would be a second source of stale results beyond the Redis merge.
+
 ## Week 7 — Issue selection
 
 **Issue link:** https://github.com/ascherj/pathreview/issues/43
