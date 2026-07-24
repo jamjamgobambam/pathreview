@@ -48,11 +48,13 @@ The `test_query_with_partial_overlap` test inside of `test_relevance_scorer.py` 
 **Reproduction commit link:** [link to commit documenting the reproduced issue]
 
 **Reproduction summary:**
-[1–2 sentences: How did you reproduce the issue? What did you observe?]
+
+1. Setup: `make setup`.
+2. Activate virtual environment: `source .venv/bin/activate`.
+3. Run the test file with the bug: `pytest tests/unit/test_relevance_scorer.py -q`.
+4. Observe that the `test_query_with_partial_overlap` fails due to `assert 1.0 < 0.9`. The bug isn't just the test failing incorrectly but also that the test code doesn't conform to the test name.
 
 **PLAN.md link:** [link to PLAN.md in your fork]
 
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
-
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+None. I have a solid grasp on the issue and have a solution in mind.
