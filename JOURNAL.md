@@ -45,7 +45,7 @@ The `test_query_with_partial_overlap` test inside of `test_relevance_scorer.py` 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** [Commit](/../../commit/c1e1d574230f147aae8f739d11bf8f50f44b7da0)
 
 **Reproduction summary:**
 
