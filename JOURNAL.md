@@ -22,7 +22,7 @@ I chose this issue because it is labeled Tier 1 and good first issue, and it app
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [PASTE COMMIT LINK AFTER PUSHING]
+**Reproduction commit link:** [(https://github.com/ascherj/pathreview/commit/10ff199b8c4588b2efeca1dc710bf8b7535d4228)]
 
 **Reproduction summary:**
 I reproduced issue #156 by running `.\.venv\Scripts\python.exe -m pytest "tests/unit/test_readme_scorer.py::TestReadmeScorer::test_readme_with_all_quality_signals" -v`. The relevant failure shows that `test_readme_with_all_quality_signals` (assertion `assert data["word_count"] > 100`, which fails as `assert 51 > 100`) depends on a README scorer fixture whose text does not satisfy the word-count condition being asserted. This confirms that the issue is located in the README scorer test or fixture setup, and the next step is to determine whether the fixture should be lengthened or the assertion should be adjusted based on the intended scorer behavior.
@@ -30,7 +30,7 @@ I reproduced issue #156 by running `.\.venv\Scripts\python.exe -m pytest "tests/
 <!-- NOTE: The word count (51), test name, and assertion above were confirmed on my machine.
      Re-run the command yourself and confirm the same "assert 51 > 100" output before pushing. -->
 
-**PLAN.md link:** [PASTE PLAN.md LINK AFTER PUSHING]
+**PLAN.md link:** [https://github.com/toquangminh/pathreview/blob/fix/156-readme-scorer-word-count-fixture/PLAN.md]
 
 **Blockers or open questions:**
 I still need to confirm whether the correct fix is to update the fixture text, adjust the assertion, or change scorer behavior. I will inspect the scorer implementation before making the Week 9 fix.
