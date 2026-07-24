@@ -23,3 +23,35 @@ The `/health` endpoint currently includes a `safety_events_last_hour` field, but
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 - Reproduction and implementation planning
+
+**Reproduced issue:** [x]
+
+With the local API and Redis running, I logged a `pii_detected` event and confirmed
+that Redis increased from 0 to 1 while `GET /health` still returned
+`"safety_events_last_hour": 0`. This isolated issue #68 from the separate health
+dependency-check issues #154 and #155.
+
+**Root cause:** The health route hard-coded the value to zero. The existing Redis
+integer counters also retained no timestamps, so they could not support a true rolling
+one-hour count.
+
+**Plan:** See `PLAN.md`. The implementation records timestamped events in Redis sorted
+sets, prunes expired scores, aggregates all valid event types, and fails safely if the
+metric store is unavailable.
+
+**Implementation status:** [x] Complete
+
+**Verification:**
+
+- 12 focused unit tests pass.
+- A live Redis/API check reports one recent event and excludes an expired event.
+- Scoped Ruff, Black, and mypy checks pass for all changed Python files.
+- The repository-wide unit suite has an unrelated existing baseline of 357 passing,
+  52 failing, and 31 setup errors. The setup errors include an unavailable external
+  tokenizer download; the other failures are in untouched modules.
+- Repository-wide Ruff, Black, and mypy checks also report existing violations in
+  untouched files. No global auto-fixes were applied.
+
+**Walkthrough:** A ready-to-record outline is available in `LOOM_SCRIPT.md`.
