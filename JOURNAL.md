@@ -21,7 +21,7 @@ The issue occurs in the rag/evaluator/faithfulness_checker.py when a context chu
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/Yumejichi/pathreview/commit/e4d8229db0bb0849d21cfe29a246d44a63cc5494
 
 **Reproduction summary:**
 I reproduced issue #153 by running:
@@ -40,7 +40,7 @@ TypeError: sequence item 0: expected str instance, NoneType found
 
 This occurs because chunk.get("text", "") returns None when the key exists with a None value, causing " ".join() to fail since the check() function only accepts string type.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/Yumejichi/pathreview/blob/fix/153-faithfulness-checker-none-text/PLAN.md
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
