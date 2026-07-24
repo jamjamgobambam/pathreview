@@ -25,3 +25,17 @@ defines "done," so the scope is well-bounded per the "Is this issue right for me
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit below]
+
+**Reproduction summary:**
+Reproduced the issue by running `FaithfulnessChecker().check('Knows Python.', [{'text': None}])` in a local Python shell — confirmed it raises `TypeError: sequence item 0: expected str instance, NoneType found` on line 34 of `rag/evaluator/faithfulness_checker.py`. Also confirmed the failing test `test_none_context_chunk_text` in `make test-unit` shows the same crash.
+
+**PLAN.md link:** [link to PLAN.md in fork]
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:**
+Need to grep for other `.get("text", "")` occurrences in the codebase to check if the same pattern exists elsewhere.
