@@ -38,3 +38,15 @@ for Weeks 8–9. No blockers or open dependencies were found on the issue.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction summary:**
+Ran the app locally with `make run` (Postgres and Redis containers
+confirmed healthy via `docker compose ps`). Called `GET /health` via
+curl and observed a 503 response with `"postgres":"unhealthy"`. Server
+logs confirmed the exact root cause:
+`error="Textual SQL expression 'SELECT 1' should be explicitly declared
+as text('SELECT 1')"`. The logs also show a separate, unrelated error
+(`'Settings' object has no attribute 'redis_host'`, issue #155) in the
+Redis check — confirming my issue is isolated to the Postgres check only.
