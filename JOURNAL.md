@@ -22,4 +22,13 @@ I can explain the bug without going back to reread the issue: a test fixture tha
 ## Week 8 — Reproduction & solution planning
 
 **Reproduction summary:**
-Ran `pytest tests/unit/test_relevance_scorer.py -q` and confirmed the failure described in the issue. The test uses query "Python Django web framework" against a chunk containing "Django is a Python web framework for rapid development" — every query word appears in the chunk, so the scorer correctly returns 1.0. The test asserts `0.3 < score < 0.9`, so it fails with `assert 1.0 < 0.9`. This confirms the fixture data doesn't represent a genuine partial-overlap case.
+I ran `pytest tests/unit/test_relevance_scorer.py -q` and was able to reproduce the failure described in the issue. The test uses the query **"Python Django web framework"** and compares it against the chunk **"Django is a Python web framework for rapid development."** Since every query word appears in the chunk, the relevance scorer correctly returns a score of **1.0**. However, the test expects the score to be between **0.3** and **0.9**, so it fails with `assert 1.0 < 0.9`. This confirms that the problem is with the test fixture, not the scoring logic—the current fixture is actually a full-overlap example instead of a partial-overlap one.
+
+**Reproduction commit link:** https://github.com/tanvij69/pathreview/commit/860043b
+
+**PLAN.md link:** https://github.com/tanvij69/pathreview/blob/fix/157-relevance-scorer-partial-overlap-fixture/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded
+
+**Blockers or open questions:**
+Still need to confirm the exact scoring formula in `RelevanceScorer.score()` before finalizing new fixture values.
