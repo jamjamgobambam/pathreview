@@ -29,7 +29,7 @@ No changes needed in `core/services/review_service.py`.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** null
+**Reproduction commit link:** https://github.com/jgarcdev/PathReview/commit/8fd9aa7f0a09c9d355d2c4058834391266ef0138
 
 **Reproduction summary:**
 Ran `pytest tests/unit/test_review_service.py -q`, which reproduced the exact numbers from the issue: 13 failed, 6 passed. All 13 failures trace back to `mock_result = AsyncMock()` in `get_review`/`list_reviews` tests, where `result.scalars()` resolves to an unawaited coroutine instead of a `MagicMock`, causing `.first()`/`.all()` to raise `AttributeError`.
