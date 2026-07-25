@@ -17,7 +17,7 @@ Right now, PathReview's eval suite only runs inline as part of live API requests
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** (added after commit — see below)
+**Reproduction commit link:** https://github.com/SumaiaAlhemyari/pathreview/commit/a0507e9
 
 **Reproduction summary:**
 Ran scripts/run_evals.py and confirmed it is a stub. It prints success messages but never creates eval_results.json. Also found that EvalSuite, RelevanceScorer, and FaithfulnessChecker are not called anywhere in api/, only in their own tests.
