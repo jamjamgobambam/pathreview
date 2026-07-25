@@ -19,12 +19,12 @@ The PII scrubber in `safety/pii_scrubber.py` uses one regex to find phone number
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/soccerjonj/pathreview/commit/447244e702bc3be4794dcd632922aa98392c274d
 
 **Reproduction summary:**
 I ran the pytest `pytest tests/unit/test_pii_scrubber.py -v` and observed 20 passes and 5 failures. The tests that failed were: `test_us_phone_number_redaction`, `test_us_phone_formats`, `test_detect_phone_pii`, `test_phone_at_start_of_text`, and lastly a test that surfaced a second bug, `test_mixed_pii_and_text`. Line 15 is where my reported bug occurs. The `phone_us` regex logic currently doesn't work for parenthesized and space-separated numbers. Line 18 is where the second bug I found is. The second bug has to do with the `street_address` regex pattern. This is out of scope for me but noted. 
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/soccerjonj/pathreview/blob/fix/146-parenthesized-phone-number-error/PLAN.md
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+I'm not sure whether the `street_address` false-positive bug I found in `test_mixed_pii_and_text` should get its own GitHub issue filed against upstream, or if noting it here is sufficient for this assignment. I'm also unsure whether reviewers will want the regex to handle repeated/multiple separator characters (e.g. double spaces) or if treating that as out of scope is the right call.
