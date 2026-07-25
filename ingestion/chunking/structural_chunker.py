@@ -49,22 +49,26 @@ class StructuralChunker(BaseChunker):
             if section_tokens > self.SECTION_TOKEN_LIMIT:
                 # Sub-chunk using semantic chunker
                 section_metadata = metadata.copy()
-                section_metadata.update({
-                    "heading_path": heading_path,
-                    "heading_level": section["level"],
-                })
+                section_metadata.update(
+                    {
+                        "heading_path": heading_path,
+                        "heading_level": section["level"],
+                    }
+                )
                 sub_chunks = self.semantic_chunker.chunk(section_text, section_metadata)
                 chunks.extend(sub_chunks)
             else:
                 # Single chunk for this section
                 section_metadata = metadata.copy()
-                section_metadata.update({
-                    "heading_path": heading_path,
-                    "heading_level": section["level"],
-                    "chunk_index": len(chunks),
-                    "char_start": 0,
-                    "char_end": len(section_text),
-                })
+                section_metadata.update(
+                    {
+                        "heading_path": heading_path,
+                        "heading_level": section["level"],
+                        "chunk_index": len(chunks),
+                        "char_start": 0,
+                        "char_end": len(section_text),
+                    }
+                )
                 chunks.append(Chunk(text=section_text, metadata=section_metadata))
 
         return chunks
@@ -74,6 +78,15 @@ class StructuralChunker(BaseChunker):
         Extract sections from markdown with heading hierarchy.
 
         Returns list of dicts with: content, path (breadcrumb), level
+
+        BUG (#149): for documents with no headings at all, `heading_stack`
+        never becomes non-empty (nothing ever matches the heading regex),
+        so the `if heading_stack or current_section_lines:` guard below
+        drops every content line before `current_section_lines` can ever
+        accumulate anything. Reproduced locally: a ~1000-char headingless
+        document (`StructuralChunker().chunk(text, {})`) returns 0 chunks,
+        and `test_document_with_no_headings` fails with
+        `assert 0 >= 1  where 0 = len([])`.
         """
         lines = text.split("\n")
         sections = []
@@ -88,11 +101,13 @@ class StructuralChunker(BaseChunker):
                 # Save previous section if exists
                 if current_section_lines:
                     if heading_stack:
-                        sections.append({
-                            "content": "\n".join(current_section_lines).strip(),
-                            "path": [h[1] for h in heading_stack],
-                            "level": heading_stack[-1][0] if heading_stack else 0,
-                        })
+                        sections.append(
+                            {
+                                "content": "\n".join(current_section_lines).strip(),
+                                "path": [h[1] for h in heading_stack],
+                                "level": heading_stack[-1][0] if heading_stack else 0,
+                            }
+                        )
                     current_section_lines = []
 
                 # Process new heading
@@ -113,10 +128,12 @@ class StructuralChunker(BaseChunker):
 
         # Save final section
         if current_section_lines and heading_stack:
-            sections.append({
-                "content": "\n".join(current_section_lines).strip(),
-                "path": [h[1] for h in heading_stack],
-                "level": heading_stack[-1][0] if heading_stack else 0,
-            })
+            sections.append(
+                {
+                    "content": "\n".join(current_section_lines).strip(),
+                    "path": [h[1] for h in heading_stack],
+                    "level": heading_stack[-1][0] if heading_stack else 0,
+                }
+            )
 
         return sections
