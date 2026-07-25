@@ -106,3 +106,54 @@ curl http://localhost:8000/reviews/{review_id}/status \
 - `GET /reviews` pagination → out-of-range `page_size` (e.g. 500) silently
   clamps to 20, no error
 - `DELETE /profiles/{id}` → 204, and a follow-up GET correctly 404s
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented all 4 sub-tasks from PLAN.md: the authentication walkthrough
+section, curl examples for `/health` and `/auth`, curl examples for all 4
+`/profiles` endpoints (including the previously-undocumented `PUT`), and
+curl examples for all 4 `/reviews` endpoints (including the
+previously-undocumented `GET .../status`). Every example was executed
+against a live `make run` stack and the real observed response was pasted
+in, not hand-written.
+
+**Next steps:**
+Self-review against `docs/CONTRIBUTING.md`, confirm `make check` and
+`make test-unit` show no new failures beyond the documented pre-existing
+ones, then open a draft PR for peer/mentor feedback.
+
+**Blockers:**
+None blocking. While verifying examples I found two real bugs unrelated to
+#117's scope: `GET /health` reports `postgres` as unhealthy even when the DB
+is reachable (raw SQL string instead of `text()`), and PDF resume uploads
+always fail with 422 (route imports `PyPDF2`, project depends on `pypdf`).
+Documented both with notes in docs/API.md instead of fabricating a working
+example, and flagged them for a separate issue.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/290
+
+**Branch:** `docs/117-add-api-curl-examples`
+
+**What you built:**
+Expanded `docs/API.md` from one-line endpoint descriptions into a full
+reference: a live-verified curl example, real response, and status codes
+for all 12 endpoints (10 originally listed plus 2 that existed in the
+router but were undocumented), plus an authentication walkthrough and
+explicit callouts for two request-format traps (`/auth/login`'s
+form-encoding requirement and `/profiles`'s silent JSON-body data loss).
+
+**Tests added or updated:**
+None. This is a documentation-only change with no application code
+touched; the live-executed curl examples themselves are the verification.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(both with the pre-existing-failures caveat documented in the PR description
+— no new failures introduced by this change)
