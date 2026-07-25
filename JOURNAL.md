@@ -34,3 +34,21 @@ so first-time contributors can smoke-test the API in seconds.
   first contribution.
 - **Blast radius:** zero — documentation change, reversible, no migrations,
   no dependencies added.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/olusheki/pathreview/commit/f7b4e23
+
+**Reproduction summary:**
+Opened `docs/API.md` at the tip of `main` and confirmed the documentation
+gap: every endpoint is listed by method and path, but none include a runnable
+`curl` invocation, request body shape, auth header, or sample response — so a
+developer who just ran `make setup` has no copy-pasteable way to verify the
+API is responding without falling back to Swagger at `/docs`.
+
+**PLAN.md link:** https://github.com/olusheki/pathreview/blob/docs/117-api-curl-examples/PLAN.md
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+
