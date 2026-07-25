@@ -19,3 +19,17 @@ This felt like a reasonable scope for a first contribution, though in practice i
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [to be filled in after this commit is pushed]
+
+**Reproduction summary:**
+I confirmed the gap by running `git show 10d3713:core/services/profile_service.py` to view the original functions before my fix — each one had only a one-line docstring (e.g. `create_profile` just said `"""Create a new profile for a user."""`) with no Args, Returns, or Raises sections, matching exactly what issue #119 describes.
+
+**PLAN.md link:** [to be filled in after this commit is pushed]
+
+**Walkthrough video (recommended):** Not recorded.
+
+**Blockers or open questions:**
+The actual docstring fix — and the type-annotation fixes needed to get the mypy pre-commit hook passing — were already completed and committed back in Week 7, ahead of this week's plan-then-build pacing. `PLAN.md` below documents the approach I actually followed rather than a forward-looking plan. No PR has been opened yet; that's a Week 9 step per the module schedule.
