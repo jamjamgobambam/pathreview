@@ -37,7 +37,7 @@ so first-time contributors can smoke-test the API in seconds.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/olusheki/pathreview/commit/f7b4e23
+**Reproduction commit link:** https://github.com/olusheki/pathreview/commit/d81b354
 
 **Reproduction summary:**
 Opened `docs/API.md` at the tip of `main` and confirmed the documentation
