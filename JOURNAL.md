@@ -7,7 +7,7 @@
 **Tier:** [ ] Tier 1  [ ] Tier 2  [x] Tier 3
 
 **Problem summary:**
-Right now, PathReview's eval suite only runs inline as part of live API requests, which means there's no way to check review quality across a broad set of portfolios without triggering real requests each time. This issue asks for a standalone script (`scripts/run_evals.py`) that runs the full RAG pipeline offline against a curated benchmark set of portfolios and writes out a JSON report of quality scores. The work touches the RAG evaluation logic in `rag/evaluator/eval_suite.py`, which will likely need to be refactored or reused so it can run outside the API request path. A successful fix gives the team a repeatable, on-demand way to measure review quality without needing to hit the live API.
+Right now, PathReview only checks review quality during a real request. There is no way to test many portfolios at once without making real requests each time. This issue asks for a new script, `scripts/run_evals.py`, that runs the full pipeline by itself, using a set of sample portfolios, and saves the scores to a JSON file. This work uses the code in `rag/evaluator/eval_suite.py`, which may need changes so it can run outside of a live request. Once finished, there will be an easy way to check review quality anytime, without needing to make real API calls.
 
 **Branch name:** feat/40-offline-eval-runner
 
