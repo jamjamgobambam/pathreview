@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:16-alpine
@@ -37,6 +35,14 @@ services:
 
   vector-db:
     image: chromadb/chroma:0.4.22
+    entrypoint:
+      - /bin/bash
+      - -c
+      - >-
+        pip install --force-reinstall --no-cache-dir "numpy<2" chroma-hnswlib &&
+        export IS_PERSISTENT=1 CHROMA_SERVER_NOFILE=65535 &&
+        exec uvicorn chromadb.app:app --workers 1 --host 0.0.0.0 --port 8000
+        --proxy-headers --log-config chromadb/log_config.yml --timeout-keep-alive 30
     ports:
       - "8001:8000"
     volumes:
@@ -44,7 +50,11 @@ services:
     environment:
       ANONYMIZED_TELEMETRY: "false"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen("http://localhost:8000/api/v1/heartbeat")
       interval: 10s
       timeout: 5s
       retries: 5
