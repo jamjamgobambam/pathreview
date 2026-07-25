@@ -62,4 +62,7 @@ Successfully reproduced the issue by calling `GET /health` endpoint. Redis conta
 - The bug is confirmed: Redis is running but health check says unhealthy
 - The tests mock Redis, so they pass, but they demonstrate the real issue
 
+**PLAN.md link:** https://github.com/fperezrugama/pathreview/blob/fix/155-redis-health-check/PLAN.md
 
+**Blockers or open questions:**
+None identified. The actual bug is that `settings.redis_host` doesn't exist, causing the false "unhealthy" status. I'll fix this in Week 9 by using `settings.redis_url` instead.
