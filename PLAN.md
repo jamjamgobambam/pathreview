@@ -91,6 +91,7 @@ The problem is the test fixture, not the production code.
 
 ---
 
+
 ## Files to Modify
 
 ```
@@ -102,6 +103,50 @@ No changes are expected in:
 ```
 agent/tools/readme_scorer.py
 ```
+
+---
+
+## Inputs and Outputs
+
+### Input
+
+The test passes a Markdown README string to the scoring logic used by
+`test_readme_with_all_quality_signals` in:
+
+```
+tests/unit/test_readme_scorer.py
+```
+
+The fixture includes README content such as headings, installation instructions,
+usage information, features, technology details, badges, and a demo link.
+
+### Current Output
+
+With the current 51-word fixture, the scorer returns:
+
+```
+word_count = 51
+word_count_category = "minimal"
+```
+
+This output is consistent with the thresholds in:
+
+```
+agent/tools/readme_scorer.py
+```
+
+### Expected Output After the Fix
+
+After expanding the fixture to at least 500 words, the scorer should return:
+
+```
+word_count >= 500
+word_count_category = "comprehensive"
+```
+
+The other quality-signal results should remain unchanged, and
+`test_readme_with_all_quality_signals` should pass.
+
 
 ---
 
@@ -130,11 +175,16 @@ pytest tests/unit/test_readme_scorer.py::TestReadmeScorer::test_readme_with_all_
 pytest tests/unit/test_readme_scorer.py -v
 ```
 ---
-## Risks
 
-- Adding filler text could make the test unrealistic.
-- Accidentally removing one of the quality sections could cause other assertions to fail.
-- Changing the scoring logic instead of the test fixture could break other passing tests.
+## Risks and Unknowns
+
+- In `tests/unit/test_readme_scorer.py`, adding text without preserving headings such as Installation, Usage, Features, and Tech Stack could cause the fixture to stop testing one or more intended quality signals.
+
+- In `agent/tools/readme_scorer.py`, the word-count logic may count Markdown elements differently than expected. The updated fixture should therefore be validated by running the scorer rather than relying only on a manual word count.
+
+- Changing the thresholds in `agent/tools/readme_scorer.py` would affect the dedicated minimal, adequate, and comprehensive category tests. The planned fix should therefore remain limited to the test fixture unless further investigation shows the production logic is incorrect.
+
+- The existing assertion `data["word_count"] > 100` may need to be reviewed so it accurately reflects the documented threshold for a comprehensive README.
 
 ---
 
