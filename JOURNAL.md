@@ -18,3 +18,8 @@ I can explain the bug without going back to reread the issue: a test fixture tha
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
 (Note: the ledger spreadsheet isn't allowing edit access on my account, issue and claim are documented here and on GitHub instead.)
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_relevance_scorer.py -q` and confirmed the failure described in the issue. The test uses query "Python Django web framework" against a chunk containing "Django is a Python web framework for rapid development" — every query word appears in the chunk, so the scorer correctly returns 1.0. The test asserts `0.3 < score < 0.9`, so it fails with `assert 1.0 < 0.9`. This confirms the fixture data doesn't represent a genuine partial-overlap case.
