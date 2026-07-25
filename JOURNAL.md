@@ -57,7 +57,7 @@ This is a small fix with clear reproduction steps already given in the issue, so
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]()
+**Reproduction commit link:** [link to commit documenting the reproduced issue](https://github.com/ascherj/pathreview/commit/ebfcd4d341f052fba9cb23eba5eed696e6e32c4b)
 
 **Reproduction summary:**
 I reproduced the issue by calling the health endpoint via a curl command `curl -i http://localhost:8000/health`. As expected from the issue description, despite being able to login using a default user, the response reported an unhealthy database connection: `{"status":"unhealthy","dependencies":{"postgres":"unhealthy","redis":"unhealthy","vector_db":"healthy"}`.
