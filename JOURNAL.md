@@ -21,14 +21,15 @@
 **Branch:** fix/151/narrow-bias-detector 
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+A more flexible regex pattern that detects more biased outputs. All the original patterns for Demographic and Dismissive patterns were replaced with new ones.
+The bias detection layer is now more robust.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+Verified changes were valid by running test_bias_detector.py and passing all test cases.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** [name or Discord handle, or "none"]
+**Draft PR feedback received from:** N/A
 
 
 ## Week 8 — Reproduction & solution planning
