@@ -8,7 +8,10 @@ logger = structlog.get_logger()
 
 
 class BiasDetector:
-    """Detect biased language in feedback."""
+    """Detect biased language in feedback.
+    #FIX  UPDATE: the previous patterns were too rigid but after update,
+    they pass more flexible patterns to detect biase.
+    """
 
     # Genuinely dismissive phrases about educational background
     DISMISSIVE_PATTERNS = [
