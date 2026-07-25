@@ -209,7 +209,7 @@ response always comes back with `"status": "pending"` — poll
 curl -X POST http://localhost:8000/reviews \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"profile_id":"e9df238a-1105-47a3-bc1c-c47b12e549b2"}'
+  -d '{"profile_id":"{profile_id}"}'
 ```
 
 ```json
