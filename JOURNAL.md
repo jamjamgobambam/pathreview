@@ -77,7 +77,7 @@ At the time of writing, there are no open blockers or dependencies on other unre
 
 ## Week 8 - Reproduction & Solution Planning
 
-**Reproduction Commit Link:** [link to commit documenting the reproduced issue]
+**Reproduction Commit Link:** https://github.com/tam-justin/pathreview/commit/d3a201b97074d8efd10348eea392370d16800b21
 
 **Reproduction Summary:** I reproduced the issue locally using `curl`. I created an empty profile (no resume, no GitHub, and no portfolio) and submitted it for review. The endpoint accepted the request without error and the background task marked the review as "complete" with fabricated placeholder feedback, despite having no ingested documents to analyze.
 
@@ -142,9 +142,6 @@ Response (HTTP 200, ~2 seconds later):
 
 `status` is `"complete"`. The `sections` field contains three detailed feedback sections with confidence scores and suggestions. `overall_score` is `0.81`. None of this came from ingested documents because the profile was empty. This is hardcoded placeholder output from `_run_rag_retrieval_generation()` in `core/services/review_service.py`.
 
-**PLAN.md Link:** [link to PLAN.md in your fork]
-
-**Walkthrough Video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+**PLAN.md Link:** https://github.com/tam-justin/pathreview/blob/test/88-reviews-endpoint-missing-documents/PLAN.md
 
 **Blockers or Open Questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
