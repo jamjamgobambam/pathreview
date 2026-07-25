@@ -66,3 +66,99 @@ so tools always re-run against the current portfolio.
 ### Verdict / scope notes
 
 All boxes checked — ready to claim and implement. Scope stays narrow: session lifecycle for a new review, not a full redesign of agent persistence (e.g. mid-review resume across restarts is a separate, larger issue). Success criteria: second review for the same user/profile does not reuse prior Redis/in-memory tool results.
+
+
+
+## Week 8 
+### Notes
+
+- The Orchestrator isn't wired into the API yet, so this is a design-level bug in the caching logic itself.
+
+- There are two separate caches in play, and the bug comes from how they interact.
+
+  - Layer 1 — Redis session store (session_store.py) — keyed by user/profile ID (session:{session_id}), persists across requests, 1-hour TTL.
+
+  - Layer 2 — In-memory ContextManager (context_manager.py) — a plain dict keyed by {tool_name}:{sha256(tool_input)}, used for within-run memoization.
+
+
+### Tracing 
+Trace `agent/orchestrator.py:31` for a user who just updated their portfolio:
+
+
+  1. Load prior session `(orchestrator.py:47-49)`:
+
+      session_state = self.session_store.get(profile_id) or {}
+      // This pulls last run's results out of Redis by user ID.
+
+
+  2. Execute the plan — each tool goes through agent/orchestrator.py:136, which checks the ContextManager first `(orchestrator.py:150-155)`:
+
+    input_hash = ContextManager.hash_input(tool_input)
+    cached_result = self.context_manager.get_tool_result(tool_name, input_hash)
+    if cached_result:
+        return cached_result   # <-- skips re-running the tool
+
+
+  3. Persist `(orchestrator.py:65-67)`:
+
+      session_state.update(results)
+      self.session_store.set(profile_id, session_state)
+
+
+
+### Problems
+
+
+  1. The cache key ignores the portfolio data. The ContextManager key is hash(tool_input). 
+  
+    Look at what actually goes into tool_input in `agent/orchestrator.py:78`:
+
+      github_tool gets {github_username, repo_name} (`orchestrator.py:94-97`) — if the user edits a project but the repo name/username is unchanged, the hash is identical → cache hit → the tool never re-runs, even though the repo content changed.
+
+      market_analyzer gets {"detected_skills": {}} (orchestrator.py:130) — a constant.
+      Its hash never changes, so after the very first run it is permanently a cache hit.
+
+      So the cache is keyed on a proxy (repo name) rather than on the actual content being analyzed. That's the core "stale tool results instead of re-running" bug.
+
+
+  2.  session_state.update(results) accumulates forever and never evicts. `(orchestrator.py:66)` It merges new results into the old dict. If the new plan contains fewer tools than before (say the user deleted the project that triggered github_tool), the old github_tool result stays in session_state and gets re-persisted to Redis indefinitely — stale data with no way to age out except the TTL.
+
+
+  3. The loaded session_state is loaded but functionally dead. `(orchestrator.py:49)` It's read from Redis, but nothing in run() reads it back to decide anything — it's only written to. 
+  
+  So the Redis layer today doesn't serve stale results directly; it just hoards them. 
+  
+  The layer that actually serves stale results is the in-memory ContextManager (problem 1) if the Orchestrator instance is reused across requests — since self.context_manager is created once in `agent/orchestrator.py:29` and survives between .run() calls on a long-lived instance.
+
+---
+
+## Reproduction (issue #43)
+
+Reliably reproduced via a failing regression test — no Redis required, since
+the stale results are served by the in-memory `ContextManager` on a reused
+`Orchestrator` instance (a long-lived service singleton).
+
+**Steps:**
+
+```bash
+source .venv/bin/activate
+python -m pytest tests/unit/test_orchestrator_stale_cache.py -v
+```
+
+**Result — both tests fail, capturing the two variants:**
+
+1. `test_second_review_reruns_tools_after_portfolio_update` — a reused
+   Orchestrator serves stale `ContextManager` results on the second review.
+   The tools run once, not twice (`assert 1 == 2`). The cache key
+   (`github_tool:d323f24e…`) is byte-identical across both reviews even though
+   the project content changed, because `tool_input` = `{github_username,
+   repo_name}` never includes the edited content (`orchestrator.py:94-97`).
+
+2. `test_stale_results_not_accumulated_in_session_state` — after a review that
+   drops the project from the plan, the old `github_tool` result still lingers
+   in the persisted session state via `session_state.update(results)`
+   (`orchestrator.py:66`).
+
+The failing test at `tests/unit/test_orchestrator_stale_cache.py` documents the
+exact location of the bug and acts as the regression guard for the fix.
+
