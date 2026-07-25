@@ -24,3 +24,20 @@ I forked the PathReview repository, cloned my fork, and added the original repos
 I successfully ran make setup, which installed the Python and frontend dependencies, applied the database migrations, and seeded the development database. I then ran make run and confirmed that the frontend loaded at http://localhost:5173, the API started at http://localhost:8000, and I could log in using the provided test account user1@example.com.
 
 The setup displayed a bcrypt version compatibility warning, but authentication and the rest of the application continued to work. Because that warning is unrelated to issue #154, I will not modify the authentication dependencies as part of this contribution.
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I started the PostgreSQL and Redis services with Docker Compose and confirmed that both containers were healthy. I then called GET http://localhost:8000/health, which returned 503 Service Unavailable and reported PostgreSQL as "unhealthy". The PostgreSQL probe in api/routes/health.py calls await db.execute("SELECT 1") at line 31, causing SQLAlchemy 2.x to reject the raw textual SQL statement even though the PostgreSQL container is reachable.
+
+
+**PLAN.md link:** (https://github.com/japhet125/pathreview/blob/fix/154-db-argument-error/PLAN.md)
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+The /health response also reported Redis as unhealthy even though the Redis container was healthy and responded to redis-cli ping with PONG. This appears to be a separate configuration or connectivity issue and is outside the scope of issue #154. I will ensure that my code change is limited to the PostgreSQL probe and does not modify Redis configuration.
