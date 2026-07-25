@@ -37,12 +37,12 @@ viperkill420 user id: d20820e3-cc76-46a3-8016-21a6e242a5c1
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/kylipoo/pathreview/commit/49f3ad61f38857859b7580b431317a5cc0f4cd44
 
 **Reproduction summary:**
 I opened core/services/profile_service.py and review_service.py and could confirm that as the original issue stated, that every public function is documented with only a one-line summary — no structured account of its parameters, return values, or failure conditions. To confirm the undocumented behaviors, I exercised the API and called get_profile directly, observing that: reads collapse "not found" and "not owned" into a silent None; create_profile can raise on commit without rolling back; and delete_profile re-raises after a rollback.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/kylipoo/pathreview/blob/docs/119-missing-docstrings-in-services-directory/PLAN.md
 
 **Walkthrough video (recommended):** (Not much to share here, is an issue of documentation).
 
