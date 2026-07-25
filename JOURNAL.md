@@ -81,7 +81,7 @@ At the time of writing, there are no open blockers or dependencies on other unre
 
 **Reproduction Summary:** I reproduced the issue locally using `curl`. I created an empty profile (no resume, no GitHub, and no portfolio) and submitted it for review. The endpoint accepted the request without error and the background task marked the review as "complete" with fabricated placeholder feedback, despite having no ingested documents to analyze.
 
-***Reproduction Steps:**
+**Reproduction Steps:**
 
 **Step 1 — Log in and get a token**
 

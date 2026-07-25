@@ -9,7 +9,7 @@ When `POST /reviews` is called, `create_review_endpoint()` in `api/routes/review
 
 The background task, `process_review()` in `core/services/review_service.py` (line 82), calls `_run_ingestion_pipeline()` (line 197), which checks `profile.github_username`, `profile.portfolio_url`, and `profile.resume_text`. In the case that there are no ingested documents, all three fields are `None` and every branch is skipped. It returns `sources = []` with no error raised.
 
-The downstream functions `_run_agent_orchestartion()` (line 282) and `_run_rag_retrieval_generation()` (line 307) ignore the empty list entirely and return hardcoded placeholder sections regardless of the input.
+The downstream functions `_run_agent_orchestration()` (line 282) and `_run_rag_retrieval_generation()` (line 307) ignore the empty list entirely and return hardcoded placeholder sections regardless of the input.
 
 This means the review ends up being `"complete"` with fabricated feedback and no error was raised at any step.
 
