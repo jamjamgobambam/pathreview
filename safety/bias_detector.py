@@ -12,17 +12,53 @@ class BiasDetector:
 
     # Genuinely dismissive phrases about educational background
     DISMISSIVE_PATTERNS = [
-        r"(?i)\b(?:(bootcamp|self-taught|online course)\b\W+(?:\w+\W+){0,2}(insufficient|inadequate|(lacks rigor|fundamentals|proper\s+training))\b|(insufficient|inadequate|(lacks rigor|fundamentals|proper\s+training))\b\W+(?:\w+\W+){0,2}(bootcamp|self-taught\b))",
-        r"(?i)\b(?:(bootcamp|coding bootcamp)\b\W+(?:\w+\W+){0,6}(doesn't|does not|can not|can't)\b\W+(?:\w+\W+){0,6}(prepare|code)\b\W+(?:\w+\W+){0,6}(developers|you)|(developers|you)\b\W+(?:\w+\W+){0,6}(aren't|are not)\b\W+(?:\w+\W+){0,6}(bootcamp|coding bootcamp|code\b))",
-        r"(?i)\b(?:(bootcamp|coding bootcamp|self-taught)\b\W+(?:\w+\W+){0,6}(is|not)\b\W+(?:\w+\W+){0,6}(equal|comparable)\b\W+(?:\w+\W+){0,6}(university|traditional|formal))",
-        r"(?i)\b(?:(bootcamp)\b\W+(?:\w+\W+){0,6}(graduates|developers|programmers)\b\W+(?:\w+\W+){0,6}(can not|can't|lack)\b\W+(?:\w+\W+){0,6}(code|training)\b)",
+        (
+            r"(?i)\b(?:(bootcamp|self-taught|online course)\b\W+(?:\w+\W+){0,2}"
+            r"(insufficient|inadequate|(lacks rigor|fundamentals|proper\s+training))\b|"
+            r"(insufficient|inadequate|(lacks rigor|fundamentals|proper\s+training))\b"
+            r"\W+(?:\w+\W+){0,2}(bootcamp|self-taught\b))"
+        ),
+        (
+            r"(?i)\b(?:(bootcamp|coding bootcamp)\b\W+(?:\w+\W+){0,6}"
+            r"(doesn't|does not|can not|can't)\b\W+(?:\w+\W+){0,6}(prepare|code)\b"
+            r"\W+(?:\w+\W+){0,6}(developers|you)|(developers|you)\b"
+            r"\W+(?:\w+\W+){0,6}(aren't|are not)\b\W+(?:\w+\W+){0,6}"
+            r"(bootcamp|coding bootcamp|code\b))"
+        ),
+        (
+            r"(?i)\b(?:(bootcamp|coding bootcamp|self-taught)\b\W+(?:\w+\W+){0,6}"
+            r"(is|not)\b\W+(?:\w+\W+){0,6}(equal|comparable)\b\W+(?:\w+\W+){0,6}"
+            r"(university|traditional|formal))"
+        ),
+        (
+            r"(?i)\b(?:(bootcamp)\b\W+(?:\w+\W+){0,6}(graduates|developers|programmers)\b"
+            r"\W+(?:\w+\W+){0,6}(can not|can't|lack)\b\W+(?:\w+\W+){0,6}(code|training)\b)"
+        ),
+        (
+            r"(?i)\b(?:(bootcamp|coding bootcamp)\b\W+(?:\w+\W+){0,6}"
+            r"(graduates|programmers|developers)\b\W+(?:\w+\W+){0,6}"
+            r"(can not|can't|lack)\b\W+(?:\w+\W+){0,6})"
+        ),
     ]
 
     # Demographic assumptions (about age, background, identity)
     DEMOGRAPHIC_PATTERNS = [
-        r"(?i)\b(?:(young|old|aged)\b\W+(?:\w+\W+){0,6}(graduates|developers|developers|person|programmer)\b\W+(?:\w+\W+){0,6}(can not|can't|won't|will not)\b\W+(?:\w+\W+){0,6}(handle|code|learn)\b)",
-        r"(?i)\b(?:\w+\W+){0,6}(person|developers)\b\W+(?:\w+\W+){0,6}(|from|coming|(coming from))\b\W+(?:\w+\W+){0,6}(poor|working class)\b\W+(?:\w+\W+){0,6}(can't|won't)\b",
-        r"(?i)\b(?:(immigrant|international|foreign)\b\W+(?:\w+\W+){0,6}(struggle|can't|cannot|won't)\b\W+(?:\w+\W+){0,6}(code|coding|codebases))\b",
+        (
+            r"(?i)\b(?:(young|old|aged)\b\W+(?:\w+\W+){0,6}"
+            r"(graduates|developers|developers|person|programmer)\b"
+            r"\W+(?:\w+\W+){0,6}(can not|can't|won't|will not)\b"
+            r"\W+(?:\w+\W+){0,6}(handle|code|learn)\b)"
+        ),
+        (
+            r"(?i)\b(?:\w+\W+){0,6}(person|developers)\b\W+(?:\w+\W+){0,6}"
+            r"(|from|coming|(coming from))\b\W+(?:\w+\W+){0,6}(poor|working class)\b"
+            r"\W+(?:\w+\W+){0,6}(can't|won't)\b"
+        ),
+        (
+            r"(?i)\b(?:(immigrant|international|foreign)\b\W+(?:\w+\W+){0,6}"
+            r"(struggle|can't|cannot|won't)\b\W+(?:\w+\W+){0,6}"
+            r"(code|coding|codebases))\b"
+        ),
     ]
 
     @staticmethod
