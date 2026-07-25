@@ -53,3 +53,18 @@ The fix is confined to one function in `api/routes/health.py`. I looked at the r
 
 *Reasoning*
 This is a small fix with clear reproduction steps already given in the issue, so I firmly believe I can finish by the Week 9 deadline. No blockers or dependent issues were mentioned in the issue description.
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]()
+
+**Reproduction summary:**
+I reproduced the issue by calling the health endpoint via a curl command `curl -i http://localhost:8000/health`. As expected from the issue description, despite being able to login using a default user, the response reported an unhealthy database connection: `{"status":"unhealthy","dependencies":{"postgres":"unhealthy","redis":"unhealthy","vector_db":"healthy"}`.
+
+**PLAN.md link:** [link to PLAN.md](https://github.com/mar1s0l/pathreview/blob/fix/wrap-health-check-sql-in-text/PLAN.md)
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:**
+
