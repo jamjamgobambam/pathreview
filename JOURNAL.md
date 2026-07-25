@@ -84,14 +84,12 @@ I'm most proud that I stayed persistent even when I was stuck for several hours.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/ascherj/pathreview/issues/146
+**Reproduction commit link:** 
 
 **Reproduction summary:**
 [1–2 sentences: How did you reproduce the issue? What did you observe?]
 
 **PLAN.md link:** [link to PLAN.md in your fork]
-
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
 **Blockers or open questions:**
 N/A
