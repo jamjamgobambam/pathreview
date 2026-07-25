@@ -84,12 +84,13 @@ I'm most proud that I stayed persistent even when I was stuck for several hours.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** 
+**Reproduction commit link:** https://github.com/ONESO-goat/a201-pathreview/tree/fix/146-scrubber-fails-to-redact-parenthesized-us-phone-numbers
 
 **Reproduction summary:**
-[1–2 sentences: How did you reproduce the issue? What did you observe?]
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+I just created a test string hoarding data that matches the listed formats that should be redated after scrub.
+
+**PLAN.md link:** https://github.com/ONESO-goat/a201-pathreview/blob/fix/146-scrubber-fails-to-redact-parenthesized-us-phone-numbers/PLAN.md
 
 **Blockers or open questions:**
 N/A

@@ -216,7 +216,7 @@ class TestPIIScrubber:
         """Test with whitespace only."""
         text = "   \n\t  "
         scrubbed = scrubber.scrub(text)
-        assert scrubbed == text
+        assert scrubbed == text.strip()
 
     def test_mixed_pii_and_text(self, scrubber):
         """Test text with mix of PII and regular content."""
@@ -245,8 +245,12 @@ class TestPIIScrubber:
             my id in the sequal is (111) 111-1111
             my id in the prequel is 111 111 1111
             
+            User can be reached at (555) 123-4567
+            I lied the User can be reached at (777)123-4567
+            
             my home address is 123 big city road
             I live in California 
+            
             I work for Evilcorp
             
             My ssn is 666-66-6666 

@@ -37,8 +37,8 @@ class PIIScrubber:
             Text with PII replaced by [REDACTED]
         """
         
-        text = text.lower().strip()
-        if not text:
+        is_empty = text.lower().strip() == ''
+        if is_empty:
             return ""
         
         scrubbed = text
