@@ -22,12 +22,12 @@ This felt like a reasonable scope for a first contribution, though in practice i
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [to be filled in after this commit is pushed]
+**Reproduction commit link:** https://github.com/vzan2012/pathreview/commit/c02d7eaac82b359315a463dfba7f592f3f62bdbb
 
 **Reproduction summary:**
 I confirmed the gap by running `git show 10d3713:core/services/profile_service.py` to view the original functions before my fix — each one had only a one-line docstring (e.g. `create_profile` just said `"""Create a new profile for a user."""`) with no Args, Returns, or Raises sections, matching exactly what issue #119 describes.
 
-**PLAN.md link:** [to be filled in after this commit is pushed]
+**PLAN.md link:** https://github.com/vzan2012/pathreview/blob/docs/119-service-docstrings/PLAN.md
 
 **Walkthrough video (recommended):** Not recorded.
 
