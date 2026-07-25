@@ -11,7 +11,7 @@
 
 ### Map
 Files I expect to touch:
-- `api/routes/health.py` - `health_check()` function (line ~ ): where the bare string is passed via `db.execute("SELECT 1")`. I will wrap the text in `sqlalchemy.text()`.
+- `api/routes/health.py` - `health_check()` function (line ~31): where the bare string is passed via `db.execute("SELECT 1")`. I will wrap the text in `sqlalchemy.text()`.
 
 I don't expect to interact with other files. 
 
