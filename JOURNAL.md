@@ -74,3 +74,77 @@ At the time of writing, there are no open blockers or dependencies on other unre
 **Setup Confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort Ledger:** [x] Issue added to cohort ledger
+
+## Week 8 - Reproduction & Solution Planning
+
+**Reproduction Commit Link:** [link to commit documenting the reproduced issue]
+
+**Reproduction Summary:** I reproduced the issue locally using `curl`. I created an empty profile (no resume, no GitHub, and no portfolio) and submitted it for review. The endpoint accepted the request without error and the background task marked the review as "complete" with fabricated placeholder feedback, despite having no ingested documents to analyze.
+
+***Reproduction Steps:**
+
+**Step 1 — Log in and get a token**
+
+```
+curl -s -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=user1@example.com&password=password1"
+```
+
+Response (HTTP 200):
+```json
+{"access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...","token_type":"bearer"}
+```
+
+**Step 2 — Create an empty profile (no resume, no GitHub, no portfolio)**
+
+```
+curl -s -X POST http://localhost:8000/profiles \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"github_username": null, "portfolio_url": null}'
+```
+
+Response (HTTP 200):
+```json
+{"id":"b3dcdf03-fce6-4314-bb2b-38a4473da433","user_id":"675c7569-cc47-45ee-8071-14fe0422bf70","github_username":null,"portfolio_url":null,"created_at":"2026-07-25T13:11:33.448186Z","resume_filename":null}
+```
+
+All three document fields (`github_username`, `portfolio_url`, `resume_filename`) are `null`. There is nothing to analyze.
+
+**Step 3 — Submit a review for the empty profile**
+
+```
+curl -s -X POST http://localhost:8000/reviews \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"profile_id": "b3dcdf03-fce6-4314-bb2b-38a4473da433"}'
+```
+
+Response (HTTP 200):
+```json
+{"id":"68407d92-addf-47ac-b422-58c76ca413e1","profile_id":"b3dcdf03-fce6-4314-bb2b-38a4473da433","status":"pending","sections":null,"overall_score":null,"error_message":null,"created_at":"2026-07-25T13:11:38.774267Z","updated_at":"2026-07-25T13:11:38.774269Z"}
+```
+
+The endpoint returned HTTP 200 with `status: "pending"`. No error, no rejection.
+
+**Step 4 — Poll the review after the background task completes**
+
+```
+curl -s http://localhost:8000/reviews/68407d92-addf-47ac-b422-58c76ca413e1 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Response (HTTP 200, ~2 seconds later):
+```json
+{"id":"68407d92-addf-47ac-b422-58c76ca413e1","profile_id":"b3dcdf03-fce6-4314-bb2b-38a4473da433","status":"complete","sections":[{"section_name":"Technical Skills","content":"Detailed feedback on technical skills based on portfolio analysis","confidence":0.85,"suggestions":["Add more detail on AI/ML experience","Include specific technologies and frameworks"]},{"section_name":"Project Experience","content":"Detailed feedback on project experience and impact","confidence":0.8,"suggestions":["Include measurable impact metrics","Add links to project repositories"]},{"section_name":"Career Growth","content":"Feedback on career progression and development","confidence":0.78,"suggestions":["Document learning from each role","Highlight growth in responsibilities"]}],"overall_score":0.81,"error_message":null,"created_at":"2026-07-25T13:11:38.774267Z","updated_at":"2026-07-25T13:11:38.789777Z"}
+```
+
+`status` is `"complete"`. The `sections` field contains three detailed feedback sections with confidence scores and suggestions. `overall_score` is `0.81`. None of this came from ingested documents because the profile was empty. This is hardcoded placeholder output from `_run_rag_retrieval_generation()` in `core/services/review_service.py`.
+
+**PLAN.md Link:** [link to PLAN.md in your fork]
+
+**Walkthrough Video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or Open Questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
