@@ -40,3 +40,26 @@ The health check endpoint at api/routes/health.py tries to access settings.redis
 - ✅ I've checked the issue comments and understand multiple students are working on this
 - ✅ The scope is realistic: 1-2 hours of focused work
 - ✅ No blockers or dependencies on other issues
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/fperezrugama/pathreview/commit/421f7256c5949eddbe3cb07258f1bafc42014da5
+
+**Reproduction summary:**
+Successfully reproduced the issue by calling `GET /health` endpoint. Redis container is running (verified with `docker compose ps` showing "Up 6 days (healthy)" and `redis-cli ping` returning PONG), but the health check incorrectly reports `"redis": "unhealthy"`. The bug exists because the health check code tries to access `settings.redis_host` and `settings.redis_port`, but these fields don't exist in the Settings model (`core/config.py`). The error is silently caught and always reports unhealthy.
+
+**Reproduction Steps:**
+1. Started the app with `make run`
+2. In a new terminal, ran `curl http://localhost:8000/health`
+3. Received response showing `"redis": "unhealthy"`
+4. Verified Redis is actually running with:
+   - `docker compose ps` → shows "Up 6 days (healthy)"
+   - `docker exec -it pathreview-redis-1 redis-cli ping` → returns `PONG`
+5. Confirmed the bug: Redis is working but health check says unhealthy
+
+**Test Results:**
+- Created `tests/unit/test_health.py` with initial tests for the health endpoint ([see commit](https://github.com/fperezrugama/pathreview/commit/421f7256c5949eddbe3cb07258f1bafc42014da5))
+- Ran `make test-unit` - health tests pass, confirming the tests work
+- The bug is confirmed: Redis is running but health check says unhealthy
+- The tests mock Redis, so they pass, but they demonstrate the real issue
+
+
