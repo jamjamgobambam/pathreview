@@ -16,3 +16,22 @@ But, in safety/monitoring.py file, there is a function that reads the safety eve
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 – Reproduction & solution planning
+
+**Reproduction commit link:** _[to be filled in after committing on branch `feat/68-add-safety-events-count-to-health-check` — this commit adds the reproduction steps below plus `PLAN.md`]_
+
+**Reproduction summary:**
+Logged three safety events (`pii_detected` ×2, `injection_attempt` ×1) through the real `SafetyMonitor` in `safety/monitoring.py` using an in-memory Redis stand-in, then confirmed `SafetyMonitor.get_event_count()` reported a total of 3 while the `/health` endpoint's logic in `api/routes/health.py` (lines 25 and 75–80) still returned `safety_events_last_hour: 0`. The counter and the endpoint are disconnected — the endpoint hardcodes `0` instead of reading the counters that already exist.
+
+Reproduction steps:
+1. Instantiate `SafetyMonitor` and call `log_event()` for a few event types.
+2. Read the counts back via `get_event_count()` → returns the real totals (3).
+3. Compare against the endpoint field, which is hardcoded to `0` in `api/routes/health.py` → mismatch confirms the bug.
+
+**PLAN.md link:** https://github.com/ronypy/pathreview/blob/feat/68-add-safety-events-count-to-health-check/PLAN.md
+
+**Walkthrough video (recommended):** _[not recorded]_
+
+**Blockers or open questions:**
+The field is named `safety_events_last_hour`, but `get_event_count()` ignores its `window_hours` argument and `log_event()` sets a 24-hour Redis TTL — so the underlying counters aren't actually scoped to one hour. Going into Week 9 I need to decide whether to keep the name and document the approximation, or implement a true rolling 1-hour window (per-minute buckets / sorted sets).
