@@ -26,3 +26,17 @@ should pass once the fix is correct.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/bairejavier1/pathreview/commit/f3f1dfce7664a11401adfbea7c9f149ef569cf0f
+
+**Reproduction summary:**
+Ran the reproduction script directly against StructuralChunker.chunk() with a ~1000-character headingless document and confirmed it returns 0 chunks. Also ran test_document_with_no_headings directly and confirmed it fails with assert 0 >= 1 where 0 = len([]). Traced the root cause to _extract_sections(), where a guard condition prevents any content line from being collected unless a heading has already been seen, so headingless documents never populate current_section_lines and no section is ever recorded.
+
+**PLAN.md link:** https://github.com/bairejavier1/pathreview/blob/fix/149-structural-chunker-no-headings/PLAN.md
+
+**Walkthrough video (recommended):** Not yet ready
+
+**Blockers or open questions:**
+Still need to confirm whether other parts of the codebase (agent/, rag/) assume heading_level is always an integer 1-6, since headingless sections will need some sentinel value there.
