@@ -29,7 +29,7 @@ The setup displayed a bcrypt version compatibility warning, but authentication a
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** (https://github.com/japhet125/pathreview/commit/35cbe6d1a2e091a6769373d5e2de6ac44ec4ddef)
 
 **Reproduction summary:**
 I started the PostgreSQL and Redis services with Docker Compose and confirmed that both containers were healthy. I then called GET http://localhost:8000/health, which returned 503 Service Unavailable and reported PostgreSQL as "unhealthy". The PostgreSQL probe in api/routes/health.py calls await db.execute("SELECT 1") at line 31, causing SQLAlchemy 2.x to reject the raw textual SQL statement even though the PostgreSQL container is reachable.
