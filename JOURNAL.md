@@ -19,7 +19,7 @@ But, in safety/monitoring.py file, there is a function that reads the safety eve
 
 ## Week 8 – Reproduction & solution planning
 
-**Reproduction commit link:** _[to be filled in after committing on branch `feat/68-add-safety-events-count-to-health-check` — this commit adds the reproduction steps below plus `PLAN.md`]_
+**Reproduction commit link:** https://github.com/ronypy/pathreview/commit/e499e4bba779b5d3af10d62d9d06f7089b1b701e
 
 **Reproduction summary:**
 Logged three safety events (`pii_detected` ×2, `injection_attempt` ×1) through the real `SafetyMonitor` in `safety/monitoring.py` using an in-memory Redis stand-in, then confirmed `SafetyMonitor.get_event_count()` reported a total of 3 while the `/health` endpoint's logic in `api/routes/health.py` (lines 25 and 75–80) still returned `safety_events_last_hour: 0`. The counter and the endpoint are disconnected — the endpoint hardcodes `0` instead of reading the counters that already exist.
