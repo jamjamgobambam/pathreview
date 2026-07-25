@@ -14,3 +14,17 @@ Right now, PathReview's eval suite only runs inline as part of live API requests
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** (added after commit — see below)
+
+**Reproduction summary:**
+Ran scripts/run_evals.py and confirmed it is a stub. It prints success messages but never creates eval_results.json. Also found that EvalSuite, RelevanceScorer, and FaithfulnessChecker are not called anywhere in api/, only in their own tests.
+
+**PLAN.md link:** https://github.com/SumaiaAlhemyari/pathreview/blob/feat/40-offline-eval-runner/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded
+
+**Blockers or open questions:**
+No mock version of the review generator exists yet, and there are no sample benchmark portfolios yet. Both need to be created before the real eval runner can work end to end.

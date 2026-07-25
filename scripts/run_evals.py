@@ -4,6 +4,10 @@
 def main() -> None:
     """Execute the full evaluation pipeline and output results."""
     print("Running RAG evaluation suite...")
+    # REPRODUCTION (Week 8): confirmed this script is a stub.
+    # Running it prints success messages but writes no eval_results.json.
+    # EvalSuite, RelevanceScorer, and FaithfulnessChecker exist in
+    # rag/evaluator/ but are not called here or anywhere in api/.
     # TODO: Implement eval runner
     # 1. Load benchmark portfolios from tests/fixtures/sample_profiles/
     # 2. Run each through the full RAG pipeline with mock LLM
