@@ -51,3 +51,24 @@ scorer's intended behavior instead of a mismatched expectation.
   Estimated time: 1-2 hours, well within the Tier 1 range and comfortably
   achievable before the Week 9 deadline. No blockers or dependencies mentioned
   in the issue.
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** 
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_readme_scorer.py -q` after activating the project's
+virtual environment. 1 test failed as expected: `test_readme_with_all_quality_signals`
+fails on `assert data["word_count"] > 100` with the actual value `51 > 100` evaluating
+to False. Captured log output confirms the scorer itself is working correctly —
+`category=minimal score=0.87... word_count=51` — meaning the fixture README is too
+short to reach the "comprehensive" category the test expects (500+ words), not that
+the scorer has a bug.
+
+**PLAN.md link:** 
+
+**Blockers or open questions:**
+None so far — the fix direction is clear (extend fixture, correct assertions to
+match the scorer's real 500-word "comprehensive" threshold).
