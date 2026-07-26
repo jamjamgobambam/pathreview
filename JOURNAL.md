@@ -33,3 +33,17 @@ PathReview’s safety layer (`safety/prompt_defense.py`) detects and sanitizes p
 - Confirmed app loads at http://localhost:5173 (`make run` with Docker services up).
 - Selected and claimed [#71](https://github.com/ascherj/pathreview/issues/71) (Section 2B).
 - Opened working branch `test/71-prompt-injection-red-team` with this journal.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Anush-Prabhu/pathreview/commit/b1365185e5f3e0397fa650c3661429a6caa4769b
+
+**Reproduction summary:**
+Added failing `@pytest.mark.security` tests in `tests/security/test_prompt_injection_reproduction.py`. Running them shows the #71 gap clearly: `tests/fixtures/injection_attempts/` and `tests/security/test_prompt_injection.py` are missing, and five curated payloads (`dan_jailbreak`, `base64_instruction`, `translate_then_ignore`, `developer_mode`, `xml_tag_injection`) are not blocked by `PromptDefense.is_injection_attempt` (7 failed assertions total).
+
+**PLAN.md link:** https://github.com/Anush-Prabhu/pathreview/blob/test/71-prompt-injection-red-team/PLAN.md
+
+**Walkthrough video (recommended):** [optional — add Loom link ≤ 2 min]
+
+**Blockers or open questions:**
+Whether Week 9 should stay regex-only in `PromptDefense` or add light normalization (e.g. strip XML-ish tags / decode trivial Base64) to catch obfuscated jailbreaks without false-positiving normal resume text.
