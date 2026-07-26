@@ -1,6 +1,7 @@
 """Bias detection in generated feedback."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -8,6 +9,13 @@ logger = structlog.get_logger()
 
 class BiasDetector:
     """Detect biased language in feedback."""
+
+    # TODO (Issue #151): 9 unit tests are failing and reproduce_bias.py fails to detect bias
+    # due to strict regex pattern constraints:
+    # 1. DISMISSIVE_PATTERNS requires the word 'is' before 'lacks' (a structural typo) and
+    #    fails to match negative capability verbs (e.g., "can't write") or terms like "programmers".
+    # 2. DEMOGRAPHIC_PATTERNS fails on plural nouns ("developers", "programmers") and misses
+    #    phrasings using the verb "lack" (e.g., "immigrant developers lack...").
 
     # Genuinely dismissive phrases about educational background
     DISMISSIVE_PATTERNS = [
