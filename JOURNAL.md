@@ -25,3 +25,23 @@ longer crashes the whole evaluation run. This affects
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ateressa/pathreview/commit/f7d5571
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_faithfulness_checker.py -k test_none_context_chunk_text`,
+an existing test that calls `check()` with `context_chunks = [{"text": None}]`.
+It fails with `TypeError: sequence item 0: expected str instance, NoneType found`,
+raised from the `" ".join(...)` call in `FaithfulnessChecker.check()` — confirming
+`chunk.get("text", "")` doesn't catch an explicit `None` value, only a missing key.
+
+**PLAN.md link:** https://github.com/ateressa/pathreview/blob/fix/153-faithfulness-checker-none-context-text/PLAN.md
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+`relevance_scorer.py:32` has the same `chunk.get("text", "")` pattern and may have
+an identical latent crash reachable through `EvalSuite.run()`. Leaving it out of
+this issue's scope but may file a follow-up.
