@@ -1,6 +1,7 @@
 """Check if generated feedback is supported by retrieved context."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -20,8 +21,11 @@ class FaithfulnessChecker:
             Faithfulness score 0.0-1.0 (ratio of supported claims)
         """
         if not feedback or not context_chunks:
-            logger.info("faithfulness_empty_input", has_feedback=bool(feedback),
-                       has_chunks=bool(context_chunks))
+            logger.info(
+                "faithfulness_empty_input",
+                has_feedback=bool(feedback),
+                has_chunks=bool(context_chunks),
+            )
             return 0.0
 
         # Extract key claims from feedback (sentences)
@@ -31,9 +35,12 @@ class FaithfulnessChecker:
             return 0.5  # Default to neutral if no extractable claims
 
         # Concatenate context text
-        context_text = " ".join([
-            chunk.get("text", "") for chunk in context_chunks
-        ])
+        # REPRO (#153): chunk.get("text", "") only falls back to "" when the
+        # "text" key is missing, not when it's explicitly None. A chunk like
+        # {"text": None} makes this list comprehension yield None, and
+        # str.join() raises TypeError on a None item. Repro'd by
+        # test_none_context_chunk_text in tests/unit/test_faithfulness_checker.py.
+        context_text = " ".join([chunk.get("text", "") for chunk in context_chunks])
 
         # Check each claim for support
         supported = 0
@@ -43,8 +50,9 @@ class FaithfulnessChecker:
 
         score = supported / len(claims) if claims else 0.0
 
-        logger.info("faithfulness_checked", claims_count=len(claims),
-                   supported_count=supported, score=score)
+        logger.info(
+            "faithfulness_checked", claims_count=len(claims), supported_count=supported, score=score
+        )
 
         return score
 
@@ -59,7 +67,7 @@ class FaithfulnessChecker:
             List of claims (sentences)
         """
         # Split by sentence (simple regex)
-        sentences = re.split(r'[.!?]+', text)
+        sentences = re.split(r"[.!?]+", text)
         claims = [s.strip() for s in sentences if s.strip() and len(s.strip()) > 10]
         return claims[:10]  # Limit to 10 claims for scoring
 
@@ -81,8 +89,25 @@ class FaithfulnessChecker:
         # Require at least some meaningful overlap
         overlap = claim_tokens & context_tokens
         # Filter out common stop words
-        stop_words = {'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been',
-                     'and', 'or', 'but', 'in', 'of', 'to', 'for', 'that'}
+        stop_words = {
+            "a",
+            "an",
+            "the",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "and",
+            "or",
+            "but",
+            "in",
+            "of",
+            "to",
+            "for",
+            "that",
+        }
         meaningful_overlap = overlap - stop_words
 
         return len(meaningful_overlap) >= 2
