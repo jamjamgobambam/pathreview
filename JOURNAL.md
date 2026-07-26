@@ -19,3 +19,21 @@ This issue is labeled Tier 1 and has a focused scope in one main component of th
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 – Reproduction & solution planning
+
+**Reproduction commit link:**
+[to be added after pushing]
+
+**Reproduction summary:**
+
+I reproduced Issue #152 by running the faithfulness checker unit tests locally using pytest. The tests showed that short supported claims were incorrectly scored as unsupported, and a None value in a context chunk caused a TypeError.
+
+**PLAN.md link:**
+[to be added after pushing]
+
+**Walkthrough video:**
+Not recorded.
+
+**Blockers or open questions:**
+None at this time.
