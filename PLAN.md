@@ -27,11 +27,16 @@ It takes `SafetyMonitor.VALID_EVENT_TYPES`, and it should produce event count ba
 
 ### Risks & unknowns
 <!-- What could go wrong? What are you still unsure about? -->
-Where does `health.py` get a Redis client? `health.py` does define a Redis client based on `settings.redis_host` and `settings.redis_port`, which are not defined in `config`'s `settings`. I'm not sure if I can go ahead and implement a fix for that, and if I can, what should be the host and port for Redis.
+**Where does `health.py` get a Redis client?** `health.py` builds one from `settings.redis_host` / `settings.redis_port`, but those aren't defined in `config` — only `redis_url` is, so that construction actually throws today.
+- *Next step (done):* I checked the other modules in `api/routes/` — none build their own Redis client; the codebase's convention is FastAPI `Depends(...)` providers (`get_db` in `core/database.py`, `get_current_user` in `api/middleware/auth.py`). So my plan is to add a `get_redis()` provider in a new `core/redis.py`, built from `settings.redis_url` (the attribute that exists), and inject it — this fixes the broken construction *and* gives `SafetyMonitor` a client.
+- *Open question for the maintainer:* whether fixing the `redis_host` construction belongs in this PR or a separate issue.
 
-
-Also, the field specifies safety events in the last hour, but the function get_event_count() doesn't reinforce the timeframe of last hour. Instead, it uses the last 24-hour window. This gap is misleading, but I'm not sure if I can implement this part, since the scope reaches further beyond what the issue staed. 
+**1-hour vs 24-hour window.** The field is named `safety_events_last_hour`, but `get_event_count()` doesn't enforce a window — the Redis keys are counters with a 24h TTL, so it's really a rolling ~24h count.
+- *Next step:* keep the field name and implement the sum for this issue, document the approximation in the PR description, and propose true hourly windowing (time-bucketed keys) as a follow-up issue rather than expanding scope here.
 
 ### Edge cases
 <!-- What inputs or states should your fix handle gracefully? -->
-If any error comes up in the process of calling `SafetyMonitor.get_event_count()`, a specific error should be given instead of a generic error.
+- **Redis is down when `/health` runs** → `get_event_count()` (or `ping()`) raises → catch it, log `safety_events_check_failed`, and return `safety_events_last_hour = 0` so the health check degrades gracefully instead of 500-ing.
+- **No safety events recorded yet** → the Redis keys don't exist → `get_event_count()` returns `0` (via `int(count) if count else 0`) → total `0`.
+- **Only some event types have counts** → summing over `VALID_EVENT_TYPES` still works; missing keys contribute `0`.
+- **An event type outside `VALID_EVENT_TYPES`** → not counted, by design (`log_event()` already rejects unknown types).
