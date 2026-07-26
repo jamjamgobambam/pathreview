@@ -6,7 +6,7 @@
 
 **Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
-**Problem summary:**
+**Problem summary:**  
 The technology detector currently counts files inside directories such as `node_modules/` and `build/` when determining a repository's primary programming language. These directories normally contain third-party dependencies or generated build files rather than code written by the repository owner. As a result, a mainly Python project can incorrectly be classified as JavaScript. A successful fix will exclude these directories from language detection while continuing to count the project's actual source files correctly.
 
 **Selection notes — “Is this issue right for me?” checklist reasoning:**
@@ -17,3 +17,18 @@ This issue has a clearly defined problem, reproduction example, and expected res
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [to be added after committing]
+
+**Reproduction summary:**
+I reproduced issue #150 by running the existing tests for excluding `node_modules/` and `build/` files. Both tests failed because the detector counted JavaScript files in those directories and reported JavaScript as the primary language instead of Python.
+
+**PLAN.md link:** [to be added after creating PLAN.md]
+
+**Walkthrough video (recommended):** Not recorded
+
+**Blockers or open questions:**
+I need to determine whether the fix should normalize both forward-slash and Windows backslash paths while avoiding false matches for similarly named directories.
