@@ -14,3 +14,18 @@ The app's health check endpoint verifies the database is reachable by running a 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** (https://github.com/hoanggddo/pathreview/blob/fix/154-health-check-raw-sql-string/tests/integration/test_health.py)
+
+**Reproduction summary:**
+Wrote an integration test hitting GET /health with a real Postgres instance (via the existing CI docker service). The test fails because db.execute("SELECT 1") raises ArgumentError under SQLAlchemy 2.x — the health check catches this and reports postgres as "unhealthy" even though the database is reachable
+
+**PLAN.md link:** https://github.com/hoanggddo/pathreview/blob/fix/154-health-check-raw-sql-string/PLAN.md
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — optional]
+
+**Blockers or open questions:**
+Noticed a separate, unrelated bug in the Redis check (settings.redis_host/redis_port don't exist on Settings — only redis_url does), which independently forces the endpoint to 503. Scoped my test assertion to just the postgres dependency so it isn't coupled to that separate issue.
