@@ -58,3 +58,32 @@ the doc section with a worked example, and verify the numbers against the
 implementation. The issue lists no "blocked by" dependencies and stands
 alone. Remaining to-do: check the Claims column in the cohort ledger and
 comment on the issue to record my claim.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** _REPRO_COMMIT_URL_
+
+**Reproduction summary:**
+Because this is a documentation-gap issue rather than a runtime bug, I
+reproduced it by tracing the retrieval code and confirming the doc omission.
+The blend is implemented in `rag/retriever/hybrid.py` — defaults
+`vector_weight=0.7` / `keyword_weight=0.3` in the constructor
+([hybrid.py:13-14](rag/retriever/hybrid.py#L13-L14)) and the max-normalized
+weighted sum in `retrieve()`
+([hybrid.py:57-90](rag/retriever/hybrid.py#L57-L90)) — yet
+`docs/ARCHITECTURE.md` mentions the blend in exactly one sentence
+([ARCHITECTURE.md:60](docs/ARCHITECTURE.md#L60)) with no formula, weights, or
+example. I also confirmed `HybridRetriever` is never instantiated elsewhere,
+so the constructor defaults are the only source of the weights. The gap is
+real and localized to that one doc file.
+
+**PLAN.md link:** [PLAN.md](PLAN.md)
+
+**Walkthrough video (recommended):** _(not recorded)_
+
+**Blockers or open questions:**
+None blocking. Open question for Week 9: how much of the post-blend behavior
+(`min_score` threshold, `max_chunks` cutoff, BM25 tokenizer) to document
+versus keeping the section focused strictly on the formula + weights + example
+the issue asks for. Current plan leans toward mentioning the thresholds
+briefly and no further.
