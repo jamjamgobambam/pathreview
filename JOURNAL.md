@@ -43,3 +43,4 @@ against the unmodified source and observed the test fail with
 **Blockers or open questions:**
 None — the root cause is confirmed and the fix approach is settled. The actual
 one-line code change is scheduled for a later week per the module sequence.
+
