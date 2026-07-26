@@ -44,3 +44,14 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+
+# Personal Module 3 course notes (not part of the project / never push)
+choosing_an_issue.md
+choosing_issue_week_7.md
+module_3_summary.md
+project_issue.md
+implementation_plan.md
+issue_reprodxn_and_sln_planning_week_8.md
+reproduce_issue_plan_fix.md
+strong_vs_weak_plan.md
+video_script_week8.md
