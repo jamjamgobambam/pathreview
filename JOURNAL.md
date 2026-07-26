@@ -11,6 +11,16 @@ The `rag/generator/prompt_templates.py` module holds versioned prompt templates 
 
 **Branch name:** feat/37-prompt-template-snapshots
 
+**"Is this right for me?" reasoning:**
+Scope matches the Tier 1 estimate (3–5 hours) — I finished in ~4 hours.
+Skills align well: I already work with LLM prompt templates and
+evaluation in my own research, so understanding what "silent template
+drift" means and why version pinning matters was intuitive. No new
+libraries needed — the fix uses stdlib `hashlib` and existing `pytest`,
+so I didn't need to learn a snapshot testing framework from scratch.
+The blast radius is contained to one test file, which makes it low-risk
+for a first contribution.
+
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
