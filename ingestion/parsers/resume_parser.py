@@ -130,7 +130,12 @@ class ResumeParser(BaseParser):
         text_lower = text.lower()
 
         for section in SECTION_HEADERS:
-            # Look for section header patterns
+            # Look for section header patterns.
+            # BUG (issue #147): these patterns anchor the header to the exact
+            # start of a line (`^`/`\n`). PDF-extracted text often keeps leading
+            # spaces/tabs, so an indented header (e.g. "    Experience:") matches
+            # nothing and detected_sections comes back empty. See regression test
+            # test_detect_sections_with_leading_whitespace.
             patterns = [
                 rf"^{re.escape(section)}\s*$",
                 rf"^{re.escape(section)}\s*[:|-]",

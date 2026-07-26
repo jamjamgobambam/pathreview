@@ -143,6 +143,30 @@ class TestResumeParser:
         assert any("education" in s for s in sections_lower)
         assert any("skills" in s for s in sections_lower)
 
+    def test_detect_sections_with_leading_whitespace(self, parser):
+        """Regression test for issue #147.
+
+        Section detection must tolerate leading indentation. PDF text extraction
+        routinely preserves leading spaces/tabs, but `_detect_sections()` anchors
+        every header pattern to the exact start of a line (`^Experience`,
+        `\\nExperience`), so an indented header matches nothing and
+        `detected_sections` silently comes back empty.
+
+        Reproduction: identical content, only difference is leading whitespace.
+        The flush-left variant is detected; the indented variant currently is not.
+        """
+        flush = "Experience:\nSenior Dev\nEducation:\nBS CS\nSkills: Python"
+        indented = "    Experience:\n    Senior Dev\n    Education:\n    BS CS\n    Skills: Python"
+
+        # Sanity check: flush-left text detects sections today.
+        assert len(parser._detect_sections(flush)) > 0
+
+        # The bug: the same text with leading whitespace detects nothing.
+        indented_sections = [s.lower() for s in parser._detect_sections(indented)]
+        assert any("experience" in s for s in indented_sections)
+        assert any("education" in s for s in indented_sections)
+        assert any("skills" in s for s in indented_sections)
+
     def test_strip_markdown_syntax(self, parser):
         """Test markdown syntax stripping."""
         markdown_text = """
