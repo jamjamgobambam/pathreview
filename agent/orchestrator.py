@@ -43,10 +43,11 @@ class Orchestrator:
         # Build execution plan
         plan = self._build_plan(profile_data)
 
-        # Load previous session state if available
+        # Load previous session state if available and pre-populate context manager
         session_state = {}
         if self.session_store:
             session_state = self.session_store.get(profile_id) or {}
+            self._restore_session_results_to_context(session_state, plan)
 
         # Execute plan
         results = {}
@@ -74,6 +75,37 @@ class Orchestrator:
             "tool_results": results,
             "cached_results": self.context_manager.get_all_results()
         }
+
+    def _restore_session_results_to_context(
+        self, session_state: dict, plan: list[tuple[str, dict]]
+    ) -> None:
+        """Restore persisted session results into the in-memory context manager.
+
+        For each tool in the execution plan, if a result exists in session_state,
+        compute the input hash and pre-populate the context manager so that
+        _execute_tool can reuse the cached result.
+
+        Args:
+            session_state: Dict of persisted results by tool name
+            plan: List of (tool_name, tool_input) tuples to be executed
+        """
+        for tool_name, tool_input in plan:
+            if tool_name in session_state:
+                # Recreate the input hash to match how _execute_tool computes it
+                input_hash = ContextManager.hash_input(tool_input)
+                persisted_result = session_state[tool_name]
+
+                # Create a wrapper object that matches the ToolResult interface
+                # (has a .data attribute) so _execute_tool can use it
+                class PersistedToolResult:
+                    def __init__(self, data):
+                        self.data = data
+
+                result_obj = PersistedToolResult(persisted_result)
+
+                # Store in context manager under the same key _execute_tool uses
+                self.context_manager.store_tool_result(tool_name, input_hash, result_obj)
+                logger.info("session_result_restored", tool=tool_name, input_hash=input_hash)
 
     def _build_plan(self, profile_data: dict) -> list[tuple[str, dict]]:
         """Build execution plan based on available data.
