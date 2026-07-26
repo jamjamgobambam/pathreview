@@ -2,7 +2,7 @@
 
 import pytest
 
-from ingestion.parsers.skill_extractor import SkillExtractor, SkillDetection
+from ingestion.parsers.skill_extractor import SkillDetection, SkillExtractor
 
 
 @pytest.mark.unit
@@ -135,7 +135,7 @@ class TestSkillExtractor:
         """
         result = extractor.extract_skills(text)
 
-        skill_names = [s.name for s in skill_names]
+        skill_names = [s.name for s in result]
         # Should detect PostgreSQL
         assert any("postgres" in s.lower() or "sql" in s.lower() for s in skill_names)
 
@@ -232,13 +232,114 @@ class TestSkillExtractor:
     def test_skill_detection_dataclass(self):
         """Test SkillDetection dataclass structure."""
         skill = SkillDetection(
-            name="Python",
-            category="Language",
-            confidence=0.95,
-            evidence=["import statement"]
+            name="Python", category="Language", confidence=0.95, evidence=["import statement"]
         )
 
         assert skill.name == "Python"
         assert skill.category == "Language"
         assert skill.confidence == 0.95
         assert len(skill.evidence) == 1
+
+
+@pytest.mark.unit
+class TestSkillExtractorWorkflow:
+    """Test suite for SkillExtractor.extract_skills_from_workflow."""
+
+    @pytest.fixture
+    def extractor(self):
+        """Create a SkillExtractor instance."""
+        return SkillExtractor()
+
+    @pytest.fixture
+    def workflow_metadata(self):
+        """Structured metadata as produced by WorkflowParser.parse."""
+        return {
+            "jobs": [
+                {
+                    "name": "test",
+                    "runs_on": "ubuntu-latest",
+                    "needs": [],
+                    "steps": [
+                        {"name": "Checkout", "uses": "actions/checkout@v4", "run": None},
+                        {"name": "Run tests", "uses": None, "run": "pytest tests/"},
+                    ],
+                },
+                {
+                    "name": "deploy",
+                    "runs_on": "ubuntu-latest",
+                    "needs": ["test"],
+                    "steps": [
+                        {
+                            "name": "Build and push",
+                            "uses": "docker/build-push-action@v5",
+                            "run": None,
+                        },
+                    ],
+                },
+            ],
+        }
+
+    def test_detects_github_actions_when_jobs_present(self, extractor, workflow_metadata):
+        """Any workflow with at least one job should be flagged as GitHub Actions."""
+        skills = extractor.extract_skills_from_workflow(workflow_metadata)
+        skill_names = {s.name for s in skills}
+
+        assert "GitHub Actions" in skill_names
+
+    def test_no_jobs_means_no_skills(self, extractor):
+        """A workflow with no jobs should produce no skill detections."""
+        skills = extractor.extract_skills_from_workflow({"jobs": []})
+
+        assert skills == []
+
+    def test_detects_docker_from_action(self, extractor, workflow_metadata):
+        """A `docker/build-push-action` step should be detected as Docker."""
+        skills = extractor.extract_skills_from_workflow(workflow_metadata)
+        docker_skill = next(s for s in skills if s.name == "Docker")
+
+        assert docker_skill.category == "Tool"
+        assert any("build-push-action" in e for e in docker_skill.evidence)
+
+    def test_detects_pytest_from_run_command(self, extractor, workflow_metadata):
+        """A `run: pytest ...` step should be detected as Pytest."""
+        skills = extractor.extract_skills_from_workflow(workflow_metadata)
+        skill_names = {s.name for s in skills}
+
+        assert "Pytest" in skill_names
+
+    def test_detects_deployment_from_job_name(self, extractor, workflow_metadata):
+        """A job named 'deploy' should be detected as a Deployment practice."""
+        skills = extractor.extract_skills_from_workflow(workflow_metadata)
+        deploy_skill = next(s for s in skills if s.name == "Deployment")
+
+        assert deploy_skill.category == "Practice"
+        assert "deploy" in deploy_skill.evidence[0]
+
+    def test_evidence_merges_for_repeated_skill(self, extractor):
+        """Multiple steps triggering the same skill merge evidence, not duplicate the skill."""
+        metadata = {
+            "jobs": [
+                {
+                    "name": "build",
+                    "runs_on": "ubuntu-latest",
+                    "needs": [],
+                    "steps": [
+                        {"name": None, "uses": "docker/build-push-action@v5", "run": None},
+                        {"name": None, "uses": None, "run": "docker build -t app ."},
+                    ],
+                },
+            ],
+        }
+        skills = extractor.extract_skills_from_workflow(metadata)
+        docker_skills = [s for s in skills if s.name == "Docker"]
+
+        assert len(docker_skills) == 1
+        assert len(docker_skills[0].evidence) == 2
+
+    def test_all_results_are_skill_detections(self, extractor, workflow_metadata):
+        """extract_skills_from_workflow should return SkillDetection instances."""
+        skills = extractor.extract_skills_from_workflow(workflow_metadata)
+
+        assert len(skills) > 0
+        for skill in skills:
+            assert isinstance(skill, SkillDetection)
