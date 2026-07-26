@@ -93,8 +93,30 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: cd frontend && npm ci
       - name: Frontend lint and tests
-        run: cd frontend && npm test -- --
-        
+        run: cd frontend && npm test -- --run
+
+  # NEW JOB — added for issue #128
+  #
+  # IMPORTANT: pip-audit's JSON output in the version resolved by this
+  # project (2.10.1) has NO `severity` field on its findings — confirmed
+  # directly against this repo's real output on 2026-07-19 (see PLAN.md).
+  # Severity-threshold filtering is therefore not possible for the Python
+  # side. Policy adopted instead: fail on ANY finding, except vulnerability
+  # IDs explicitly accepted below with a documented reason.
+  #
+  # Currently accepted (ignored):
+  #   - PYSEC-2026-1325 (ecdsa / CVE-2024-23342): Minerva timing attack.
+  #     No fix exists; ecdsa's maintainers have stated side-channel attacks
+  #     are out of scope for the project and there is no planned fix.
+  #
+  # NOT ignored, and expected to fail this check on first run:
+  #   - PYSEC-2026-311 (chromadb / CVE-2026-45829): pre-auth code injection
+  #     (RCE) via a malicious model repo + trust_remote_code=true. No fix
+  #     version currently exists. This is a real, serious, unresolved
+  #     vulnerability in a direct dependency — remediating it is out of
+  #     scope for issue #128 (which asks only for the scanning capability),
+  #     but it should NOT be silently ignored here. Flagged in the PR
+  #     description as a separate, higher-priority follow-up.
   security-audit:
     runs-on: ubuntu-latest
     steps:
