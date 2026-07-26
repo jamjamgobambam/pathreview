@@ -1,4 +1,4 @@
-## Solution plan
+## Solution plan 
 
 **Issue:** Faithfulness checker crashes when a context chunk has `text: None` — [paste GitHub issue #153 URL here]
 
