@@ -29,7 +29,7 @@ I confirmed the gap by running `git show 10d3713:core/services/profile_service.p
 
 **PLAN.md link:** https://github.com/vzan2012/pathreview/blob/docs/119-service-docstrings/PLAN.md
 
-**Walkthrough video (recommended):** Not recorded.
+**Walkthrough video (recommended):** https://www.loom.com/share/8f939ed837304910a3650b729159fe58
 
 **Blockers or open questions:**
 The actual docstring fix — and the type-annotation fixes needed to get the mypy pre-commit hook passing — were already completed and committed back in Week 7, ahead of this week's plan-then-build pacing. `PLAN.md` below documents the approach I actually followed rather than a forward-looking plan. No PR has been opened yet; that's a Week 9 step per the module schedule.
