@@ -18,3 +18,20 @@ For users who have completed multiple reviews, they might want to view their pro
 **Setup confirmation:** [✓] App runs locally at localhost:5173
 
 **Cohort ledger:** [✓] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/janielcaday/pathreview/commit/8769cc4eabb82a244b426e4e51fa9231a365772d
+
+**Reproduction summary:**
+[1–2 sentences: How did you reproduce the issue? What did you observe?]
+I reproduced the issue by simply starting up the app, and using one of the pre-seeded credentials who already have reviews completed. I observed that there was in fact *no* feature supported for retroactive review comparison.
+
+**PLAN.md link:** https://github.com/janielcaday/pathreview/blob/feat/102-add-comparison-view/PLAN.md
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+N/A
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
+- I will need to investigate database structure, whether reviews have a unique ID, how the code gathers all reviews associated with a user, etc. This is the primary foundation needed for figuring out how to add the comparison feature without breaking anything else in the repo.
