@@ -32,13 +32,68 @@ As stated above, the skill detection logic should detect JavaScript text as Java
 **Reproduction commit link:** [link to commit documenting the reproduced issue]
 
 **Reproduction summary:**
-Ran the 4 failing tests with `python3 -m pytest tests/unit/test_skill_extractor.py -vv -s` and confirmed `extract_skills()` misses the JS/TS/Docker family: JavaScript text (`const`, `require('fs')`) returns `[]`; TypeScript text (interfaces, `.ts`/`.tsx`) returns only `['React']`; a Dockerfile snippet returns only `['Python']` (matched on "requirements.txt"); and Docker Compose YAML returns `[]`. 
+Ran the 4 failing tests with `python3 -m pytest tests/unit/test_skill_extractor.py -vv -s` and confirmed `extract_skills()` misses the JS/TS/Docker family: JavaScript text (`const`, `require('fs')`) returns `[]`; TypeScript returns no TypeScript — the issue's `.tsx`/`.ts` example returns only `['React']`, while the `test_text_with_typescript_files` interface sample returns `['Python']` (a false match on `: string`); a Dockerfile snippet returns only `['Python']` (matched on "requirements.txt"); and Docker Compose YAML returns `[]`.
 
-Root causes: the JS/TS `import|require` regex requires trailing whitespace so `require('fs')` never matches, the defined `JS_TS_KEYWORDS` are never checked, file extensions are only read from the `filename` arg (not the text), and `_detect_tools()` only matches the literal word "docker" — which never appears in Dockerfile or Compose syntax.
+The failing tests are the following:
+test_javascript_detection
+test_text_with_typescript_files
+test_devops_tool_detection
+test_docker_compose_detection
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+***Observed test output***
+To capture the actual detections, I temporarily added print() statements to the four failing tests (not committed) and ran python3 -m pytest tests/unit/test_skill_extractor.py -vv -s.
 
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+```
+test_text_with_typescript_files
+  Input:  export interface User { id: string; name: string; }
+          export class UserService { async getUser(id: string): Promise<User> {} }
+  Got skills:   ['Python']
+  Full details: [('Python', 0.7, ['Python type annotations'])]
+  -> FAILED (expected TypeScript)
+
+test_devops_tool_detection
+  Input:  FROM python:3.9
+          RUN pip install requirements.txt
+          EXPOSE 8000
+  Got skills:   ['Python']
+  Full details: [('Python', 0.7, ['requirements.txt found'])]
+  -> FAILED (expected Docker)
+
+test_javascript_detection
+  Input:  const fs = require('fs');
+          const data = fs.readFileSync('file.txt');
+          console.log(data);
+  Got skills:   []
+  Full details: []
+  -> FAILED (expected JavaScript)
+
+test_docker_compose_detection
+  Input:  version: '3.8'
+          services:
+            web:
+              build: .
+              ports: ["8000:8000"]
+  Got skills:   []
+  Full details: []
+  -> FAILED (expected Docker)
+```
+
+Summary: 4 failed, 14 passed (18 collected).
+
+Results:
+test_javascript_detection      -> Got skills: []
+test_text_with_typescript_files -> Got skills: ['Python']
+test_devops_tool_detection     -> Got skills: ['Python']
+test_docker_compose_detection  -> Got skills: []
+
+
+***Root causes***
+the JS/TS `import|require` regex requires trailing whitespace so `require('fs')` never matches, the defined `JS_TS_KEYWORDS` are never checked, file extensions are only read from the `filename` arg (not the text), and `_detect_tools()` only matches the literal word "docker" — which never appears in Dockerfile or Compose syntax.
+
+**PLAN.md link:** 
+https://github.com/karencalpo/pathreview/blob/fix/148-skill-extractor-js-ts-detection/PLAN.md
+
+**Walkthrough video (recommended):** Not included.
 
 **Blockers or open questions:**
 Issue #148 spans 4 failing tests (JavaScript, TypeScript, DevOps/Docker, Docker Compose). Open questions across all four:
