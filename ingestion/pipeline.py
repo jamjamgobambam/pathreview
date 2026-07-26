@@ -1,6 +1,5 @@
 import hashlib
 from dataclasses import dataclass
-from typing import Optional
 
 import structlog
 
@@ -10,7 +9,7 @@ from .embeddings.provider import EmbeddingProvider
 from .parsers.readme_parser import ReadmeParser
 from .parsers.repo_analyzer import RepoAnalyzer
 from .parsers.resume_parser import ResumeParser
-
+from .parsers.workflow_parser import WorkflowParser
 
 logger = structlog.get_logger()
 
@@ -18,10 +17,11 @@ logger = structlog.get_logger()
 @dataclass
 class IngestResult:
     """Result of ingesting a source."""
+
     source_id: str
     chunk_count: int
     skipped: bool
-    skip_reason: Optional[str] = None
+    skip_reason: str | None = None
 
 
 class IngestionPipeline:
@@ -51,6 +51,7 @@ class IngestionPipeline:
         self.resume_parser = ResumeParser()
         self.readme_parser = ReadmeParser()
         self.repo_analyzer = RepoAnalyzer()
+        self.workflow_parser = WorkflowParser()
 
     def ingest_resume(
         self,
@@ -86,16 +87,21 @@ class IngestionPipeline:
         try:
             # Parse resume
             parse_result = self.resume_parser.parse(content)
-            logger.info("Resume parsed successfully", sections=parse_result.metadata.get("detected_sections"))
+            logger.info(
+                "Resume parsed successfully",
+                sections=parse_result.metadata.get("detected_sections"),
+            )
 
             # Prepare metadata
             metadata = parse_result.metadata.copy()
-            metadata.update({
-                "source_id": source_id,
-                "profile_id": profile_id,
-                "filename": filename,
-                "source_type": "resume",
-            })
+            metadata.update(
+                {
+                    "source_id": source_id,
+                    "profile_id": profile_id,
+                    "filename": filename,
+                    "source_type": "resume",
+                }
+            )
 
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
@@ -165,12 +171,14 @@ class IngestionPipeline:
 
             # Prepare metadata
             metadata = parse_result.metadata.copy()
-            metadata.update({
-                "source_id": source_id,
-                "profile_id": profile_id,
-                "repo_name": repo_name,
-                "source_type": "readme",
-            })
+            metadata.update(
+                {
+                    "source_id": source_id,
+                    "profile_id": profile_id,
+                    "repo_name": repo_name,
+                    "source_type": "readme",
+                }
+            )
 
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
@@ -192,6 +200,83 @@ class IngestionPipeline:
         except Exception as e:
             logger.error(
                 "README ingestion failed",
+                profile_id=profile_id,
+                repo_name=repo_name,
+                error=str(e),
+            )
+            raise
+
+    def ingest_workflow(
+        self,
+        profile_id: str,
+        repo_name: str,
+        content: str | bytes,
+    ) -> IngestResult:
+        """
+        Ingest a GitHub Actions workflow file.
+
+        Args:
+            profile_id: ID of the profile owner
+            repo_name: Name of the repository
+            content: Workflow YAML content (string or bytes)
+
+        Returns:
+            IngestResult with ingestion status
+        """
+        source_id = f"workflow_{profile_id}_{repo_name}_{self._hash_content(content)}"
+
+        logger.info(
+            "Starting workflow ingestion",
+            profile_id=profile_id,
+            repo_name=repo_name,
+            source_id=source_id,
+        )
+
+        # Check if already ingested
+        skip_result = self._check_skip(source_id, "workflow")
+        if skip_result:
+            return skip_result
+
+        try:
+            # Parse workflow
+            parse_result = self.workflow_parser.parse(content)
+            logger.info(
+                "Workflow parsed successfully",
+                workflow_name=parse_result.metadata.get("workflow_name"),
+                job_count=parse_result.metadata.get("job_count"),
+            )
+
+            # Prepare metadata
+            metadata = parse_result.metadata.copy()
+            metadata.update(
+                {
+                    "source_id": source_id,
+                    "profile_id": profile_id,
+                    "repo_name": repo_name,
+                    "source_type": "workflow",
+                }
+            )
+
+            # Chunk the content
+            chunks = self.strategy_selector.chunk(parse_result.text, metadata)
+            logger.info("Workflow chunked successfully", chunk_count=len(chunks))
+
+            # Generate embeddings and store
+            self.batch_processor.process(chunks)
+            logger.info("Workflow embeddings stored", chunk_count=len(chunks))
+
+            # Record in database
+            self._record_ingested_source(source_id, "workflow", profile_id, len(chunks))
+
+            return IngestResult(
+                source_id=source_id,
+                chunk_count=len(chunks),
+                skipped=False,
+            )
+
+        except Exception as e:
+            logger.error(
+                "Workflow ingestion failed",
                 profile_id=profile_id,
                 repo_name=repo_name,
                 error=str(e),
@@ -239,11 +324,13 @@ class IngestionPipeline:
 
             # Prepare metadata
             metadata = parse_result.metadata.copy()
-            metadata.update({
-                "source_id": source_id,
-                "profile_id": profile_id,
-                "source_type": "repo",
-            })
+            metadata.update(
+                {
+                    "source_id": source_id,
+                    "profile_id": profile_id,
+                    "source_type": "repo",
+                }
+            )
 
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
@@ -277,7 +364,7 @@ class IngestionPipeline:
             content = content.encode()
         return hashlib.sha256(content).hexdigest()[:16]
 
-    def _check_skip(self, source_id: str, source_type: str) -> Optional[IngestResult]:
+    def _check_skip(self, source_id: str, source_type: str) -> IngestResult | None:
         """
         Check if source has already been ingested.
 
@@ -286,9 +373,11 @@ class IngestionPipeline:
         try:
             # Query database for existing source
             # This assumes a table/model named IngestedSource
-            existing = self.db_session.query(
-                "IngestedSource"  # Placeholder - actual query depends on ORM
-            ).filter_by(source_id=source_id).first()
+            existing = (
+                self.db_session.query("IngestedSource")  # Placeholder - actual query depends on ORM
+                .filter_by(source_id=source_id)
+                .first()
+            )
 
             if existing:
                 logger.info("Source already ingested, skipping", source_id=source_id)
