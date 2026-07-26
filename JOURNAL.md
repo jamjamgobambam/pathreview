@@ -35,3 +35,35 @@ I confirmed the documentation gap locally: `docs/ARCHITECTURE.md` only mentions 
 
 **Blockers or open questions:**
 In `HybridRetriever.retrieve`, `_get_all_chunks` is fetched but I don’t yet see an `index(...)` call before `keyword_searcher.search` — out of scope for this docs issue, but I may ask in office hours whether the keyword channel is empty in practice so the architecture prose stays accurate.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented PLAN.md sub-tasks 1–3: drafted the Hybrid retrieval scoring subsection in `docs/ARCHITECTURE.md` (max-normalization, default weights `0.7` / `0.3`, blend formula, `min_score`, worked example, code pointers). Confirmed the Week 8 acceptance tests in `tests/unit/test_architecture_hybrid_docs.py` now pass (3/3).
+
+**Next steps:**
+Self-review against CONTRIBUTING.md, open/finalize the PR to `ascherj/pathreview`, fill the PR template (including pre-existing `make check` / `make test-unit` failures note), and complete Check-in 2.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/295
+
+**Branch:** `docs/36-hybrid-retrieval-scoring`
+
+**What you built:**
+Documented PathReview’s hybrid retrieval scoring in `docs/ARCHITECTURE.md`: how vector and BM25 scores are max-normalized, blended with default weights `vector_weight=0.7` / `keyword_weight=0.3`, filtered by `min_score=0.3`, sorted, and truncated — with a worked numeric example and pointers to `rag/retriever/hybrid.py`.
+
+**Tests added or updated:**
+- `tests/unit/test_architecture_hybrid_docs.py` (added in Week 8 as failing reproduction; now passing) — asserts ARCHITECTURE.md documents weights, normalization/blend formula, and `min_score`.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes  
+*(Full-repo `make check` / `make test-unit` still show pre-existing failures unrelated to #36; my changes introduce no new failures. Targeted: `pytest tests/unit/test_architecture_hybrid_docs.py` → 3 passed; ruff/black clean on that file. Documented in the PR.)*
+
+**Draft PR feedback received from:** none
