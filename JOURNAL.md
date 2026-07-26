@@ -106,3 +106,33 @@ During Week 8, I will:
 4. Confirm the root cause.
 5. Determine the expected behavior using existing project patterns.
 6. Write a structured solution plan before modifying production code.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:**
+`https://github.com/techmilano/pathreview/commit/dbcbe5d8f68c3baf116fb043fc0d833b012abd02`
+
+**Reproduction summary:**
+I reproduced issue #149 by running the existing `test_document_with_no_headings`
+unit test and a standalone script (`reproduction/reproduce_issue_149.py`) that
+passes a nonempty plain-text document to `StructuralChunker.chunk()`. The unit
+test failed with `assert 0 >= 1`, and the script reported `Chunks returned: 0`
+deterministically across two runs, confirming that heading-less content is
+silently discarded. The 14 other structural chunker tests continue to pass, so
+the failure is isolated to the no-heading case. I traced the root cause to the
+content-collection guard in `StructuralChunker._extract_sections()`
+(`ingestion/chunking/structural_chunker.py`), which never collects lines when no
+heading has been seen. Full evidence is captured in `reproduction/README.md`.
+
+**PLAN.md link:**
+`https://github.com/techmilano/pathreview/blob/fix/149-handle-documents-without-headings/PLAN.md`
+
+**Walkthrough video (recommended):**
+`[INSERT LOOM LINK OR WRITE "Not recorded"]`
+
+**Blockers or open questions:**
+The same `_extract_sections()` guard also discards introductory content before
+the first Markdown heading (confirmed during this week's investigation — the
+preamble was dropped from the returned chunks). I am keeping that behavior
+outside the narrow issue #149 plan unless maintainers confirm it should be
+addressed in the same change.
