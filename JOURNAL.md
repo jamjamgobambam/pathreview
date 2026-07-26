@@ -14,3 +14,17 @@ The project has no `tests/fixtures/` directory, so any test that needs a sample 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/tracira/pathreview/commit/b14719b
+
+**Reproduction summary:**
+Added `tests/integration/test_shared_profile_fixture.py` which tries to open `tests/fixtures/sample_profiles/basic_profile.json`. Running `pytest` confirms the issue: 1 test fails with `AssertionError: Missing fixture file` and 2 downstream tests skip, because neither the `tests/fixtures/` directory nor the JSON file exists anywhere in the repo.
+
+**PLAN.md link:** https://github.com/tracira/pathreview/blob/test/106-shared-profile-fixture/PLAN.md
+
+**Walkthrough video (recommended):** <!-- add Loom link here -->
+
+**Blockers or open questions:**
+The `repos` field in the planned fixture JSON has no corresponding column in the `Profile` ORM model — repos live in `IngestedSource`. Need to decide whether the fixture should include `repos` purely as supplemental test data (a plain dict field) or whether the fixture should omit it and let individual tests supply repo data separately.
