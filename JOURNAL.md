@@ -22,3 +22,17 @@ All boxes checked!
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [93b87f1 - reproduce stale agent state between reviews](https://github.com/rueiliu/pathreview/commit/93b87f16ed46cd12d3c0d860f7953a7846aab711)
+
+**Reproduction summary:**
+I reproduced the issue by running two reviews for the same profile through one orchestrator with different portfolio data. The second review reused the first review's cached `market_analyzer` result, and its persisted session also retained a `readme_scorer` result that was no longer part of the updated review.
+
+**PLAN.md link:** [Solution plan](https://github.com/rueiliu/pathreview/blob/fix/43-clear-agent-session/PLAN.md)
+
+**Walkthrough video (recommended):** Not recorded
+
+**Blockers or open questions:**
+I need to confirm whether one `Orchestrator` instance can serve concurrent reviews and whether Redis session state is intended to support resuming an interrupted review. The planned review-local context avoids cross-review cache races without changing that future persistence contract.
