@@ -56,7 +56,7 @@ scorer's intended behavior instead of a mismatched expectation.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** 
+**Reproduction commit link:** https://github.com/katamshreya/pathreview/commit/4374482a3d19f04146ce5b03c91500117e40adfa
 
 **Reproduction summary:**
 Ran `pytest tests/unit/test_readme_scorer.py -q` after activating the project's
@@ -67,7 +67,7 @@ to False. Captured log output confirms the scorer itself is working correctly �
 short to reach the "comprehensive" category the test expects (500+ words), not that
 the scorer has a bug.
 
-**PLAN.md link:** 
+**PLAN.md link:** https://github.com/katamshreya/pathreview/blob/fix/156-readme-scorer-fixture-word-count/PLAN.md
 
 **Blockers or open questions:**
 None so far — the fix direction is clear (extend fixture, correct assertions to
