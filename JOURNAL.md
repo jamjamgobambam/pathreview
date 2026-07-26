@@ -48,7 +48,7 @@ None. `make test-unit` went from 54 → 53 failures (our reproduction test now p
 
 ### Check-in 2 (end of week)
 
-**PR link:** [to be filled in]
+**PR link:** https://github.com/ascherj/pathreview/pull/298
 
 **Branch:** `fix/80-clean-up-orphaned-embeddings`
 
@@ -61,4 +61,4 @@ Added `VectorStore.delete_collection` and wired it into `delete_profile` so that
 
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
-**Draft PR feedback received from:** [to be filled in]
+**Draft PR feedback received from:** none
