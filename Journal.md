@@ -41,7 +41,7 @@ The personal information scrubbery in pii_scrubber.py is not redacting phone num
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** [link to commit documenting the reproduced issue](https://github.com/a-maryam/pathreview/commit/7ac52cff2e60e3c8cf7efe38fd7847ba22a823be)
 
 **Reproduction summary:**
 I reproduced the issue by following the instructions for the bug on github: 
@@ -61,7 +61,7 @@ print(s.scrub('Call me at (555) 123-4567 or 555-123-4567'))
 print(s.detect('Call me at (555) 123-4567'))
 # observed: []
 ```
-**PLAN.md link:** [PLAN.md]
+**PLAN.md link:** [PLAN.md](PLAN.md)
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
