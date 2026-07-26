@@ -13,7 +13,7 @@ would accomplish. Naming the part of the codebase it affects is helpful context.
 
 In safety/bias_detector.py we see regex patterns used here to create bias detectors. These bias detectors are too narrow and are misclassifying common phrases. A successful fix will widen regex patterns to detect common phrases instead of looking at specific phrases to detect bias. 
 
-**Branch name:** fix/safety/151-expanding-bias-detector-patterns
+**Branch name:** [paste branch name here]
 
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
