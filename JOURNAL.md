@@ -21,3 +21,17 @@ PathReview's RAG system uses hybrid retrieval (vector similarity plus BM25 keywo
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/qhowery/pathreview/commit/294b35fd7bcdd717ecde3dd492bebc539411bd9a
+
+**Reproduction summary:**
+I confirmed the documentation gap locally: `docs/ARCHITECTURE.md` only mentions hybrid retrieval at a high level, while `rag/retriever/hybrid.py` implements max-normalization, default weights `0.7` / `0.3`, blending, and `min_score=0.3`. I captured steps in `docs/issue-36-reproduction.md` and added three failing unit tests that assert the missing doc content — they fail today and should pass after the Week 9 doc fix.
+
+**PLAN.md link:** https://github.com/qhowery/pathreview/blob/docs/36-hybrid-retrieval-scoring/PLAN.md
+
+**Walkthrough video (recommended):** _(optional — add Loom link if recorded)_
+
+**Blockers or open questions:**
+In `HybridRetriever.retrieve`, `_get_all_chunks` is fetched but I don’t yet see an `index(...)` call before `keyword_searcher.search` — out of scope for this docs issue, but I may ask in office hours whether the keyword channel is empty in practice so the architecture prose stays accurate.
