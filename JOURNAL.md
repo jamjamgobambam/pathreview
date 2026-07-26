@@ -24,3 +24,22 @@ checker degrades gracefully instead of crashing. The change lives in
 **Setup confirmation:** [ X ] App runs locally at localhost:5173
 
 **Cohort ledger:** [ X ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [paste link to your reproduction commit here]
+
+**Reproduction summary:**
+In an activated venv I ran `python -m pytest tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_none_context_chunk_text -v`
+against the unmodified source and observed the test fail with
+`TypeError: sequence item 0: expected str instance, NoneType found` raised at
+`rag/evaluator/faithfulness_checker.py:34`, confirming the crash occurs inside
+`check()` when a context chunk has `text: None`.
+
+**PLAN.md link:** [paste link to PLAN.md on your branch here]
+
+**Walkthrough video (recommended):** [paste Loom link here, or leave blank]
+
+**Blockers or open questions:**
+None — the root cause is confirmed and the fix approach is settled. The actual
+one-line code change is scheduled for a later week per the module sequence.
