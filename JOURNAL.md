@@ -4,38 +4,50 @@
 
 **Issue link:** https://github.com/ascherj/pathreview/issues/154
 
-**Issue title:** Health check DB probe passes a raw SQL string, which fails under SQLAlchemy 2.x
+**Issue title:** Health check DB probe should use SQLAlchemy text()
 
 **Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
 
-The database portion of the application's health check runs a simple `SELECT 1` query to verify that PostgreSQL is reachable. However, the query is currently passed to SQLAlchemy as a plain string, which is not supported in SQLAlchemy 2.x for textual SQL statements. As a result, the health check can incorrectly report that the database is unavailable even when it is running normally. A successful fix will update the query to use SQLAlchemy's supported syntax so the health endpoint accurately reports the database status.
+The database portion of the application's health check runs a simple `SELECT 1` query to verify that PostgreSQL is available. Currently, the query is passed to SQLAlchemy as a plain string, which is not compatible with SQLAlchemy 2.x. This can cause the health endpoint to incorrectly report that the database is unhealthy even when it is running normally. A successful fix will execute the query using SQLAlchemy's supported `text()` function so the health check reports the database status correctly.
 
 **Why I selected this issue:**
 
-I chose this issue because it seemed like a good balance between being challenging and manageable. It focuses on a real backend bug instead of a simple documentation change, so I can learn more about SQLAlchemy and how the application's health check works. Since it is a Tier 1 issue with a clear scope, I felt it was a good first contribution to a larger open-source codebase.
+I chose this issue because it is a good introduction to working in a larger codebase while still requiring me to understand how SQLAlchemy works. It is more meaningful than a documentation-only task and will help me learn how backend health checks interact with the database. The scope is manageable for my current experience while still challenging enough to build new skills.
 
-**Branch name:** `fix/154-health-check-sqlalchemy-text`
+**Branch name:**
 
-**Setup confirmation:** [x] App runs locally at localhost:5173
+`fix/154-health-check-sqlalchemy-text`
 
-**Cohort ledger:** [x] Issue added to cohort ledger
+**Setup confirmation:**
+
+- [x] App runs locally at `http://localhost:5173`
+
+**Cohort ledger:**
+
+- [x] Issue added to cohort ledger
 
 ---
 
-## Week 8 — Reproduction & solution planning
+# Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** *(Will be added after creating the reproduction commit.)*
+**Reproduction commit link:**
+
+https://github.com/akodali65/pathreview/commit/1cc1317
 
 **Reproduction summary:**
 
-I reproduced the issue by starting the PathReview application and confirming that the PostgreSQL Docker container was healthy. I then requested the `GET /health` endpoint using `curl`, and the endpoint returned HTTP 503 while reporting PostgreSQL as unhealthy even though the database container itself was running normally. I traced the behavior to `api/routes/health.py`, where the health check executes `SELECT 1` as a plain SQL string.
+I reproduced the issue by running the PathReview application locally and checking the `/health` endpoint using `curl`. The endpoint returned PostgreSQL as unhealthy even though the PostgreSQL Docker container was running correctly. After tracing the code, I found that `api/routes/health.py` executes `SELECT 1` as a plain SQL string, which matches the issue description.
 
-**PLAN.md link:** *(Will be added after creating PLAN.md.)*
+**PLAN.md link:**
 
-**Walkthrough video (recommended):** Not recorded.
+https://github.com/akodali65/pathreview/blob/fix/154-health-check-sqlalchemy-text/PLAN.md
+
+**Walkthrough video (recommended):**
+
+Not recorded.
 
 **Blockers or open questions:**
 
-I still need to confirm the exact SQLAlchemy 2.x syntax required for executing textual SQL and determine whether any existing tests need to be updated or if a new test should be added.
+I want to verify whether changing the query to SQLAlchemy's `text()` function is the only modification required or whether any existing tests should also be updated to reflect the new behavior.
