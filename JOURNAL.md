@@ -35,3 +35,24 @@ so malformed chunks are handled gracefully and the related unit test
 - **No external API keys needed:** The test runs with `LLM_PROVIDER=mock` and does not require OpenAI or GitHub tokens.
 - **Subsystem I can explain:** `rag/evaluator` — the faithfulness scoring step in the RAG pipeline.
 - **Realistic to finish in a week:** Yes. The fix and verification took a single session; remaining work is testing, lint, and PR.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/esfahani-moein/codepath_pathreview/commit/3fdf3b9
+
+**Reproduction summary:**
+Created `reproduce_issue_153.py` which simulates the original buggy expression
+`" ".join([chunk.get("text", "") for chunk in context_chunks])` with input
+`[{"text": None}]` and confirms it raises `TypeError: sequence item 0: expected str
+instance, NoneType found`. The script then runs the fixed `FaithfulnessChecker.check()`
+method on the same input and confirms it returns a valid score (0.0) without crashing.
+
+**PLAN.md link:** https://github.com/esfahani-moein/codepath_pathreview/blob/fix/153-faithfulness-none-text/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded.
+
+**Blockers or open questions:**
+Three pre-existing unit test failures (`test_partial_support_returns_middle_score`,
+`test_multiple_context_chunks`, `test_multiple_claims_varying_support`) are unrelated to
+this issue — they stem from the stop-word filtering logic in `_is_supported()`. These
+should not block the PR for #153 but may need separate issues filed.
