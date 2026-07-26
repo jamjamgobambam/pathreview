@@ -24,3 +24,16 @@ least one query keyword (e.g. drop "Python"), yielding a partial score that land
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+[1–2 sentences: How did you reproduce the issue? What did you observe?]
+The issue is reproduced by running the test suite, specifically the `tests/unit/test_relevance_scorer.py` file. I accomplished this by running .venv\Scripts\pytest tests\unit\test_relevance_scorer.py and got a failure of the TestRelevanceScorer.test_query_with_partial_overlap with the following assertation failing "assert 1.0 < 0.9"
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Blockers or open questions:**
+No Blockers
