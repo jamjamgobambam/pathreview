@@ -128,7 +128,7 @@ heading has been seen. Full evidence is captured in `reproduction/README.md`.
 `https://github.com/techmilano/pathreview/blob/fix/149-handle-documents-without-headings/PLAN.md`
 
 **Walkthrough video (recommended):**
-`[INSERT LOOM LINK OR WRITE "Not recorded"]`
+`Not recorded.`
 
 **Blockers or open questions:**
 The same `_extract_sections()` guard also discards introductory content before
