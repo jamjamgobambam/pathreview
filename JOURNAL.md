@@ -7,7 +7,7 @@
 **Tier:** [ ] Tier 1  [x] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-Right now, PathReview generates feedback for users without checking whether the tone is constructive. This means the app could produce feedback that reads as harsh or discouraging without any safeguard catching it before it reaches the user. This issue asks for a tone check step added to the feedback generation pipeline, likely inside the review or agent logic, that verifies generated feedback is written supportively and flags or rewrites anything that isn't. A successful fix ensures every piece of feedback shown to a user is honest but constructive in tone.
+After PathReview generates feedback for a user, there is currently no check on whether that feedback is written constructively. This issue asks for a tone classification step to run after generation, using a prompt to judge whether each feedback section is constructive (actionable, specific, encouraging) or negative (discouraging, vague, dismissive). Sections that fail the check should be rejected and regenerated rather than shown to the user. The main files affected are `safety/content_filter.py` and `rag/generator/review_generator.py`, so the fix touches both the safety layer and the review generation pipeline.
 
 **Branch name:** feat/69-feedback-tone-check
 
