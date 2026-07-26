@@ -69,7 +69,23 @@ All boxes checked — ready to claim and implement. Scope stays narrow: session 
 
 
 
-## Week 8 
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/tanisnus/pathreview/commit/78a2f1b
+
+**Reproduction summary:**
+
+Wrote two failing regression tests in tests/unit/test_orchestrator_stale_cache.py and ran python -m pytest tests/unit/test_orchestrator_stale_cache.py -v — no Redis needed. Both fail as expected: a reused Orchestrator serves stale in-memory ContextManager results on the second review (github_tool ran once, not twice — the input hash is byte-identical because tool_input never includes the edited content), and a tool dropped from a later plan still lingers in the persisted session state via session_state.update(results).
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
+
+
+
 ### Notes
 
 - The Orchestrator isn't wired into the API yet, so this is a design-level bug in the caching logic itself.
@@ -152,7 +168,7 @@ python -m pytest tests/unit/test_orchestrator_stale_cache.py -v
    The tools run once, not twice (`assert 1 == 2`). The cache key
    (`github_tool:d323f24e…`) is byte-identical across both reviews even though
    the project content changed, because `tool_input` = `{github_username,
-   repo_name}` never includes the edited content (`orchestrator.py:94-97`).
+   repo_name}` never includes the edited content (orchestrator.py:94-97).
 
 2. `test_stale_results_not_accumulated_in_session_state` — after a review that
    drops the project from the plan, the old `github_tool` result still lingers
