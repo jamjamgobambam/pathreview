@@ -60,3 +60,36 @@ problems)
 course portal (a per-section spreadsheet), not in this repo, so it isn't
 reachable from here. Still needs to be filled in by hand: name, GitHub
 username, issue #150, on the correct section tab.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ATgzh/pathreview/commit/ff23b0fc64d98ec3271e397dc32adbdeccee407c
+
+**Reproduction summary:**
+Wrote `scripts/repro_issue_150.py`, a runnable script using the exact file
+list from the issue body (2 Python files, 6 vendored/build JS files). Running
+it against current `main` confirms the bug directly: `primary_language`
+comes back `"JavaScript"` instead of the expected `"Python"`, because
+`_should_skip_file`'s leading-slash-anchored patterns never match top-level
+paths like `node_modules/lib/index.js`. This matches the two pre-existing
+failing tests named in the issue (`test_node_modules_excluded`,
+`test_build_directory_excluded`), which I also reran and confirmed still
+fail against `main`.
+
+**PLAN.md link:** https://github.com/ATgzh/pathreview/blob/fix/150-tech-detector-vendored-files/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded — I don't have a screen
+recording tool available in this environment. Skipping it since it's
+explicitly not graded; happy to record one later if it'd help for office
+hours.
+
+**Blockers or open questions:**
+None blocking. Two things I'm carrying into Week 9: (1) I haven't seen the
+"strong vs. weak solution plans" example doc referenced in the Week 8
+resources — no URL was available to me — so I can't confirm PLAN.md matches
+the expected level of detail beyond following the template structure
+carefully; would appreciate a gut-check. (2) My planned fix (splitting paths
+into segments and matching directory components) is a slightly different
+approach than a minimal patch to the existing regex-like patterns — I think
+segment-matching is more correct (see Risks & unknowns in PLAN.md for why),
+but I'll keep it small and reversible if reviewers prefer the narrower diff.
