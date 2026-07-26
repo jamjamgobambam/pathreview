@@ -19,3 +19,19 @@ The `review_service` unit tests incorrectly configure their mock database sessio
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [to be filled after push]
+
+**Reproduction summary:**
+Running `pytest tests/unit/test_review_service.py -q` produces 13 failures with `AttributeError: 'coroutine' object has no attribute 'first'` (and `'all'`) inside `core/services/review_service.py`. The failures are caused by tests setting `mock_result = AsyncMock()`, which makes `.scalars` an `AsyncMock` — calling it returns a coroutine instead of a plain Mock, so the service's `.scalars().first()` and `.scalars().all()` calls fail.
+
+**PLAN.md link:** https://github.com/melmel812/pathreview/blob/fix/158-review-service-async-mocks/PLAN.md
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:**
+`list_reviews` calls `db.execute` twice (count query + page query). After fixing `mock_result` to `MagicMock`, both calls return the same mock — need to verify test assertions are loose enough, or use `side_effect` to return separate mocks per call.
