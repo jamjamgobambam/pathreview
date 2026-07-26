@@ -29,7 +29,7 @@ default weights, normalization, a numerical example, and relevant edge cases.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** _(filled in follow-up commit — see the commit that adds this Week 8 section)_
+**Reproduction commit link:** https://github.com/tsunderii/pathreview/commit/df02de1f375ef22545b7e89f2e7e3ac589101118
 
 **Reproduction summary:**
 Because this is a documentation gap (not a runtime bug), I reproduced it by confirming
@@ -42,7 +42,7 @@ observed the exact blended scores I plan to document (A=1.000, C=0.500, B=0.467;
 dropped by the default `min_score=0.3`), confirming I understand precisely what is missing
 and where it belongs.
 
-**PLAN.md link:** _(filled in follow-up commit)_
+**PLAN.md link:** https://github.com/tsunderii/pathreview/blob/docs/36-hybrid-retrieval-scoring/PLAN.md
 
 **Walkthrough video (recommended):**
 
