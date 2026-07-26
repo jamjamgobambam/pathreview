@@ -20,3 +20,15 @@ This issue is right for me because I have never worked on an open source issue. 
 ## Week 8 — Reproduction & solution planning
 
 **Reproducing the Issue:** confirmed ARCHITECTURE.md line 60 mentions hybrid retrieval but doesn't outline or explain the formula defined in hybrid.py:78-81
+
+**Reproduction commit link:** https://github.com/cullan-wick/pathreview/commit/aeb4391
+
+**Reproduction summary:**
+Since this is a documentation gap rather than a runtime bug, I reproduced it by tracing the doc against the code: `docs/ARCHITECTURE.md` line 60 only says "hybrid retrieval (vector similarity + BM25 keyword)," while the actual scoring formula, default weights (0.7 / 0.3), 0–1 normalization, and `min_score` filter all live in `rag/retriever/hybrid.py` (lines 14, 58–59, 78–81, 92–97). I confirmed the doc gives a reader no way to understand the scoring without opening the source.
+
+**PLAN.md link:** https://github.com/cullan-wick/pathreview/blob/docs/36-hybrid-retrieval-scoring/PLAN.md
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
