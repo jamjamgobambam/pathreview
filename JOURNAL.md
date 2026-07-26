@@ -79,7 +79,7 @@ real and localized to that one doc file.
 
 **PLAN.md link:** [PLAN.md](PLAN.md)
 
-**Walkthrough video (recommended):** _(not recorded)_
+**Walkthrough video (recommended):** https://youtu.be/UjrDfip7_w4
 
 **Blockers or open questions:**
 None blocking. Open question for Week 9: how much of the post-blend behavior
