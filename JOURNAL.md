@@ -31,7 +31,7 @@ actually exists (`redis_url`) so the endpoint reports Redis's true status.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** _(added after commit — see below)_
+**Reproduction commit link:** https://github.com/PlacidoG/pathreview/commit/d942fa6
 
 **Classification:** Bug (code defect). Not a feature gap — the Redis health check is
 fully implemented and meant to work; it just reads config fields that don't exist. Not a
