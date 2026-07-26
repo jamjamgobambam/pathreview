@@ -8,6 +8,7 @@ from api.schemas.profile import ProfileCreate, ProfileUpdate
 from core.models.ingested_source import IngestedSource
 from core.models.profile import Profile
 from core.models.review import Review
+from rag.retriever.vector_store import VectorStore
 
 log = structlog.get_logger()
 
@@ -103,6 +104,19 @@ async def delete_profile(
         # Delete profile
         await db.delete(profile)
         await db.commit()
+
+        # Best-effort: clean up the profile's ChromaDB embedding collection.
+        # Errors are logged but not re-raised — the DB delete is the primary operation
+        # and has already committed successfully.
+        try:
+            vector_store = VectorStore()
+            vector_store.delete_collection(f"profile_{profile_id}")
+        except Exception as vs_exc:
+            log.error(
+                "profile_vector_store_cleanup_failed",
+                profile_id=str(profile_id),
+                error=str(vs_exc),
+            )
 
         log.info("profile_deleted_cascade", profile_id=str(profile_id))
         return True
