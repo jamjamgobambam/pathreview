@@ -15,7 +15,24 @@ The root cause is in FaithfulnessChecker.check(). It builds context_text using c
 2. Run test_none_context_chunk_text locally to confirm it now passes
 3. Run the full test file (pytest tests/unit/test_faithfulness_checker.py) to confirm no other tests regressed
 4. Manually verify the exact repro command from REPRODUCTION.md no longer raises TypeError
-5. Review the fix against CONTRIBUTING.md code style (docstrings, Google style) before opening the PR
+5. Write a new test for the mixed None/valid chunks edge case (see test snippet below)
+6. Review the fix against CONTRIBUTING.md code style (docstrings, Google style) before opening the PR
+
+**Test I will add:**
+
+    def test_mixed_none_and_valid_context_chunks(self, checker):
+        """Test that chunks with None text do not break scoring when mixed with valid chunks."""
+        feedback = "Has Python skills"
+        context_chunks = [
+            {"text": None},
+            {"text": "Strong Python programming experience"},
+        ]
+
+        score = checker.check(feedback, context_chunks)
+
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+        assert score > 0.0  # the valid chunk should still contribute support
 
 ### Inputs & outputs
 - Input: context_chunks: list[dict], where each dict may have a "text" key that is a string, None, or missing entirely
