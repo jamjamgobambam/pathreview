@@ -1,23 +1,24 @@
 ## Solution plan
 
-**Issue:** [issue title and link]
+**Issue:** [Hybrid retriever over-weights keyword results when query contains technology names #24](https://github.com/ascherj/pathreview/issues/24)
 
 ### Understand
-What is the root cause of this issue? What behavior is expected vs. actual?
+The root cause of this issue is the schematic chunking. The data is getting retrived but the chunks are not being evaluated properly to get relevant results. This causes sometimes unexpected behaviors that seem relevant.
 
 ### Map
-Which files, functions, or modules are involved?
-List the specific files you expect to touch.
+I expect to touch `rag/retriver/hybrid.py` and `app.py`.
 
 ### Plan
-What are the steps to fix this issue?
-Break it into 3–5 concrete sub-tasks.
+1. Retry the prompt to see if that could fix the problem.
+2. Review the code in `hybrid.py` to decide where the root of the problem might be.
+3. Trace through the code and look at other files in `rag/retriver`.
+4. Fix the problem by reframing how chunks are sorted. 
 
 ### Inputs & outputs
-What does your fix take as input? What should it produce or change?
+The fix takes in the query from the user and the profile id to know which user the question is referring to. It returns all of the chunks in a list.
 
 ### Risks & unknowns
-What could go wrong? What are you still unsure about?
+What could go wrong is the evaluation of the individual chunks that are being sent for NLP. What is unknown currently is how the chunks are being retreived.
 
 ### Edge cases
-What inputs or states should your fix handle gracefully?
+The fix should gracefully handle a situation where there are no chunks to be retrieved.
