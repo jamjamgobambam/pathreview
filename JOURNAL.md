@@ -77,7 +77,7 @@ All boxes checked — ready to claim and implement. Scope stays narrow: session 
 
 Wrote two failing regression tests in tests/unit/test_orchestrator_stale_cache.py and ran python -m pytest tests/unit/test_orchestrator_stale_cache.py -v — no Redis needed. Both fail as expected: a reused Orchestrator serves stale in-memory ContextManager results on the second review (github_tool ran once, not twice — the input hash is byte-identical because tool_input never includes the edited content), and a tool dropped from a later plan still lingers in the persisted session state via session_state.update(results).
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/tanisnus/pathreview/blob/fix/43-stale-session-cache/PLAN.md
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
