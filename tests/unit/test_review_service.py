@@ -1,14 +1,16 @@
 """Tests for review_service.py"""
 
-import pytest
-from uuid import uuid4
 from unittest.mock import AsyncMock, Mock, patch
-import asyncio
+from uuid import uuid4
+
+import pytest
 
 from core.services.review_service import (
+    _run_ingestion_pipeline,
     create_review,
     get_review,
     list_reviews,
+    process_review,
 )
 
 
@@ -45,7 +47,9 @@ class TestReviewService:
         return profile
 
     @pytest.mark.asyncio
-    async def test_create_review_returns_review_with_pending_status(self, mock_db_session, mock_review):
+    async def test_create_review_returns_review_with_pending_status(
+        self, mock_db_session, mock_review
+    ):
         """Test create_review returns Review with status='pending'."""
         profile_id = uuid4()
         user_id = uuid4()
@@ -55,7 +59,7 @@ class TestReviewService:
         mock_db_session.commit = AsyncMock()
         mock_db_session.refresh = AsyncMock()
 
-        with patch('core.services.review_service.Review') as MockReview:
+        with patch("core.services.review_service.Review") as MockReview:
             mock_instance = MockReview.return_value
             mock_instance.status = "pending"
             mock_instance.sections = None
@@ -66,7 +70,7 @@ class TestReviewService:
             # Check that Review was instantiated
             MockReview.assert_called()
             call_kwargs = MockReview.call_args[1]
-            assert call_kwargs['status'] == "pending"
+            assert call_kwargs["status"] == "pending"
 
     @pytest.mark.asyncio
     async def test_get_review_returns_review_for_correct_owner(self, mock_db_session):
@@ -133,9 +137,7 @@ class TestReviewService:
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
-        reviews, total = await list_reviews(
-            mock_db_session, user_id, page=2, page_size=page_size
-        )
+        reviews, total = await list_reviews(mock_db_session, user_id, page=2, page_size=page_size)
 
         # Second call should pass offset for page 2
         calls = mock_db_session.execute.call_args_list
@@ -165,7 +167,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.add.assert_called_once()
@@ -176,7 +178,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.commit.assert_called_once()
@@ -187,7 +189,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.refresh.assert_called_once()
@@ -244,13 +246,13 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review') as MockReview:
+        with patch("core.services.review_service.Review") as MockReview:
             MockReview.return_value = Mock()
             await create_review(mock_db_session, profile_id, user_id)
 
             call_kwargs = MockReview.call_args[1]
-            assert 'profile_id' in call_kwargs
-            assert 'status' in call_kwargs
+            assert "profile_id" in call_kwargs
+            assert "status" in call_kwargs
 
     @pytest.mark.asyncio
     async def test_get_review_verifies_ownership(self, mock_db_session):
@@ -287,7 +289,7 @@ class TestReviewService:
         """Test list_reviews returns list of Review objects."""
         user_id = uuid4()
 
-        mock_reviews = [Mock(spec=['id', 'status']) for _ in range(3)]
+        mock_reviews = [Mock(spec=["id", "status"]) for _ in range(3)]
         mock_result = AsyncMock()
         mock_result.scalars.return_value.all.return_value = mock_reviews
         mock_db_session.execute = AsyncMock(return_value=mock_result)
@@ -302,13 +304,13 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review') as MockReview:
+        with patch("core.services.review_service.Review") as MockReview:
             MockReview.return_value = Mock()
             await create_review(mock_db_session, profile_id, user_id)
 
             call_kwargs = MockReview.call_args[1]
-            assert call_kwargs['sections'] is None
-            assert call_kwargs['overall_score'] is None
+            assert call_kwargs["sections"] is None
+            assert call_kwargs["overall_score"] is None
 
     @pytest.mark.asyncio
     async def test_get_review_with_valid_uuid(self, mock_db_session):
@@ -338,3 +340,73 @@ class TestReviewService:
 
         # Should order by created_at descending
         mock_db_session.execute.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_process_review_stops_early_when_review_is_not_found(self, mock_db_session):
+        """Test process_review stops early when review is not found"""
+        review_id = uuid4()
+        profile_id = uuid4()
+
+        mock_result = Mock()
+        mock_result.scalars.return_value.first.return_value = None
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+
+        # Confirm error is logged as stated
+        with patch("core.services.review_service.log") as mock_log:
+            await process_review(mock_db_session, review_id, profile_id)
+            mock_log.error.assert_called_once_with(
+                "review_not_found_for_processing", review_id=str(review_id)
+            )
+
+        mock_db_session.execute.assert_awaited_once()
+        mock_db_session.add.assert_not_called()
+        mock_db_session.commit.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_process_review_stops_early_when_profile_is_not_found(self, mock_db_session):
+        """Test process_review stops early when profile is not found"""
+        review_id = uuid4()
+        profile_id = uuid4()
+
+        fake_review = Mock()
+        review_lookup_result = Mock()
+        review_lookup_result.scalars.return_value.first.return_value = fake_review
+
+        profile_lookup_result = Mock()
+        profile_lookup_result.scalars.return_value.first.return_value = None
+
+        mock_db_session.execute = AsyncMock(
+            side_effect=[review_lookup_result, profile_lookup_result]
+        )
+
+        # Confirm error is logged as stated
+        with patch("core.services.review_service.log") as mock_log:
+            await process_review(mock_db_session, review_id, profile_id)
+            mock_log.error.assert_called_once_with(
+                "profile_not_found_for_processing", profile_id=str(profile_id)
+            )
+
+        assert mock_db_session.execute.await_count == 2
+        mock_db_session.add.assert_called_once_with(fake_review)
+        assert fake_review.status == "failed"
+        mock_db_session.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_run_ingestion_pipeline_adds_nothing_and_returns_empty_list_if_profile_is_empty(
+        self,
+    ):
+        """Test _run_ingestion_pipeline adds nothing and returns empty list if profile is empty"""
+        fake_profile = Mock()
+        fake_profile.github_username = None
+        fake_profile.portfolio_url = None
+        fake_profile.resume_text = None
+
+        mock_db = Mock()
+        mock_db.add = Mock()
+        mock_db.commit = AsyncMock()
+
+        sources = await _run_ingestion_pipeline(mock_db, fake_profile)
+
+        mock_db.add.assert_not_called()
+        mock_db.commit.assert_awaited_once()
+        assert sources == []
