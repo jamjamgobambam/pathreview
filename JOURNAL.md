@@ -23,7 +23,7 @@ I chose this issue because it is a Tier 1 bug with a clearly defined scope. The 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [Paste the GitHub link to your reproduction commit after you push it.]
+**Reproduction commit link:** https://github.com/ascherj/pathreview/commit/966e0575341a33ba09b36e959b2be78b0059e6cf
 
 **Reproduction summary:**
 
@@ -33,7 +33,7 @@ I reproduced Issue #146 by running the PII scrubber unit tests with:
 
 The tests confirmed that phone numbers formatted as `(555) 123-4567` are not detected or redacted. Specifically, the tests `test_us_phone_number_redaction`, `test_us_phone_formats`, `test_detect_phone_pii`, and `test_phone_at_start_of_text` failed, confirming the bug described in the issue.
 
-**PLAN.md link:** [Paste the GitHub link to your PLAN.md file after you push it.]
+**PLAN.md link:** https://github.com/tamarirhy/pathreview/blob/fix/146-pii-scrubber-phone-redaction/PLAN.md
 
 **Walkthrough video (recommended):**
 
