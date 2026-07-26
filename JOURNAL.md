@@ -21,7 +21,7 @@ The issue is that there is a readme scorer that is hardcoded to have the readme'
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/oasis-pandey/pathreview/commit/47727a29aa10a668275a48f2db2b56fa5737d07f
 
 **Reproduction summary:**
 I reproduced the issue by running `pytest tests/unit/test_readme_scorer.py -q`. The test failed at `assert data["word_count"] > 100` because the fixture README only produced a word count of 51, which confirms the fixture is too short for the assertion.
