@@ -65,3 +65,35 @@ or the review data model, since those are out of scope for this issue and would
 expand the blast radius. If deduplication turns out to need richer metadata
 (e.g. per-project tech-stack tags), I'll note that as a follow-up rather than
 widen this issue.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/arunkasala-open/pathreview/commit/ed4d09e42beafd07220784bcafe3eba542bbe341
+
+**Reproduction summary:**
+I added a unit test (`tests/unit/test_issue_28_duplicate_feedback.py`) that
+feeds the parse → consolidate path an LLM payload for three same-stack Python
+projects with identical "Python skills" content. After
+`ReviewGenerator._consolidate_feedback` runs, all three duplicate sections
+survive (expected 1), confirming the bug: consolidation dedupes by
+`section_name` only and never compares content. The failing assertion is marked
+`xfail(strict=True)` so it documents the reproduction now and will flip to a
+signal to remove the marker once the fix lands.
+
+**PLAN.md link:** https://github.com/arunkasala-open/pathreview/blob/fix/28-duplicate-feedback-sections-when-multiple-projects/PLAN.md
+
+**Walkthrough video (recommended):** _(not recorded yet)_
+
+**Blockers or open questions:**
+- Choosing the content-similarity threshold for merging "nearly identical"
+  feedback without collapsing genuinely distinct observations — I'll tune this
+  with tests.
+- Whether to add an optional `projects` field to `FeedbackSection` (cleaner) or
+  encode the affected projects in the content string (less invasive); depends on
+  how `_add_citations` and the API review schema consume it.
+- Pre-existing `mypy` error in `output_parser.py` (dead `sections = []`, present
+  on `main`) blocks the pre-commit hook / CI on any commit touching these files;
+  I'll fix it as part of the solution PR.
+
