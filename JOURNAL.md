@@ -17,3 +17,15 @@ This issue has a clear deliverable, named components, an expected test location,
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Starscreen2/pathreview/commit/13f67d0180fd4b954f7d20af26de94443c18eda5
+
+**Reproduction summary:** I reproduced the feature gap by confirming that `tests/integration/` contains no safety middleware test and that pytest reports no collected integration tests. The four safety components can be called independently, but no existing code or test sends the same input through the complete documented sequence.
+
+**PLAN.md link:** https://github.com/Starscreen2/pathreview/blob/test/75-safety-middleware-integration-tests/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded (recommended, not graded).
+
+**Blockers or open questions:** The repository has no production safety-chain orchestrator, so the remaining question for Week 9 is whether issue #75 expects only test-local composition in the named integration test or a separate production pipeline. Existing component tests also include unrelated baseline failures, which should not expand this integration-test issue without maintainer direction.
