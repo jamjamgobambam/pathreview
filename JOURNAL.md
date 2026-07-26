@@ -39,8 +39,6 @@ raised from the `" ".join(...)` call in `FaithfulnessChecker.check()` — confir
 
 **PLAN.md link:** https://github.com/ateressa/pathreview/blob/fix/153-faithfulness-checker-none-context-text/PLAN.md
 
-**Walkthrough video (recommended):**
-
 **Blockers or open questions:**
 `relevance_scorer.py:32` has the same `chunk.get("text", "")` pattern and may have
 an identical latent crash reachable through `EvalSuite.run()`. Leaving it out of
