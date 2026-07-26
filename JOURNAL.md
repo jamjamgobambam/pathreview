@@ -8,7 +8,7 @@
 **Problem summary:**
 Currently there is no rate limiting implemented on the API endpoint, the only limiter is the mocked Redis one that shows why the unit test passed rather than the live program. When I, the user tried to make many requests they were all 200 ok which shows why I was not able to get 429. I will need to add the middle ware of the rate limiting along with the headers to notify the users how many requests. Since its a middle ware, I dont need to go implement it for all routes as all responses will need to go through my middle ware.
 
-**Branch name:** `fix/86/api-rate-limiting-header`
+**Branch name:** `fix/86-api-rate-limiting-header`
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
@@ -45,3 +45,28 @@ wired in.
 **Scope:**
 
 I have worked with other large codebases before like Thonny and Idle Python Editors, so I believe this issue will be addressed within the next couple of weeks.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I went to `http://localhost:8000/docs#/reviews/list_reviews_endpoint_reviews_get` and logged in with `user1.example.com` on the lock icon to generate a curl command of the reviews. Then I used the terminal with the following commands. Where the key is the token generated with the curl command.
+``` bash
+TOKEN=<Key>
+
+for i in {1..1000}; do
+  code=$(curl -s -o /dev/null -w "%{http_code}" \
+    "http://localhost:8000/reviews?page=1&page_size=20" \
+    -H "Authorization: Bearer $TOKEN")
+  echo "$code"
+done > status_code.log
+```
+Once it's done running, I ran `sort status_code.log | uniq -c` and it showed `1000 200` in the terminal.
+
+These commands prints the status codes of 1000 GET requests made for the reviews page and prints it out to a `status_code.log` file then the `sort status_code.log | uniq -c` finds different instances of status codes. `1000 200` means that there are 1000 instances of 200 status codes and shows no 429 meaning a rate limiter has not been implemented for the API. I also ran the test suite for `tests/unit/test_rate_limiter.py`, it shows that all tests passed, but upon further inspection, it only tests on a mocked Redis rather than actual requests from the API.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
