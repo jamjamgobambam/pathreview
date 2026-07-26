@@ -16,3 +16,17 @@ This bug is about the AI reviewer "remembering" things it shouldn't. When a user
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/rehanNY06/pathreview-RB/commit/302e4de
+
+**Reproduction summary:**
+I wrote a standalone script that creates an Orchestrator with a fake tool that counts how many times it actually runs, then calls `.run()` twice for the same profile. The logs confirmed a "tool_result_cache_hit" on the second call, and the tool only executed once across both calls — proving the second review silently reused the first review's cached result instead of running fresh.
+
+**PLAN.md link:** https://github.com/rehanNY06/pathreview-RB/blob/fix/43-agent-session-state-not-cleared/PLAN.md
+
+**Walkthrough video (recommended):** (skipped, optional)
+
+**Blockers or open questions:**
+The real orchestration logic isn't wired into the live API yet — `_run_agent_orchestration()` in `review_service.py` is currently a placeholder that returns hardcoded data. I reproduced the bug directly against the `Orchestrator` class instead. I'm not yet sure if wiring the real orchestrator into the API is in scope for my fix, or a separate issue — planning to ask in Slack/office hours.
