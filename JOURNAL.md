@@ -20,3 +20,18 @@ After the fix, headless documents should at least be retained as a single chunk 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ShiriZhang/pathreview/commit/54ff4590b6f6ceb8d561a684f2dfa8f153c20c9e
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_structural_chunker.py -k test_document_with_no_headings -v` locally; the existing test fails with `assert 0 >= 1` because `StructuralChunker.chunk()` returns an empty list for a plain-text document with no Markdown headings, confirming the behavior described in issue #149.
+
+**PLAN.md link:** https://github.com/ShiriZhang/pathreview/blob/fix/149-chunker-drops-no-heading-docs/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded this week
+
+**Blockers or open questions:**
+Still deciding between two fix strategies (treat headless doc as one section vs. fully delegate to SemanticChunker) — plan to check linked PRs #192/#162 for precedent before finalizing in Week 9. Also spent some time confirming a pre-commit failure was pre-existing project debt rather than a fork-sync issue (documented in PLAN.md's Risks & unknowns).
