@@ -21,14 +21,15 @@ This issue has a clearly defined problem, reproduction example, and expected res
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [to be added after committing]
+**Reproduction commit link:** https://github.com/hedreez09/pathreview/commit/c2dedbe
 
 **Reproduction summary:**
 I reproduced issue #150 by running the existing tests for excluding `node_modules/` and `build/` files. Both tests failed because the detector counted JavaScript files in those directories and reported JavaScript as the primary language instead of Python.
 
-**PLAN.md link:** [to be added after creating PLAN.md]
+**PLAN.md link:**https://github.com/hedreez09/pathreview/blob/fix/150-ignore-vendored-build-output/PLAN.md
 
 **Walkthrough video (recommended):** Not recorded
 
 **Blockers or open questions:**
 I need to determine whether the fix should normalize both forward-slash and Windows backslash paths while avoiding false matches for similarly named directories.
+
