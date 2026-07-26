@@ -17,3 +17,16 @@ The faithfulness checker's `check()` method builds context text by pulling the `
 
 **Scope reasoning:**
 I chose a Tier 1 issue since this is my first time contributing to a large, unfamiliar codebase, and Tier 1 issues are scoped to a single file/function rather than requiring system-wide understanding. This issue is well-scoped: the bug is isolated to one function (`check()`) in one file (the faithfulness checker in `rag/`), the root cause is already clearly identified in the issue description, and there's an existing failing test I can use to verify my fix. I estimate this will take 3-6 hours of focused work, which fits comfortably within the Week 8-9 timeline. Several other students are also working on this issue, but since claims are non-exclusive and grading is based on my own submitted artifacts, that doesn't change my choice. There are no blockers or dependencies noted on the issue.
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/jmonarro-ai/pathreview/commit/97e9b0a
+
+**Reproduction summary:**
+I ran the existing test test_none_context_chunk_text against the unmodified FaithfulnessChecker.check() method and confirmed it fails with TypeError: sequence item 0: expected str instance, NoneType found, matching the crash described in issue #153. I documented the full command and traceback in REPRODUCTION.md.
+
+**PLAN.md link:** https://github.com/jmonarro-ai/pathreview/blob/fix/153-faithfulness-none-context-text/PLAN.md
+
+**Walkthrough video (recommended):** N/A (skipped - not graded)
+
+**Blockers or open questions:**
+None currently. The fix is well-scoped to one line in check(); the main thing I'll verify in Week 9 is that the fix doesn't change scores for any of the other currently-passing tests.
