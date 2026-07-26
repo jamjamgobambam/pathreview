@@ -1,0 +1,28 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/devmilano/git/pathreview/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/devmilano/git/pathreview
+configfile: pyproject.toml
+collecting ... collected 1 item
+
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_document_with_no_headings FAILED [100%]
+
+=================================== FAILURES ===================================
+_____________ TestStructuralChunker.test_document_with_no_headings _____________
+
+self = <tests.unit.test_structural_chunker.TestStructuralChunker object at 0x7b50a2e637a0>
+chunker = <ingestion.chunking.structural_chunker.StructuralChunker object at 0x7b50a3030980>
+
+    def test_document_with_no_headings(self, chunker):
+        """Test document with no headings returns single chunk."""
+        text = "This is plain text without any markdown headings. " * 20
+        result = chunker.chunk(text, {"source": "test"})
+    
+>       assert len(result) >= 1
+E       assert 0 >= 1
+E        +  where 0 = len([])
+
+tests/unit/test_structural_chunker.py:33: AssertionError
+=========================== short test summary info ============================
+FAILED tests/unit/test_structural_chunker.py::TestStructuralChunker::test_document_with_no_headings
+============================== 1 failed in 0.17s ===============================
