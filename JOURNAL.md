@@ -23,14 +23,14 @@ This issue is labeled Tier 1 and has a focused scope in one main component of th
 ## Week 8 – Reproduction & solution planning
 
 **Reproduction commit link:**
-[to be added after pushing]
+[\[link\]](https://github.com/winniehappi1/pathreview/blob/fix/152-short-claim-support/JOURNAL.md)
 
 **Reproduction summary:**
 
 I reproduced Issue #152 by running the faithfulness checker unit tests locally using pytest. The tests showed that short supported claims were incorrectly scored as unsupported, and a None value in a context chunk caused a TypeError.
 
 **PLAN.md link:**
-[to be added after pushing]
+[\[link\]](https://github.com/winniehappi1/pathreview/blob/fix/152-short-claim-support/PLAN.md)
 
 **Walkthrough video:**
 Not recorded.
