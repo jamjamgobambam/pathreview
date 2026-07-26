@@ -89,8 +89,7 @@ the repo's `AsyncMock` session convention:
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** _(this commit — see hash after push:
-`https://github.com/smtanaka00/pathreview/commit/<REPRO_COMMIT>`)_
+**Reproduction commit link:** https://github.com/smtanaka00/pathreview/commit/3790cd7d8114c46ec38d6c7db6d3b7faa0d80887
 
 **Reproduction summary:**
 Brought up the real stack (`docker compose up -d db redis`), temporarily reverted the one-line
