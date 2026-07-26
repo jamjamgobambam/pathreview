@@ -20,9 +20,9 @@ The issue is that the keywords are being matched incorrectly and the model will 
 **Reproduction commit link:** [link to commit documenting the reproduced issue]
 
 **Reproduction summary:**
-[1–2 sentences: How did you reproduce the issue? What did you observe?]
+I reproduced the issue by uploading my own resume. There didn't seem to be much errors however, there were some slight variability for the same resume across different accounts.
 
 **PLAN.md link:** [link to PLAN.md in your fork]
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+I am still uncertain about where the error exactly is and what type of logic error it is.
