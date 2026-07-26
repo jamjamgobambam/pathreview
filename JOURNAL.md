@@ -37,7 +37,7 @@ in the tracker is 3–5 hours, which matches a middleware-plus-tests task.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** Pending — add after the reproduction commit is created and approved.
+**Reproduction commit link:** https://github.com/isomer04/pathreview/commit/ec0a927276011808879f5f6a021152a25ebb6f4c
 
 **Reproduction summary:** I sent 65 in-process requests from the same test client to the dependency-free `/` API route, exceeding the configured 60-request limit. Every request returned `200`, the final response had no `X-RateLimit-Limit` or `X-RateLimit-Remaining` header, and `X-Request-ID` was present; separately, all 19 existing `RateLimiter` unit tests passed, confirming that the gap is missing API wiring rather than the limiter algorithm.
 
