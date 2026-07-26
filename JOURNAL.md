@@ -25,46 +25,15 @@ In safety/bias_detector.py we see regex patterns used here to create bias detect
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** [[link to commit documenting the reproduced issue](https://github.com/snugcoder/pathreview/commit/54a5200621d29914b07fee43eba33661a745bfad)]
 
 **Reproduction summary:**
 [1–2 sentences: How did you reproduce the issue? What did you observe?]
 I reproduced the issue by running the test suite. I observed that the bias patterns were too specific and caused the test cases to fail. 
 
-**PLAN.md link:** [https://github.com/snugcoder/pathreview/blob/fix/safety/151-expanding-bias-detector-patterns/PLAN.md]
+**PLAN.md link:** [link to PLAN.md in your fork]
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — shared for early feedback]
 
 **Blockers or open questions:**
-
-
-## Week 9 — Solution building & PR submission
-
-### Check-in 1 (mid-week)
-
-**Current progress:**
-[I have implemented all steps from PLAN.md]
-
-**Next steps:**
-[I am working on any additional testing that may be needed before closing this PR]
-
-**Blockers:**
-[Only my PC]
-
----
-
-### Check-in 2 (end of week)
-
-**PR link:** [link to your submitted pull request]
-
-**Branch:** `fix/safety/151-expanding-bias-detector-patterns`
-
-**What you built:**
-[This fix included creating a new system for determining bias patterns. Instead of strict regex pattern matching, the bias_detector.py file now uses a series of input normalization and cleaning, before checking its phrases against a dictionary of phrases. To be determined as biased, it must match at least 6 words from the dictionary. It also takes into account dismissive phrases such as not, lack, etc, to be as accurate as possible for bias detection.]
-
-**Tests added or updated:**
-I had to update all the tests in order to pass make check and CI, but I added new test cases testing different cases in phrasing, whitespace, precise phrasing found in the dictionary, as well as words not placed into the dictionary. 
-
-**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
-
-**Draft PR feedback received from:** Adejola Ogunsan
+[Anything you're still uncertain about going into Week 9, or leave blank]
