@@ -48,7 +48,7 @@ I have worked with other large codebases before like Thonny and Idle Python Edit
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** [Link to Commit Documenting the Reproduced Issue](https://github.com/ascherj/pathreview/commit/cc6aa2d6556f14164dedfd9f994bd92b8dcf7655)
 
 **Reproduction summary:**
 I went to `http://localhost:8000/docs#/reviews/list_reviews_endpoint_reviews_get` and logged in with `user1.example.com` on the lock icon to generate a curl command of the reviews. Then I used the terminal with the following commands. Where the key is the token generated with the curl command.
