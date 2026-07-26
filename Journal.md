@@ -38,3 +38,32 @@ The personal information scrubbery in pii_scrubber.py is not redacting phone num
 - **Estimated time:** 2-3 hrs
 - **Can I finish before the deadline?** Yes, seems like a minor issue. I have solved similar bugs before.
 - **Dependencies/blockers:** None
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I reproduced the issue by following the instructions for the bug on github: 
+
+I ran the following script in the project root:
+```
+# script to reproduce pii bug
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from pii_scrubber import PIIScrubber
+s = PIIScrubber()
+print(s.scrub('Call me at (555) 123-4567 or 555-123-4567'))
+# observed: 'Call me at (555) 123-4567 or [REDACTED]'
+print(s.detect('Call me at (555) 123-4567'))
+# observed: []
+```
+**PLAN.md link:** [PLAN.md]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
