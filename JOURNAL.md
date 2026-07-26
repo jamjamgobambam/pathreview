@@ -34,3 +34,13 @@ in the tracker is 3–5 hours, which matches a middleware-plus-tests task.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** Pending — add after the reproduction commit is created and approved.
+
+**Reproduction summary:** I sent 65 in-process requests from the same test client to the dependency-free `/` API route, exceeding the configured 60-request limit. Every request returned `200`, the final response had no `X-RateLimit-Limit` or `X-RateLimit-Remaining` header, and `X-Request-ID` was present; separately, all 19 existing `RateLimiter` unit tests passed, confirming that the gap is missing API wiring rather than the limiter algorithm.
+
+**PLAN.md link:** https://github.com/isomer04/pathreview/blob/feat/86-ratelimit-headers/PLAN.md
+
+**Blockers or open questions:** Confirm whether trusted proxy configuration is available before using forwarded IP headers; otherwise use `request.client.host`. Middleware order and Redis fail-open header semantics need to be covered explicitly by the implementation tests.
