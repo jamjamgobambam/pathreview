@@ -61,7 +61,7 @@ comment on the issue to record my claim.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** _REPRO_COMMIT_URL_
+**Reproduction commit link:** https://github.com/knowbibek/pathreview/commit/8562401290b8b29cc5220a28af0f6bc6a342f0bd
 
 **Reproduction summary:**
 Because this is a documentation-gap issue rather than a runtime bug, I
