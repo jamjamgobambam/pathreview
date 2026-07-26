@@ -17,7 +17,7 @@ The FaithfulnessChecker in the RAG eval suite (rag/evaluator/faithfulness_checke
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [384e2a8](https://github.com/GolamMortuzaSourov/pathreview/commit/384e2a8feb01648ce8a4afab96c9fbceb392b3fc)
+**Reproduction commit link:** [bc4f381](https://github.com/GolamMortuzaSourov/pathreview/commit/bc4f381fe68b74729b027504661a31e93a00e8f9)
 
 **Reproduction summary:**
 Ran the existing unit test `tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_none_context_chunk_text` against a chunk of `{"text": None}` and it fails with `TypeError: sequence item 0: expected str instance, NoneType found` at `rag/evaluator/faithfulness_checker.py:34` — confirming the `" ".join([chunk.get("text", "") ...])` crash, because `dict.get("text", "")` returns `None` (not `""`) when the key exists but is explicitly `None`.
