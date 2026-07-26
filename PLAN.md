@@ -74,4 +74,4 @@ Document (or at least acknowledge in the example / caveats) that the implementat
 
 ---
 
-*Living document — update in Week 9 if the doc section’s final shape differs.*
+*Living document — Week 9: ARCHITECTURE.md hybrid scoring subsection implemented; doc acceptance tests should now pass.*

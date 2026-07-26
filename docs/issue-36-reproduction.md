@@ -28,7 +28,7 @@
 pytest tests/unit/test_architecture_hybrid_docs.py -v
 ```
 
-These three tests **fail today** because the docs lack the required content. After the Week 9 doc fix, they should pass.
+These three tests **failed during Week 8** while the docs gap existed. After the Week 9 `ARCHITECTURE.md` fix they should **pass**.
 
 ## Manual quote check (optional)
 
