@@ -66,7 +66,7 @@ Once it's done running, I ran `sort status_code.log | uniq -c` and it showed `10
 
 These commands prints the status codes of 1000 GET requests made for the reviews page and prints it out to a `status_code.log` file then the `sort status_code.log | uniq -c` finds different instances of status codes. `1000 200` means that there are 1000 instances of 200 status codes and shows no 429 meaning a rate limiter has not been implemented for the API. I also ran the test suite for `tests/unit/test_rate_limiter.py`, it shows that all tests passed, but upon further inspection, it only tests on a mocked Redis rather than actual requests from the API.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** [PLAN.md](PLAN.md)
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
