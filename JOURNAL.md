@@ -49,3 +49,38 @@ First, I need to confirm whether expanding the separator character class to supp
 Second, I need to determine how to handle the pre-commit hooks for `tests/unit/test_pii_scrubber.py`. The file currently fails because of existing linting and type-checking problems that are unrelated to my change. I verified that these failures existed before my edit by stashing my changes and running the checks again. After discussing it with a reviewer, I committed the reproduction test using `--no-verify`.
 
 I am also documenting, but not fixing, the unrelated `street_address` false-positive involving `"Pl"` that appears in `test_mixed_pii_and_text`. That problem looks like it should be reported and handled as its own seperate issue.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the actual regex fix for issue #146 in safety/pii_scrubber.py. The phone_us pattern now allows whitespace as a seperator (not just dash or dot), and I swapped the leading \b for a (?<!\w) lookbehind so the optional opening paren actually gets included in the match instead of getting dropped. This was the exact root cause I wrote up in PLAN.md, so this week was mostly just executing that plan rather then discovering anything new.
+
+Removed the strict xfail marker on test_parenthesized_phone_number_reproduction since it passes for real now. Ran the full pii_scrubber test file and confirmed all 4 target tests pass (test_us_phone_number_redaction, test_us_phone_formats, test_detect_phone_pii, test_phone_at_start_of_text), plus the reproduction test.
+
+Also ran the whole make test-unit and make check across the repo to check i didnt break anything else. Baseline before my change was 53 failed / 375 passed / 1 xfailed. After my change its 49 failed / 380 passed — exactly the 4 tests I targeted flipped to passing, zero new failures. make check has 181 pre-exisitng ruff errors repo wide and thats identical before and after my change too, so nothing new there either.
+
+**Next steps:**
+Fill out the PR template fully, including documenting the pre-existing failures so they dont get mistaken for something my change broke. Then adress any feedback and finalize.
+
+**Blockers:**
+None really. The one thing that took extra time was making sure the pre-existing failures (49 of them, mostly totally unrelated modules like test_review_service.py and test_bias_detector.py) were actually pre-existing and not something I accidentally touched — had to stash my change and rerun the suite to double check the before/after counts line up.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [to be filled in once opened — see PR draft instructions]
+
+**Branch:** `fix/146-parenthesized-phone-redaction`
+
+**What you built:**
+Fixed the phone_us regex in the PII scrubber so it also catches parenthesized and space-seperated US phone numbers like "(555) 123-4567" and "+1 555 123 4567", which were previously passing through scrub() completely unredacted. The fix is a one line regex change plus removing the xfail marker from the reproduction test added in week 8.
+
+**Tests added or updated:**
+tests/unit/test_pii_scrubber.py — the reproduction test from week 8 (test_parenthesized_phone_number_reproduction) no longer needs its xfail marker since it passes for real now. No new test files needed, the existing suite already had the coverage (test_us_phone_number_redaction, test_us_phone_formats, test_detect_phone_pii, test_phone_at_start_of_text) — they were just failing before the fix.
+
+**Self-review confirmation:** [x] make check passes (for my changed files — repo-wide has 181 pre-exisitng ruff errors unrelated to this change, documented in PR description) [x] make test-unit passes (49 pre-exisitng unrelated failures documented in PR description, my change fixes 4 and introduces 0 new ones)
+
+**Draft PR feedback received from:** 
