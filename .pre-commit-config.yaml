@@ -14,5 +14,6 @@ repos:
     rev: v1.8.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-redis]
+        additional_dependencies: [types-redis, types-PyYAML]
         args: [--ignore-missing-imports]
+        language_version: python3.13

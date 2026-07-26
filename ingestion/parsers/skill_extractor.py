@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -105,7 +105,34 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    # Maps a `uses:` action prefix (owner/repo, ignoring @ref) to a skill.
+    WORKFLOW_ACTION_SKILLS = {
+        "docker/build-push-action": ("Docker", "Tool", 0.95),
+        "docker/login-action": ("Docker", "Tool", 0.90),
+        "docker/setup-buildx-action": ("Docker", "Tool", 0.85),
+        "actions/setup-python": ("Python", "Language", 0.80),
+        "actions/setup-node": ("JavaScript", "Language", 0.80),
+        "aws-actions/configure-aws-credentials": ("AWS", "Tool", 0.90),
+        "azure/login": ("Azure", "Tool", 0.90),
+        "google-github-actions/auth": ("GCP", "Tool", 0.90),
+        "hashicorp/setup-terraform": ("Terraform", "Tool", 0.90),
+    }
+
+    # Maps a substring found in a `run:` command to a skill.
+    WORKFLOW_RUN_SKILLS = {
+        "pytest": ("Pytest", "Tool", 0.90),
+        "npm test": ("Jest", "Tool", 0.75),
+        "npm run test": ("Jest", "Tool", 0.75),
+        "terraform": ("Terraform", "Tool", 0.85),
+        "kubectl": ("Kubernetes", "Tool", 0.85),
+        "docker build": ("Docker", "Tool", 0.90),
+        "docker push": ("Docker", "Tool", 0.90),
+    }
+
+    # Job-name keywords that indicate a deployment job.
+    DEPLOY_JOB_KEYWORDS = {"deploy", "release", "publish"}
+
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -116,7 +143,7 @@ class SkillExtractor:
         Returns:
             List of detected skills with confidence scores
         """
-        detected_skills = {}
+        detected_skills: dict[str, SkillDetection] = {}
 
         # Detect languages first
         self._detect_languages(text, filename, detected_skills)
@@ -143,7 +170,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -274,3 +301,98 @@ class SkillExtractor:
                         confidence=confidence,
                         evidence=[f"Found '{tool}' reference in content"],
                     )
+
+    def extract_skills_from_workflow(self, workflow_metadata: dict) -> list[SkillDetection]:
+        """
+        Infer skills from structured GitHub Actions workflow data.
+
+        Args:
+            workflow_metadata: The `metadata` dict produced by
+                `WorkflowParser.parse` (must contain a `jobs` list of
+                job dicts with `name` and `steps`).
+
+        Returns:
+            List of detected skills with confidence scores
+        """
+        skills_dict: dict[str, SkillDetection] = {}
+        jobs = workflow_metadata.get("jobs") or []
+
+        if jobs:
+            skills_dict["GitHub Actions"] = SkillDetection(
+                name="GitHub Actions",
+                category="Tool",
+                confidence=0.95,
+                evidence=[f"Workflow defines {len(jobs)} job(s)"],
+            )
+
+        for job in jobs:
+            job_name = job.get("name", "")
+
+            for step in job.get("steps", []):
+                uses = step.get("uses")
+                if uses:
+                    self._detect_workflow_action(uses, job_name, skills_dict)
+
+                run = step.get("run")
+                if run:
+                    self._detect_workflow_run_command(run, job_name, skills_dict)
+
+            if any(keyword in job_name.lower() for keyword in self.DEPLOY_JOB_KEYWORDS):
+                self._record_skill(
+                    skills_dict,
+                    name="Deployment",
+                    category="Practice",
+                    confidence=0.85,
+                    evidence=f"Job '{job_name}' matches a deployment naming pattern",
+                )
+
+        return sorted(skills_dict.values(), key=lambda x: x.confidence, reverse=True)
+
+    def _detect_workflow_action(self, uses: str, job_name: str, skills_dict: dict) -> None:
+        """Match a step's `uses:` action against known workflow actions."""
+        action_name = uses.split("@")[0]
+
+        for prefix, (skill_name, category, confidence) in self.WORKFLOW_ACTION_SKILLS.items():
+            if action_name == prefix:
+                self._record_skill(
+                    skills_dict,
+                    name=skill_name,
+                    category=category,
+                    confidence=confidence,
+                    evidence=f"Job '{job_name}' uses '{uses}'",
+                )
+
+    def _detect_workflow_run_command(self, run: str, job_name: str, skills_dict: dict) -> None:
+        """Match a step's `run:` command against known workflow run patterns."""
+        run_lower = run.lower()
+
+        for keyword, (skill_name, category, confidence) in self.WORKFLOW_RUN_SKILLS.items():
+            if keyword in run_lower:
+                self._record_skill(
+                    skills_dict,
+                    name=skill_name,
+                    category=category,
+                    confidence=confidence,
+                    evidence=f"Job '{job_name}' runs '{run.strip()}'",
+                )
+
+    def _record_skill(
+        self,
+        skills_dict: dict,
+        name: str,
+        category: str,
+        confidence: float,
+        evidence: str,
+    ) -> None:
+        """Add a skill, or merge evidence into an existing detection for it."""
+        existing = skills_dict.get(name)
+        if existing:
+            existing.evidence.append(evidence)
+            existing.confidence = max(existing.confidence, confidence)
+        else:
+            skills_dict[name] = SkillDetection(
+                name=name,
+                category=category,
+                confidence=confidence,
+                evidence=[evidence],
+            )
