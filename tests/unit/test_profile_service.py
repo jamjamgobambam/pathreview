@@ -1,8 +1,7 @@
-"""Reproduction test for issue #80: orphaned vector-store embeddings on profile delete.
+"""Tests for delete_profile cascade behaviour, including vector-store cleanup.
 
-Demonstrates that delete_profile correctly cascades SQL row deletions (Reviews,
-IngestedSources, Profile) but never cleans up the ChromaDB collection
-'profile_{profile_id}', leaving embeddings orphaned in the vector store.
+Covers issue #80: deleting a profile must also remove the associated ChromaDB
+collection so that no embeddings are left orphaned in the vector store.
 """
 
 from unittest.mock import AsyncMock, Mock, patch
@@ -74,7 +73,8 @@ class TestDeleteProfileCascade:
         self, mock_db: AsyncMock, profile_id: UUID, user_id: UUID, mock_profile: Mock
     ) -> None:
         """delete_profile commits the DB transaction that removes the profile and related rows."""
-        await delete_profile(db=mock_db, profile_id=profile_id, user_id=user_id)
+        with patch("core.services.profile_service.VectorStore"):
+            await delete_profile(db=mock_db, profile_id=profile_id, user_id=user_id)
 
         mock_db.commit.assert_called_once()
         mock_db.delete.assert_called_with(mock_profile)
@@ -83,21 +83,34 @@ class TestDeleteProfileCascade:
     async def test_delete_profile_cleans_up_vector_store_collection(
         self, mock_db: AsyncMock, profile_id: UUID, user_id: UUID
     ) -> None:
-        """FAILING — issue #80: delete_profile must remove the profile's ChromaDB collection.
+        """delete_profile removes the profile's ChromaDB collection after a successful DB delete.
 
-        Expected: VectorStore().delete_collection(f"profile_{profile_id}") is called
-                  so no orphaned embeddings remain after the profile is deleted.
-        Actual:   VectorStore is never touched; the collection persists in ChromaDB.
-
-        After the fix, update the patch path from 'rag.retriever.vector_store.VectorStore'
-        to 'core.services.profile_service.VectorStore' (where it will be imported).
+        The collection is named 'profile_{profile_id}', following the convention
+        established in rag/retriever/hybrid.py.
         """
-        with patch("rag.retriever.vector_store.VectorStore") as mock_vs_cls:
+        with patch("core.services.profile_service.VectorStore") as mock_vs_cls:
             mock_vs = Mock()
             mock_vs_cls.return_value = mock_vs
 
             result = await delete_profile(db=mock_db, profile_id=profile_id, user_id=user_id)
 
             assert result is True
-            # BUG: fails — VectorStore is never instantiated or called in delete_profile
             mock_vs.delete_collection.assert_called_once_with(f"profile_{profile_id}")
+
+    @pytest.mark.asyncio
+    async def test_delete_profile_returns_true_when_vector_store_cleanup_fails(
+        self, mock_db: AsyncMock, profile_id: UUID, user_id: UUID
+    ) -> None:
+        """delete_profile still returns True when vector-store cleanup raises.
+
+        The DB delete is the primary operation and has already committed. Vector-store
+        cleanup is best-effort: errors are logged but do not propagate to the caller.
+        """
+        with patch("core.services.profile_service.VectorStore") as mock_vs_cls:
+            mock_vs = Mock()
+            mock_vs.delete_collection.side_effect = Exception("ChromaDB unavailable")
+            mock_vs_cls.return_value = mock_vs
+
+            result = await delete_profile(db=mock_db, profile_id=profile_id, user_id=user_id)
+
+            assert result is True
