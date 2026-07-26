@@ -18,12 +18,12 @@ The core agent orchestrator in `agent/orchestrator.py` currently uses a broad ex
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/ascherj/pathreview/commit/8368de6757de9942cad639da5809277ec200ef8a
 
 **Reproduction summary:**
 I reproduced the issue by adding a temporary `raise RuntimeError("Test error")` inside `github_tool.py` and running the application. I noticed that the orchestrator caught the exception and printed a simple error string (`error='Test error'`), but didn't log the full error details, so you can't tell exactly which file or line of code failed.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/vasubawa/pathreview/blob/fix/44-orchestrator-silent-failure/PLAN.md
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
