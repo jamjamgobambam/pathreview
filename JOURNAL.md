@@ -45,3 +45,24 @@ all contained within `resume_parser.py` and `tests/unit/test_resume_parser.py`.
   tests pass, and new coverage guards the leading-whitespace case.
 - **Right-sized effort.** Estimated a few hours — appropriate for a first
   Module 3 contribution without risking scope creep.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/newairforces/pathreview/commit/fa08842a68b223aa42e4f08e1ab51dc626037d25
+
+**Reproduction summary:**
+I added a failing regression test (`test_detect_sections_with_leading_whitespace`)
+and reproduced the bug directly: `_detect_sections()` returns
+`['Education', 'Experience']` for flush-left text but `[]` for the identical text
+indented with leading whitespace, which also causes the three previously-failing
+tests (`test_parse_single_column_resume_text`, `test_parse_resume_no_work_experience`,
+`test_detect_sections`) to fail because their fixtures are indented.
+
+**PLAN.md link:** https://github.com/newairforces/pathreview/blob/fix/147-resume-section-leading-whitespace/PLAN.md
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+Need to confirm CRLF (`\r\n`) line endings from PDF extraction are handled by the
+relaxed leading anchor, and verify no downstream consumer treats an empty
+`detected_sections` as a meaningful signal rather than a bug.
