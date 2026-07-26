@@ -18,3 +18,17 @@ The issue is that there is a readme scorer that is hardcoded to have the readme'
 **Setup confirmation:** [✅] App runs locally at localhost:5173
 
 **Cohort ledger:** [✅] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I reproduced the issue by running `pytest tests/unit/test_readme_scorer.py -q`. The test failed at `assert data["word_count"] > 100` because the fixture README only produced a word count of 51, which confirms the fixture is too short for the assertion.
+
+**PLAN.md link:** [PLAN.md](PLAN.md)
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
