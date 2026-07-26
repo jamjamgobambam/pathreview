@@ -20,3 +20,25 @@ The PII scrubber currently fails to detect and redact US phone numbers when they
 
 **Issue selection notes:**
 I chose this issue because it is a Tier 1 bug with a clearly defined scope. The expected fix focuses on improving an existing detection pattern rather than changing major parts of the application. This makes it a realistic first contribution while allowing me to learn the repository structure and contribution workflow.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [Paste the GitHub link to your reproduction commit after you push it.]
+
+**Reproduction summary:**
+
+I reproduced Issue #146 by running the PII scrubber unit tests with:
+
+`.venv/bin/python -m pytest tests/unit/test_pii_scrubber.py -v`
+
+The tests confirmed that phone numbers formatted as `(555) 123-4567` are not detected or redacted. Specifically, the tests `test_us_phone_number_redaction`, `test_us_phone_formats`, `test_detect_phone_pii`, and `test_phone_at_start_of_text` failed, confirming the bug described in the issue.
+
+**PLAN.md link:** [Paste the GitHub link to your PLAN.md file after you push it.]
+
+**Walkthrough video (recommended):**
+
+Not recorded.
+
+**Blockers or open questions:**
+
+During testing, I also noticed an unrelated failing test (`test_mixed_pii_and_text`) involving address redaction. Since this is outside the scope of Issue #146, I will focus only on fixing the phone number redaction bug.
