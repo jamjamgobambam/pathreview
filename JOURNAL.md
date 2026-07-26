@@ -17,12 +17,12 @@ The issue is that the keywords are being matched incorrectly and the model will 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/scnoder/pathreview/commit/0c6168bc2fd051bd759f4422745c6aa4924a5a7b
 
 **Reproduction summary:**
 I reproduced the issue by uploading my own resume. There didn't seem to be much errors however, there were some slight variability for the same resume across different accounts.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/scnoder/pathreview/blob/fix/24-hybrid-retriever/PLAN.md
 
 **Blockers or open questions:**
 I am still uncertain about where the error exactly is and what type of logic error it is.
