@@ -28,7 +28,7 @@ I selected this Tier 1 issue because it has a clearly defined scope and affects 
 
 I reproduced issue #154 by running the application locally and sending a request to the `/health` endpoint using curl. The endpoint returned a 503 response and the PostgreSQL dependency was marked as unhealthy because SQLAlchemy 2.x rejected the raw SQL query `"SELECT 1"` with an error requiring it to be wrapped using `text()`.
 
-**PLAN.md link:** [will update after creating PLAN.md]
+**PLAN.md link:** https://github.com/hemadharshinii-s/pathreview/blob/fix/154-health-check-db-probe/PLAN.md
 
 **Walkthrough video (recommended):** Not recorded (optional)
 
