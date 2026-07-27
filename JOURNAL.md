@@ -15,3 +15,17 @@ The `docs/ARCHITECTURE.md` file currently describes that the RAG subsystem perfo
 
 **Selection notes:**
 - **Initial Observation & Motivation**: While logging in as 'user2@example.com', I noticed a UX discrepenacy where category confidence score were displayed as 76%, 81%,, 69% next to their respectice section names in the feedback section of the frontend, which conflicts with the 58/100 overall evaluation score. In searching for "score" issues in the backlog led me to Issue #36, with simillar relation.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Le-Zu/pathreview/commit/8d302fc
+
+**Reproduction summary:**
+Inspected `docs/ARCHITECTURE.md` and confirmed that while it mentions hybrid retrieval (vector similarity + BM25 keyword search), it completely omits the mathematical formula, default weights (0.7 vector / 0.3 keyword), score max-normalization logic (`raw_score / max_score`), min_score filtering threshold (0.3), and concrete worked examples implemented in `rag/retriever/hybrid.py`.
+
+**PLAN.md link:** https://github.com/Le-Zu/pathreview/blob/docs/36-explain-hybrid-retrieval-scoring/plan.md
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:**
+None. The code in `rag/retriever/hybrid.py` clearly defines the vector weight (0.7), keyword weight (0.3), max-normalization, and score blending equation, providing all necessary details to document in `docs/ARCHITECTURE.md`.
