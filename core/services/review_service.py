@@ -7,6 +7,7 @@ from sqlalchemy import select, and_
 from core.models.review import Review
 from core.models.profile import Profile
 from core.models.ingested_source import IngestedSource
+from core.services.profile_service import profile_has_ingested_content
 from api.schemas.review import FeedbackSection
 
 log = structlog.get_logger()
@@ -113,6 +114,22 @@ async def process_review(
         if not profile:
             log.error("profile_not_found_for_processing", profile_id=str(profile_id))
             review.status = "failed"
+            db.add(review)
+            await db.commit()
+            return
+
+        # Guard against reviews created outside create_review_endpoint's
+        # validation: a profile with nothing ingested must fail, not produce
+        # fabricated feedback.
+        if not profile_has_ingested_content(profile):
+            log.warning(
+                "review_processing_no_ingested_content",
+                review_id=str(review_id),
+                profile_id=str(profile_id),
+            )
+            review.status = "failed"
+            review.error_message = "Profile has no ingested content to review"
+            review.updated_at = datetime.utcnow()
             db.add(review)
             await db.commit()
             return

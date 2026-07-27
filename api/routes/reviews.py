@@ -7,6 +7,7 @@ from api.middleware.auth import get_current_user
 from core.models.user import User
 from core.models.review import Review
 from core.database import get_db
+from core.services.profile_service import get_profile, profile_has_ingested_content
 from core.services.review_service import (
     create_review,
     get_review,
@@ -30,8 +31,40 @@ async def create_review_endpoint(
     Create a new review for a profile.
     Triggers ingestion pipeline and agent orchestration asynchronously.
     Returns review with status="pending" immediately.
+    Returns 404 if the profile is not found or not owned by current user.
+    Returns 422 if the profile has no ingested content to review.
     """
     try:
+        profile = await get_profile(
+            db=db,
+            profile_id=data.profile_id,
+            # get_profile declares user_id as UUID, but User.id is a str
+            # column and every existing caller passes it as-is.
+            user_id=current_user.id,  # type: ignore[arg-type]
+        )
+
+        if not profile:
+            log.warning(
+                "review_creation_profile_not_found",
+                profile_id=str(data.profile_id),
+                user_id=str(current_user.id),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found",
+            )
+
+        if not profile_has_ingested_content(profile):
+            log.warning(
+                "review_creation_no_ingested_content",
+                profile_id=str(data.profile_id),
+                user_id=str(current_user.id),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Profile has no ingested content to review",
+            )
+
         # Create review with status="pending"
         review = await create_review(
             db=db,

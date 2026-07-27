@@ -339,44 +339,50 @@ class TestReviewService:
         mock_db_session.execute.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_no_ingested_content_should_not_produce_fabricated_review(self):
-        """Reproduces issue #88.
+    async def test_no_ingested_content_fails_instead_of_fabricating(self) -> None:
+        """Reproduces issue #88: a contentless profile must fail, not fabricate.
 
-        EXPECTED: a profile with zero ingested sources (no github_username, no
-        portfolio_url, no resume_text) should not result in a "successful"
-        review with fabricated content -- there is nothing to review.
-
-        ACTUAL (today): _run_agent_orchestration and _run_rag_retrieval_generation
-        are placeholders that ignore their ingestion_results input entirely and
-        always return the same canned sections/score, and _run_safety_checks only
-        validates the *shape* of those sections, not whether they're grounded in
-        real data -- so this currently passes safety checks and would reach
-        status="complete" via process_review with fabricated content.
-
-        This test fails today; it should pass once #88 is fixed.
+        Before the fix, process_review ran placeholder pipeline stages that
+        ignored the empty ingestion results and marked the review "complete"
+        with fabricated sections and a canned overall_score. With the fix it
+        must fail fast: status="failed", error_message set, and no fabricated
+        sections or score stored.
         """
-        from core.services.review_service import (
-            _run_agent_orchestration,
-            _run_rag_retrieval_generation,
-            _run_safety_checks,
-        )
+        from core.services.review_service import process_review
+
+        review_id = uuid4()
+        profile_id = uuid4()
+
+        review = Mock()
+        review.id = review_id
+        review.status = "pending"
+        review.sections = None
+        review.overall_score = None
+        review.error_message = None
 
         profile = Mock()
+        profile.id = profile_id
         profile.github_username = None
         profile.portfolio_url = None
         profile.resume_text = None
 
-        # Exactly what _run_ingestion_pipeline returns for a profile with no sources
-        empty_ingestion_results: list[dict] = []
+        # Plain Mock (not AsyncMock) result objects: `await db.execute(...)`
+        # returns them, then `.scalars().first()` is called synchronously.
+        review_result = Mock()
+        review_result.scalars.return_value.first.return_value = review
+        profile_result = Mock()
+        profile_result.scalars.return_value.first.return_value = profile
 
-        agent_output = await _run_agent_orchestration(profile, empty_ingestion_results)
-        rag_output = await _run_rag_retrieval_generation(
-            profile, empty_ingestion_results, agent_output
-        )
-        safety_passed = await _run_safety_checks(rag_output)
+        session = AsyncMock()
+        session.add = Mock()
+        session.execute = AsyncMock(side_effect=[review_result, profile_result])
 
-        assert not (safety_passed and len(rag_output["sections"]) > 0), (
-            "Expected a profile with no ingested content to be rejected/flagged, "
-            "but the pipeline produced a fully 'valid', safety-check-passing "
-            "review anyway -- this is issue #88."
+        await process_review(session, review_id, profile_id)
+
+        assert review.status == "failed", (
+            f"Expected a review for a profile with no ingested content to fail, "
+            f"but got status={review.status!r} with fabricated content -- issue #88."
         )
+        assert review.error_message
+        assert review.sections is None
+        assert review.overall_score is None
