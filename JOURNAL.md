@@ -33,3 +33,16 @@ What's the root cause, concretely? create_review() has no guard against two requ
 
 **Cohort ledger:** [x] Issue added to cohort ledger
 *(comment on #82 claiming it, then add it to whatever ledger/sheet your course uses)*
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [FILL IN — link to your commit, e.g. https://github.com/salunkheketki19/pathreview/commit/<sha>]
+
+**Reproduction summary:** Added a test that fires two concurrent `create_review()` calls for the same `profile_id` via `asyncio.gather`; without a guard in `create_review()`, both calls independently ran `process_review()` / `_run_ingestion_pipeline()`, producing two `IngestedSource` rows and two `Review` rows for one profile instead of one.
+
+**PLAN.md link:** [FILL IN — link to PLAN.md in your fork, e.g. https://github.com/salunkheketki19/pathreview/blob/fix/82-concurrent-review-race/PLAN.md]
+
+**Walkthrough video (recommended):** [FILL IN or leave blank]
+
+**Blockers or open questions:**
+Still deciding between an in-process lock vs. a DB-level constraint for serializing reviews — depends on whether the app runs multiple worker processes in this environment. Need to check for other call sites of `process_review()` besides the `POST /reviews` route before finalizing the fix.
