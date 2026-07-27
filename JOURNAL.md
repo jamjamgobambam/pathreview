@@ -46,7 +46,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** <!-- TODO: fill in after opening PR -->
+**PR link:** https://github.com/ascherj/pathreview/pull/323
 
 **Branch:** `feat/75-safety-integration-tests`
 
