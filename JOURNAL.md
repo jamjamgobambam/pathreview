@@ -29,3 +29,35 @@ behavior is already pinned down by existing failing tests, so I know exactly
 what "done" looks like. No new dependencies, no cross-module changes, and it
 runs with the default mock LLM (no API key needed). Scope is small and
 self-contained.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [add after committing]
+
+**Reproduction summary:**
+I ran the existing unit tests for the PII scrubber and confirmed the four
+phone-number tests fail because the parenthesized format `(555) 123-4567` is
+never redacted or detected. This proves the bug is real and lives in the
+`phone_us` regex in `safety/pii_scrubber.py`.
+
+**Reproduction steps:**
+```
+pytest tests/unit/test_pii_scrubber.py -v
+```
+
+**Observed failures:**
+```
+FAILED test_us_phone_number_redaction - assert '[REDACTED]' in 'Call me at (555) 123-4567'
+FAILED test_us_phone_formats        - assert '[REDACTED]' in 'Contact: (555) 123-4567'
+FAILED test_detect_phone_pii        - assert 0 > 0
+FAILED test_phone_at_start_of_text  - assert '[REDACTED]' in '(555) 123-4567 is my phone number.'
+```
+Each failure shows a `(555) 123-4567` number passing through unredacted, and
+`detect()` returning 0 phone matches for it.
+
+**PLAN.md link:** [add after creating PLAN.md]
+
+**Walkthrough video (recommended):** [not recorded]
+
+**Blockers or open questions:**
+None yet — the root cause and the file to change are both clear.
