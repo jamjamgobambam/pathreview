@@ -42,3 +42,36 @@ Also, I ran `pytest tests/unit/test_bias_detector.py -v` and it showed that 9 te
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I’ve reproduced the issue locally and started updating the bias detector patterns in the safety module. The first pass of the regex changes is in place for dismissive educational-background language, and I’m validating those cases against the existing bias detector tests.
+
+**Next steps:**
+I’m continuing to refine the patterns so they also catch the age and background-based assumptions from the issue without accidentally flagging neutral or positive feedback. After that, I’ll re-run the unit tests and do a final self-review.
+
+**Blockers:**
+I’m still checking the balance between broader matching and avoiding false positives, since the regexes need to be flexible enough to catch natural phrasing without over-matching "okay" descriptions.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** fix/151-broaden-bias-detector-patterns
+
+**What you built:**
+I broadened the bias detector's regex patterns so it catches dismissive language about bootcamps, self-taught backgrounds, and online courses, as well as age- and background-based assumptions, even when those ideas are phrased differently. The change keeps neutral and positive mentions from being flagged while making the detector more accurate for the biased examples in the issue.
+
+**Tests added or updated:**
+I used and validated the existing unit tests in tests/unit/test_bias_detector.py. Those tests cover dismissive educational-language cases, demographic assumptions, positive/neutral mentions, and the detector's return value behavior.
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+
+**Note** `make check` and `make test-unit` still show existing unrelated failures elsewhere in the repository. This change did not introduce any new failures
+
+**Draft PR feedback received from:** N/A

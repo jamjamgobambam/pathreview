@@ -1,6 +1,7 @@
 """Bias detection in generated feedback."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -11,17 +12,17 @@ class BiasDetector:
 
     # Genuinely dismissive phrases about educational background
     DISMISSIVE_PATTERNS = [
-        r"(?:bootcamp|self-taught|online\s+course)\s+(?:education|training)\s+is\s+(?:insufficient|inadequate|lacks)",
-        r"(?:bootcamp|self-taught)\s+(?:graduates?|developers?)\s+(?:lack|missing)\s+(?:rigor|fundamentals|proper\s+training)",
-        r"(?:bootcamp|coding\s+bootcamp)\s+(?:doesn't|does\s+not)\s+prepare\s+(?:you|developers?)",
-        r"(?:self-taught|bootcamp)\s+is\s+(?:not|never)\s+(?:equal|comparable)\s+to\s+(?:university|traditional|formal)",
+        r"(?:bootcamp|coding\s+bootcamp|self-taught|online\s+course)\b.*\b(?:lacks?|lacking|insufficient|inadequate|poor|weak|not\s+up\s+to|can't|cannot|won't|doesn't|does\s+not|lack|missing|struggle|not\s+equal|not\s+comparable|never\s+comparable)\b",
+        r"(?:bootcamp|coding\s+bootcamp|self-taught)\s+(?:graduates?|developers?|programmers?)\b.*\b(?:can't|cannot|won't|lack|lacks|missing|struggle|are\s+not|are\s+never|doesn't|does\s+not)\b",
+        r"(?:bootcamp|coding\s+bootcamp)\b.*\b(?:doesn't|does\s+not|cannot|can't|won't)\s+prepare\b",
+        r"(?:self-taught|bootcamp)\b.*\b(?:is|are|being)\s+(?:not|never)\s+(?:equal|comparable)\s+to\s+(?:university|traditional|formal)\b",
     ]
 
     # Demographic assumptions (about age, background, identity)
     DEMOGRAPHIC_PATTERNS = [
-        r"(?:young|old|aged)\s+(?:person|developer|programmer)\s+(?:can't|cannot|won't|will\s+not)",
-        r"(?:person\s+from|coming\s+from)\s+(?:poor|rich|working[\s-]?class)",
-        r"(?:immigrant|international|foreign)\s+developers?.*(?:can't|cannot|won't|struggle)",
+        r"(?:young|old|aged|elderly|older|younger)\s+(?:person|developers?|programmers?|engineers?|candidates?|professionals?)\b.*\b(?:can't|cannot|won't|struggle|lack|unable|is\s+not|are\s+not)\b",
+        r"(?:person|developer|developers?|programmer|programmers?|candidate|candidates?)\s+(?:from|with)\s+(?:poor|rich|working[\s-]?class)\s+(?:background|backgrounds?)\b.*\b(?:can't|cannot|won't|struggle|lack|unable|is\s+not|are\s+not)\b",
+        r"(?:immigrant|international|foreign)\s+(?:developers?|programmers?|candidates?|people?)\b.*\b(?:can't|cannot|won't|struggle|lack|unable|are\s+not|aren't)\b",
     ]
 
     @staticmethod
