@@ -93,3 +93,25 @@ During the next phase of this project, I plan to:
 This project is already different from my previous programming assignments because I am working with an existing codebase written by other developers instead of starting from scratch.
 
 My goal is not only to complete the assignment, but also to learn how experienced software engineers investigate security problems, understand unfamiliar code, and contribute improvements through testing and collaboration.
+
+
+## Week 8 — Reproduction & Solution Planning
+
+**Reproduction commit link:**
+(To be added after I create the reproduction commit.)
+
+**Reproduction summary:**
+
+I reproduced the feature gap described in Issue #71 by reviewing the existing prompt injection defense implementation and running the current unit tests. I inspected `safety/prompt_defense.py` and `tests/unit/test_prompt_defense.py`, which contain the current prompt injection detection logic and unit tests.
+
+I also confirmed that the project does not contain the dedicated red-team security test suite (`tests/security/test_prompt_injection.py`) or the reusable prompt injection fixture directory (`tests/fixtures/injection_attempts/`) described in the issue. This confirms the missing functionality requested by Issue #71.
+
+**PLAN.md link:**
+(To be added after PLAN.md is created.)
+
+**Walkthrough video (recommended):**
+Not recorded.
+
+**Blockers or open questions:**
+
+While reproducing the issue, I observed that one existing unit test (`test_whitespace_variations_detected`) currently fails because the regular expression does not detect role names followed by spaces before the colon (for example, `System  :`). This appears to be separate from Issue #71, so I plan to keep my implementation focused on the requested red-team test suite.
