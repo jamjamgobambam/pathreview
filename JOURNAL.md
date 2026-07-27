@@ -52,3 +52,33 @@ I've estimated the time this will take and I'm confident I can complete it befor
 This issue has no open blockers or dependencies on other unresolved issues.
 - yes
 
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** <!-- TODO: paste the commit URL after pushing, format: https://github.com/HwaejinChung21/pathreview/commit/<sha> -->
+
+**Reproduction summary:**
+I reproduced the bug at the parser level by running the same resume through `ResumeParser.parse()`
+four ways — flush-left, space-indented, tab-indented, and indented markdown (`scripts/repro_issue_147.py`).
+The flush-left version returns `detected_sections == ['Education', 'Experience', 'Skills']`, while all
+three indented versions return `[]`, because every regex in `_detect_sections()` anchors the section
+name directly to `^` or `\n` with no room for indentation. Four of the repo's existing resume-parser
+tests already fail for this reason, and I added `TestSectionDetectionLeadingWhitespace` in
+`tests/unit/test_resume_parser.py` to pin the behavior: three tests fail today and two guards
+(flush-left control, no-false-positives) pass, so the suite proves the fix without over-broadening it.
+
+**PLAN.md link:** [PLAN.md](./PLAN.md)
+
+**Walkthrough video (recommended):** <!-- TODO: paste Loom link, or delete this line -->
+
+**Blockers or open questions:**
+- The issue as written only names section detection, but an indented *markdown* resume also needs the
+  line-anchored header strip in `_strip_markdown()` (`^#+\s+`) relaxed — relaxing detection alone
+  leaves that case broken. I want to confirm the maintainer is happy with both changes in one PR.
+- `tests/unit/test_resume_parser.py` has 5 failures and 3 lint errors on the branch before I touch
+  anything. One failure (`test_strip_markdown_syntax`) is fixed by my change; the lint errors are
+  unrelated unused imports. Leaving unrelated lint alone unless asked.
+- Not sure whether non-breaking-space indentation from `pypdf` is common enough in real PDFs to be
+  worth handling; noted in PLAN.md with the exact pattern I'd use if so.
+
