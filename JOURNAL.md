@@ -22,7 +22,7 @@ I selected this Tier 1 issue because it has a clearly defined scope and affects 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [will update after commit]
+**Reproduction commit link:** https://github.com/hemadharshinii-s/pathreview/commit/f63b89a86d5e1cad401e0221bacc81fdf17cae5b
 
 **Reproduction summary:**
 
