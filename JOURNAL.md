@@ -50,6 +50,24 @@ The `POST /reviews` endpoint accepts a `profile_id` parameter but does not valid
 
 ---
 
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ascherj/pathreview/commit/2235af1
+
+**Reproduction summary:**
+I reproduced the IDOR vulnerability by authenticating as one user, retrieving another user's profile ID from the database, and sending a `POST /reviews` request with that profile ID. The API accepted the request and created a review for the other user's profile (HTTP 200), confirming that the endpoint does not validate profile ownership despite receiving the authenticated user's ID.
+
+**PLAN.md link:** [PLAN.md](PLAN.md)
+
+**Walkthrough video (recommended):** [not recorded]
+
+**Blockers or open questions:**
+- Should the endpoint return 403 Forbidden or 404 Not Found when a user tries to create a review for another user's profile? (Decision: 404 to avoid enumeration attacks, matching security best practice)
+- Need to verify whether the background task `process_review()` requires similar ownership validation or if DB context is sufficient
+- Should check if any integration tests or client code depends on the current (vulnerable) cross-user review creation behavior
+
+---
+
 ## Week 7 — Issue selection
 
 **Issue link:** https://github.com/ascherj/pathreview/issues/152
