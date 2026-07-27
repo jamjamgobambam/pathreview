@@ -29,6 +29,4 @@ The current ledger allows duplicate claims.
 
 **PLAN.md link:** https://github.com/DDDIGHE/pathreview/blob/test/157-partial-overlap-fixture/PLAN.md
 
-**Loom walkthrough:**
-
 **Blockers or open questions:**

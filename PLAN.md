@@ -22,7 +22,7 @@ The query and chunk should produce a score between 0.3 and 0.9 without changing 
 
 ### Risks & unknowns
 
-The revised text must keep exactly three of the four query terms.
+In `tests/unit/test_relevance_scorer.py`, the revised text must keep exactly three of the four query terms.
 
 ### Edge cases
 
