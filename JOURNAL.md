@@ -17,3 +17,24 @@ PathReview generates portfolio feedback with a RAG pipeline, and a faithfulness 
 
 **"Is this right for me?" reasoning:**
 The scope is contained to one method in one file, with a clear definition of done since three existing tests pin down the expected behavior, so I am not guessing at acceptance criteria. It fits my background in LLM output evaluation from my TrendMate chatbot project, where I built the LLM integration and needed the model's output to stay grounded, so I understand why a faithfulness check exists and what a correct fix should preserve. While confirming the bug I also noticed a separate failure (test_none_context_chunk_text) caused by a None context chunk, but that belongs to issue #153, so I am keeping this contribution scoped to the threshold bug in #152.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_faithfulness_checker.py -v` locally on the
+fix/152-faithfulness-short-claims branch. Confirmed all 3 target tests fail
+as the issue describes:
+- test_partial_support_returns_middle_score — assert 0.2 < 0.0
+- test_multiple_context_chunks — assert 0.0 > 0.5
+- test_multiple_claims_varying_support — assert 0.2 < 0.0
+(A 4th test, test_none_context_chunk_text, also fails but with a TypeError —
+that's the separate None-context bug already scoped to #153, not this issue.)
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+Still deciding whether the fix should scale the overlap threshold by claim length (risk: reintroduces false positives from generic shared words like "developer") or move to a continuous per-claim support score instead of a boolean, since some failing tests expect partial (0.2-0.8) scores rather than strict pass/fail.
