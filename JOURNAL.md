@@ -54,3 +54,16 @@ The implementation is considered successful when the integration test confirms t
 - [x] I confirmed there are no blockers or unresolved dependencies.
 
 I am ready to claim and work on this issue.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [18d01b1](https://github.com/noamreiner17/pathreview/commit/18d01b10fa923026eb96a1b8810f7233fdcad1e7)
+
+**Reproduction summary:**
+Because #75 is a missing-coverage issue, I reproduced the gap rather than a runtime crash: `tests/integration/` held only an empty `__init__.py`, and the four guards are imported only by their own unit tests in `tests/unit/` — never together. I added `tests/integration/test_safety_middleware.py` with a red marker test. `pytest tests/integration/test_safety_middleware.py` fails with "integration coverage ... not yet implemented (#75)", confirming the pipeline (Prompt Defense → Content Filter → Bias Detector → PII Scrubber) has no
+end-to-end test and pinpointing where it belongs.
+
+**PLAN.md link:** [PLAN.md](./PLAN.md)
+
+**Blockers or open questions:**
+The four guards have inconsistent interfaces (static vs. instance methods, different return shapes) and `PromptDefense.sanitize` strips characters that later guards may rely on, so I still need to confirm a fixture ordering that isolates each layer without one guard masking another.
