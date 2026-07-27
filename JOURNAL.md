@@ -18,4 +18,15 @@ Right now `docker-compose.yml` sets memory limits for `db` (512M), `redis` (256M
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction
+
+**What I did to reproduce this:**
+Since this isn't a bug you can trigger by clicking around the app, I focused on confirming exactly what's missing and where. I ran `git log --all -- docker-compose.yml` and found the file has never had an LLM proxy service in it, in any commit since the project scaffold. I also grepped the whole repo for "proxy" and "litellm" and checked `docs/SETUP.md` and `docs/ARCHITECTURE.md`, and none of them mention a local LLM proxy container either. The app currently calls OpenRouter directly using `OPENROUTER_API_KEY` from `.env`.
+
+**What this confirms:**
+The issue's premise (an LLM proxy container with no memory cap) describes a service that doesn't exist in `docker-compose.yml` today. So the actual gap isn't a missing `memory:` line next to an existing service, it's a missing service block entirely. That changes the fix from a one-line addition to something closer to adding a new service definition first.
+
+**How I'd demonstrate the underlying risk:**
+To show the mechanism the issue is worried about without needing the real (nonexistent) proxy image, I can run `docker compose up -d` and use `docker inspect <container> --format '{{.HostConfig.Memory}}'` on `db`, `redis`, and `vector-db` to confirm their limits are enforced. Then I can add a throwaway unbounded container (like `polinux/stress`) to see it grow past those caps on `docker stats`, which is the same failure mode an uncapped LLM proxy would cause.
