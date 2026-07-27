@@ -21,3 +21,27 @@ the health check accurately reflects Redis's real status.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [c7ad417 — test: reproduce issue #155 - redis_host AttributeError in health check](https://github.com/rushilshah11/pathreview/commit/c7ad417)
+
+**Reproduction summary:**
+Confirmed the root cause with `grep -rn "redis_host\|redis_port" core api`: `api/routes/health.py`
+(lines 45-46) reads `settings.redis_host`/`settings.redis_port`, but `Settings` in `core/config.py`
+only defines `redis_url`. Instantiating `Settings()` and accessing `.redis_host` raises
+`AttributeError: 'Settings' object has no attribute 'redis_host'`. Running the exact try/except
+block from `health.py` shows this error is caught silently, so Redis is unconditionally reported
+`"unhealthy"` (and the endpoint returns 503) regardless of Redis's real status. Added
+`tests/unit/test_health.py` with two tests that reproduce this (`pytest tests/unit/test_health.py -v`
+passes, documenting the current broken behavior).
+
+**PLAN.md link:** [PLAN.md](../../blob/fix/155-redis-health-check/PLAN.md)
+
+**Walkthrough video (recommended):** _not recorded this week_
+
+**Blockers or open questions:**
+The app's startup lifespan requires a reachable Postgres, so I couldn't boot `uvicorn` locally
+without a running Postgres instance to hit `GET /health` directly end-to-end. Reproduced the bug
+at the `Settings`/`health.py` code-path level instead (see PLAN.md "Risks & unknowns" for the
+plan to add a proper `TestClient`-based test in Week 9).
