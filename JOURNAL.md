@@ -41,3 +41,24 @@ templates live.
 - **Understandable problem.** I can already explain what's broken (silent
   prompt edits) and what "fixed" looks like (snapshot tests enforcing
   intentional versioning).
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** <!-- replace with the commit URL after pushing, e.g.
+https://github.com/ismailhossain7622/pathreview/commit/<sha> -->
+`docs(rag): reproduce #37 — snapshot test never asserts stored hash`
+
+**Reproduction summary:**
+The existing `tests/unit/test_prompt_templates.py::test_template_snapshot_content_hash`
+only asserts the content hash is a 32-char string — it never compares against a stored
+baseline. I rewrote the `skills_feedback` template's wording and re-ran `make test-unit`;
+all 37 tests stayed green, proving nothing guards template content against accidental edits.
+
+**PLAN.md link:** [PLAN.md](PLAN.md)
+
+**Walkthrough video (recommended):** <!-- optional Loom link, ≤2 min -->
+
+**Blockers or open questions:**
+Deciding whether the snapshot baseline should live in the test file (keeps scope to one
+file) or next to the templates in `rag/generator/prompt_templates.py`. Leaning toward the
+test file and will confirm with the reviewer in the PR.

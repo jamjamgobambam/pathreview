@@ -174,6 +174,20 @@ class TestPromptTemplates:
 
     def test_template_snapshot_content_hash(self):
         """Snapshot test: verify template content hash."""
+        # ---------------------------------------------------------------
+        # REPRODUCTION — issue #37 (add snapshot tests for prompt templates)
+        #
+        # This is the ONLY test that claims to be a snapshot test, but it is
+        # a no-op guard: it computes a hash of the concatenated templates and
+        # then only asserts the hash is a 32-char string. It never compares
+        # against a stored/expected value, so ANY edit to a template still
+        # passes. Verified 2026-07-27: rewriting the skills_feedback template
+        # ("Analyze the skills demonstrated" -> arbitrary text) left all 37
+        # tests green. Nothing forces a version bump on content changes.
+        #
+        # Fix (Week 9): pin per-template hashes to stored snapshots and fail
+        # when content changes without a matching new version entry.
+        # ---------------------------------------------------------------
         # Create hash of all template content
         template_content = ""
         for name in sorted(PROMPT_TEMPLATES.keys()):
