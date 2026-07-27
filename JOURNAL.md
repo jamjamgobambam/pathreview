@@ -7,7 +7,7 @@ I reproduced Issue #152 by running the faithfulness-checker unit tests locally. 
 
 **PLAN.md link:** https://github.com/miaaoyama/pathreview/blob/fix/faithfulness-short-claims/PLAN.md
 
-**Walkthrough video (recommended):** Not recorded.
+**Walkthrough video (recommended):** https://youtu.be/U4XPfrgAzbU
 
 **Blockers or open questions:**
 I still need to confirm the safest adaptive threshold for short claims. The fix must support single-meaningful-token claims without allowing longer claims to pass based on one incidental overlapping word.
