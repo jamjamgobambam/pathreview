@@ -19,3 +19,23 @@ I picked this one as my first issue because it's tagged tier 1 and good first is
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Anthony-Jerez/pathreview/commit/4b19bf2
+
+**Reproduction summary:**
+I wrote a test that POSTs to /reviews for a profile with no github username, portfolio url, or resume text, and expects a 422 back. Running it against the current code shows the endpoint always returns 200 instead, which confirms there is no validation anywhere in the request path for a profile with no ingested content.
+
+**Reproduction Steps:**
+1. Traced the full review creation flow through api/routes/reviews.py and core/services/review_service.py.
+2. Found that create_review_endpoint and create_review never check whether a profile has any ingested content, or even whether the profile exists, before creating the review and scheduling the background processing task.
+3. Wrote tests/unit/test_review_routes.py using FastAPI's TestClient, with get_current_user and get_db overridden and the background process_review task mocked out, so the test only exercises the endpoint's own logic.
+4. Ran pytest tests/unit/test_review_routes.py -v -m unit and got a failure: the response came back 200 instead of the 422 I asserted, which reproduces the exact gap issue 88 describes.
+
+**PLAN.md link:** https://github.com/Anthony-Jerez/pathreview/blob/test/88-review-no-ingested-content/PLAN.md
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+Still deciding whether "no ingested content" should be checked off the three profile fields directly or by counting IngestedSource rows for the profile. They're equivalent today but might not stay that way if ingestion changes later. Also haven't checked yet whether the frontend assumes review creation always succeeds, that needs a look before the actual fix goes in during week 9.
