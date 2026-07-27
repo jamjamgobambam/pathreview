@@ -1,20 +1,18 @@
 ## Week 7 — Issue selection
 
-**Issue link:** https://github.com/ascherj/pathreview/pull/249
+**Issue link:** https://github.com/ascherj/pathreview/issues/159
 
-**Issue title:** Add an end-to-end agent test using a fully stubbed tool suite
+**Issue title:** structlog output is not captured by pytest caplog — log assertions fail suite-wide
 
-**Tier:** [ ] Tier 1  [ ] Tier 2  [*] Tier 3
+**Tier:** [*] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-Currently there is no test that completely undergoes the full agent process from planning, execution, and synthesizing without reinstalling live dependencies. This issue description basically wants us to add an integration test that is able to test the agent using a "stub implementation" of the tools while also utilizing a mock LLM.
+The issue is that the app's logging (via structlog) isn't wired up to feed into Python's standard logging module during test runs. Because of that gap, any test using caplog to check for expected log messages fails, even though the code is correctly producing those log events (you can see them printed to stderr, just not captured by caplog) — test_empty_chunks_list_returns_empty in tests/unit/test_batch_processor.py is one example. The fix involves updating tests/conftest.py to properly configure structlog (using something like structlog.stdlib processors or capture_logs) so its output routes through stdlib logging. Once fixed, caplog-based assertions across the test suite should work correctly and reflect the log events actually emitted by the batch processor and other modules.
 
-Currently no file exists within tests/integration/ that allows for testing the agents. The description specifically calls for the existence of the file "test_agent_orchestrator.py."
-
-A successful fix will be able to test the full agent life cycle without needing the live dependencies and only needing stub implementations.
-
-**Branch name:** test/59-Add-an-end-to-end-agent-test
+**Branch name:** fix/159-stucture-output-capturing
 
 **Setup confirmation:** [*] App runs locally at localhost:5173
 
 **Cohort ledger:** [*] Issue added to cohort ledger
+
+**Selection Notes:** The issue checked all the boxes under the is this right for me checklist
