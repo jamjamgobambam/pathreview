@@ -1,22 +1,16 @@
 """
-Reproduction test for issue D-08:
-"Add a safety event count to the health check endpoint."
+Tests for issue D-08: "Add a safety event count to the health check endpoint."
 
-The /health endpoint exposes a `safety_events_last_hour` field, but
-api/routes/health.py hardcodes it to 0 (line ~78, "This would be populated by
-actual safety event logging") and never queries SafetyMonitor. So no matter how
-many safety events are recorded, /health always reports 0.
+The /health endpoint exposes a ``safety_events_last_hour`` field. It used to be
+hardcoded to 0; it now reports the real total from ``SafetyMonitor``. These tests
+cover the monitor's total-count helper and the endpoint wiring, including the
+no-events and Redis-unavailable cases.
 
-This test demonstrates the gap: it records safety events through SafetyMonitor
-(proving the count data is available via get_event_count), then calls the real
-health_check endpoint and asserts the reported count matches. It FAILS on the
-current code because the endpoint returns 0 regardless.
-
-Unit test: no external services — the DB is mocked and Redis is an in-memory fake.
+Unit tests: no external services — the DB is mocked and Redis is an in-memory fake.
 """
 
 import asyncio
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -46,13 +40,28 @@ class FakeRedis:
         return True
 
 
+class BrokenRedis(FakeRedis):
+    """A redis client whose reads fail, simulating an outage."""
+
+    def get(self, key):
+        raise ConnectionError("redis unavailable")
+
+
+def _mock_db():
+    db = AsyncMock()
+    db.execute = AsyncMock(return_value=None)
+    return db
+
+
 def _health_payload(db):
     """
-    Return the health payload whether the endpoint responds 200 or raises 503.
+    Return the /health payload whether the endpoint responds 200 or raises 503.
 
-    (On the current code an unrelated config gap marks Redis unhealthy and the
-    endpoint raises 503, but the full status dict — including
-    safety_events_last_hour — travels in the exception detail either way.)
+    (An unrelated config gap — health.py reads ``settings.redis_host``, which is
+    not defined on Settings — marks the redis dependency unhealthy and makes the
+    endpoint raise 503. The full status dict, including safety_events_last_hour,
+    travels in the exception detail either way. That gap is out of scope for
+    D-08; see PLAN.md.)
     """
     try:
         return asyncio.run(health_module.health_check(db=db))
@@ -60,29 +69,61 @@ def _health_payload(db):
         return exc.detail
 
 
+# ── SafetyMonitor.get_total_event_count ──────────────────────────────────────
+
+
+@pytest.mark.unit
+def test_get_total_event_count_sums_across_types():
+    monitor = SafetyMonitor(FakeRedis())
+    monitor.log_event("pii_detected", {"field": "email"})
+    monitor.log_event("pii_detected", {"field": "phone"})
+    monitor.log_event("injection_attempt", {"pattern": "ignore previous"})
+    monitor.log_event("bias_detected", {"term": "example"})
+
+    assert monitor.get_total_event_count() == 4
+
+
+@pytest.mark.unit
+def test_get_total_event_count_zero_when_no_events():
+    monitor = SafetyMonitor(FakeRedis())
+    assert monitor.get_total_event_count() == 0
+
+
+# ── /health endpoint wiring (D-08) ───────────────────────────────────────────
+
+
 @pytest.mark.unit
 def test_health_reports_recorded_safety_events():
-    # Record 3 safety events through the monitor.
-    fake_redis = FakeRedis()
-    monitor = SafetyMonitor(fake_redis)
+    """
+    The endpoint should report the safety-event total recorded in Redis.
+
+    Regression for D-08: previously this field was hardcoded to 0 regardless of
+    recorded events.
+    """
+    fake = FakeRedis()
+    monitor = SafetyMonitor(fake)
     monitor.log_event("pii_detected", {"field": "email"})
     monitor.log_event("pii_detected", {"field": "phone"})
     monitor.log_event("injection_attempt", {"pattern": "ignore previous"})
 
-    # The count data IS available from the monitor.
-    recorded = sum(
-        monitor.get_event_count(event_type)
-        for event_type in SafetyMonitor.VALID_EVENT_TYPES
-    )
-    assert recorded == 3, "sanity check: SafetyMonitor should have 3 events"
+    with patch("redis.from_url", return_value=fake):
+        payload = _health_payload(_mock_db())
 
-    # But the health endpoint ignores it and always reports 0.
-    db = AsyncMock()
-    db.execute = AsyncMock(return_value=None)
-    payload = _health_payload(db)
+    assert payload["safety_events_last_hour"] == 3
 
-    assert payload["safety_events_last_hour"] == recorded, (
-        "health endpoint reports "
-        f"{payload['safety_events_last_hour']} safety events, "
-        f"but {recorded} were recorded (endpoint hardcodes 0 — issue D-08)"
-    )
+
+@pytest.mark.unit
+def test_health_safety_events_zero_when_no_events():
+    with patch("redis.from_url", return_value=FakeRedis()):
+        payload = _health_payload(_mock_db())
+
+    assert payload["safety_events_last_hour"] == 0
+
+
+@pytest.mark.unit
+def test_health_safety_events_degrades_to_zero_when_redis_unavailable():
+    """A Redis outage must not crash /health; the count degrades to 0."""
+    with patch("redis.from_url", return_value=BrokenRedis()):
+        payload = _health_payload(_mock_db())
+
+    assert payload["safety_events_last_hour"] == 0
