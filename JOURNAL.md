@@ -17,3 +17,13 @@ I chose this Tier 1 issue because it aligns well with my current comfort level i
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/aayans314/pathreview/commit/1794be1341b3d76210a8709d74c246f55834dd75
+
+**Reproduction summary:**
+I added a failing unit test (`tests/unit/test_health_route.py`) that stands up a `SafetyMonitor` holding 7 recorded events, mocks the health check's dependency probes so it returns 200, and asserts the response's `safety_events_last_hour` matches. It fails with `assert 0 == 7`: `api/routes/health.py` hardcodes `safety_events_last_hour` to 0 and never reads from `safety/monitoring.py`.
+
+**PLAN.md link:** [PLAN.md](PLAN.md)
+
