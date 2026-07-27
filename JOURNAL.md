@@ -21,3 +21,20 @@ From reading the issue, it looks like `POST /reviews` is missing a test for the 
 
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I called the review pipeline directly with a mock profile that had no GitHub, portfolio, or resume data and confirmed the ingestion step returned an empty source list. Even with no sources to process, the downstream generation steps still produced the same hardcoded feedback, and the review completed successfully instead of reporting an error.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+I'm still deciding where the validation should happen. One option is to check in the create_review endpoint so the request fails immediately before a review record is created. The other option is to let the review be created and have process_review detect the missing data, mark the review as status="failed", and include a clear error message.
+
+Right now I'm leaning toward validating in the endpoint because it prevents creating a misleading pending review in the first place. I just want to make sure that's the approach the frontend is expecting when a submission doesn't include enough information to generate a review.
