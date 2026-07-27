@@ -84,14 +84,14 @@ Scope note: this confirms local setup and endpoint availability only — it does
 
 ## Week 8 — Reproduction & solution planning
 
-**Issue:** [#40 — Implement an offline eval runner that measures review quality across a benchmark portfolio set](https://github.com/ascherj/pathreview/issues/40)
+**Reproduction commit link:** https://github.com/ChariPramod/pathreview-pramod/commit/5a0d25b16476fa556716e3de758dba1555634758
 
-**Reproduction commit:** https://github.com/ChariPramod/pathreview-pramod/commit/5a0d25b16476fa556716e3de758dba1555634758
+**Reproduction summary:**
+Running `LLM_PROVIDER=mock python scripts/run_evals.py` exits 0 and prints "Results written to eval_results.json", but writes no file and changes nothing—the message is unconditional and `main()` is a TODO comment. Because the CI job swallows the resulting read error, every pull request touching `rag/**` gets a green check alongside an "Eval results not found" comment, so a passing evaluation is indistinguishable from one that never ran.
 
-**Reproduction summary:** Running `LLM_PROVIDER=mock python scripts/run_evals.py` exits 0 and prints "Results written to eval_results.json", but writes no file and changes nothing — the message is unconditional and `main()` is a TODO comment. Because the CI job swallows the resulting read error, every pull request touching `rag/**` gets a green check alongside an "Eval results not found." comment, so a passing evaluation is indistinguishable from one that never ran.
+**PLAN.md link:** https://github.com/ChariPramod/pathreview-pramod/blob/feat/40-offline-eval-runner/PLAN.md
 
-**Solution plan:** [PLAN.md](https://github.com/ChariPramod/pathreview-pramod/blob/feat/40-offline-eval-runner/PLAN.md) — full reproduction evidence in [docs/reproductions/issue-40-offline-eval-runner.md](https://github.com/ChariPramod/pathreview-pramod/blob/feat/40-offline-eval-runner/docs/reproductions/issue-40-offline-eval-runner.md)
+**Walkthrough video (recommended):** Not recorded yet
 
-**Walkthrough video:** Not recorded yet
-
-**Blockers and open questions:** No blockers — the environment is set up, the pipeline is understood, and the work is ready to implement. Four scope questions remain unresolved because nothing in the repository settles them, so PLAN.md records a documented default for each rather than inventing an answer: whether actionability scoring is in scope (it appears in one comment and nowhere in the code); what score thresholds define success and whether the runner should exit non-zero below them; what benchmark fixture and `eval_results.json` schemas the maintainer expects; and whether `eval_results.json` should be committed or git-ignored. I plan to raise these on the issue. Separately, the issue description does not match the repository's current implementation — it describes evaluation running inline during API requests, but `EvalSuite` has no callers and the request path returns hardcoded stubs — so the plan introduces the missing offline composition seam instead of refactoring wiring that does not exist, and leaves `core/services/review_service.py` and the API untouched.
+**Blockers or open questions:**
+No implementation blockers remain. Open scope questions include whether actionability scoring is required, whether score thresholds should fail CI, the expected benchmark and report schemas, and whether `eval_results.json` should be committed or treated as a generated artifact.
