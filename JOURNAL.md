@@ -45,3 +45,29 @@ This lives in the API layer's health/monitoring code (`api/routes/health.py` and
 - **Scope risk:** Low. The main decision is *how* to fix it (parse `redis_url`
   vs. add `redis_host`/`redis_port` fields); I'll confirm the preferred approach
   before implementing in Week 8.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Munya574/pathreview/commit/5016022a8d60d263a32795167102db3522963326
+
+**Reproduction summary:**
+I started the backing services (`docker compose up -d`) and ran the API, then
+called `GET /health`. It returned HTTP 503 with `dependencies.redis: "unhealthy"`,
+and the server log showed `redis_health_check_failed error="'Settings' object has
+no attribute 'redis_host'"`. I confirmed the root cause directly: `hasattr(settings,
+'redis_host')` is `False` while `redis_url` exists. I captured this as a failing
+integration test (`tests/integration/test_health_check.py`) that stubs the DB probe
+to isolate Redis and asserts Redis is reported healthy — it fails on the current
+code and will pass once the health check reads Redis config that exists on `Settings`.
+
+**PLAN.md link:** https://github.com/Munya574/pathreview/blob/fix/155-health-check-redis-host/PLAN.md
+
+**Walkthrough video (recommended):** <!-- optional: paste Loom link here, or leave blank -->
+
+**Blockers or open questions:**
+- Preferred fix convention is still open (parse `redis_url` via
+  `redis.Redis.from_url` vs. add explicit `redis_host`/`redis_port` fields) — asked
+  on the issue.
+- `GET /health` also fails its Postgres probe due to a separate issue (#154), so an
+  end-to-end 200 depends on that too. My reproduction test isolates Redis so this
+  fix is verifiable independently.
