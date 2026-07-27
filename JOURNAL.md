@@ -20,3 +20,7 @@ The current ledger allows duplicate claims.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction summary:** `pytest tests/unit/test_relevance_scorer.py -q` fails with `assert 1.0 < 0.9` because the fixture contains all four query terms.
