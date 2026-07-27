@@ -111,8 +111,10 @@ Files I expect to touch:
    description.
 4. The two pre-existing failure paths in `process_review` (safety-check
    failure, generic exception handler) still don't populate `error_message`
-   today — decide explicitly whether to fix those as a drive-by or leave
-   them for a separate issue, rather than leaving it ambiguous.
+   today — **decided (Week 9): left untouched.** Only the new
+   no-ingested-content path sets `error_message`, keeping this PR scoped to
+   issue #88; the gap on the two older paths is documented in the PR
+   description as a candidate follow-up issue.
 
 ### Edge cases
 - `resume_text=""` — already falsy in Python, handled for free.
@@ -128,3 +130,34 @@ Files I expect to touch:
   `process_review` to a no-op, since Starlette executes queued
   `BackgroundTasks` synchronously once the test client gets a response —
   otherwise the test silently runs all four real placeholder pipeline stages.
+
+### Status (Week 9 — implemented)
+
+All five plan steps are done. Verification against the pre-change baseline
+(the repo has documented pre-existing failures; the requirement is
+no *new* ones):
+
+| Check | Baseline (before) | After fix |
+|---|---|---|
+| `pytest tests/unit -m unit` | 54 failed / 375 passed | 53 failed / 388 passed |
+| `make typecheck` | 103 errors in 26 files | 103 errors in 26 files |
+| `ruff check .` | 174 errors | 174 errors |
+| `black --check` (my files) | — | all 4 touched/new files clean* |
+
+\* `core/services/profile_service.py` and `core/services/review_service.py`
+were already black-dirty before this change (pre-existing formatting on
+untouched lines); the added lines themselves are black-clean.
+
+The one failure that left the list is the Week 8 reproduction test, rewritten
+to assert the fixed behavior (fails on pre-fix code, passes now — verified
+both ways via `git stash`). The 53 remaining failures are byte-identical to
+the pre-existing baseline set. Also verified end-to-end against the running
+app: empty profile → 422 with a clear message, unknown profile → 404,
+profile with content → 200 pending → completes as before.
+
+One discovery worth noting for reviewers: 13 of the pre-existing failures in
+`tests/unit/test_review_service.py` stem from a broken mocking idiom
+(`AsyncMock` used for the *result* of `db.execute`, making the synchronous
+`.scalars()` call return a coroutine). The new tests use a plain `Mock` for
+result objects instead. The pre-existing tests were left untouched to keep
+this PR scoped.
