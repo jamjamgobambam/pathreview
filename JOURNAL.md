@@ -35,3 +35,36 @@ I found that the "Share" button in `ReviewPage.tsx` already exists and copies a 
 
 **Blockers or open questions:**
 Still unsure whether share tokens should be actively invalidated when a new one is generated (or if multiple valid tokens per review is fine), and want to confirm the best pattern for mixing an authenticated and a public route within the same FastAPI router.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Backend is fully implemented and committed: added the `ShareLink` model and migration, the `create_share_link` and `get_review_by_share_token` service functions, and the two new API endpoints (`POST /reviews/{review_id}/share` and `GET /reviews/shared/{token}`). Verified end-to-end via Swagger — token generation, public no-auth fetch, and 404s on invalid/unowned requests all work as expected. Also caught and fixed a timezone bug (naive vs. aware datetime comparison) in the `ShareLink.is_expired()` check.
+
+**Next steps:**
+Wire up the frontend: add `createShareLink`/`getSharedReview` to `api.ts`, fix `handleShare()` in `ReviewPage.tsx` to use a real share token instead of the raw page URL, and build the new public `/shared/:token` route and page. Then write unit tests for the new service functions.
+
+**Blockers:**
+None currently.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [paste link here once opened]
+
+**Branch:** `feat/101-copy-link-share-summary`
+
+**What you built:**
+A working public share-link feature: clicking "Share" on a review now generates a real, token-based shareable link that opens a read-only view with no login required, and automatically expires after 30 days.
+
+**Tests added or updated:**
+Added 6 tests to `tests/unit/test_review_service.py` covering `create_share_link` (owned review success, not-found/not-owned case) and `get_review_by_share_token` (valid token, unknown token, expired token, and orphaned token whose review no longer exists).
+
+**Self-review confirmation:** [✔] make check passes  [✔] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
