@@ -28,6 +28,30 @@ the code the user actually wrote.
 
 ---
 
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/obwoj1/pathreview/commit/5cec0c3
+
+**Reproduction summary:**
+Ran the existing unit suite against the pre-fix `tech_detector.py` and got
+`2 failed, 25 passed` — `test_node_modules_excluded` and `test_build_directory_excluded`
+both failed, with the tool logging `primary_lang=JavaScript` for a repo whose only
+hand-written code is Python (the 6 bundled JS files under `node_modules/` were counted
+instead of skipped). This confirms the leading-slash skip patterns never match
+top-level vendored/build directories.
+
+**PLAN.md link:** https://github.com/obwoj1/pathreview/blob/fix/150-exclude-vendored-build-files/PLAN.md
+
+**Walkthrough video (recommended):** _(not recorded)_
+
+**Blockers or open questions:**
+None blocking. One open decision documented in PLAN.md: there's a secondary latent bug
+(`primary = sorted(languages)[0]` picks the alphabetically-first language, not the most
+common). The two target tests pass with the exclusion fix alone, so I'm keeping scope to
+the vendored/build exclusion the issue describes and leaving the tie-break logic alone.
+
+---
+
 ### "Is this right for me?" — scope notes
 - **Single file, tightly scoped:** the fix lives entirely in `agent/tools/tech_detector.py` (the
   `_should_skip_file` path-matching logic). No cross-module changes, no schema/API changes.
