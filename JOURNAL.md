@@ -78,7 +78,7 @@ test file in the repo) verifying that behavior.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [fill in once this commit is made — not committed yet, pending review]
+**Reproduction commit link:** https://github.com/OmJam/pathreview/commit/f3af37a8c45707cd3edc0617bde951a1d321b752
 
 **Reproduction summary:**
 Reproduced two ways. Live: registered a throwaway user, created a profile
@@ -94,13 +94,45 @@ pipeline functions (`_run_agent_orchestration`, `_run_rag_retrieval_generation`,
 shouldn't produce a safety-check-passing, fully-sectioned result from
 nothing — confirmed failing via `.venv/bin/pytest tests/unit/test_review_service.py -v`.
 
-**PLAN.md link:** [fill in once committed — will be https://github.com/OmJam/pathreview/blob/test/88-review-no-ingested-documents/PLAN.md]
+**PLAN.md link:** https://github.com/OmJam/pathreview/blob/test/88-review-no-ingested-documents/PLAN.md
 
-**Walkthrough video (recommended):** [not yet recorded]
+**Walkthrough video (recommended):** [not recorded]
 
 **Blockers or open questions:**
-Whether the fix belongs purely in the route layer (`api/routes/reviews.py`)
-or needs the defense-in-depth duplicate check in `process_review` too (see
-PLAN.md Risks — leaning toward both); whether to fix the `error_message`
-column not being populated on the two pre-existing failure paths as a
-drive-by while touching this code, or leave that for a separate issue.
+Resolved during Week 9 implementation — the fix ended up in both the route
+layer and `process_review` (defense-in-depth), and the `error_message` gap
+on the two pre-existing failure paths was deliberately left alone to keep
+the PR scoped to #88 (documented in PLAN.md and the PR description).
+
+## Week 9 — Solution building & PR submission
+
+### Check-in
+
+**PR link:** https://github.com/ascherj/pathreview/pull/325
+
+**Branch:** test/88-review-no-ingested-documents
+
+**What you built:**
+`POST /reviews` now loads the profile before creating a review and returns
+404 (not found/not owned) or 422 ("Profile has no ingested content to
+review") instead of silently completing with fabricated feedback.
+`process_review` runs the same check as a defense-in-depth guard, and is
+the first code path in the app to ever populate the `error_message` column
+on failure.
+
+**Tests added or updated:**
+Rewrote the Week 8 reproduction test in `tests/unit/test_review_service.py`
+to assert the fixed behavior (fails on pre-fix code, passes now — verified
+both ways via `git stash`). Added `tests/unit/test_review_routes.py` — the
+first route/HTTP-layer tests in the repo, covering 404, 422 for empty and
+whitespace-only profiles, and the happy-path regression — and
+`tests/unit/test_profile_service.py` (8 parametrized cases for the new
+`profile_has_ingested_content` helper).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+*(documented pre-existing failures: 53 unit-test failures across 11 files
+and 103 mypy errors across 26 files predate this branch; confirmed via
+`git stash` baseline diffing that this PR introduces zero new failures in
+either — see PLAN.md "Status" and the PR's "Pre-existing issues" section)*
+
+**Draft PR feedback received from:** none
