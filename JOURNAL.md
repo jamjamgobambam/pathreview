@@ -27,13 +27,13 @@ least one query keyword (e.g. drop "Python"), yielding a partial score that land
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/ascherj/pathreview/commit/050fc046b66dad487f3a68336c3d5cd6d6ebc6c5
 
 **Reproduction summary:**
 [1–2 sentences: How did you reproduce the issue? What did you observe?]
 The issue is reproduced by running the test suite, specifically the `tests/unit/test_relevance_scorer.py` file. I accomplished this by running .venv\Scripts\pytest tests\unit\test_relevance_scorer.py and got a failure of the TestRelevanceScorer.test_query_with_partial_overlap with the following assertation failing "assert 1.0 < 0.9"
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/AlbertMundadan/pathreview/blob/test/157-relevance-scorer-partial-overlap-test/PLAN.md
 
 **Blockers or open questions:**
 No Blockers
