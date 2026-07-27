@@ -69,3 +69,27 @@ alone.
   total, plus documenting the 2 missing ones). Realistic for Weeks 8–9 given
   my other commitments.
 - No blockers or dependencies mentioned on the issue.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [will update after commit]
+
+**Reproduction summary:**
+Confirmed the issue by running all 11 API endpoints locally using manually
+constructed curl commands (since the doc provides none). The most concrete
+reproduction: attempting `POST /auth/login` with a JSON body returns 422
+because the endpoint uses OAuth2 form data — a gotcha invisible from the doc.
+Two endpoints (`PUT /profiles/{profile_id}` and `GET /reviews/{review_id}/status`)
+are implemented in the route files but missing from `docs/API.md` entirely.
+
+**PLAN.md link:** [link to PLAN.md on your branch after commit]
+
+**Walkthrough video (recommended):** [not recorded]
+
+**Blockers or open questions:**
+The health endpoint (`GET /health`) shows postgres and redis as unhealthy
+locally due to a pre-existing bug — `api/routes/health.py` reads
+`settings.redis_host` and `settings.redis_port` as separate config fields but
+`core/config.py` only defines `redis_url` as a combined URL. This is unrelated
+to issue #117 but the curl example for /health will need a note clarifying the
+discrepancy so it doesn't confuse new developers. No other blockers.
