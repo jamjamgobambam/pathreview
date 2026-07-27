@@ -49,14 +49,14 @@ No blockers or dependencies on other issues. 3 other students have claimed it; c
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/ascherj/pathreview/commit/88813ebd373719687a9525d86915cade1aa53502
 
 **Reproduction summary:**
 - I created a test repository containing `.github/workflows/ci.yml` with `actions/checkout@v4`, `docker/build-push-action@v5`, and a `pytest` test step. 
 
 - Running the current ingestion pipeline against this repo confirmed that `SkillExtractor.extract_skills()` returns zero CI/CD skills; workflow files are completely ignored. The `.yml` files never enter the parser pipeline, and even if they did, keywords like `Github Actions`, `pytest`, and `deployment` are absent from `SkillExtractor.TOOLS`.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/codekikicode/pathreview/blob/feat/14-github-actions-workflow-parsing/PLAN.md
 
 **Blockers or open questions:**
 - Can `BaseParser.parse()` accept a filesystem path? Do I need to add a `parse_from_path()` method?
