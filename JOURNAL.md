@@ -28,7 +28,7 @@ The `POST /reviews` API route is missing a test for the case where a profile exi
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** empty
+**Reproduction commit link:** https://github.com/kevin-luk-3/pathreview/commit/ab95557f99c6f5bca735433f795af50ac638ef38
 
 **Reproduction summary:**
 Confirmed the gap locally: `tests/unit/test_review_routes.py` does not exist, and no unit test covers `POST /reviews` when a profile has no ingested content. `create_review` / `create_review_endpoint` never check for `IngestedSource` rows (or empty ingestible profile fields) before creating a `pending` review, so the empty-content path is untested and has no intentional 4xx error contract yet.
