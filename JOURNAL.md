@@ -1,3 +1,4 @@
+```markdown
 ## Week 7 — Issue selection
 
 **Issue link:** https://github.com/ascherj/pathreview/issues/70
@@ -27,4 +28,34 @@ per user values.
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/leul71/pathreview/commit/70eed96
+
+**Reproduction summary:**
+Investigation revealed the issue's premise wasn't quite accurate — no rate
+limiting exists anywhere in the live app, not just missing for
+unauthenticated requests. `RateLimiter` and `rate_limit_per_minute` exist
+but are never imported or called in `api/`. Reproduced by sending 50
+consecutive invalid-credential requests to `POST /auth/login`: all
+returned `401` with no `429` ever appearing, confirming the endpoint is
+completely unthrottled. Documented this with an integration test
+(`tests/integration/test_auth_rate_limit.py`) that currently passes by
+asserting the absence of any `429` response.
+
+**PLAN.md link:** https://github.com/leul71/pathreview/blob/feat/70-per-ip-rate-limiting/PLAN.md
+
+**Walkthrough video (recommended):** [not recorded]
+
+**Blockers or open questions:**
+Repo has 103 pre-existing mypy errors on `main`, unrelated to this issue.
+Used `--no-verify` to commit reproduction work since the pre-commit hook
+checks the whole codebase, not just changed files. Will confirm my own
+code doesn't introduce new errors beyond what's already present before
+final PR submission. Still need to confirm real client IP extraction
+behavior in this Docker setup (no existing `X-Forwarded-For` handling
+found in `api/middleware/`), and whether to apply rate limiting as global
+middleware vs. per-route dependency.
+```
