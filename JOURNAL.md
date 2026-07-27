@@ -45,3 +45,26 @@ Postgres + Redis still needs Docker Desktop installed and running.)
 - Labeled `good first issue`, Tier 1, with a clear repro script in the issue body.
 - Four existing named unit tests already define "done" — no ambiguity about scope.
 - No new dependencies or schema/API changes required.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [scripts/repro_146.py](https://github.com/ascherj/pathreview/blob/fix/146-pii-scrubber-parenthesized-phone/scripts/repro_146.py) (see commit "test: add reproduction script for issue #146")
+
+**Reproduction summary:**
+I wrote `scripts/repro_146.py`, which runs the *old* pre-fix `phone_us` regex (copied
+inline from before commit `06230ad`) against sample text like
+`"Call me at (555) 123-4567 or 555-123-4567"` and confirms it redacts only the dashed
+number, leaving `(555) 123-4567` and `+1 555 123 4567` untouched. Running the same
+samples through the current pattern in `safety/pii_scrubber.py` confirms all formats are
+now redacted.
+
+**PLAN.md link:** [PLAN.md](https://github.com/ascherj/pathreview/blob/fix/146-pii-scrubber-parenthesized-phone/PLAN.md)
+
+**Walkthrough video (recommended):** Not recorded this week.
+
+**Blockers or open questions:**
+While running the full `tests/unit/` suite as a regression check (Plan step 5), I found
+`test_mixed_pii_and_text` fails independently of this fix — the `street_address` pattern's
+`Pl` alternative matches case-insensitively inside unrelated words like "applications". This
+is unrelated to #146 (it's the `street_address` pattern, not `phone_us`) and out of scope
+for this issue, but I've noted it in PLAN.md's Risks section in case it comes up in review.
