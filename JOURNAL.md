@@ -14,3 +14,12 @@
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+
+**Reproducing the Issue** From the home directory:
+
+% python3 -m tests.unit.test_structural_chunker
+% pytest tests/unit/test_structural_chunker.py -v
+
+This runs the unit tests for the structural chunker, which from the issue's title seems to be a reasonable starting point. From here, one of the tests is called `test_document_with_no_headings` and fails during the run. We can see that during the test, it generates a string to simulate a markdown file with no headers. The failure comes from the string not being chunked at all, confirming the issue. From the test case, we can see that the only function called outside of regular test functions is chunk(), which is located in /ingestion/chunking/structural_chunker.py
+
