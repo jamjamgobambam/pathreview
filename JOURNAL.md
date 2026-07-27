@@ -25,12 +25,12 @@ From reading the issue, it looks like `POST /reviews` is missing a test for the 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/jupitersnow1/pathreview/commit/4323e66 
 
 **Reproduction summary:**
 I called the review pipeline directly with a mock profile that had no GitHub, portfolio, or resume data and confirmed the ingestion step returned an empty source list. Even with no sources to process, the downstream generation steps still produced the same hardcoded feedback, and the review completed successfully instead of reporting an error.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/jupitersnow1/pathreview/blob/test/88-review-endpoint-no-ingested-content/PLAN.md
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
