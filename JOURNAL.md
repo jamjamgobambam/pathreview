@@ -60,7 +60,7 @@ I’m still checking the balance between broader matching and avoiding false pos
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/304 
 
 **Branch:** fix/151-broaden-bias-detector-patterns
 
