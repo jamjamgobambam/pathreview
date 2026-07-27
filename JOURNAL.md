@@ -29,13 +29,13 @@ PathReview analyzes GitHub repositories, but it currently does not report whethe
 - It will help me learn how an existing codebase analyzes repositories and returns structured results.
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [will add after creating the commit]
+**Reproduction commit link:**  https://github.com/morishbhayani/pathreview/commit/ea215fe
 
 **Reproduction summary:**
 
 I ran `GitHubTool` against the PathReview repository, which contains automated tests. The tool successfully returned repository metadata including `has_readme`, but the returned data did not contain a `has_tests` field.
 
-**PLAN.md link:** [will add after creating PLAN.md]
+**PLAN.md link:** https://github.com/morishbhayani/pathreview/blob/feat/50-add-has-tests/PLAN.md
 
 **Walkthrough video (recommended):** Not recorded
 
