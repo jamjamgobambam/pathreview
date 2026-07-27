@@ -68,11 +68,19 @@ __[link to commit documenting the reproduced issue]__
 **Reproduction summary:**
 __[1–2 sentences: How did you reproduce the issue? What did you observe?]__
 
+I went to the file (`pii_scrubber.py`) contacting the root of my chosen issue [#146](https://github.com/ascherj/pathreview/issues/146). I added the code in the `Steps to reproduce` section of my issue and ran the code to reproduce the issue.
+
+I also ran the test file (`tests/unit/test_pii_scrubber.py`) mentioned in my selected issue and confirmed that the relevant tests are failing.
+
 **PLAN.md link:** 
 __[link to PLAN.md in your fork]__
 
+[PLAN.md](PLAN.md)
+
 **Walkthrough video (recommended):** 
 __[link to your Loom video, ≤2 min — recommended, not graded]__
+
+[walkthrough video](media/issue_walkthrough.mkv)
 
 **Blockers or open questions:**
 N/A
