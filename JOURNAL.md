@@ -19,7 +19,7 @@ Users currently have no way to share their review summary with others — there 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/ascherj/pathreview/commit/830462d29af84a0ad3bed316b4756ecb026078bb
 
 **Reproduction summary:**
 I confirmed the gap by running the app locally and clicking the existing Share button on a completed review. The button copies the current page URL to the clipboard, but that URL requires authentication — opening it in an incognito window redirects to the login page instead of showing the review. I also audited the codebase and found that `frontend/src/services/shareService.ts` does not exist, `api/routes/reviews.py` has no endpoint for generating or validating share tokens, and there is no database model for storing tokens. The public shareable link feature is entirely unimplemented.
