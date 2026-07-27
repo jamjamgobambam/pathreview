@@ -14,3 +14,18 @@
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [https://github.com/Ungadeu/pathreview/commit/YOUR-COMMIT-HASH-HERE]
+
+**Reproduction summary:**
+I reproduced the issue by writing a failing unit test (`test_sanitize_removes_newline_injections`) inside `tests/unit/test_prompt_defense.py`. I passed a malicious resume string containing `\n---\n` and `\nSystem:` into `PromptDefense.sanitize()` and observed that the dangerous newline markers were completely ignored by the current filter, causing my assertions to fail.
+
+**PLAN.md link:** [https://github.com/Ungadeu/pathreview/blob/fix/64-prompt-injection-defense/PLAN.md]
+
+**Walkthrough video (recommended):** [Link to Loom video, if you made one]
+
+**Blockers or open questions:**
+I am currently researching the best regular expression (regex) pattern to ensure I catch variations like `\nSYSTEM:` or `\n --- \n` without accidentally deleting normal resume formatting.
