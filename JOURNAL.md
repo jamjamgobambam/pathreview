@@ -1,4 +1,4 @@
-## Week 7 — Issue selection
+# Week 7 — Issue selection
 Issue Overview
 ---
 
@@ -29,3 +29,36 @@ Problem summary
 - `.github/workflows/ci.yml`
 - `scripts/validate_migrations.sh`
 
+# Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+Because #129 is a *missing* safeguard, the reproducible fact is that CI's result is **invariant to migration/model drift** — nothing in `.github/workflows/ci.yml` applies migrations to a fresh DB and compares the result to the SQLAlchemy models. I proved this two ways: (1) structurally, `ci.yml` runs no `alembic upgrade`/`alembic check`; (2) behaviorally, I added a `reviewer_notes` column to the `Review` model with no matching migration, and **every CI job returned the same exit code as before the drift** (see table below), while a fresh-DB `alembic check` — the check CI lacks — detected the added column and failed non-zero.
+
+**Reproduction evidence (manual command replication, model-ahead drift):**
+
+Setup: `docker compose up -d db`; `DATABASE_URL=postgresql+asyncpg://pathreview:pathreview@localhost:5433/pathreview_dev`.
+
+| Command (mirrors a CI job / the missing check) | (a) schema matches models | (b) `reviewer_notes` added, no migration |
+|---|---|---|
+| `ruff check .` | exit 1 | exit 1 |
+| `black --check .` | exit 1 | exit 1 |
+| `mypy …` | exit 2 | exit 2 |
+| `pytest tests/unit` | exit 1 (53 failed) | exit 1 (53 failed) |
+| `pytest tests/integration` | exit 5 (no tests) | exit 5 (no tests) |
+| **CI verdict — depends on drift?** | — | **NO — identical** |
+| `alembic upgrade head` *(not in CI)* | exit 0 | exit 0 (applies cleanly) |
+| `alembic check` *(not in CI)* | non-zero — `uq_users_email` diff | non-zero — **`Detected added column 'reviews.reviewer_notes'`** + `uq_users_email` |
+
+Key observations:
+- **CI outcome never changes** when the model drifts from the migrations — the mismatch is invisible to every existing job. (Note: `ruff`/`black`/`mypy`/`unit`/`integration` are already red for *unrelated planted issues*; `mypy` exit 2 is an environmental numpy-stub/py3.11 quirk. None of these detect or are affected by the schema drift.)
+- Migrations still **apply cleanly** (`upgrade head` = 0); only the model-vs-schema comparison catches the drift.
+- Bonus finding: `alembic check` fails **even on the clean tree** because migration `001` creates a `uq_users_email` unique constraint that the `User` model declares only as a unique index — a pre-existing, already-merged model/migration inconsistency that CI never surfaced. This is live proof the gap has already bitten.
+
+**PLAN.md link:** [link to PLAN.md in your fork] — full reproduction plan in `PLAN.md` / `~/.claude/plans/`.
+
+**Walkthrough video (recommended):** [Link vid]
+
+**Blockers or open questions:**
+- The eventual `scripts/validate_migrations.sh` must (a) force `DATABASE_URL` to the `+asyncpg` scheme (CI's integration job uses the sync `postgresql://`, but `alembic/env.py` builds an async engine), and (b) add a `naming_convention` to `Base.metadata` and/or reconcile the `uq_users_email` constraint so `alembic check` isn't noisy — otherwise the new gate fails on the pre-existing constraint diff before it ever sees real drift.
