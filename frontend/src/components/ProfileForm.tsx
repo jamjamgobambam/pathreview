@@ -44,6 +44,9 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess }) => {
     try {
       const formData = new FormData()
       formData.append('github_username', github)
+      """
+      resumeFileis differnt from resume_file
+      """
       if (resumeFile) {
         formData.append('resume', resumeFile)
       }
