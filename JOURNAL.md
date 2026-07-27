@@ -1,29 +1,21 @@
-# JOURNAL
+## Week 8 — Reproduction & solution planning
 
-## Week 7 — Issue selection
+**Reproduction commit link:**
 
-**Issue link:**
-https://github.com/ascherj/pathreview/issues/11
+https://github.com/biswaskdk/pathreview/commit/xxxxxxxx
 
-**Issue title:**
-Add support for ingesting a portfolio website URL
+**Reproduction summary:**
 
-**Tier:**
-☑ Tier 2
+I confirmed that PathReview currently supports resumes and GitHub repositories but does not support portfolio website URLs. There is no web parser or pipeline support for website ingestion.
 
-**Problem summary:**
+**PLAN.md link:**
 
-Currently, PathReview supports ingesting resumes and GitHub repositories, but it cannot ingest content from a user's personal portfolio website. This feature will allow users to submit a portfolio URL, fetch the webpage, extract relevant information such as the user's bio and project descriptions, and send the extracted content through the existing ingestion pipeline. The implementation will involve creating a web parser, updating the ingestion pipeline, and extending the API schema to accept portfolio URLs.
+https://github.com/biswaskdk/pathreview/blob/feature/portfolio-url-ingestion/PLAN.md
 
-**Branch name:**
-feat/11-portfolio-url-ingestion
+**Walkthrough video (recommended):**
 
-**Setup confirmation:**
-☑ App runs locally at localhost:5173
+Not recorded.
 
-**Cohort ledger:**
-☑ Issue added to cohort ledger
+**Blockers or open questions:**
 
-### Issue selection reasoning
-
-I chose this Tier 2 issue because it matches my experience building portfolio websites while giving me the opportunity to understand a larger AI codebase. The scope is manageable, but it also requires working across multiple modules, including the API layer, ingestion pipeline, and parser implementation. I believe it is a good balance between learning new concepts and applying my existing backend and web development skills.
+I need to understand how the existing ingestion pipeline sends parsed content to the vector store.
