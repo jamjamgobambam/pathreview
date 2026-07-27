@@ -20,7 +20,7 @@ The scope is contained to one method in one file, with a clear definition of don
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/lisatran183/pathreview/commit/8fb7f214559be009bc76d886be262b5ddfc4e2d4
 
 **Reproduction summary:**
 Ran `pytest tests/unit/test_faithfulness_checker.py -v` locally on the
@@ -32,7 +32,7 @@ as the issue describes:
 (A 4th test, test_none_context_chunk_text, also fails but with a TypeError —
 that's the separate None-context bug already scoped to #153, not this issue.)
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/lisatran183/pathreview/blob/fix/152-faithfulness-short-claims/PLAN.md
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
