@@ -12,10 +12,10 @@ class PIIScrubber:
     # Regex patterns for common PII
     PII_PATTERNS = {
         "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
-        "phone_us": r"\b(?:\+?1[-.]?)?\(?([0-9]{3})\)?[-.]?([0-9]{3})[-.]?([0-9]{4})\b",
-        "phone_intl": r"\+[0-9]{1,3}[-.]?[0-9]{1,14}",
+        "phone_us": r"(?<!\d)(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}(?!\d)",
+        "phone_intl": r"(?<!\d)\+[0-9]{1,3}(?:[-.\s]?[0-9]{1,14})+(?!\d)",
         "ssn": r"\b(?!000|666)[0-9]{3}-(?!00)[0-9]{2}-(?!0000)[0-9]{4}\b",
-        "street_address": r"\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Court|Ct|Circle|Cir|Park|Pl|Plaza|Place|Drive|Dr|Way|Parkway|Pkwy|Point|Pt|Pike|Run|Summit|Summit|Terrace|Ter|Trail|Trl|Tunnel|Turnpike|View|Vista|Vlg|Village|Vly|Valley)",
+        "street_address": r"(?<!\w)\d+\s+(?:[A-Za-z]+(?:\s+[A-Za-z]+)*\s+)(?:Street|St(?:reet)?|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr(?:ive)?|Lane|Ln|Court|Ct|Circle|Cir|Park|Plaza|Place|Way|Parkway|Pkwy|Point|Pt|Pike|Run|Summit|Terrace|Ter|Trail|Trl|Tunnel|Turnpike|View|Vista|Village|Valley)(?!\w)",
     }
 
     def scrub(self, text: str) -> str:
