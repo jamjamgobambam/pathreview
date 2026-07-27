@@ -32,7 +32,7 @@ self-contained.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [add after committing]
+**Reproduction commit link:** https://github.com/pepsi-boy/pathreview/commit/6e71220
 
 **Reproduction summary:**
 I ran the existing unit tests for the PII scrubber and confirmed the four
@@ -55,7 +55,7 @@ FAILED test_phone_at_start_of_text  - assert '[REDACTED]' in '(555) 123-4567 is 
 Each failure shows a `(555) 123-4567` number passing through unredacted, and
 `detect()` returning 0 phone matches for it.
 
-**PLAN.md link:** [add after creating PLAN.md]
+**PLAN.md link:** https://github.com/pepsi-boy/pathreview/blob/fix/146-pii-parenthesized-phone/PLAN.md
 
 **Walkthrough video (recommended):** [not recorded]
 
