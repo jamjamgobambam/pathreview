@@ -21,7 +21,7 @@ This is my first open source contribution. So, I have chosen Tier 1. The issue 1
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/rarepig/pathreview/tree/bf543f02befa8a2ab5295f35a600eed55b58b62c
 
 **Reproduction summary:**
 Reproduced manually. With the Docker Postgres container confirmed running and
@@ -38,7 +38,7 @@ mocked `execute()` never raises the real SQLAlchemy `ArgumentError` — the bug 
 invisible to that pattern. Reproducing it requires a live session, as the issue
 author notes, which is why I reproduced it manually via `GET /health` + `docker ps`.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/rarepig/pathreview/blob/fix/154-health-db-probe-text/PLAN.md
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
