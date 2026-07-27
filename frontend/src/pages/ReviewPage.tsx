@@ -29,11 +29,22 @@ export const ReviewPage: React.FC = () => {
 
   const currentReview = fullReview || statusReview
 
-  const handleShare = () => {
-    const url = window.location.href
-    navigator.clipboard.writeText(url).then(() => {
-      alert('Review link copied to clipboard!')
-    })
+  const [isSharing, setIsSharing] = useState(false)
+ 
+  const handleShare = async () => {
+    if (!reviewId) return
+ 
+    setIsSharing(true)
+    try {
+      const { token } = await apiClient.createShareLink(reviewId)
+      const fullUrl = `${window.location.origin}/shared/${token}`
+      await navigator.clipboard.writeText(fullUrl)
+      alert('Shareable link copied to clipboard! It will expire in 30 days.')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to create share link')
+    } finally {
+      setIsSharing(false)
+    }
   }
 
   const handleExport = () => {
@@ -113,10 +124,20 @@ ${section.suggestions.map((s) => `- ${s}`).join('\n')}
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleShare}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors"
+                  disabled={isSharing}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Share2 className="w-5 h-5" />
-                  Share
+                  {isSharing ? (
+                    <>
+                      <Loader className="w-5 h-5 animate-spin" />
+                      Sharing...
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-5 h-5" />
+                      Share
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={handleExport}

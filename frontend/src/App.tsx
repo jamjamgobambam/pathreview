@@ -7,6 +7,7 @@ import { RegisterPage } from './pages/RegisterPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { NewProfilePage } from './pages/NewProfilePage'
 import { ReviewPage } from './pages/ReviewPage'
+import { SharedReviewPage } from './pages/SharedReviewPage'
 import { ReviewHistoryPage } from './pages/ReviewHistoryPage'
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -52,6 +53,7 @@ function App() {
         />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/shared/:token" element={<SharedReviewPage />} />
         <Route
           path="/dashboard"
           element={
