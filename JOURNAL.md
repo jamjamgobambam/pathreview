@@ -82,116 +82,16 @@ Scope note: this confirms local setup and endpoint availability only — it does
 
 ---
 
-## Week 8 — Reproduce and plan
+## Week 8 — Reproduction & solution planning
 
-**Issue link:** https://github.com/ascherj/pathreview/issues/40
-
-**Issue title:** Implement an offline eval runner that measures review quality across a benchmark portfolio set
-
-**Branch:** [`feat/40-offline-eval-runner`](https://github.com/ChariPramod/pathreview-pramod/tree/feat/40-offline-eval-runner)
+**Issue:** [#40 — Implement an offline eval runner that measures review quality across a benchmark portfolio set](https://github.com/ascherj/pathreview/issues/40)
 
 **Reproduction commit:** https://github.com/ChariPramod/pathreview-pramod/commit/5a0d25b16476fa556716e3de758dba1555634758
 
-**Solution plan:** [PLAN.md](https://github.com/ChariPramod/pathreview-pramod/blob/feat/40-offline-eval-runner/PLAN.md)
+**Reproduction summary:** Running `LLM_PROVIDER=mock python scripts/run_evals.py` exits 0 and prints "Results written to eval_results.json", but writes no file and changes nothing — the message is unconditional and `main()` is a TODO comment. Because the CI job swallows the resulting read error, every pull request touching `rag/**` gets a green check alongside an "Eval results not found." comment, so a passing evaluation is indistinguishable from one that never ran.
 
-**Reproduction write-up:** [docs/reproductions/issue-40-offline-eval-runner.md](https://github.com/ChariPramod/pathreview-pramod/blob/feat/40-offline-eval-runner/docs/reproductions/issue-40-offline-eval-runner.md)
+**Solution plan:** [PLAN.md](https://github.com/ChariPramod/pathreview-pramod/blob/feat/40-offline-eval-runner/PLAN.md) — full reproduction evidence in [docs/reproductions/issue-40-offline-eval-runner.md](https://github.com/ChariPramod/pathreview-pramod/blob/feat/40-offline-eval-runner/docs/reproductions/issue-40-offline-eval-runner.md)
 
-**Loom walkthrough:** Not recorded yet
+**Walkthrough video:** Not recorded yet
 
-**Implementation status:** Not started — this week was reproduction and planning only.
-
----
-
-### How I reproduced the issue
-
-I ran the eval runner exactly the way CI runs it, on macOS with the project `.venv`, no Docker
-services running and no network calls:
-
-```bash
-ls -la eval_results.json                                        # absent beforehand
-LLM_PROVIDER=mock .venv/bin/python scripts/run_evals.py; echo "EXIT_CODE=$?"
-ls -la eval_results.json                                        # still absent afterwards
-git status --porcelain                                          # empty — nothing created
-```
-
-**Observed:**
-
-```
-Running RAG evaluation suite...
-Evaluation complete. Results written to eval_results.json
-EXIT_CODE=0
-```
-
-**Expected:** benchmark portfolios loaded, run through retrieval + generation + scoring, and a
-machine-readable `eval_results.json` written to the repository root.
-
-The gap is worse than a plain no-op. The script exits **0** and prints that results were written,
-but no file exists and `git status` is empty — the message on [scripts/run_evals.py:12](scripts/run_evals.py#L12)
-is unconditional and the body of `main()` is a four-line TODO. Because
-[.github/workflows/eval.yml](.github/workflows/eval.yml) swallows the read error in an empty
-`catch (e) {}`, every PR touching `rag/**` gets a green check plus a comment reading
-"Eval results not found." Neither a developer nor CI can tell "evaluation passed" from "evaluation
-never ran".
-
-I then confirmed each supporting piece named in the issue and in the runner's TODO:
-
-| Claim | Verified state |
-|---|---|
-| Benchmark fixtures | `tests/fixtures/` does not exist at all; `tests/benchmarks/` holds only an empty `__init__.py`. |
-| Mock generation | No `get_llm_provider`, `MockGenerator`, or `MockLLM` anywhere. `ReviewGenerator` raises `OpenAIError: Missing credentials` at **construction**, before any call. |
-| Actionability scoring | `actionab` matches only the comment on [scripts/run_evals.py:10](scripts/run_evals.py#L10). `EvalSuite` computes `(relevance + faithfulness) / 2`. |
-| Pipeline orchestration | Does not exist. `grep -rn "EvalSuite"` matches only its own definition; `process_review()`'s stages return hardcoded literals. |
-
-### What I found that the issue text does not say
-
-Two things turned this from a scripting task into an integration task, and neither was visible from
-the issue:
-
-1. **The pipeline is not assemblable end-to-end today.** I wired the real components together in a
-   throwaway probe and `VectorStore.add_chunks` raised
-   `AttributeError: 'Chunk' object has no attribute 'id'`. It reads `chunk.id` / `chunk.source_id` /
-   `chunk.chunk_index` as attributes, but `Chunk` is a two-field dataclass (`text`, `metadata`) and
-   the chunkers put those values *inside* `metadata`. The method has **zero callers**, which is
-   exactly why the defect survived — nothing has ever composed these stages.
-2. **`LLM_PROVIDER=mock` is inert.** No module reads `settings.llm_provider`, and
-   `get_embedding_provider()` has no production callers. The env var CI sets to force offline
-   behaviour currently does nothing.
-
-The probe also showed that `MockEmbeddingProvider` carries no semantic signal — cosine similarity
-between the query and a paraphrase was **+0.054**, versus **+0.000** for unrelated text. Under
-`LLM_PROVIDER=mock`, vector ranking is effectively random and BM25 carries all the real signal. That
-does not block the runner, but it bounds what its scores can honestly claim: this is a regression and
-determinism signal, not a semantic-quality measurement, and I plan to say so in the report rather
-than ship a "quality score" that is mostly noise.
-
-The issue's premise — "the current eval suite runs inline during API requests" — is not true of the
-code as it stands. There is no inline evaluation to extract, so the root cause is that PathReview has
-never had a composition seam for the RAG pipeline: every stage exists as an isolated unit awaiting a
-caller that was only ever stubbed. My plan therefore introduces that seam rather than refactoring
-wiring that does not exist, and explicitly leaves `core/services/review_service.py` and the API
-untouched.
-
-### Remaining open questions
-
-These are genuinely unresolved — nothing in the repository answers them, so I have recorded defaults
-in [PLAN.md](PLAN.md) rather than inventing decisions, and will raise them on the issue:
-
-1. **Is actionability in scope?** It appears in one comment and nowhere in the code. Adding it changes
-   `EvalSuite` and the meaning of `overall_score`. My default is to implement relevance + faithfulness
-   only, matching the code, and flag the omission.
-2. **What score thresholds define success, and should the runner exit non-zero below them?** No
-   thresholds, golden outputs, or baselines exist. `eval.yml` has no `continue-on-error`, so a
-   non-zero exit would fail the job and turn a quality signal into a hard merge block. My default is
-   to report scores and gate nothing.
-3. **What benchmark schema and `eval_results.json` format does the maintainer expect?** The only hard
-   constraint I could verify is that `eval.yml` inlines the whole report into a PR comment, so it must
-   stay small and legible. I have proposed both formats in PLAN.md.
-4. **Should `eval_results.json` be committed or git-ignored?** It is currently neither — not present,
-   not ignored. I am leaning toward ignoring it and treating it as a CI artifact.
-5. **How much of the pipeline must be "the full RAG pipeline"?** My plan drives the real chunker,
-   vector store, BM25, hybrid retriever, and evaluator, substituting deterministic providers only at
-   the two model boundaries. Whether the parsers, agent, and safety layers are also expected is
-   unconfirmed.
-
-No blockers on my side — the environment is set up, the pipeline is understood, and the work is ready
-to implement once the scope questions above are settled.
+**Blockers and open questions:** No blockers — the environment is set up, the pipeline is understood, and the work is ready to implement. Four scope questions remain unresolved because nothing in the repository settles them, so PLAN.md records a documented default for each rather than inventing an answer: whether actionability scoring is in scope (it appears in one comment and nowhere in the code); what score thresholds define success and whether the runner should exit non-zero below them; what benchmark fixture and `eval_results.json` schemas the maintainer expects; and whether `eval_results.json` should be committed or git-ignored. I plan to raise these on the issue. Separately, the issue description does not match the repository's current implementation — it describes evaluation running inline during API requests, but `EvalSuite` has no callers and the request path returns hardcoded stubs — so the plan introduces the missing offline composition seam instead of refactoring wiring that does not exist, and leaves `core/services/review_service.py` and the API untouched.

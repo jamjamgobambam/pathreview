@@ -14,8 +14,8 @@ answer a question, it is marked **UNRESOLVED** rather than assumed.
 runner (`scripts/run_evals.py`) that tests the full RAG pipeline against a curated set of benchmark
 portfolios and outputs a JSON report of quality scores."
 
-**The stated premise is false, and that changes the shape of the work.** `EvalSuite` does not run
-inline during API requests — it does not run anywhere. `grep -rn "EvalSuite" --include="*.py" .`
+**The issue description does not match the repository's current implementation, and that changes the
+shape of the work.** `EvalSuite` does not run inline during API requests — it does not run anywhere. `grep -rn "EvalSuite" --include="*.py" .`
 matches only [rag/evaluator/eval_suite.py](rag/evaluator/eval_suite.py) itself. The request path
 ([`process_review`](core/services/review_service.py#L82)) delegates to `_run_ingestion_pipeline`,
 `_run_agent_orchestration`, `_run_rag_retrieval_generation`, and `_run_safety_checks`, all of which
@@ -308,8 +308,9 @@ silently decided.**
   0.0; text copied verbatim from the chunks pins it near 1.0. Both are constants that detect nothing.
   Mitigation: derive text from chunks but paraphrase/recombine, and add a test asserting the metric
   actually varies across benchmarks of differing quality.
-- **Scope creep into the request path.** The false premise invites "fix `process_review` too". Out of
-  scope; `core/services/review_service.py` will not be touched.
+- **Scope creep into the request path.** The mismatch between the issue description and the current
+  implementation invites "fix `process_review` too". Out of scope;
+  `core/services/review_service.py` will not be touched.
 - **Fixing `add_chunks` touches shared code.** Mitigated by it having zero callers and by aligning it
   with the id convention `BatchEmbeddingProcessor` already uses.
 - **Python version skew.** CI is 3.11; the local `.venv` is 3.14.0. Anything relying on 3.12+ behaviour
