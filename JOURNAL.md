@@ -30,7 +30,7 @@ is open, unassigned, and has no linked branch or pull request.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [be3973f](https://github.com/nancypatel12/pathreview/commit/be3973f4aa02df7a653d02e8315341ab05684c86)
+**Reproduction commit link:** [0bdd676](https://github.com/nancypatel12/pathreview/commit/0bdd67696f461d28d00f9733c637de8cda5e053d)
 
 **Reproduction summary:**
 Running `tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty` printed the warning to stdout, but produced zero `caplog` records. The reproduction test now requires a warning `LogRecord` with the expected message, which failed before the test logging configuration was added.
