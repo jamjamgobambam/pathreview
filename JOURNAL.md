@@ -38,3 +38,17 @@ The work will be done in tests/unit/test_prompt_templates.py and will cover the 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** _(replace with the commit URL after pushing — the commit adding the reproduction note to `tests/unit/test_prompt_templates.py` + this Week 8 entry + PLAN.md)_
+
+**Reproduction summary:**
+I edited the `skills_feedback` template text in `rag/generator/prompt_templates.py` and ran `.venv/bin/pytest tests/unit/test_prompt_templates.py` — all 37 tests still PASSED, including `test_template_snapshot_content_hash`. That "snapshot" test only asserts the hash is a 32-char string (always true for any MD5) and never compares it to a stored value, so template wording can change silently without any test catching it or requiring a version bump. I restored the template afterward and documented the exact gap as a `REPRODUCTION — issue #37` comment on the no-op test.
+
+**PLAN.md link:** [PLAN.md](PLAN.md)
+
+**Blockers or open questions:**
+- Confirm with maintainers whether the snapshot should assert *exact* text hashes (trailing-whitespace-sensitive) vs. normalized text.
+- Confirm snapshot storage preference: inline `EXPECTED_TEMPLATE_HASHES` dict vs. a separate JSON file.
+- Ensure stored hashes reflect the post-`black`/`ruff` template text so the `make check` formatter pass doesn't cause snapshot drift.
