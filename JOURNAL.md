@@ -124,3 +124,32 @@ I had to bring in Claude to help me.
 
 **Important**
 The config relaxation is a team-wide gate change. It's reversible, and I kept check_untyped_defs = true so mypy still checks inside functions. Worth a heads-up to your team / a note in the PR.
+
+## Week 8: Steps to Reproduce
+
+
+**Reproduction commit link:**   
+
+
+**Reproduction summary:**  Issue #149 on [GitHub](https://github.com/ascherj/pathreview/issues/149) tells you how to reproduce the issue. I simply followed the steps to produce the expected output, shown in the first screen shot below. 
+
+```
+StructuralChunker.chunk() returns an empty list for any document without markdown headings, so the entire document is silently excluded from the RAG index instead of being chunked as a single block or falling back to another strategy.
+
+### Reproducing the Issue Locally:
+
+from ingestion.chunking.structural_chunker import StructuralChunker
+c = StructuralChunker()
+print(len(c.chunk('This is a plain document with no headings at all. ' * 20, {})))
+# observed: 0  (a ~1000-char document produces no chunks)
+
+```
+![alt text](<images/ 149 output.png>)
+
+You can also observe that the unit test for this piece of code is failing. 
+
+![alt text](<images/failed unit test.png>)
+
+
+**PLAN.md link:** 
+
