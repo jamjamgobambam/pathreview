@@ -64,7 +64,7 @@ snippet: the four issue-named tests fail, and `(555) 123-4567` /
 `+1 555 123 4567` pass through `scrub()` unchanged with `detect()` returning
 `[]`, while dashed/dotted formats redact correctly — so the bug is isolated
 to space/paren handling in the `phone_us` regex (full transcript in PLAN.md
-§1–2).
+under "Understand").
 
 **PLAN.md link:** https://github.com/DeDeMouse/pathreview/blob/fix/146-pii-scrubber-paren-phone/PLAN.md
 
