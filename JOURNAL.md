@@ -58,21 +58,25 @@ diagnosable, which is the core of reliable multi-tool agent orchestration.
   deps installed.
 - `make run` — frontend confirmed loading at http://localhost:5173, API at :8000.
 
-## Week 8 — Reproduction and planning
+## Week 8 — Reproduction & solution planning
 
-**Reproduced:** Yes. `scripts/repro_issue_54.py` runs the orchestrator with the real
-tools (no network/Redis/LLM) and confirms the defect locally: `skill_extractor`
-detects 11 skills, yet `market_analyzer` returns `in_demand_skills=[]` and
-`market_alignment_score=0.0` while the run reports success. Root cause:
-`Orchestrator._build_plan` hardcodes `market_analyzer`'s input to
-`{"detected_skills": {}}` (`agent/orchestrator.py:130`) and nothing validates that
-its prerequisite (`skill_extractor`) ran or produced usable data.
+**Reproduction commit link:** https://github.com/MollyMoriJing/pathreview/commit/8ff7d2d2dc82fe60a1032dc866de94c336afb283
 
-**Plan:** See `PLAN.md`. Approach: add `agent/tools/tool_dependencies.py` with a
-`TOOL_DEPENDENCIES` DAG and `validate_plan()`; call it in `Orchestrator.run()` before
-execution (raise on structural errors); skip dependents whose prerequisites failed at
-runtime; add unit tests (`test_tool_dependencies.py`, `test_orchestrator.py`). Open
-scope question flagged for the maintainer: validation only, or also fix the missing
-data propagation that produces the empty market analysis.
+**Reproduction summary:**
+Running `scripts/repro_issue_54.py` (real tools, no network/Redis/LLM), `skill_extractor`
+detects 11 skills but `market_analyzer` returns `in_demand_skills=[]` and
+`market_alignment_score=0.0` while the run still reports success — confirming the
+orchestrator executes a dependent tool on empty input with no prerequisite check.
 
-**Starter commits:** (1) reproduction script, (2) this `PLAN.md` + journal update.
+**PLAN.md link:** https://github.com/MollyMoriJing/pathreview/blob/feat/54-plan-dag-validation/PLAN.md
+
+**Walkthrough video (recommended):** _(not recorded)_
+
+**Blockers or open questions:**
+- Scope: the issue asks for *validation*, but the visible symptom is caused by missing
+  *data propagation* in `_build_plan` (`agent/orchestrator.py:130`). Will confirm with the
+  maintainer whether the PR should also wire upstream outputs downstream (planned as a
+  separate commit).
+- The repo already fails `make typecheck` (~103 pre-existing mypy errors), so `make check`
+  is red independent of my change; my new files will be kept mypy-clean and I'll note the
+  baseline in the PR.
