@@ -19,3 +19,19 @@ The `/health` endpoint includes a database probe that checks whether the applica
 ### Issue selection notes ("Is this right for me?")
 
 I selected this Tier 1 issue because it has a clearly defined scope and affects a single part of the API layer. The issue description identifies the relevant file (`api/routes/health.py`), making it straightforward to locate the code and understand the expected behavior before and after the fix. Since this is my first contribution to a larger codebase, I wanted a well-scoped issue that I can confidently reproduce, test, and complete within the project timeline.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [will update after commit]
+
+**Reproduction summary:**
+
+I reproduced issue #154 by running the application locally and sending a request to the `/health` endpoint using curl. The endpoint returned a 503 response and the PostgreSQL dependency was marked as unhealthy because SQLAlchemy 2.x rejected the raw SQL query `"SELECT 1"` with an error requiring it to be wrapped using `text()`.
+
+**PLAN.md link:** [will update after creating PLAN.md]
+
+**Walkthrough video (recommended):** Not recorded (optional)
+
+**Blockers or open questions:**
+
+The Redis health check also reports a separate configuration error, but it appears unrelated to issue #154 and is outside the scope of this contribution.
