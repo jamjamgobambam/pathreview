@@ -24,3 +24,17 @@ The `/health` endpoint in `api/routes/health.py` tries to build a Redis client u
 - Learning value: touches Pydantic Settings, the `redis-py` client API, and error-swallowing anti-patterns (`except Exception` masking bugs), which felt like a good first exposure to this codebase's conventions.
 
 **Progress update:** Fix implemented in `api/routes/health.py` (Redis client now built via `redis.Redis.from_url(settings.redis_url)`), with unit tests added in `tests/unit/test_health_check.py` covering both the healthy path and a real Redis ping failure. `ruff`, `black`, and `mypy` all pass on the changed files via the repo's pre-commit hooks. Commit: `c23239c` on this branch.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/YunzheOVE/pathreview/commit/7f9353f
+
+**Reproduction summary:**
+Reproduced the bug in isolation by calling `redis.Redis(host=settings.redis_host, ...)` directly, which raised `AttributeError: 'Settings' object has no attribute 'redis_host'`. Then ran the pre-fix `health_check()` function against a stubbed DB session to observe the full user-facing symptom: the error gets silently caught and the endpoint reports `"redis": "unhealthy"` with a `503`, even though Redis itself was never actually contacted. Full transcript and root-cause explanation are in `REPRODUCTION.md`.
+
+**PLAN.md link:** https://github.com/YunzheOVE/pathreview/blob/fix/155-health-check-redis-host/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded — optional per instructions, skipped for this week.
+
+**Blockers or open questions:**
+None blocking. One dependency to keep in mind for Week 9: fixing this endpoint required type-annotating `health_check()`, which surfaced an unrelated pre-existing bug (issue #154, raw SQL string passed to `db.execute()`). I suppressed it with a scoped `# type: ignore` comment rather than fixing it, to keep this PR limited to #155 — noted in `PLAN.md` under Risks & unknowns in case #154 gets fixed independently and the suppression comment needs cleanup.
