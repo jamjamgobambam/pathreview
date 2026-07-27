@@ -27,7 +27,7 @@ I can explain the issue without looking at it: the retriever currently ranks chu
 **Reproduction commit link:** https://github.com/Modeste01/pathreview/commit/80c9bfa
 
 **Reproduction summary:**
-I wrote a test that tries to import `ChunkReranker` from `rag.retriever.reranker` and checks whether `HybridRetriever` accepts a reranker parameter. The import fails, confirming the module does not exist. The second test passes, confirming there is no integration point for a reranker in the hybrid retriever. This proves the gap described in issue #34: chunks go straight from blended vector/keyword scoring to the generator with no LLM-based relevance check in between.
+Two-part reproduction. First, a structural test confirms the reranker module does not exist: importing `ChunkReranker` from `rag.retriever.reranker` raises ImportError, and `HybridRetriever.__init__` has no `reranker` parameter. Second, a behavioral test simulates what happens without a reranker: given a query like "What frontend frameworks does this candidate use?", the retriever returns chunks scored by keyword overlap alone. A chunk about "Flask REST API framework" (backend, not frontend) scores higher than a chunk about Vue.js because it has a stronger keyword match on "framework." Without an LLM to judge actual relevance, these false positives stay in the top results and get passed to the generator as context.
 
 **PLAN.md link:** https://github.com/Modeste01/pathreview/blob/feat/34-setup-%26-short-description/PLAN.md
 

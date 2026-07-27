@@ -4,9 +4,18 @@
 
 ### Understand
 
-The hybrid retriever (rag/retriever/hybrid.py) ranks chunks using a weighted blend of vector similarity and BM25 keyword scores. This is a purely statistical ranking that can surface false positives: chunks that share surface-level keywords with the query but don't actually answer what was asked. There is no semantic relevance check before the top-k chunks are passed to the generator.
+**How the pipeline works today:**
+PathReview is a portfolio review tool. A user submits their profile (resume, GitHub, repos) via the web dashboard. The service layer (`core/services/review_service.py`) orchestrates ingestion, agent analysis, and RAG-based feedback generation. The RAG step is where the retriever and generator live:
 
-Expected behavior: an optional re-ranking pass sits between retrieval and generation, where a smaller LLM scores each chunk's actual relevance to the query. Only chunks that pass this second check are forwarded to the generator. This should be opt-in so the system still works without it (for speed or cost reasons).
+1. The service formulates internal queries (not typed by the user) for each review dimension, like "What frontend frameworks does this candidate use?" or "How complete is this candidate's work experience?"
+2. The hybrid retriever (`rag/retriever/hybrid.py`) searches stored profile chunks using vector similarity (70% weight) and BM25 keyword matching (30% weight), blends the scores, and returns top-k chunks.
+3. The generator (`rag/generator/review_generator.py`) takes those chunks as context and prompts an LLM to write structured feedback.
+
+**What's wrong:**
+The retriever ranks chunks using only statistical signals. A chunk can score high simply by containing keywords from the query, even when it's not semantically relevant. For example, if the query is about "frontend frameworks," a chunk mentioning "Flask REST API framework" scores high on the keyword "framework" despite being about backend tech. These false positives then get fed to the generator, which writes feedback based on partially irrelevant context.
+
+**What a fix looks like:**
+An optional re-ranking pass sits between steps 2 and 3. A smaller LLM scores each candidate chunk's actual relevance to the query (e.g., 0-10). The chunks get re-sorted by that LLM relevance score, and only the truly relevant top-k are passed to the generator. This should be opt-in so the system still works without it (for speed or cost reasons).
 
 ### Map
 
