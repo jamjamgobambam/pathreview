@@ -34,6 +34,64 @@ asserts the reported count matches. It fails with
 
 ---
 
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Established a pre-change baseline of the repo (`make test-unit`: 53 pre-existing
+unrelated failures; `ruff`: 182 errors; `black`: 53 files; `mypy`: bails early on
+stub/numpy issues). Implemented the two core sub-tasks from PLAN.md: added
+`SafetyMonitor.get_total_event_count()` (sums per-type counts across
+`VALID_EVENT_TYPES`, degrading to 0 on Redis errors) and wired `/health` to it
+via `redis.from_url(settings.redis_url)` instead of the hardcoded `0`.
+
+**Next steps:**
+Finish the test coverage (endpoint wiring + no-events + Redis-unavailable), re-run
+the suite to confirm no new failures, and open a draft PR for feedback.
+
+**Blockers:**
+Decided to keep the pre-existing `settings.redis_host` gap in `health.py` out of
+scope (it affects the Redis dependency line, not the safety count) and document
+it in the PR instead of expanding the change.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** <!-- PR_URL_PLACEHOLDER -->
+
+**Branch:** `feat/d08-health-safety-event-count`
+
+**What you built:**
+`/health` now reports the real `safety_events_last_hour` instead of a hardcoded
+`0`. A new `SafetyMonitor.get_total_event_count()` sums recorded safety events
+across all event types from Redis, and the endpoint calls it inside a guarded
+block so a Redis outage degrades the count to `0` rather than failing the health
+check.
+
+**Tests added or updated:**
+`tests/unit/test_health_safety_events.py` — converted the Week 8 reproduction
+test to assert the corrected behavior, and added coverage for
+`get_total_event_count` (sum across types; zero when empty) and the endpoint
+wiring (reports the recorded count; zero with no events; degrades to zero when
+Redis is unavailable). All 5 pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+*("Passes" per the documented pre-existing-failures guidance: my change
+introduces **no new** failures. Verified by diffing the failing-test set before
+and after — unit failures went 54 → 53 (my reproduction test now passes, zero
+new failures); `mypy` error count on the touched files is unchanged (14 → 14);
+`ruff`/`black` on my added code are clean, and the remaining warnings on the
+touched files — unsorted imports, unused `timedelta`/`timestamp`, `Depends`
+default, and a `black` trailing-comma on `VALID_EVENT_TYPES` — are all
+pre-existing, not introduced by this change.)*
+
+**Draft PR feedback received from:** none yet — draft opened for peer/mentor review
+
+---
+
 ### Note on issue selection
 
 I first surveyed the tier-1 bug issues in `scripts/issues_manifest.json`
