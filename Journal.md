@@ -22,3 +22,17 @@ Affected area: api/routes/health.py (API layer).
 Tier fit: Tier 1 / good first issue — appropriate scope for an early contribution.
 Codebase readiness: Read the relevant function in api/routes/health.py in full. Located and read the corresponding test file end-to-end.
 Scope and time: Checked issue comments and ledger Claims count for #154. Estimated at 3–6 hours, within the Tier 1 range. No stated blockers on the issue.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ApoorvThite/pathreview/commit/4178537f88212fc7e0a5cbb87948c98a65590ad9
+
+**Reproduction summary:**
+Added `tests/integration/test_health_check.py`, which calls `health_check()` with a real, working in-memory SQLite `AsyncSession` and asserts the result. The test passes today because `dependencies.postgres` is reported `"unhealthy"` even though the session is fully functional — the bare-string `db.execute("SELECT 1")` call raises `ArgumentError` under SQLAlchemy 2.x, and that exception is swallowed and misreported as the database being down.
+
+**PLAN.md link:** https://github.com/ApoorvThite/pathreview/blob/fix/154-health-check-sql-text-wrap/PLAN.md
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+While reading `api/routes/health.py`, found a second, unrelated bug: the Redis probe references `settings.redis_host` / `settings.redis_port`, but `core/config.py`'s `Settings` only defines `redis_url` — so the Redis leg always raises `AttributeError` and reports unhealthy regardless of the Postgres fix. This means `/health` will likely still return 503 overall even after fixing #154, purely from the Redis leg. Planning to flag this as a separate follow-up issue rather than fold it into #154's scope — open to feedback on that call in Week 9.
