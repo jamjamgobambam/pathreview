@@ -69,6 +69,7 @@ None for this issue. Note: the repo's full unit suite has ~52 pre-existing failu
 ### Check-in 2 (end of week)
 
 **PR link:** [open PR against `ascherj/pathreview` and add link]
+https://github.com/ascherj/pathreview/pull/284
 
 **Branch:** `test/159-configure-structlog-caplog`
 
@@ -78,7 +79,8 @@ An `autouse` pytest fixture in `tests/conftest.py` that configures structlog to 
 **Tests added or updated:**
 No test assertions were changed. Touched `tests/conftest.py` (the fix). Verified against the existing `tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty`, which failed before (empty `caplog.text`) and passes after; all 11 tests in that file pass.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 (Note: `make check` and `make test-unit` both fail on pre-existing errors unrelated to #159. The changed file `tests/conftest.py` is lint-clean (`ruff check tests/conftest.py` passes) and the caplog test it enables passes.)
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
+none
