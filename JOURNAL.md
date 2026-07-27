@@ -17,3 +17,23 @@ The bug has a narrow scope in `rag/evaluator/faithfulness_checker.py`, includes 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [cf3b1be — fix(rag): handle None context chunk text](https://github.com/yifanliu0108/pathreview/commit/cf3b1be46ca58416f2aacd2dfcd0a731faf6dbb0)
+
+**Reproduction summary:**
+I ran `FaithfulnessChecker().check("Knows Python.", [{"text": None}])` against the
+upstream implementation and reliably reproduced `TypeError: sequence item 0:
+expected str instance, NoneType found` while the context strings were joined. On
+this branch, the same input completes without an exception and returns `0.0`.
+
+**PLAN.md link:** [PLAN.md on the working branch](https://github.com/yifanliu0108/pathreview/blob/fix/153-none-context-chunk-text/PLAN.md)
+
+**Walkthrough video (recommended):** Not recorded (optional and not graded).
+
+**Blockers or open questions:**
+The issue-specific null-text and missing-key tests pass. Three existing assertions
+in the complete faithfulness-checker test module still fail because its current
+token-overlap scoring returns `0.0` where those tests expect partial support; they
+are unrelated to the `None`-handling crash and are outside issue #153.
