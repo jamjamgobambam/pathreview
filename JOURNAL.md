@@ -128,7 +128,7 @@ The config relaxation is a team-wide gate change. It's reversible, and I kept ch
 ## Week 8: Steps to Reproduce
 
 
-**Reproduction commit link:**   
+**Reproduction commit link:**   https://github.com/ascherj/pathreview/commit/ee553d5571663dcd5bf2101651dcf463e66d9b92
 
 
 **Reproduction summary:**  Issue #149 on [GitHub](https://github.com/ascherj/pathreview/issues/149) tells you how to reproduce the issue. I simply followed the steps to produce the expected output, shown in the first screen shot below. 
