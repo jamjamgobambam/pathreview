@@ -23,3 +23,17 @@
 
 This runs the unit tests for the structural chunker, which from the issue's title seems to be a reasonable starting point. From here, one of the tests is called `test_document_with_no_headings` and fails during the run. We can see that during the test, it generates a string to simulate a markdown file with no headers. The failure comes from the string not being chunked at all, confirming the issue. From the test case, we can see that the only function called outside of regular test functions is chunk(), which is located in /ingestion/chunking/structural_chunker.py
 
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [[link to commit documenting the reproduced issue](https://github.com/tyler-mcmullin/pathreview/commit/1abe6d4245c9983d6db2540ec334c5ada7dbd683)]
+
+Commit also has additional changes to docker file to ensure that it runs properly.
+
+**Reproduction summary:**
+Reproducing the issue was done as described above, the unit tests were ran and the test that created a simulated markdown file without headers failed. 
+
+**PLAN.md link:** [[Link to PLAN.md in my fork](https://github.com/tyler-mcmullin/pathreview/blob/fix/149-chunker-drops-docs-with-noheading/PLAN.md)]
+
+**Blockers or open questions:**
+
