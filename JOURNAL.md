@@ -151,5 +151,5 @@ You can also observe that the unit test for this piece of code is failing.
 ![alt text](<images/failed unit test.png>)
 
 
-**PLAN.md link:** 
+**PLAN.md link:** https://github.com/mardisworld/pathreview/blob/fix/149-structural-chunker-silently-drops-documents-with-no-headings/PLAN.md
 
