@@ -17,3 +17,17 @@ This issue is a good fit for Week 7 because it is focused on a single ingestion 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/maninampally/pathreview/commit/e145a8c40ec120fa3144897c644b0abfe2d1a6ff
+
+**Reproduction summary:**
+Confirmed the gap by diffing `core/services/review_service.py` against the pre-fix commit (`0024684`): the portfolio branch of `_run_ingestion_pipeline` only wrote a hardcoded placeholder string (`f"Portfolio data from {profile.portfolio_url}"`) into `IngestedSource`, never fetching the page. Verified the fetch/parse path works by serving `tmp/portfolio_site/index.html` locally and pointing `WebParser.parse()` at it over real HTTP (not a mock) — confirmed it extracts visible text ("Local Portfolio", "Example portfolio content...", "Built with Python, FastAPI, and React.") and the page title, while skipping `<script>`/`<style>` content.
+
+**PLAN.md link:** https://github.com/maninampally/pathreview/blob/feat/11-portfolio-website-ingestion/PLAN.md
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:**
+Unclear how JS-rendered portfolio sites (client-side rendered SPAs) should be handled — `httpx.get` only sees server-rendered HTML, and the static local fixture doesn't exercise that case. See Risks & unknowns in PLAN.md.
