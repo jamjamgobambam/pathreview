@@ -437,3 +437,30 @@ class TestReviewService:
             assert len(sources) == 1
             assert sources[0]["source_type"] == "github"
             mock_db.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_run_ingestion_pipeline_adds_only_portfolio_url_and_commits(self):
+        """Test _run_ingestion_pipeline adds only portfolio url and commits"""
+        fake_profile = Mock()
+        fake_profile.github_username = None
+        fake_profile.portfolio_url = "https://example.com"
+        fake_profile.resume_text = None
+        fake_profile.id = uuid4()
+
+        mock_db = Mock()
+        mock_db.add = Mock()
+        mock_db.commit = AsyncMock()
+
+        with patch("core.services.review_service.IngestedSource") as mock_ingested_source:
+            sources = await _run_ingestion_pipeline(mock_db, fake_profile)
+
+            mock_ingested_source.assert_called_once_with(
+                profile_id=fake_profile.id,
+                source_type="portfolio",
+                raw_data=ANY,
+            )
+            mock_db.add.assert_called_once_with(mock_ingested_source.return_value)
+
+            assert len(sources) == 1
+            assert sources[0]["source_type"] == "portfolio"
+            mock_db.commit.assert_awaited_once()
