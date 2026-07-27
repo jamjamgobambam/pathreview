@@ -16,3 +16,29 @@
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [to be filled in after push — see this commit]
+
+**Reproduction summary:**
+Ran the exact snippet from the issue (`ResumeParser().parse(...)` on a string with
+leading whitespace on every line) and confirmed `detected_sections` comes back `[]`
+instead of `['Education', 'Skills']`. Also ran the three named tests
+(`test_parse_single_column_resume_text`, `test_parse_resume_no_work_experience`,
+`test_detect_sections` in `tests/unit/test_resume_parser.py`) — all three fail with
+`AssertionError` for the same reason: their resume fixtures are Python triple-quoted
+strings, which carry the same kind of per-line leading indentation as PDF-extracted
+text, so `_detect_sections()`'s regex patterns (anchored directly to `^`/`\n` with no
+whitespace tolerance) never match.
+
+**PLAN.md link:** [to be filled in after push]
+
+**Walkthrough video (recommended):** [not recorded yet]
+
+**Blockers or open questions:**
+None yet — root cause is confirmed and isolated to a single function
+(`_detect_sections` in `ingestion/parsers/resume_parser.py`). Main open question
+going into the fix is whether loosening the regex to tolerate leading whitespace
+could introduce false positives (e.g. a section-name word appearing mid-sentence
+on an indented line) — noted as a risk in PLAN.md.
