@@ -74,6 +74,23 @@ class StructuralChunker(BaseChunker):
         Extract sections from markdown with heading hierarchy.
 
         Returns list of dicts with: content, path (breadcrumb), level
+
+        BUG (Issue #149): When a document has no markdown headings,
+        heading_stack is never populated, so the guard on line 111
+        (`if heading_stack or current_section_lines`) prevents any
+        content from being collected. The final save on line 115 also
+        requires heading_stack to be truthy. Result: _extract_sections()
+        returns [] for heading-free documents, and chunk() silently
+        returns an empty list — the document is never indexed.
+
+        Reproduction:
+            >>> chunker = StructuralChunker()
+            >>> result = chunker.chunk("Plain text without headings.", {"source": "test"})
+            >>> len(result)
+            0   # <-- BUG: should be >= 1
+
+        Confirmed failing test:
+            pytest tests/unit/test_structural_chunker.py::TestStructuralChunker::test_document_with_no_headings -v
         """
         lines = text.split("\n")
         sections = []
