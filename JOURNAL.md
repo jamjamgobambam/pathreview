@@ -145,3 +145,74 @@ The address tests pass even though the leaks above exist, because
 so there is effectively no real address-format coverage.
 
 Reproduction is deterministic (pure regex; no network or LLM involved).
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Fix is fully implemented against `PLAN.md`. Done:
+- Step 1 (tests first) — replaced the assertion-less `test_address_variations`
+  with real assertions and added tests for numbered streets, lettered house
+  numbers, abbreviated suffixes, PO boxes, an embedded address, negative
+  (no-false-positive) cases, and `detect()` coverage for `street_address` /
+  `po_box`.
+- Step 2 (broaden `street_address`) — the name portion now allows digits
+  (`5th`, `42nd`), the house number takes an optional unit letter (`221B`), the
+  match is bounded to 1–4 name words, and a trailing `\b` stops a suffix from
+  matching inside a longer word (this also fixed the pre-existing over-redaction
+  where `Pl` matched inside "applications").
+- Step 3 (add `po_box` pattern) — covers `PO Box` / `P.O. Box` and case variants.
+- Step 4 (verify) — the reproduction snippet from Week 8 now redacts all leaking
+  formats; `pii_scrubber` tests went from 5 failed / 20 passed to 4 failed /
+  29 passed (the 4 are the out-of-scope phone bug).
+
+**Next steps:**
+Open the PR (ready, not draft) with the template filled in, then submit the
+branch URL via the portal.
+
+**Blockers:**
+The ZIP-code question from Week 8 — resolved by keeping ZIP out of scope (a bare
+5-digit pattern over-redacts any number); noted as a possible follow-up rather
+than added blind.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _(added below once opened)_
+
+**Branch:** `test/73-pii-scrubber-address-formats`
+
+**What you built:**
+Broadened the `street_address` regex in `safety/pii_scrubber.py` so it redacts
+numbered street names (`123 5th Avenue`), lettered house numbers (`221B Baker
+Street`), and abbreviated suffixes (`10 Downing St.`), and added a `po_box`
+pattern for `PO Box` / `P.O. Box`. A trailing word boundary keeps a street-type
+suffix from matching inside ordinary words, so genuine addresses are caught
+without over-redacting prose.
+
+**Tests added or updated:**
+`tests/unit/test_pii_scrubber.py` — rewrote `test_address_variations` to actually
+assert, and added `test_numbered_street_names_redacted`,
+`test_lettered_house_number_redacted`,
+`test_abbreviated_suffix_with_period_redacted`, `test_po_box_redacted`,
+`test_address_embedded_in_sentence`, `test_address_no_false_positives`,
+`test_detect_street_address_pii`, and `test_detect_po_box_pii`.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+> In this codebase both commands have documented pre-existing failures unrelated
+> to this issue, so per the course guidance "passes" means my change introduces
+> **no new failures**. Verified:
+> - `make test-unit`: 53 failed on clean `main` → 52 with my change. My change
+>   only touches `pii_scrubber`, whose tests improved from 5 failed to 4 failed
+>   (I fixed `test_mixed_pii_and_text` and added 8 passing tests). The remaining
+>   4 `pii_scrubber` failures — and all 48 failures in other modules — are
+>   pre-existing. The 4 are the parenthesized-phone bug (`(555) 123-4567`), which
+>   I scoped out in Week 7 as a separate phone-regex issue.
+> - `make check`: ~181 pre-existing lint errors codebase-wide. On my two files
+>   ruff went from 6 errors to 5 (I removed one, added none), `mypy safety/` is
+>   clean, and black's only diff is in `detect()` — a method I did not touch.
+
+**Draft PR feedback received from:** none
