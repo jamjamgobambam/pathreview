@@ -41,7 +41,7 @@ The work will be done in tests/unit/test_prompt_templates.py and will cover the 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** _(replace with the commit URL after pushing — the commit adding the reproduction note to `tests/unit/test_prompt_templates.py` + this Week 8 entry + PLAN.md)_
+**Reproduction commit link:** https://github.com/jundaBu/pathreview/commit/96476f97f542f71e1bdbc3b127a64d41aeebb350
 
 **Reproduction summary:**
 I edited the `skills_feedback` template text in `rag/generator/prompt_templates.py` and ran `.venv/bin/pytest tests/unit/test_prompt_templates.py` — all 37 tests still PASSED, including `test_template_snapshot_content_hash`. That "snapshot" test only asserts the hash is a 32-char string (always true for any MD5) and never compares it to a stored value, so template wording can change silently without any test catching it or requiring a version bump. I restored the template afterward and documented the exact gap as a `REPRODUCTION — issue #37` comment on the no-op test.
