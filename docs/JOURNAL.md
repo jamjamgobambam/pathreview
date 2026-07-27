@@ -23,7 +23,7 @@ Not sure excatly but I know its about logging. The issue break down talks about 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [TODO: commit + push the reproduction, then paste the commit URL here]
+**Reproduction commit link:** [https://github.com/duhnk/pathreview/commit/61e3d73d48801b7263dc33e4f86149e25c12faef]
 
 **Reproduction summary:**
 Ran `pytest tests/unit/test_batch_processor.py`. The test
