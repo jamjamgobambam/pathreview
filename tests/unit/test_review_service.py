@@ -492,3 +492,63 @@ class TestReviewService:
             assert len(sources) == 1
             assert sources[0]["source_type"] == "resume"
             mock_db.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_run_ingestion_pipeline_adds_all_sources_when_all_fields_set(self):
+        """Test _run_ingestion_pipeline adds github, portfolio, and resume sources when all profile fields are set"""
+        fake_profile = Mock()
+        fake_profile.github_username = "test_github_username"
+        fake_profile.portfolio_url = "https://example.com"
+        fake_profile.resume_text = "example text"
+        fake_profile.resume_filename = "example_resume.pdf"
+        fake_profile.id = uuid4()
+
+        mock_db = Mock()
+        mock_db.add = Mock()
+        mock_db.commit = AsyncMock()
+
+        with patch("core.services.review_service.IngestedSource") as mock_ingested_source:
+            sources = await _run_ingestion_pipeline(mock_db, fake_profile)
+
+            assert mock_ingested_source.call_count == 3
+            assert mock_db.add.call_count == 3
+
+        assert len(sources) == 3
+        assert [s["source_type"] for s in sources] == ["github", "portfolio", "resume"]
+        mock_db.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_run_ingestion_pipeline_continues_after_github_ingestion_error(self):
+        """Test _run_ingestion_pipeline logs and continues past a failed github ingestion, still adding portfolio and resume sources"""
+        fake_profile = Mock()
+        fake_profile.github_username = "test_github_username"
+        fake_profile.portfolio_url = "https://example.com"
+        fake_profile.resume_text = "example text"
+        fake_profile.resume_filename = "example_resume.pdf"
+        fake_profile.id = uuid4()
+
+        mock_db = Mock()
+        mock_db.add = Mock()
+        mock_db.commit = AsyncMock()
+
+        with (
+            patch("core.services.review_service.log") as mock_log,
+            patch("core.services.review_service.IngestedSource") as mock_ingested_source,
+        ):
+            mock_ingested_source.side_effect = [Exception("boom"), Mock(), Mock()]
+
+            sources = await _run_ingestion_pipeline(mock_db, fake_profile)
+
+            mock_log.error.assert_called_once_with(
+                "github_ingestion_failed",
+                username=fake_profile.github_username,
+                error="boom",
+            )
+
+        # github's sources.append() runs before its IngestedSource() call, so it's
+        # still counted here even though the raised exception skips its db.add()
+        assert mock_ingested_source.call_count == 3
+        assert mock_db.add.call_count == 2
+        assert len(sources) == 3
+        assert [s["source_type"] for s in sources] == ["github", "portfolio", "resume"]
+        mock_db.commit.assert_awaited_once()
