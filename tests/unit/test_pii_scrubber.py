@@ -191,7 +191,7 @@ class TestPIIScrubber:
         assert "[REDACTED]" in scrubbed
 
     def test_address_variations(self, scrubber):
-        """Test various street address formats."""
+        """Test various street address formats are redacted."""
         addresses = [
             "123 Main Street",
             "456 Oak Avenue",
@@ -201,7 +201,85 @@ class TestPIIScrubber:
         for addr in addresses:
             text = f"Address: {addr}"
             scrubbed = scrubber.scrub(text)
-            # Should attempt to redact addresses
+            assert "[REDACTED]" in scrubbed, f"{addr!r} was not redacted"
+            assert addr not in scrubbed, f"{addr!r} leaked through"
+
+    def test_numbered_street_names_redacted(self, scrubber):
+        """Numbered street names (5th, 42nd) should be redacted."""
+        addresses = [
+            "123 5th Avenue",
+            "123 42nd Street",
+        ]
+
+        for addr in addresses:
+            scrubbed = scrubber.scrub(addr)
+            assert scrubbed == "[REDACTED]", f"{addr!r} -> {scrubbed!r}"
+
+    def test_lettered_house_number_redacted(self, scrubber):
+        """House numbers with a trailing unit letter (221B) should be redacted."""
+        text = "221B Baker Street"
+        scrubbed = scrubber.scrub(text)
+        assert scrubbed == "[REDACTED]"
+
+    def test_abbreviated_suffix_with_period_redacted(self, scrubber):
+        """An abbreviated suffix with a period (St.) should be redacted."""
+        text = "10 Downing St."
+        scrubbed = scrubber.scrub(text)
+        assert "[REDACTED]" in scrubbed
+        assert "Downing" not in scrubbed
+
+    def test_po_box_redacted(self, scrubber):
+        """PO box addresses should be redacted."""
+        boxes = [
+            "PO Box 1234",
+            "P.O. Box 1234",
+            "po box 7",
+            "P.O. BOX 12",
+        ]
+
+        for box in boxes:
+            scrubbed = scrubber.scrub(box)
+            assert scrubbed == "[REDACTED]", f"{box!r} -> {scrubbed!r}"
+
+    def test_address_embedded_in_sentence(self, scrubber):
+        """An address embedded in prose is redacted without eating the sentence."""
+        text = "I live at 456 Oak Avenue downtown."
+        scrubbed = scrubber.scrub(text)
+        assert "[REDACTED]" in scrubbed
+        assert "456 Oak Avenue" not in scrubbed
+        assert "downtown" in scrubbed
+
+    def test_address_no_false_positives(self, scrubber):
+        """Ordinary text that looks address-like must not be redacted."""
+        clean = [
+            "I have 5 years experience",
+            "Room 101 upstairs",
+            "Version 2",
+            "Standard practices",
+            "I worked for 5 years developing Python applications.",
+        ]
+
+        for text in clean:
+            scrubbed = scrubber.scrub(text)
+            assert scrubbed == text, f"over-redacted {text!r} -> {scrubbed!r}"
+
+    def test_detect_street_address_pii(self, scrubber):
+        """detect() finds street addresses, including numbered/lettered forms."""
+        text = "221B Baker Street"
+        detected = scrubber.detect(text)
+
+        addr_detections = [d for d in detected if d["type"] == "street_address"]
+        assert len(addr_detections) > 0
+        assert addr_detections[0]["value"] == "221B Baker Street"
+
+    def test_detect_po_box_pii(self, scrubber):
+        """detect() finds PO box addresses."""
+        text = "PO Box 1234"
+        detected = scrubber.detect(text)
+
+        box_detections = [d for d in detected if d["type"] == "po_box"]
+        assert len(box_detections) > 0
+        assert box_detections[0]["value"] == "PO Box 1234"
 
     def test_empty_text(self, scrubber):
         """Test with empty text."""
