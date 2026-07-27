@@ -72,7 +72,8 @@ alone.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [will update after commit]
+**Reproduction commit link:** https://github.com/shanekellyreyes/pathreview/commit/d0729a4
+**PLAN.md link:** https://github.com/shanekellyreyes/pathreview/blob/docs/117-api-curl-examples/PLAN.md
 
 **Reproduction summary:**
 Confirmed the issue by running all 11 API endpoints locally using manually
