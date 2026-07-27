@@ -34,3 +34,28 @@ before hitting the limit instead of discovering it via failed requests.
 - Several other cohort members had also commented interest on this issue; since the
   tracker doesn't formally assign issues, I claimed it via comment and proceeded,
   noting the possibility of an overlapping PR later in review.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [tests/manual/repro_issue_86.py](tests/manual/repro_issue_86.py)
+(see commit "test: add reproduction script for issue #86" on this branch)
+
+**Reproduction summary:**
+Ran a standalone script (`tests/manual/repro_issue_86.py`) against a git worktree
+checked out at `main` (before the fix), sending 5 requests to `GET /`. Every
+response came back `200` with `X-RateLimit-Limit` and `X-RateLimit-Remaining` both
+`None`, confirming `RateLimiter.check_rate_limit` is never invoked anywhere in the
+API layer despite being fully implemented and unit-tested — the gap is purely
+missing wiring, not missing logic.
+
+**PLAN.md link:** [PLAN.md](PLAN.md)
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+No local Redis instance to test enforcement end-to-end against a live server (only
+verified via the existing `Mock()`-based unit test pattern and the fail-open path,
+which triggers naturally when Redis is unreachable). Also open: whether IP-based
+identifier keying (necessary since auth resolves after middleware runs) is
+acceptable long-term, or whether rate limiting should eventually move to a
+user-aware route dependency instead.
