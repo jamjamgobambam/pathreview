@@ -55,6 +55,22 @@ Implement a token-based public sharing flow:
 - New route/page for public read-only summary.
 - No auth required.
 
+5. Define explicit inputs and outputs for the new flow
+- Service input/output contracts in core/services/review_service.py:
+  - create_or_get_share_token(review_id: UUID, user_id: UUID) -> str
+  - get_review_by_share_token(share_token: str) -> Review | None
+- API contract in api/routes/reviews.py and api/schemas/review.py:
+  - POST /reviews/{review_id}/share (auth)
+    - Input: path review_id, bearer token user context
+    - Output: {"share_token": string, "share_url": string}
+  - GET /reviews/share/{share_token} (public)
+    - Input: path share_token
+    - Output: sanitized review payload only
+      {"id", "status", "sections", "overall_score", "created_at"}
+- Frontend contract in frontend/src/services/api.ts and frontend/src/pages/ReviewPage.tsx:
+  - Input: reviewId from route params on review page
+  - Output: copied public URL and success/failure UI state
+
 ---
 
 # Implementation Steps
@@ -116,29 +132,37 @@ Implement a token-based public sharing flow:
 # Risks
 
 - Breaking changes
-  - Migration errors or uniqueness constraints could break review writes if misconfigured.
+  - Migration errors or uniqueness constraints in core/models/review.py and alembic/versions/<new_migration>.py could break review writes if misconfigured.
+  - Investigation path: run alembic upgrade on a seeded DB, then create/list reviews via existing /reviews endpoints.
 
 - Security concerns
-  - Public endpoint could expose too much data if response is not sanitized.
-  - Token entropy must be high enough to prevent guessing.
+  - Public endpoint in api/routes/reviews.py could expose too much data if ReviewResponse is reused instead of a constrained public schema in api/schemas/review.py.
+  - Token entropy in core/services/review_service.py may be insufficient if token generation uses predictable/randomly weak values.
+  - Investigation path: verify schema excludes profile_id and user identifiers; verify token generator uses a cryptographically secure source.
 
 - Backward compatibility
-  - Existing reviews will have null share_token until generated.
+  - Existing reviews will have null share_token until generated, which can break frontend assumptions if ReviewPage.tsx expects a token to always exist.
+  - Investigation path: test old reviews with no token and ensure POST /reviews/{review_id}/share creates one on demand.
 
 - Edge cases
-  - Deleted review with stale token.
-  - Token regeneration invalidating previously shared links.
-  - Clipboard API denial in some browsers.
+  - Deleted review with stale token should return 404 from GET /reviews/share/{share_token}.
+  - Token regeneration policy (reuse vs rotate) affects old link validity in core/services/review_service.py.
+  - Clipboard API denial in frontend/src/pages/ReviewPage.tsx must show fallback/error state instead of silent failure.
 
 ---
 
 # Unknowns
 
-- Should share links be revocable?
-- Should tokens expire?
-- Which review fields are approved for public display?
-- Should token creation be idempotent or always rotate?
-- Should access be logged/rate-limited for public share endpoint?
+- Revocation behavior in core/services/review_service.py:
+  - Should we support explicit revoke endpoint now, or defer to token rotation?
+- Expiration policy in core/models/review.py:
+  - Do we need expires_at for share tokens, or non-expiring links for MVP?
+- Public payload scope in api/schemas/review.py:
+  - Are confidence and suggestions safe for public exposure, or should we hide confidence?
+- Token lifecycle in core/services/review_service.py:
+  - Should POST /reviews/{review_id}/share be idempotent (return existing token) or rotate each request?
+- Abuse protections in api/routes/reviews.py and safety/rate_limiter.py:
+  - Should GET /reviews/share/{share_token} be integrated with current rate limiting before release?
 
 ---
 
