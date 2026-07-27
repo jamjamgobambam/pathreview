@@ -16,3 +16,17 @@ Users currently have no way to share their review summary with others — there 
 **Setup confirmation:** [ X ] App runs locally at localhost:5173
 
 **Cohort ledger:** [ X ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I confirmed the gap by running the app locally and clicking the existing Share button on a completed review. The button copies the current page URL to the clipboard, but that URL requires authentication — opening it in an incognito window redirects to the login page instead of showing the review. I also audited the codebase and found that `frontend/src/services/shareService.ts` does not exist, `api/routes/reviews.py` has no endpoint for generating or validating share tokens, and there is no database model for storing tokens. The public shareable link feature is entirely unimplemented.
+
+**PLAN.md link:** https://github.com/rose413/pathreview/blob/feat/101-copy-link-button/PLAN.md
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+I am uncertain whether other files beyond the three listed in the issue will need to change. Specifically, I expect to also need a new database model for share tokens, an Alembic migration, and a new Pydantic schema — none of which are mentioned in the original issue description.
