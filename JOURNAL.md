@@ -34,7 +34,5 @@ that's the separate None-context bug already scoped to #153, not this issue.)
 
 **PLAN.md link:** https://github.com/lisatran183/pathreview/blob/fix/152-faithfulness-short-claims/PLAN.md
 
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
-
 **Blockers or open questions:**
 Still deciding whether the fix should scale the overlap threshold by claim length (risk: reintroduces false positives from generic shared words like "developer") or move to a continuous per-claim support score instead of a boolean, since some failing tests expect partial (0.2-0.8) scores rather than strict pass/fail.
