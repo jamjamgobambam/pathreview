@@ -55,7 +55,7 @@ None currently.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [paste link here once opened]
+**PR link:** https://github.com/ascherj/pathreview/pull/321
 
 **Branch:** `feat/101-copy-link-share-summary`
 
@@ -67,4 +67,4 @@ Added 6 tests to `tests/unit/test_review_service.py` covering `create_share_link
 
 **Self-review confirmation:** [✔] make check passes  [✔] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
