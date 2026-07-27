@@ -19,7 +19,7 @@
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [to be filled in after push — see this commit]
+**Reproduction commit link:** [f0b05ed](https://github.com/prkapoor-seas/pathreview/commit/f0b05ed887d639b721dd73c29b7989a7a4e2f696)
 
 **Reproduction summary:**
 Ran the exact snippet from the issue (`ResumeParser().parse(...)` on a string with
@@ -32,7 +32,7 @@ strings, which carry the same kind of per-line leading indentation as PDF-extrac
 text, so `_detect_sections()`'s regex patterns (anchored directly to `^`/`\n` with no
 whitespace tolerance) never match.
 
-**PLAN.md link:** [to be filled in after push]
+**PLAN.md link:** [PLAN.md](https://github.com/prkapoor-seas/pathreview/blob/fix/147-resume-parsing-error/PLAN.md)
 
 **Walkthrough video (recommended):** [not recorded yet]
 
