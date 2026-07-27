@@ -19,9 +19,11 @@ Formats like (555) 123-4567 go through the function unredacted and dashed format
 
 **Cohort ledger:** [X] Issue added to cohort ledger
 
+
+
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** [ea6b593](https://github.com/malhiya/pathreview/commit/ea6b5938f8b2626455b6659e1c98e8754ffc6b46)
 
 **Reproduction summary:**
 <!-- [1–2 sentences: How did you reproduce the issue? What did you observe?] -->
@@ -44,9 +46,9 @@ Call me at (555) 123-4567 or [REDACTED]
 [{'type': 'phone_us', 'value': '555-123-4567', 'start': 11, 'end': 24}]
 ```
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** [PLAN.md](https://github.com/malhiya/pathreview/blob/fix/146-pii-scrubber-phone-parens/PLAN.md)
 
 <!-- **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded] -->
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+Anything you're still uncertain about going into Week 9, or leave blank
