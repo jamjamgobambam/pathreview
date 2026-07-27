@@ -24,7 +24,7 @@ I can explain the issue without looking at it: the retriever currently ranks chu
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/Modeste01/pathreview/commit/PLACEHOLDER
+**Reproduction commit link:** https://github.com/Modeste01/pathreview/commit/80c9bfa
 
 **Reproduction summary:**
 I wrote a test that tries to import `ChunkReranker` from `rag.retriever.reranker` and checks whether `HybridRetriever` accepts a reranker parameter. The import fails, confirming the module does not exist. The second test passes, confirming there is no integration point for a reranker in the hybrid retriever. This proves the gap described in issue #34: chunks go straight from blended vector/keyword scoring to the generator with no LLM-based relevance check in between.
