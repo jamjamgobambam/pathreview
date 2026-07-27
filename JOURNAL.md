@@ -127,6 +127,13 @@ Currently, portfolio review results are only accessible to authenticated users w
 - Issue title: Add a Copy link button to share a public review summary
 - Scope: Reproduce current behavior, trace root cause, and prepare implementation plan
 
+### Week 8 Deliverable Links
+
+- Reproduction commit: https://github.com/wiinc355/pathreview/commit/9f57a18
+- PLAN.md: https://github.com/wiinc355/pathreview/blob/feat/101-public-review-sharing/PLAN.md
+- Working branch URL: https://github.com/wiinc355/pathreview/tree/feat/101-public-review-sharing
+- Walkthrough video (optional): Not recorded yet
+
 ### What I Learned
 
 - The current Share button copies the current protected review URL, not a public URL.
