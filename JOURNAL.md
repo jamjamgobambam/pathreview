@@ -17,3 +17,20 @@ The skill extractor is missing JavaScript and TypeScript in cases where the text
 
 **Selection notes:**
 I checked the issue against the project layout and the branch naming rules in `docs/CONTRIBUTING.md`. The issue is narrow, reproducible, and centered in a single parser module, which keeps it realistic for Week 7. It also passed the "right for me" scope check because I validated the local environment, confirmed the app runs locally at `localhost:5173`, and verified the affected area before making the fix.
+
+## Week 8 — Reproduction & Solution Planning
+
+**Reproduction commit link:**
+[Add the GitHub URL to the commit where you documented reproducing the issue.]
+
+**Reproduction summary:**
+I reproduced the issue by reviewing the failing unit tests referenced in the GitHub issue and testing the skill extractor with sample resume text containing JavaScript, TypeScript, and `.js`, `.ts`, and `.tsx` file references. The extractor failed to recognize JavaScript and TypeScript as skills, confirming the behavior described in the issue.
+
+**PLAN.md link:**
+https://github.com/nxxis/pathreview/blob/fix/148-skill-extractor-js-ts-detection/PLAN.md
+
+**Walkthrough video (recommended):**
+Not recorded yet. I plan to record it after finalizing my solution plan and reviewing the relevant code.
+
+**Blockers or open questions:**
+I want to verify whether the project expects JavaScript and TypeScript detection to rely only on explicit keywords or whether it should also recognize language-specific syntax such as `const`, `require()`, `export interface`, and common file extensions while avoiding false positives.
