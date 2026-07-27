@@ -50,7 +50,7 @@ Working through the "Is this right for me?" checklist:
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** 
+**Reproduction commit link:** https://github.com/ascherj/pathreview/commit/0d410be3fc40a684f262b446f5ab8f24fe8f4a4f
 
 **Reproduction summary:**
 
@@ -79,7 +79,7 @@ bodies. It lives at `docs/API.md:18` and `docs/API.md:24`.
 3. Check the code to see the real fields: `api/routes/profiles.py`,
    `api/routes/reviews.py`, and the schemas in `api/schemas/`.
 
-**PLAN.md link:** [add PLAN.md link after you create it in your fork]
+**PLAN.md link:** [https://github.com/nvpai/pathreview/blob/docs/89-api-request-body-schemas/PLAN.md]
 
 **Walkthrough video (recommended):** [optional Loom link]
 
