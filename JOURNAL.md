@@ -17,3 +17,18 @@ This is a Tier 1 bug in the ingestion chunking pipeline with a clear scope and a
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Sujjal1/pathreview/commit/319fb63
+
+**Reproduction summary:**
+Ran the existing test `test_document_with_no_headings` with `pytest tests/unit/test_structural_chunker.py::TestStructuralChunker::test_document_with_no_headings -v`, which fails with `assert 0 >= 1`. The bug is in `_extract_sections()` in `ingestion/chunking/structural_chunker.py` — when a document has no markdown headings, `heading_stack` is never populated, so the content-collection guard (`if heading_stack or current_section_lines`) prevents any lines from being captured, and the method returns an empty list. The document is silently dropped from the RAG index.
+
+**PLAN.md link:** https://github.com/Sujjal1/pathreview/blob/fix/149-structural-chunker-no-headings/PLAN.md
+
+**Walkthrough video (recommended):** [not yet recorded]
+
+**Blockers or open questions:**
+- Need to verify how downstream RAG retrieval consumers handle `heading_path: ""` (empty string) for headingless documents — a quick grep suggests it's stored but not used as a filter, so it should be safe.
+- Should the fallback use `"(untitled)"` as the heading path, or leave it as an empty string? Leaning toward empty string to avoid injecting synthetic labels into the index.
