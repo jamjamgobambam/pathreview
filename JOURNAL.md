@@ -60,7 +60,11 @@ now redacted.
 
 **PLAN.md link:** [PLAN.md](https://github.com/ascherj/pathreview/blob/fix/146-pii-scrubber-parenthesized-phone/PLAN.md)
 
-**Walkthrough video (recommended):** Not recorded this week.
+**Walkthrough video (recommended):** No screen-recorded video this week (screen-recording
+permission wasn't available in my environment). Instead, here's an animated GIF walking
+through the reproduction script's output, showing the old pattern failing on
+`(555) 123-4567` and the current pattern redacting it:
+[docs/repro_146_demo.gif](https://github.com/ascherj/pathreview/blob/fix/146-pii-scrubber-parenthesized-phone/docs/repro_146_demo.gif)
 
 **Blockers or open questions:**
 While running the full `tests/unit/` suite as a regression check (Plan step 5), I found
