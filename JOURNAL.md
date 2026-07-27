@@ -22,3 +22,22 @@ The agent's plan-execute orchestrator (`agent/orchestrator.py`) runs a list of t
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Issue Reproduction and Solution Planning
+
+**Reproduction:**
+Created `tests/unit/test_orchestrator.py` containing a reproduction test (`test_run_does_not_signal_partial_failure_at_top_level`) using `unittest.mock.Mock` to simulate a tool crash. Ran `pytest tests/unit/test_orchestrator.py` and confirmed that `orchestrator.run()` completes without setting a top-level `partial_failure` flag in its return dictionary, successfully proving the current bug.
+
+**Planning (`PLAN.md`):**
+Authored `PLAN.md` in the project root covering the six required sections:
+1. **Understand:** Detailed current silent failure behavior vs. expected top-level `partial_failure` signaling.
+2. **Map:** Identified `agent/orchestrator.py`, `agent/error_handling.py`, and `tests/unit/test_orchestrator.py`.
+3. **Plan:** Outlined logic to inspect `tool_results` in `run()` and set `partial_failure = True` if any tool execution fails.
+4. **Inputs & Outputs:** Mapped input parameters and the response dictionary schema.
+5. **Risks:** Noted potential schema mismatches for strict callers and mitigated by always returning a explicit boolean.
+6. **Edge Cases:** Accounted for all tools passing, no tools running, and multiple tools failing.
+
+**Artifacts created:**
+- `tests/unit/test_orchestrator.py` (reproduction unit test)
+- `PLAN.md` (6-section planning blueprint)
+- `JOURNAL.md` (Week 8 log entry)
