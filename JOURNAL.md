@@ -30,3 +30,14 @@ Read `rag/retriever/hybrid.py` end-to-end, including exactly where the blended r
 
 *Part 4 — Scope and time*
 Still need to check the issue's comment thread and the cohort ledger's Claims count live before finalizing. On time: the issue's own estimate is 7–10 hours, and a dry-run reference build I did (reranker class + config + fallback handling + six test cases covering the mock path, reordering, LLM failure, malformed JSON, score clamping, and batching) took a comparable amount of focused effort once batching and failure handling are accounted for — so I'm treating 7–10 hours as realistic, not padded, and planning to spread it across both weeks rather than one sitting. Two things worth flagging as PR-description context, not blockers: (1) `HybridRetriever` isn't called anywhere in the running app yet, so this reranker will be correct and independently testable but won't visibly change what any user sees until something else wires the retriever into the app — a pre-existing gap I'm not taking on here; (2) there are two latent bugs nearby (`VectorStore.add_chunks()` doesn't match the real `Chunk` dataclass's fields, and `HybridRetriever` never calls `keyword_searcher.index()` before searching) that I'm noting but deliberately not fixing as part of this PR to keep scope disciplined. No "blocked by" references found on the issue itself.
+
+
+## Week 8 — Reproduction
+
+**Reproduction commit link:https://github.com/qixuan-code/pathreview/commit/7d64d8d5bf95822ebceec7bd73377b444cb9a981
+**Reproduction summary:**
+Reproduced by adding `tests/unit/test_hybrid.py`, which mocks `VectorStore`/`KeywordSearcher` and calls `HybridRetriever.retrieve()` directly with one chunk that only embeds close to the query and another that contains the exact requested language. Observed that the merely-similar chunk ranks first purely from the vector/keyword blend math.
+
+**PLAN.md link:https://github.com/qixuan-code/pathreview/blob/feat/34-llm-reranker-retriever/plan.md
+
+**Blockers or open questions:**
