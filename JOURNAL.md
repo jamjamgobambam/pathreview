@@ -23,11 +23,11 @@ The `/health` endpoint in `api/routes/health.py` tries to build a Redis client u
 - Risk: low — the fix doesn't change the health check's contract (still returns the same JSON shape / status codes), just makes the Redis check work correctly.
 - Learning value: touches Pydantic Settings, the `redis-py` client API, and error-swallowing anti-patterns (`except Exception` masking bugs), which felt like a good first exposure to this codebase's conventions.
 
-**Progress update:** Fix implemented in `api/routes/health.py` (Redis client now built via `redis.Redis.from_url(settings.redis_url)`), with unit tests added in `tests/unit/test_health_check.py` covering both the healthy path and a real Redis ping failure. `ruff`, `black`, and `mypy` all pass on the changed files via the repo's pre-commit hooks. Commit: `c23239c` on this branch.
+**Progress update:** Fix implemented in `api/routes/health.py` (Redis client now built via `redis.Redis.from_url(settings.redis_url)`), with unit tests added in `tests/unit/test_health_check.py` covering both the healthy path and a real Redis ping failure. `ruff`, `black`, and `mypy` all pass on the changed files via the repo's pre-commit hooks. Commit: `fa4bd64` on this branch.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/YunzheOVE/pathreview/commit/7f9353f
+**Reproduction commit link:** https://github.com/YunzheOVE/pathreview/commit/41f4335
 
 **Reproduction summary:**
 Reproduced the bug in isolation by calling `redis.Redis(host=settings.redis_host, ...)` directly, which raised `AttributeError: 'Settings' object has no attribute 'redis_host'`. Then ran the pre-fix `health_check()` function against a stubbed DB session to observe the full user-facing symptom: the error gets silently caught and the endpoint reports `"redis": "unhealthy"` with a `503`, even though Redis itself was never actually contacted. Full transcript and root-cause explanation are in `REPRODUCTION.md`.

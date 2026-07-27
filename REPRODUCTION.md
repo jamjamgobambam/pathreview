@@ -56,5 +56,5 @@ even when Redis itself is running fine — because the check never actually reac
 
 `api/routes/health.py` references config fields (`redis_host`, `redis_port`) that
 don't exist on `Settings`. The fix builds the client from the field that does exist,
-`settings.redis_url`, via `redis.Redis.from_url(...)`. See commit `c23239c` on this
+`settings.redis_url`, via `redis.Redis.from_url(...)`. See commit `fa4bd64` on this
 branch for the fix and accompanying tests in `tests/unit/test_health_check.py`.

@@ -36,7 +36,10 @@ setup: ## First-time setup: venv, deps, migrations, seed data
 
 run: ## Start backend + frontend dev servers
 	@trap 'kill %1 %2 2>/dev/null' EXIT; \
-	source $(VENV_BIN)/activate && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
+	source $(VENV_BIN)/activate && uvicorn api.main:app --reload \
+		--reload-dir api --reload-dir core --reload-dir ingestion \
+		--reload-dir rag --reload-dir agent --reload-dir safety \
+		--host 0.0.0.0 --port 8000 & \
 	cd frontend && $(NPM) run dev & \
 	wait
 
