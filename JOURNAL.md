@@ -46,3 +46,46 @@ Working through the "Is this right for me?" checklist:
 
 **Cohort ledger:** [ x ] Issue added to cohort ledger
 
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** 
+
+**Reproduction summary:**
+
+This is a docs issue, so reproducing it means showing the missing info is really
+absent and pointing to where. I opened `docs/API.md` and confirmed that
+`POST /profiles` (line 18) and `POST /reviews` (line 24) each have just a
+one-line description and no request body — no fields, no example. You can't call
+either endpoint without reading the code. I then checked the code to confirm
+what the docs should say:
+
+- `POST /profiles` takes form-data (not JSON): `github_username` and
+  `portfolio_url` (both optional text) and an optional `resume_file` (PDF or
+  Markdown). Confirmed in `api/routes/profiles.py` and `api/schemas/profile.py`.
+- `POST /reviews` takes JSON with one required field, `profile_id`. Confirmed in
+  `api/schemas/review.py` and `api/routes/reviews.py`.
+
+So the gap is real: the docs stop at endpoint names and never show the request
+bodies. It lives at `docs/API.md:18` and `docs/API.md:24`.
+
+**Reproduction steps:**
+
+1. Open `docs/API.md` and look at lines 18 and 24 — one sentence each, no
+   request body.
+2. Try to call either endpoint from the docs alone — you can't tell `/profiles`
+   is form-data or that `/reviews` needs `profile_id`.
+3. Check the code to see the real fields: `api/routes/profiles.py`,
+   `api/routes/reviews.py`, and the schemas in `api/schemas/`.
+
+**PLAN.md link:** [add PLAN.md link after you create it in your fork]
+
+**Walkthrough video (recommended):** [optional Loom link]
+
+**Blockers or open questions:**
+
+Small one: `api/routes/profiles.py` also accepts plain text uploads, but the
+docstring says only PDF/Markdown. I'm not sure yet whether the new docs should
+mention plain text or just match the PDF/Markdown intent.
+
