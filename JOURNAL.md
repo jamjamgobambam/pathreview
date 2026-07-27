@@ -17,3 +17,30 @@
 
 **"Is this right for me?" reasoning:**
 This is my first open source contribution. So, I have chosen Tier 1. The issue 154 publisher has already described the cause of the problem and the affected file explicitly. I fully understood what is wrong with the endpoint. This fix is isolated to a single file, so the scope is small enough for me to handle.
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+Reproduced manually. With the Docker Postgres container confirmed running and
+healthy (`docker ps` → `Up (healthy)` on port 5433), calling `GET /health`
+returned `"postgres": "unhealthy"`. Since the database is reachable, this is a
+false negative caused by the raw `"SELECT 1"` probe in `api/routes/health.py`
+(line 31), which raises `ArgumentError` under SQLAlchemy 2.x and is swallowed by
+the surrounding `except`.
+
+**Why no existing test catches this:**
+There is no test covering `api/routes/health.py`. The project's unit tests mock
+the DB session with `AsyncMock` (see `tests/unit/test_review_service.py`), so a
+mocked `execute()` never raises the real SQLAlchemy `ArgumentError` — the bug is
+invisible to that pattern. Reproducing it requires a live session, as the issue
+author notes, which is why I reproduced it manually via `GET /health` + `docker ps`.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
