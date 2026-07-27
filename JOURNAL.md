@@ -44,3 +44,23 @@ After: Skills like GitHub Actions, Docker, and pytest appear in the extracted sk
 **Scope and time:** 6–10 hours across two weeks is achievable with my current schedule and work responsibilities.
 
 No blockers or dependencies on other issues. 3 other students have claimed it; claims are non-exclusive and grading is based on my own artifacts.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+- I created a test repository containing `.github/workflows/ci.yml` with `actions/checkout@v4`, `docker/build-push-action@v5`, and a `pytest` test step. 
+
+- Running the current ingestion pipeline against this repo confirmed that `SkillExtractor.extract_skills()` returns zero CI/CD skills; workflow files are completely ignored. The `.yml` files never enter the parser pipeline, and even if they did, keywords like `Github Actions`, `pytest`, and `deployment` are absent from `SkillExtractor.TOOLS`.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Blockers or open questions:**
+- Can `BaseParser.parse()` accept a filesystem path? Do I need to add a `parse_from_path()` method?
+
+- Confirm if `PyYAML` is already in `requirements.txt`. Should I plan out the dependency addition?
+
+---
