@@ -109,7 +109,7 @@ class TestBatchEmbeddingProcessor:
 
         processor._store_embedding = Mock(side_effect=["id1", "id2"])
 
-        result = processor.process(chunks)
+        processor.process(chunks)
 
         # Check that embed was called with the texts
         mock_embedding_provider.embed.assert_called()

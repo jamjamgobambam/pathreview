@@ -27,3 +27,17 @@ is open, unassigned, and has no linked branch or pull request.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [be3973f](https://github.com/nancypatel12/pathreview/commit/be3973f4aa02df7a653d02e8315341ab05684c86)
+
+**Reproduction summary:**
+Running `tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty` printed the warning to stdout, but produced zero `caplog` records. The reproduction test now requires a warning `LogRecord` with the expected message, which failed before the test logging configuration was added.
+
+**PLAN.md link:** [PLAN.md](https://github.com/nancypatel12/pathreview/blob/test/159-structlog-caplog-capture/PLAN.md)
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+The full unit suite has unrelated baseline failures, including unavailable tokenizer downloads and failures in review, parser, and detector tests. The focused batch-processor suite passes after the logging configuration change.
