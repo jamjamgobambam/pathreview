@@ -27,3 +27,16 @@ I located 'api/routes/health.py' and read through the 'Settings' class and figur
 
 **Part 4 - Scopre and Time:**
 Since this is a Tier 1 issue, I believe I might spend around 5 hours working on the codebase and make sure my changes do not cause other issues and test everything to make sure that the author can close their issue. 
+
+## Week 8 - Reproduction & solution planning 
+
+**Reproduction commit link:** 
+
+**Reproduction summary:**
+Ran the API locally and hit the GET /health endpoint. The endpoint returned 503 with "redis": "unhealthy", and the server log shows: `'Settings' object has no attribute 'redis_host'`, confirming health.py
+references a field that doesn't exist on the Settings class.
+
+**PLAN.md link:** 
+
+**Blockers or open questions:**
+A separate error also appeared when reproducting this error, a SQLAlchemny textual SQL warning. 
