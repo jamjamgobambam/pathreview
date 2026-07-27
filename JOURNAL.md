@@ -34,8 +34,8 @@ actually exists (`redis_url`) so the endpoint reports Redis's true status.
 **Reproduction commit link:** https://github.com/PlacidoG/pathreview/commit/d942fa6
 
 **Classification:** Bug (code defect). Not a feature gap — the Redis health check is
-fully implemented and meant to work; it just reads config fields that don't exist. Not a
-docs issue — no documentation is wrong; the source references undefined attributes.
+fully implemented and meant to work; it just reads config fields that don't exist. 
+Not a docs issue — the source references undefined attributes.
 
 **Reproduction summary:**
 With Redis running and reachable (`redis-cli ping` → `PONG`), `GET /health` still returns
