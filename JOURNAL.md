@@ -26,3 +26,13 @@ and does not change how the application behaves.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction and plan
+
+**Issue:** #89 — API reference doc is missing the `POST /profiles` request body schema
+(https://github.com/ascherj/pathreview/issues/89)
+
+**Walkthrough video:** https://www.loom.com/share/a59ceea3be4d433d99066c6a4cdd3843
+
+**What I did this week:** reproduced the problem on my own machine, then wrote a
+structured plan for the fix in `PLAN.md`.
