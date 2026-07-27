@@ -59,3 +59,20 @@ Do I understand the surrounding code well enough to change it safely?
 - [x] Is the scope realistic for Weeks 8–9?
 - [x] I've estimated the time this will take and I'm confident I can complete it before the Week 9 deadline.
 - [x] This issue has no open blockers or dependencies on other unresolved issues.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** 
+__[link to commit documenting the reproduced issue]__
+
+**Reproduction summary:**
+__[1–2 sentences: How did you reproduce the issue? What did you observe?]__
+
+**PLAN.md link:** 
+__[link to PLAN.md in your fork]__
+
+**Walkthrough video (recommended):** 
+__[link to your Loom video, ≤2 min — recommended, not graded]__
+
+**Blockers or open questions:**
+N/A
