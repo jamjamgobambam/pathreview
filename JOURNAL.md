@@ -59,7 +59,7 @@ it in the PR instead of expanding the change.
 
 ### Check-in 2 (end of week)
 
-**PR link:** <!-- PR_URL_PLACEHOLDER -->
+**PR link:** https://github.com/ascherj/pathreview/pull/315
 
 **Branch:** `feat/d08-health-safety-event-count`
 
