@@ -20,7 +20,7 @@ This issue is a good fit for Week 7 because it is focused on a single ingestion 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/maninampally/pathreview/commit/e145a8c40ec120fa3144897c644b0abfe2d1a6ff
+**Reproduction commit link:** https://github.com/maninampally/pathreview/commit/7df4ff02dce73f7adec331f4845e70eed6d60f7f
 
 **Reproduction summary:**
 Confirmed the gap by diffing `core/services/review_service.py` against the pre-fix commit (`0024684`): the portfolio branch of `_run_ingestion_pipeline` only wrote a hardcoded placeholder string (`f"Portfolio data from {profile.portfolio_url}"`) into `IngestedSource`, never fetching the page. Verified the fetch/parse path works by serving `tmp/portfolio_site/index.html` locally and pointing `WebParser.parse()` at it over real HTTP (not a mock) — confirmed it extracts visible text ("Local Portfolio", "Example portfolio content...", "Built with Python, FastAPI, and React.") and the page title, while skipping `<script>`/`<style>` content.
