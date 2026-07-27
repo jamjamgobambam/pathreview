@@ -59,3 +59,37 @@ route), with an accompanying unit test.
 _AI assistance: I used an AI tool to help navigate the codebase (locate the health
 route and the Settings definition via search) and to confirm my reading of the bug.
 I verified the mismatch myself by reading `api/routes/health.py` and `core/config.py`._
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/issaouedraogo/pathreview/commit/635e58d3ace3d1fd911acb98f3c0ba6dd450989a
+
+**Reproduction summary:**
+I reproduced the bug three ways. (1) Runtime: `settings.redis_host` raises
+`AttributeError: 'Settings' object has no attribute 'redis_host'` — `Settings`
+only defines `redis_url`. (2) Static analysis: `mypy api/routes/health.py`
+reports `"Settings" has no attribute "redis_host"` (and `redis_port`) at lines
+45–46. (3) A new unit test, `tests/unit/test_health_route.py`, simulates a
+reachable Redis (mocked `ping()` succeeds) and asserts the `/health` probe
+reports Redis `"healthy"`; it fails today because the attribute access crashes
+before the client is built, so it's marked `xfail(strict=True)`. Applying the
+intended fix locally turned it green (the strict marker then flagged XPASS),
+confirming the test pins the real defect.
+
+**PLAN.md link:** https://github.com/issaouedraogo/pathreview/blob/fix/155-health-check-redis-host-setting/PLAN.md
+
+**Walkthrough video (recommended):** _not recorded_
+
+**Blockers or open questions:**
+- Choosing `redis.Redis.from_url(settings.redis_url, decode_responses=True)`
+  (preferred — reuses the existing field) over adding `redis_host`/`redis_port`
+  settings. Leaning toward `from_url`; will justify in the PR.
+- The route uses a blocking sync Redis client inside an async handler. Out of
+  scope for this issue, but I'll note it as a possible follow-up rather than
+  expand the blast radius.
+
+_AI assistance: I used an AI tool to help set up the local environment, write the
+reproduction test, and draft this plan. I verified each reproduction path myself
+(ran the failing test, ran mypy, and confirmed the fix flips the test green)._
