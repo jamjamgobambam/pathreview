@@ -19,3 +19,19 @@ The issue is that when a user re-submits the same README file without making any
 **Cohort ledger:** [X] Issue added to cohort ledger
 
 This issue is right for me!
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [https://github.com/ascherj/pathreview/commit/f4a227031894ad27db4b16200dafcc97cb07efab]
+
+**Reproduction summary:**
+[1–2 sentences: How did you reproduce the issue? What did you observe?]
+I reproduced my issue using unit tests. Since, this is a feature I cannot directly reproduce this issue. I instead created unit tests to help reproduce the intended behavior beind this issue (IE: skipping readme if already ingested identical copy).
+
+**PLAN.md link:** [https://github.com/mtemkin31415/pathreview/blob/feat/13-add-conditional-hash-re-embedding/PLAN.md]
+
+**Walkthrough video (recommended):** [None present]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
+No blockers here :)
