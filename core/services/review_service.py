@@ -1,19 +1,22 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
+from core.models.share_link import ShareLink
 
 log = structlog.get_logger()
 
 
 async def create_review(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
@@ -33,22 +36,23 @@ async def create_review(
 
 
 async def get_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    review: Review | None = result.scalars().first()
+    return review
 
 
 async def list_reviews(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     page: int = 1,
     page_size: int = 20,
@@ -74,13 +78,77 @@ async def list_reviews(
         .limit(page_size)
     )
     result = await db.execute(stmt)
-    reviews = result.scalars().all()
+    reviews = list(result.scalars().all())
 
     return reviews, total
 
 
+async def create_share_link(
+    db: AsyncSession,
+    review_id: UUID,
+    user_id: UUID,
+) -> ShareLink | None:
+    """
+    Create a new public share link for a review, if the review exists and
+    belongs to the requesting user. Returns None if not found/not owned.
+    """
+    review = await get_review(db=db, review_id=review_id, user_id=user_id)
+    if not review:
+        return None
+
+    share_link = ShareLink(review_id=review.id)
+    db.add(share_link)
+    await db.commit()
+    await db.refresh(share_link)
+
+    log.info(
+        "share_link_created",
+        review_id=str(review_id),
+        share_link_id=str(share_link.id),
+        expires_at=share_link.expires_at.isoformat(),
+    )
+
+    return share_link
+
+
+async def get_review_by_share_token(
+    db: AsyncSession,
+    token: str,
+) -> Review | None:
+    """
+    Get a review via a public share token. Returns None if the token
+    doesn't exist or has expired. No ownership/auth check — this is the
+    public, read-only lookup path.
+    """
+    stmt = select(ShareLink).where(ShareLink.token == token)
+    result = await db.execute(stmt)
+    share_link: ShareLink | None = result.scalars().first()
+
+    if not share_link:
+        log.warning("share_link_not_found", token=token)
+        return None
+
+    if share_link.is_expired():
+        log.warning(
+            "share_link_expired",
+            token=token,
+            expires_at=share_link.expires_at.isoformat(),
+        )
+        return None
+
+    stmt = select(Review).where(Review.id == share_link.review_id)
+    result = await db.execute(stmt)
+    review: Review | None = result.scalars().first()
+
+    if not review:
+        log.warning("share_link_review_missing", token=token, review_id=str(share_link.review_id))
+        return None
+
+    return review
+
+
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
@@ -194,7 +262,7 @@ async def process_review(
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
 
-async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
+async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[dict]:
     """
     Run ingestion pipeline to extract data from profile sources.
     Returns list of ingested source data.

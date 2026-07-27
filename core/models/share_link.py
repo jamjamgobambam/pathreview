@@ -1,6 +1,6 @@
 """ShareLink model for storing public, expiring review share tokens."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from secrets import token_urlsafe
 from typing import TYPE_CHECKING
 from uuid import uuid4
@@ -17,8 +17,12 @@ if TYPE_CHECKING:
 SHARE_LINK_TTL_DAYS = 30
 
 
+def _utcnow() -> datetime:
+    return datetime.now(UTC)
+
+
 def _default_expiry() -> datetime:
-    return datetime.utcnow() + timedelta(days=SHARE_LINK_TTL_DAYS)
+    return _utcnow() + timedelta(days=SHARE_LINK_TTL_DAYS)
 
 
 class ShareLink(Base):
@@ -39,7 +43,7 @@ class ShareLink(Base):
         String(64), nullable=False, unique=True, default=lambda: token_urlsafe(32)
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=datetime.utcnow
+        DateTime(timezone=True), nullable=False, default=_utcnow
     )
     expires_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=_default_expiry
@@ -54,7 +58,7 @@ class ShareLink(Base):
     )
 
     def is_expired(self) -> bool:
-        return bool(datetime.utcnow() >= self.expires_at)
+        return bool(_utcnow() >= self.expires_at)
 
     def __repr__(self) -> str:
         return (
