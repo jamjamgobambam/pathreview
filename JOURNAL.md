@@ -116,3 +116,106 @@ Currently, portfolio review results are only accessible to authenticated users w
 ## Verdict
 
 ✅ **Ready to claim.** All checklist items verified. Tier 2 scope is appropriate, codebase is well-understood, and timeline is realistic.
+
+---
+
+## Week 8
+
+### Issue Worked On
+
+- Issue link: https://github.com/ascherj/pathreview/issues/101
+- Issue title: Add a Copy link button to share a public review summary
+- Scope: Reproduce current behavior, trace root cause, and prepare implementation plan
+
+### What I Learned
+
+- The current Share button copies the current protected review URL, not a public URL.
+- Review endpoints are ownership-protected through auth dependencies.
+- There is no share token in the Review model, so there is no durable public identifier.
+- A complete solution requires coordinated changes across model, service, API, frontend route, and tests.
+
+### Reproduction Steps
+
+Static/code-level reproduction (confirmed):
+
+1. Open frontend/src/pages/ReviewPage.tsx and inspect handleShare.
+2. Confirm it copies window.location.href directly.
+3. Open frontend/src/App.tsx and confirm /reviews/:reviewId is wrapped by ProtectedRoute.
+4. Open api/routes/reviews.py and confirm all review endpoints require get_current_user.
+5. Search for share_token and /reviews/share references across backend/frontend files.
+6. Observe there are no model/service/route/client implementations for public review sharing.
+
+Command evidence used:
+
+```bash
+rg -n "share_token|/reviews/share|handleShare|path=\"/reviews/:reviewId\"|get_current_user" \
+  core/models/review.py api/routes/reviews.py frontend/src/pages/ReviewPage.tsx frontend/src/App.tsx
+
+rg -n "share_token|/reviews/share" \
+  core/models/review.py api/routes/reviews.py core/services/review_service.py frontend/src/services/api.ts
+```
+
+Expected result:
+- A Share/Copy link action should produce a public URL that works without authentication.
+
+Actual result:
+- Share currently copies only the authenticated page URL.
+- No public token or public endpoint exists.
+
+Additional local test baseline:
+
+```bash
+.venv/bin/pytest tests/unit/test_review_service.py -q
+```
+
+Observed output summary:
+- Multiple existing failures unrelated to issue #101 (AsyncMock coroutine chaining in test setup).
+
+### Challenges
+
+- The issue requires cross-layer planning rather than a single-file fix.
+- Existing test failures in test_review_service.py can mask confidence if not isolated.
+- Public sharing design requires careful decisions on sanitization and token lifecycle.
+
+### Research Performed
+
+- Reviewed:
+  - core/models/review.py
+  - core/services/review_service.py
+  - api/routes/reviews.py
+  - api/schemas/review.py
+  - frontend/src/pages/ReviewPage.tsx
+  - frontend/src/services/api.ts
+  - frontend/src/App.tsx
+  - docs/SETUP.md and Makefile for local run/test workflows
+
+- Traced call path:
+  - ReviewPage Share click -> handleShare -> clipboard current URL
+  - Route /reviews/:reviewId requires auth
+  - Backend /reviews endpoints require get_current_user
+  - No token-backed public retrieval path exists
+
+### Solution Plan
+
+- Added detailed plan in PLAN.md covering:
+  - Problem summary
+  - Root cause
+  - Proposed solution
+  - Implementation steps
+  - Risks, unknowns, and testing plan
+
+### Remaining Questions
+
+- Should share tokens be revocable?
+- Should tokens expire?
+- Which fields are allowed in public response payloads?
+- Should share creation be idempotent or rotate token each time?
+
+### Next Steps
+
+1. Implement model + migration for share_token.
+2. Add service methods for token creation and public token lookup.
+3. Add auth-protected share generation route and public share read route.
+4. Update frontend API client and Review page Copy link behavior.
+5. Add a public shared review page route/component.
+6. Add tests for token flow and endpoint auth boundaries.
