@@ -23,4 +23,12 @@ The current ledger allows duplicate claims.
 
 ## Week 8 — Reproduction & solution planning
 
+**Reproduction commit link:** https://github.com/DDDIGHE/pathreview/commit/d6f1ee5956b51c9d0c988f67655651cdc259174d
+
 **Reproduction summary:** `pytest tests/unit/test_relevance_scorer.py -q` fails with `assert 1.0 < 0.9` because the fixture contains all four query terms.
+
+**PLAN.md link:** https://github.com/DDDIGHE/pathreview/blob/test/157-partial-overlap-fixture/PLAN.md
+
+**Loom walkthrough:**
+
+**Blockers or open questions:**
