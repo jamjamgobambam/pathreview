@@ -44,9 +44,8 @@ templates live.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** <!-- replace with the commit URL after pushing, e.g.
-https://github.com/ismailhossain7622/pathreview/commit/<sha> -->
-`docs(rag): reproduce #37 — snapshot test never asserts stored hash`
+**Reproduction commit link:**
+https://github.com/ismailhossain7622/pathreview/commit/f215172558b57f3a134bbf42b87f3733653f4ceb
 
 **Reproduction summary:**
 The existing `tests/unit/test_prompt_templates.py::test_template_snapshot_content_hash`
