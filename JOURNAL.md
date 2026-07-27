@@ -46,6 +46,8 @@ The `POST /reviews` endpoint accepts a `profile_id` parameter but does not valid
 - Breaks the access control pattern established by read endpoints
 - IDOR (Insecure Direct Object Reference) vulnerability
 
+**Commit:** https://github.com/ascherj/pathreview/commit/2235af1
+
 ---
 
 ## Week 7 — Issue selection
