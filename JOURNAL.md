@@ -26,3 +26,28 @@ errors gracefully so a Redis hiccup never breaks the health check itself.
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/hspb2024/pathreview/commit/ce8240b109224f6e5c54429b45ac1ab3b77c363e
+
+**Reproduction summary:**
+I added a unit test (`tests/unit/test_health_safety_events.py`) that records three
+safety events through the real `SafetyMonitor` (backed by an in-memory fake Redis) and
+then calls the actual `/health` endpoint. The monitor reports 3 events, but
+`safety_events_last_hour` from `/health` comes back as `0` (`assert 0 == 3` fails) —
+confirming the endpoint hardcodes the value and never reads the safety counters. One test
+passes (the safety layer records counts) and the reproduction test fails, pinpointing the
+bug at the hardcoded `0` in `api/routes/health.py`.
+
+**PLAN.md link:** https://github.com/hspb2024/pathreview/blob/fix/68-health-safety-event-count/PLAN.md
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:**
+The Redis counters are cumulative per-type with a 24-hour TTL, so a literal "last hour"
+window isn't supported by the current data model — I need to decide whether to ship the
+cumulative sum with a documented caveat (my lean, keeps it Tier 1) or introduce
+time-bucketed keys (larger scope). Separately, `health.py` references
+`settings.redis_host`/`redis_port`, which don't exist on `Settings` (only `redis_url`) —
+a pre-existing bug I'll route around and flag to the maintainer.
