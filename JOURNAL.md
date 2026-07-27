@@ -65,6 +65,8 @@ Do I understand the surrounding code well enough to change it safely?
 **Reproduction commit link:** 
 __[link to commit documenting the reproduced issue]__
 
+[Commit 5d1ee4c](https://github.com/novamapp/pathreview/commit/5d1ee4ceb81ee16698571db448c00fed9eda3a2e)
+
 **Reproduction summary:**
 __[1–2 sentences: How did you reproduce the issue? What did you observe?]__
 
