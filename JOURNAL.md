@@ -30,13 +30,14 @@ Since this is a Tier 1 issue, I believe I might spend around 5 hours working on 
 
 ## Week 8 - Reproduction & solution planning 
 
-**Reproduction commit link:** 
+**Reproduction commit link:** https://github.com/pmad06/pathreview/commit/aabd979
 
 **Reproduction summary:**
 Ran the API locally and hit the GET /health endpoint. The endpoint returned 503 with "redis": "unhealthy", and the server log shows: `'Settings' object has no attribute 'redis_host'`, confirming health.py
 references a field that doesn't exist on the Settings class.
 
 **PLAN.md link:** 
+https://github.com/pmad06/pathreview/blob/fix/155-health-check-redis-host/PLAN.md
 
 **Blockers or open questions:**
 A separate error also appeared when reproducting this error, a SQLAlchemny textual SQL warning. 
