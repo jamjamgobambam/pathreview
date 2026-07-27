@@ -1,11 +1,11 @@
 """Tests for resume_parser.py"""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
+from unittest.mock import Mock, patch
 
-from ingestion.parsers.resume_parser import ResumeParser
+import pytest
+
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.resume_parser import ResumeParser
 
 
 @pytest.mark.unit
@@ -181,3 +181,88 @@ class TestResumeParser:
         assert "John Doe" in result.text
         assert "Software Engineer" in result.text
         assert "Python" in result.text
+
+
+@pytest.mark.unit
+class TestSectionDetectionLeadingWhitespace:
+    """Reproduction tests for issue #147: section detection fails on leading whitespace.
+
+    Every regex in SECTION_HEADERS detection is anchored with `^` or `\\n` immediately
+    followed by the section name, so a header that is indented by even one space or a
+    single tab is never matched. These tests fail on the current implementation and
+    should pass once detection tolerates leading horizontal whitespace.
+    """
+
+    @pytest.fixture
+    def parser(self):
+        """Create a ResumeParser instance."""
+        return ResumeParser()
+
+    def test_flush_left_headers_are_detected(self, parser):
+        """Control case: unindented headers work today, and must keep working."""
+        text = (
+            "Jane Doe\n\n"
+            "Experience:\n"
+            "- Engineer at TechCorp\n\n"
+            "Education:\n"
+            "- B.S. CS\n\n"
+            "Skills: Python\n"
+        )
+
+        sections = {s.lower() for s in parser._detect_sections(text)}
+
+        assert {"experience", "education", "skills"} <= sections
+
+    def test_space_indented_headers_are_detected(self, parser):
+        """Headers indented with spaces should still be detected."""
+        text = (
+            "  Jane Doe\n\n"
+            "  Experience:\n"
+            "  - Engineer at TechCorp\n\n"
+            "  Education:\n"
+            "  - B.S. CS\n\n"
+            "  Skills: Python\n"
+        )
+
+        sections = {s.lower() for s in parser._detect_sections(text)}
+
+        assert {"experience", "education", "skills"} <= sections
+
+    def test_tab_indented_headers_are_detected(self, parser):
+        """Headers indented with a tab should still be detected."""
+        text = "Jane Doe\n\n\tExperience\n- Engineer at TechCorp\n\n\tEducation\n- B.S. CS\n"
+
+        sections = {s.lower() for s in parser._detect_sections(text)}
+
+        assert {"experience", "education"} <= sections
+
+    def test_indented_markdown_resume_reports_sections(self, parser):
+        """End-to-end: an indented markdown resume should report its sections.
+
+        This also exercises _strip_markdown, whose header pattern (`^#+\\s+`) is
+        line-anchored too, so indented `## Experience` keeps its hash marks and
+        cannot be matched by section detection even after detection is relaxed.
+        """
+        markdown_resume = """
+        # Jane Doe
+
+        ## Experience
+        - Software Engineer at TechCorp (2022-2024)
+
+        ## Skills
+        - Python, JavaScript
+        """
+
+        result = parser.parse(markdown_resume)
+        sections = {s.lower() for s in result.metadata["detected_sections"]}
+
+        assert {"experience", "skills"} <= sections
+
+    def test_indented_header_does_not_create_false_positives(self, parser):
+        """Relaxing the anchor must not let a word mid-line count as a header."""
+        text = "  I have 5 years of professional experience and education in Python.\n"
+
+        sections = {s.lower() for s in parser._detect_sections(text)}
+
+        assert "experience" not in sections
+        assert "education" not in sections
