@@ -53,7 +53,7 @@ from failing to passing. This lives in `rag/evaluator/faithfulness_checker.py`.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** _(this commit — see the reproduction detail below)_
+**Reproduction commit link:** https://github.com/schakka0401/pathreview/commit/acae1ad8feaacb0b8950d693b6809f6091c1696c
 
 **Reproduction summary:**
 I triggered the bug two ways: a one-line direct call to `FaithfulnessChecker().check()`
