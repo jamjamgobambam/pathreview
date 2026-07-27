@@ -18,4 +18,4 @@ I chose this Tier 1 issue because I am still getting comfortable with the PathRe
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
