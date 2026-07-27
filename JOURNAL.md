@@ -23,3 +23,20 @@ section detection for PDF-sourced resumes.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ZhangChengX/pathreview/commit/b68caadebfe7175293fc0abb8cad885ac00723a8
+
+**Reproduction summary:**
+I parsed indented resume text with `ResumeParser().parse('\n    Education:\n    - B.S.\n\n    Skills: Python\n')`
+and printed `res.metadata['detected_sections']`. It returned an empty list `[]` instead
+of `["Education", "Skills"]`, confirming that leading whitespace breaks section detection.
+
+**PLAN.md link:** https://github.com/ZhangChengX/pathreview/blob/fix/147-resume-section-detection-fails-on-text-with-leading-whitespace/PLAN.md
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:**
+None. The root cause and fix are clear: the header regex patterns did not allow leading
+whitespace, so adding `\s*` after each `^`/`\n` anchor solves it.
