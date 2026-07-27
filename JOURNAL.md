@@ -16,6 +16,6 @@ I chose this Tier 1 issue because I am still getting comfortable with the PathRe
 
 **Branch name:** `fix/152-faithfulness-short-claims`
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
