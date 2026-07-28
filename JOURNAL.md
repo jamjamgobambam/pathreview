@@ -41,3 +41,28 @@ event volume instead of a count that always reads zero.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [823a04d](https://github.com/joshuawlee/pathreview/commit/823a04d12398b3765a753c6790b124f89c0cbc38)
+
+**Reproduction summary:**
+Added `tests/unit/test_health.py`, which calls `health_check()` directly
+with a mocked Redis client seeded with a real `pii_detected` count of 5
+(simulating what `SafetyMonitor.log_event()` would have written). The
+assertion `response["safety_events_last_hour"] != 0` fails with `0 != 0` —
+confirming the field is hardcoded and never reads the real counts that
+`SafetyMonitor.get_event_count()` already exposes.
+
+**PLAN.md link:** [PLAN.md](https://github.com/joshuawlee/pathreview/blob/fix/68-safety-event-health-check/PLAN.md)
+
+**Walkthrough video (recommended):** [not recorded yet]
+
+**Blockers or open questions:**
+Still need to resolve whether `safety_events_last_hour` should be one
+summed count across all `SafetyMonitor.VALID_EVENT_TYPES` or a per-type
+breakdown — no guidance found yet in the issue thread. Also found a
+second, pre-existing bug in the same function (`settings.redis_host`/
+`redis_port` don't exist on `Settings`, only `redis_url` does) that I'll
+likely need to touch while wiring up a real Redis client for the actual
+fix.
