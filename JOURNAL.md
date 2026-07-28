@@ -44,3 +44,62 @@ Deciding whether to also fix the backend to emit timezone-aware UTC (`...Z`) or
 keep the fix frontend-only; the frontend helper will be written to be idempotent
 either way. Also need to confirm every date-rendering consumer routes through
 these helpers so no display is missed.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in `frontend/src/utils/dateFormatters.ts`: added a
+`parseIsoAsUtc` helper that appends `Z` to timezone-less ISO strings (only when
+no `Z`/`±hh:mm` designator is present, so it's idempotent) and routed both
+`formatDate` and `formatRelativeDate` through it. The Week 8 reproduction tests
+now pass. PLAN.md sub-tasks 1 (normalize to UTC) and 2 (extend tests) are done.
+
+**Next steps:**
+Broaden the test suite (explicit-offset and relative-date cases — done), verify
+in the running app, and confirm `make check` / `make test-unit` show no new
+failures against the documented pre-existing baseline. Then open a draft PR for
+peer review.
+
+**Blockers:**
+Discovered that setting `process.env.TZ` in a Vitest `beforeAll` does not change
+V8's cached timezone, so timezone-pinned assertions were unreliable. Resolved by
+rewriting the tests to assert timezone-agnostic invariants (naive form must equal
+the explicit-`Z` form), which hold on any machine.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** PR_LINK_PLACEHOLDER
+
+**Branch:** `fix/93-review-history-local-timezone`
+
+**What you built:**
+A frontend fix for review-history dates showing on the wrong day for non-UTC
+users. The API returns UTC timestamps without an offset (from
+`datetime.utcnow()`), which `new Date()` parsed as local time; the fix normalizes
+timezone-less ISO strings to UTC before formatting, so dates render on the
+correct day in the viewer's local zone.
+
+**Tests added or updated:**
+`frontend/src/utils/__tests__/dateFormatters.test.ts` — six cases covering: a
+naive-UTC string rendering on the correct local day, naive-vs-`Z` equivalence,
+idempotence for already-`Z` strings, explicit `+hh:mm` and `-hh:mm` offsets left
+unadjusted, and `formatRelativeDate` bucketing/equivalence. All pass; verified to
+fail against the pre-fix code.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+> Note on "passes": this repo has documented pre-existing failures unrelated to
+> this issue. Baseline before my changes — `make test-unit`: 53 failed / 375
+> passed; `make check`: 182 ruff errors, 52 files black-would-reformat. After my
+> changes the counts are **identical** (my change is frontend TypeScript only,
+> which `make check`/`make test-unit` do not cover), so this PR introduces **no
+> new failures**. On the frontend, `ProfileForm.test.tsx` (missing
+> `@testing-library/user-event` dep) and one `ReviewSection.test.tsx` case fail
+> on the clean baseline too — proven by stashing my changes — and are untouched
+> by this PR. My own test file passes 6/6.
+
+**Draft PR feedback received from:** none (peer review pending in Slack)
