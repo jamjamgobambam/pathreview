@@ -14,3 +14,14 @@ Branch name: fix/153-faithfulness-checker-none-text
 Setup confirmation: [x] App runs locally at localhost:5173
 
 Cohort ledger: [x] Issue added to cohort ledger 
+
+Issue fit and selection reasoning:
+
+Understanding the issue: chunk.get("text", "") returns None instead of the default when the "text" key exists but is set to None, so the later " ".join(...) crashes with TypeError. Before the fix, any chunk with text: None crashes faithfulness scoring; after, it returns a normal float score and the existing test_none_context_chunk_text test passes.
+
+Tier fit: First open source contribution, so Tier 1 is the deliberate choice, matching the issue's own tier-1 / good first issue labels. The fix is confined to one function in one file, no API, ingestion, or DB changes involved.
+
+Codebase readiness: Read FaithfulnessChecker.check() and its helpers, confirmed the bug is isolated to the context_chunks-to-context_text join and won't affect claim-extraction or overlap logic downstream. Fix: chunk.get("text") or "". Read the test file end-to-end; test_none_context_chunk_text already targets this exact case, and test_missing_text_key_in_chunk confirms the missing-key case already works, so both need to behave the same way.
+
+Scope and time: PR #162 is already open on this issue; claims are non-exclusive, so proceeding but will check that PR first. Estimate 3-4 hours (reproduction, fix, tests, PR), within Tier 1's 3-6 hour range and the Week 8-9 window. No blockers noted.
+
