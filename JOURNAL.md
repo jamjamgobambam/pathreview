@@ -1,6 +1,6 @@
 ## Week 8: Reproduction & solution planning
 
-**Reproduction commit link:** []
+**Reproduction commit link:** https://github.com/Kelllyy1/pathreview/commit/5fa2918178f1966a9061ee98a4a269e40f71b301
 
 **Reproduction summary:**
 To confirm the bug, I temporarily reverted the fix in `api/routes/health.py`,
