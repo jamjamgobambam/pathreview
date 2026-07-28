@@ -25,3 +25,17 @@ A user can submit an unsanitized resume text with newline characters into the pr
 - I've claimed the issue in the ledger and on commented on github, about 10-15 people are working on it.
 - It's achievable in the timeline.
 - It's not blocked by any other issue.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [4714676](https://github.com/gasaroleila/pathreview/commit/4714676)
+
+**Reproduction summary:**
+Added two failing tests (`test_sanitize_strips_newline_characters` and `test_sanitize_strips_carriage_return_newlines`) that pass malicious resume text containing `\n` and `\r\n` to `PromptDefense.sanitize()` and assert the newlines are removed. Both tests fail, confirming `sanitize()` does not strip newline characters and the injection vector is open. Also added a TODO comment in `prompt_defense.py` marking the exact location where the fix should go.
+
+**PLAN.md link:** [PLAN.md](https://github.com/gasaroleila/pathreview/blob/fix/64-newline-injection-sanitization/PLAN.md)
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+- Should we also sanitize Unicode newline characters (e.g., `\u2028` Line Separator, `\u2029` Paragraph Separator, `\u0085` Next Line) that could bypass the `\n`/`\r` stripping?
