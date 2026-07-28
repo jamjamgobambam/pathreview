@@ -18,9 +18,7 @@ class TestFaithfulnessChecker:
         """Test feedback fully supported by context returns score close to 1.0."""
         feedback = "The developer has strong Python skills and experience with Django."
         context_chunks = [
-            {
-                "text": "The portfolio shows Python expertise and Django framework experience."
-            },
+            {"text": "The portfolio shows Python expertise and Django framework experience."},
         ]
 
         score = checker.check(feedback, context_chunks)
@@ -34,9 +32,7 @@ class TestFaithfulnessChecker:
         """Test feedback with no support in context returns score close to 0.0."""
         feedback = "This developer is an expert in Rust systems programming."
         context_chunks = [
-            {
-                "text": "The developer has Python and JavaScript experience."
-            },
+            {"text": "The developer has Python and JavaScript experience."},
         ]
 
         score = checker.check(feedback, context_chunks)
@@ -48,9 +44,7 @@ class TestFaithfulnessChecker:
         """Test partial support returns score between 0 and 1."""
         feedback = "The developer shows Python expertise and Kubernetes knowledge."
         context_chunks = [
-            {
-                "text": "Strong Python programming skills demonstrated in projects."
-            },
+            {"text": "Strong Python programming skills demonstrated in projects."},
         ]
 
         score = checker.check(feedback, context_chunks)
@@ -63,9 +57,7 @@ class TestFaithfulnessChecker:
     def test_empty_feedback_returns_zero(self, checker):
         """Test empty feedback returns 0.0."""
         feedback = ""
-        context_chunks = [
-            {"text": "Some context"}
-        ]
+        context_chunks = [{"text": "Some context"}]
 
         score = checker.check(feedback, context_chunks)
 
@@ -155,15 +147,11 @@ class TestFaithfulnessChecker:
         """Test that score varies with input, never hardcoded 1.0 or 0.0."""
         # First test: fully supported
         score1 = checker.check(
-            "Python and JavaScript skills",
-            [{"text": "Expert in Python and JavaScript"}]
+            "Python and JavaScript skills", [{"text": "Expert in Python and JavaScript"}]
         )
 
         # Second test: no support
-        score2 = checker.check(
-            "Rust expertise",
-            [{"text": "Java programming background"}]
-        )
+        score2 = checker.check("Rust expertise", [{"text": "Java programming background"}])
 
         # Scores should be different
         assert score1 != score2
@@ -173,9 +161,7 @@ class TestFaithfulnessChecker:
     def test_multiple_claims_varying_support(self, checker):
         """Test scoring with multiple claims of varying support."""
         feedback = "Python expert. Knows Rust. Skilled with Docker."
-        context_chunks = [
-            {"text": "Python and Docker expertise shown in projects."}
-        ]
+        context_chunks = [{"text": "Python and Docker expertise shown in projects."}]
 
         score = checker.check(feedback, context_chunks)
 
@@ -186,9 +172,7 @@ class TestFaithfulnessChecker:
     def test_very_long_feedback(self, checker):
         """Test handling of very long feedback text."""
         feedback = "The developer. " * 100
-        context_chunks = [
-            {"text": "Developer portfolio content"}
-        ]
+        context_chunks = [{"text": "Developer portfolio content"}]
 
         score = checker.check(feedback, context_chunks)
 
@@ -198,9 +182,7 @@ class TestFaithfulnessChecker:
     def test_very_long_context(self, checker):
         """Test handling of very long context."""
         feedback = "The developer has Python skills."
-        context_chunks = [
-            {"text": "Python " * 1000}
-        ]
+        context_chunks = [{"text": "Python " * 1000}]
 
         score = checker.check(feedback, context_chunks)
 
@@ -217,6 +199,7 @@ class TestFaithfulnessChecker:
 
         # Despite word overlap, should look for meaningful overlap (not stop words)
         # This depends on implementation
+        assert isinstance(supported, bool)
 
     def test_minimum_overlap_required(self, checker):
         """Test that minimum meaningful overlap is required for support."""
@@ -231,9 +214,7 @@ class TestFaithfulnessChecker:
     def test_none_context_chunk_text(self, checker):
         """Test handling of None in context chunk text."""
         feedback = "Has Python skills"
-        context_chunks = [
-            {"text": None}
-        ]
+        context_chunks = [{"text": None}]
 
         score = checker.check(feedback, context_chunks)
 
@@ -244,9 +225,7 @@ class TestFaithfulnessChecker:
     def test_missing_text_key_in_chunk(self, checker):
         """Test handling of missing 'text' key in context chunk."""
         feedback = "Has Python skills"
-        context_chunks = [
-            {"content": "Python skills"}  # Wrong key
-        ]
+        context_chunks = [{"content": "Python skills"}]  # Wrong key
 
         score = checker.check(feedback, context_chunks)
 
@@ -272,3 +251,45 @@ class TestFaithfulnessChecker:
         supported = checker._is_supported(claim, context)
 
         assert supported is True
+
+    # ------------------------------------------------------------------
+    # Reproduction of issue #152: "Faithfulness checker can never mark
+    # short claims as supported."
+    #
+    # _is_supported() requires an *absolute* minimum of 2 meaningful
+    # (non-stop-word) overlapping tokens. A short claim can carry fewer
+    # than 2 meaningful tokens, so it can never reach the threshold even
+    # when its key term is present verbatim in the context.
+    #
+    # These two tests assert the *correct* (post-fix) behavior, so they
+    # FAIL against the current code and will pass once the threshold is
+    # made length-aware in Week 9.
+    # ------------------------------------------------------------------
+
+    def test_short_grounded_claim_is_supported_issue_152(self, checker):
+        """REPRODUCES #152: a short claim is unsupported even when its only
+        meaningful token appears verbatim in the context.
+
+        claim "Is scalable" -> meaningful tokens {"scalable"} (1 token, since
+        "is" is a stop word). "scalable" is literally present in the context,
+        so the claim is grounded and should be marked supported. Today
+        _is_supported returns False because 1 < 2.
+        """
+        claim = "Is scalable"
+        context = "The architecture is scalable and well-tested."
+
+        assert checker._is_supported(claim, context) is True
+
+    def test_check_scores_grounded_short_feedback_above_zero_issue_152(self, checker):
+        """REPRODUCES #152 at the check() level: feedback whose single claim is
+        a short but grounded statement scores 0.0.
+
+        The identical wording, when long enough to contain >= 2 overlapping
+        meaningful tokens, scores 1.0 -- proving the score depends on claim
+        length rather than on whether the claim is actually grounded.
+        """
+        context_chunks = [{"text": "The architecture is scalable and well-tested."}]
+
+        short_score = checker.check("Is scalable.", context_chunks)
+
+        assert short_score > 0.0
