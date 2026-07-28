@@ -28,3 +28,31 @@ I added a new failing unit test in `test_skill_extractor.py` that verifies the `
 
 **Blockers or open questions:**
 `pyyaml` is not currently in `pyproject.toml`. I will need to clarify if it is acceptable to add it as a new dependency to parse YAML properly, or if a robust regex-based extraction mechanism should be used instead.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:** Implemented `ingestion/parsers/workflow_parser.py` with `WorkflowParser` to extract CI/CD skills from GitHub Actions YAML files using lightweight regex matching for `uses:` actions and `run:` commands without requiring extra dependencies. Updated `ingestion/parsers/skill_extractor.py` to route `.github/workflows/*.yml` files to `WorkflowParser`, moved `SkillDetection` to `ingestion/parsers/base.py`, and added unit tests in `tests/unit/test_workflow_parser.py`.
+
+**Next steps:** Run quality checks (`make check` and `make test-unit`), commit changes, open the pull request against `ascherj/pathreview`, and complete Check-in 2.
+
+**Blockers:** None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/340
+
+**Branch:** feat/14-github-actions-parser
+
+**What you built:** Added `WorkflowParser` to parse `.github/workflows/*.yml` files using regex patterns for `uses:` actions and `run:` steps. Integrated it into `SkillExtractor` so that CI/CD skills like GitHub Actions, Docker, pytest, AWS, and Kubernetes are detected automatically from workflow definitions.
+
+**Tests added or updated:** Added `tests/unit/test_workflow_parser.py` with 25 unit tests covering action parsing, block scalar run steps, confidence bounds, edge cases, and non-workflow file filtering. Updated `tests/unit/test_skill_extractor.py` to verify delegation for workflow files.
+
+**Self-review confirmation:**
+[x] make check passes
+[x] make test-unit passes
+
+**Draft PR feedback received from:** none
