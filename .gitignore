@@ -44,3 +44,6 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+
+# Course scratch (not part of the contribution)
+VIDEO_SCRIPT.md
