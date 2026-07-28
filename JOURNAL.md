@@ -20,7 +20,7 @@ This is a Tier 2 issue and it's a good fit for me. I've worked as a dev on React
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/crbridges/pathreview/commit/43e1ce6a3b55b22bf467055d0f4384abd93dd609
+**Reproduction commit link:** https://github.com/crbridges/pathreview/commit/481fd960e86bc3b70f97677d814a4bf7a09b05a1
 
 **Reproduction summary:**
 This issue is a new feature (labeled `enhancement`), so there's no bug to reproduce. I confirmed the gap by tracing the code: every route in `api/routes/reviews.py` depends on `get_current_user`, `ReviewPage` is wrapped in `<ProtectedRoute>` in `App.tsx`, and the current Share button just copies `window.location.href` — so there is no way to view a review without logging in, and no public endpoint exists yet.
