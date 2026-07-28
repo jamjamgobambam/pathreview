@@ -1,8 +1,8 @@
 # PLAN.md — B-20 Offline RAG Eval Runner
 
-**Issue:** [B-20] Implement an offline eval runner that measures review quality across a benchmark portfolio set  
-**Branch:** `week8/b-20-offline-eval`  
-**Status:** Week 8 planning complete; implementation targeted for Week 9
+**Issue:** [#40](https://github.com/ascherj/pathreview/issues/40) / B-20 — Offline RAG eval runner  
+**Branch:** `feat/40-offline-eval-runner`  
+**Status:** Week 9 implementation complete
 
 ## Problem
 
@@ -88,7 +88,7 @@ Each includes `eval_query` plus resume/project text for ingestion.
 
 ## Success criteria
 
-- [ ] `eval_results.json` exists after `python scripts/run_evals.py`
-- [ ] Report includes relevance, faithfulness, actionability, overall (summary + per portfolio)
-- [ ] Fixtures load from `tests/fixtures/sample_profiles/`
-- [ ] Mock mode needs no API keys
+- [x] `eval_results.json` exists after `python scripts/run_evals.py`
+- [x] Report includes relevance, faithfulness, actionability, overall (summary + per portfolio)
+- [x] Fixtures load from `tests/fixtures/sample_profiles/`
+- [x] Mock mode needs no API keys

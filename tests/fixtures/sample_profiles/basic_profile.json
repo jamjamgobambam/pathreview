@@ -1,0 +1,19 @@
+{
+  "id": "basic",
+  "github_username": "janedoe",
+  "resume_filename": "resume.md",
+  "resume_text": "Jane Doe\nSoftware Engineer\njane.doe@example.com | github.com/janedoe\n\nExperience:\n- Software Engineer at TechCorp (2022-2024)\n  Built REST APIs using Python and FastAPI. Collaborated with frontend on React dashboards.\n- Intern at StartupLabs (2021)\n  Wrote Python scripts for data cleaning and reporting.\n\nEducation:\n- B.S. Computer Science, State University (2022)\n\nSkills: Python, JavaScript, React, PostgreSQL, Docker, FastAPI\n",
+  "projects": [
+    {
+      "name": "weather-app",
+      "github_repo": "janedoe/weather-app",
+      "readme": "# Weather App\nA weather forecasting application built with React and OpenWeatherMap API.\n\n## Features\n- Current weather display\n- 5-day forecast\n- Location search\n\n## Tech Stack\n- React 18\n- TypeScript\n- Tailwind CSS\n- OpenWeatherMap API\n"
+    },
+    {
+      "name": "task-api",
+      "github_repo": "janedoe/task-api",
+      "readme": "# Task API\nREST API for personal task management.\n\n## Endpoints\n- GET /tasks\n- POST /tasks\n- PATCH /tasks/:id\n\n## Tech Stack\n- Python\n- FastAPI\n- PostgreSQL\n- Docker\n"
+    }
+  ],
+  "eval_query": "Python FastAPI React PostgreSQL Docker weather app task API skills and projects"
+}

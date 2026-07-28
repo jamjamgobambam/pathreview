@@ -1,0 +1,19 @@
+{
+  "id": "weak",
+  "github_username": "newcoder",
+  "resume_filename": "resume.md",
+  "resume_text": "Sam Lee\nAspiring developer\nsam@example.com\n\nExperience:\n- Retail associate (2023)\n\nEducation:\n- Bootcamp graduate\n\nSkills: HTML, CSS\n",
+  "projects": [
+    {
+      "name": "hello-world",
+      "github_repo": "newcoder/hello-world",
+      "readme": "# hello-world\nMy first repo.\n"
+    },
+    {
+      "name": "notes",
+      "github_repo": "newcoder/notes",
+      "readme": "# notes\nRandom notes.\n"
+    }
+  ],
+  "eval_query": "HTML CSS developer bootcamp hello-world notes portfolio skills projects"
+}

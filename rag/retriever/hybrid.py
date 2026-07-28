@@ -46,8 +46,10 @@ class HybridRetriever:
             query_embedding, collection_name, n_results=max_chunks * 2
         )
 
-        # Keyword search - need to fetch all chunks first
+        # Keyword search - fetch all chunks, index them, then search
         all_chunks = self._get_all_chunks(collection_name)
+        if all_chunks:
+            self.keyword_searcher.index(all_chunks)
         keyword_results = self.keyword_searcher.search(query, top_k=max_chunks * 2)
 
         # Create id-to-chunk mapping for both approaches

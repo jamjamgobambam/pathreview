@@ -1,10 +1,4 @@
-"""Week 8 reproduction: offline eval runner is a stub (issue B-20).
-
-Running `python scripts/run_evals.py` prints success and claims it wrote
-`eval_results.json`, but no file is created, benchmark fixtures are missing,
-and EvalSuite has no actionability score. These tests document that gap and
-are expected to FAIL until Week 9 implements the runner.
-"""
+"""Tests that the offline eval runner (issue #40 / B-20) produces a quality report."""
 
 from pathlib import Path
 
@@ -16,32 +10,39 @@ from scripts import run_evals
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURES_DIR = REPO_ROOT / "tests" / "fixtures" / "sample_profiles"
-EVAL_RESULTS = REPO_ROOT / "eval_results.json"
 
 
 @pytest.mark.unit
-class TestOfflineEvalRunnerGap:
-    """Reproduce B-20: standalone eval runner does not produce a quality report."""
+class TestOfflineEvalRunner:
+    """Verify the standalone eval runner writes a scored JSON report."""
 
-    def test_run_evals_writes_eval_results_json(self, monkeypatch, tmp_path):
-        """Stub claims to write eval_results.json but does not create the file."""
-        monkeypatch.chdir(tmp_path)
-        run_evals.main()
-        assert (tmp_path / "eval_results.json").exists(), (
-            "B-20 reproduction: scripts/run_evals.py prints success but does not "
-            "write eval_results.json (CI expects this file for PR comments)."
+    def test_run_evals_writes_eval_results_json(self, tmp_path):
+        """Runner creates eval_results.json with summary and portfolio scores."""
+        output = tmp_path / "eval_results.json"
+        exit_code = run_evals.main(
+            ["--fixtures-dir", str(FIXTURES_DIR), "--output", str(output)]
         )
+        assert exit_code == 0
+        assert output.exists()
+
+        import json
+
+        report = json.loads(output.read_text(encoding="utf-8"))
+        assert "summary" in report
+        assert "portfolios" in report
+        assert report["summary"]["portfolio_count"] == 3
+        assert "avg_actionability_score" in report["summary"]
+        for portfolio in report["portfolios"]:
+            assert "relevance_score" in portfolio
+            assert "faithfulness_score" in portfolio
+            assert "actionability_score" in portfolio
+            assert "overall_score" in portfolio
 
     def test_benchmark_fixtures_directory_exists(self):
-        """Curated benchmark portfolios under sample_profiles are missing."""
-        assert FIXTURES_DIR.is_dir(), (
-            "B-20 reproduction: tests/fixtures/sample_profiles/ does not exist; "
-            "the runner has nowhere to load benchmark portfolios from."
-        )
+        """Curated benchmark portfolios are available for the runner."""
+        assert FIXTURES_DIR.is_dir()
+        assert list(FIXTURES_DIR.glob("*.json"))
 
     def test_eval_result_includes_actionability_score(self):
-        """Stub TODO scores actionability, but EvalResult has no such field."""
-        assert "actionability_score" in EvalResult.__dataclass_fields__, (
-            "B-20 reproduction: EvalResult lacks actionability_score; "
-            "scripts/run_evals.py TODO lists actionability as a required metric."
-        )
+        """EvalResult includes actionability alongside relevance and faithfulness."""
+        assert "actionability_score" in EvalResult.__dataclass_fields__
