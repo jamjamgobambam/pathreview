@@ -132,6 +132,22 @@ async def process_review(
             sources_count=len(ingestion_results),
         )
 
+        if not ingestion_results:
+            log.warning(
+                "no_ingested_documents",
+                review_id=str(review_id),
+                profile_id=str(profile_id),
+            )
+            review.status = "failed"
+            review.error_message = (
+                "No documents have been ingested for this profile. Add a GitHub "
+                "username, portfolio URL, or resume before requesting a review."
+            )
+            review.updated_at = datetime.utcnow()
+            db.add(review)
+            await db.commit()
+            return
+
         # Step 3: Run agent orchestration
         agent_output = await _run_agent_orchestration(profile, ingestion_results)
         log.info(

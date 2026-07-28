@@ -9,6 +9,7 @@ from core.services.review_service import (
     create_review,
     get_review,
     list_reviews,
+    process_review,
 )
 
 
@@ -338,3 +339,71 @@ class TestReviewService:
 
         # Should order by created_at descending
         mock_db_session.execute.assert_called_once()
+
+
+@pytest.mark.unit
+class TestProcessReviewNoIngestedDocuments:
+    """Regression coverage for issue #88: process_review() with a documentless profile."""
+
+    def _make_db_session(self, review, profile):
+        """Build a mock db session whose execute() resolves Review then Profile lookups in order."""
+        db = AsyncMock()
+        db.add = Mock()
+        db.commit = AsyncMock()
+
+        review_result = Mock()
+        review_result.scalars.return_value.first.return_value = review
+
+        profile_result = Mock()
+        profile_result.scalars.return_value.first.return_value = profile
+
+        db.execute = AsyncMock(side_effect=[review_result, profile_result])
+        return db
+
+    def _make_review(self):
+        review = Mock()
+        review.id = uuid4()
+        review.status = "pending"
+        review.sections = None
+        review.overall_score = None
+        review.error_message = None
+        return review
+
+    def _make_profile(self, github_username=None, portfolio_url=None, resume_text=None):
+        profile = Mock()
+        profile.id = uuid4()
+        profile.user_id = uuid4()
+        profile.github_username = github_username
+        profile.portfolio_url = portfolio_url
+        profile.resume_text = resume_text
+        profile.resume_filename = None
+        return profile
+
+    @pytest.mark.asyncio
+    async def test_process_review_fails_when_profile_has_no_documents(self):
+        """A profile with no github_username, portfolio_url, or resume_text should fail
+        with a descriptive error_message instead of fabricating a completed review."""
+        review = self._make_review()
+        profile = self._make_profile()
+        db = self._make_db_session(review, profile)
+
+        await process_review(db, review.id, profile.id)
+
+        assert review.status == "failed"
+        assert review.error_message
+        assert review.sections is None
+        assert review.overall_score is None
+
+    @pytest.mark.asyncio
+    async def test_process_review_completes_when_profile_has_a_document(self):
+        """A profile with at least one ingestible source should still reach status='complete',
+        guarding against the no-documents check being overly aggressive."""
+        review = self._make_review()
+        profile = self._make_profile(github_username="octocat")
+        db = self._make_db_session(review, profile)
+
+        await process_review(db, review.id, profile.id)
+
+        assert review.status == "complete"
+        assert review.sections is not None
+        assert review.overall_score is not None
