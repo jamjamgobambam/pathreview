@@ -23,3 +23,22 @@ Issue #106 addresses a missing shared test fixture: `tests/fixtures/sample_profi
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+Ran `ls tests/fixtures` and `find tests -iname "*profile*"` — confirmed the
+`tests/fixtures/sample_profiles/basic_profile.json` file and its parent folder
+do not exist anywhere in the repo, and no test currently imports it. The only
+remaining reference is a TODO comment in `scripts/run_evals.py` pointing at
+that path, suggesting the fixture was removed (or never committed) at some
+point and the reference was left behind.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
