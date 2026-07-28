@@ -18,14 +18,14 @@ In the resume_parser.py, leading indents or whitespaces are forcing new sections
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/sarahmsry/pathreview/commit/761d6152eac0b50556256ac6c1f9de56f65cc6f8
 
 **Reproduction summary:**
-[1–2 sentences: How did you reproduce the issue? What did you observe?]
+In order to reproduce my bug I ran the test cases written for resume_parser.py and I also used other sample tests written by Claude.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/sarahmsry/pathreview/blob/fix/147-resume-section-detection-error/PLAN.md
 
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded] N/A
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
