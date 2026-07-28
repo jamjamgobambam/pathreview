@@ -34,7 +34,8 @@ _run_ingestion_pipeline` correctly returned zero sources, but `process_review` s
 
 The Issue reproduction pytest lives at 'tests/unit/test_issue88_reproduction.py'.
 
-**PLAN.md link:**\https://github.com/rohitpeets/pathreview/blob/fix/88-no-profile-associated-ingested-content-review-endpoint/PLAN.md
+**PLAN.md link:**
+https://github.com/rohitpeets/pathreview/blob/fix/88-no-profile-associated-ingested-content-review-endpoint/PLAN.md
 
 
 **Walkthrough video (recommended):**
