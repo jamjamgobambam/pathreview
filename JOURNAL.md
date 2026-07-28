@@ -34,7 +34,7 @@ the existing failing test `test_none_context_chunk_text` green.
 
 ## Week 8 - Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/skyler-hall/pathreview/commit/f8504f976e9482147f4dd6ef4b75baded9fa52e9
+**Reproduction commit link:** https://github.com/skyler-hall/pathreview/commit/9705c63
 
 **Reproduction summary:**
 Ran the unit test test_none_context_chunk_text against a chunk of {"text": None}. It raised
