@@ -23,3 +23,26 @@ profile data, closing the coverage gap.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/krish-batra/pathreview/commit/8b724fb78d4b4f2d9f169303cf70aa73799a756e
+
+**Reproduction summary:** The issue could not be reproduced as literally
+described — the fixture `tests/fixtures/sample_profiles/basic_profile.json`
+never existed in git history (confirmed via `git log --all` and a full-history
+`git grep`) and `tests/integration/` was empty, so no tests were actually being
+skipped. This is a seeded/synthetic practice issue, so the work was net-new
+authoring of the fixture plus a matching integration test, not restoration of a
+deleted file.
+
+**PLAN.md link:** [PLAN.md](PLAN.md)
+
+**Walkthrough video (recommended):** Not recorded.
+
+**Blockers or open questions:** None blocking. Note for reviewers: PR #134
+attempted a different (conftest.py Python fixture) approach that never created
+the JSON path the issue names and stalled unmerged; this branch delivers the
+literal JSON fixture instead. The repo also has 53 pre-existing unit-test
+failures unrelated to this change (all in `tests/unit/`); the 3 new integration
+tests pass and the full suite is 378 passed / 53 failed.
