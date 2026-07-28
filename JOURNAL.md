@@ -17,3 +17,11 @@ This issue is looking to implement a new feature for the users. It looks at the 
 
 **Selection notes:**
 I'm comfortable working in Python and API integration, but this would be my first time implementing something into a larger codebase with multiple features and services. The issue 52 is a Tier 2 issue, scoped into a single tool file in `agent/tools/github_tool.py` with a clear success in adding a `contribution_streak`. The 4-6 hour estimate shoudl be accurate for implementation and API work alongside setup.
+
+
+## Week 8 - Reproduction and Fix Plan
+
+**Reproduction steps:**
+1. 1. Ran `GitHubTool().execute({"github_username": "octocat", "repo_name": "Hello-World"})`
+2. Tool returned success=True with metadata keys: name, description, primary_language, star_count, fork_count, open_issues_count, last_commit_date, has_readme, topics, homepage
+3. `contribution_streak` was absent which confirms the feature gap described in issue #52
