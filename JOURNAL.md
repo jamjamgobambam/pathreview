@@ -23,19 +23,23 @@ fix/88-no-profile-associated-ingested-content-review-endpoint
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** 
+https://github.com/rohitpeets/pathreview/commit/9379711
 
 **Reproduction summary:**
-I reproduced this issue by calling 'process_review' (in 'core/services/review_service.py') directly against a 'No Ingested document' state with a mocked async DB session , a profile with github_username-None,portfolio_url=None, and resume_text=None.
+I reproduced this issue by calling 'process_review' (in 'core/services/review_service.py') directly against a 'No Ingested document' state with a mocked async DB session , a profile with github_username=None,portfolio_url=None, and resume_text=None.
 This was possible because every source field in profileCreate is optional with no 
 
 _run_ingestion_pipeline` correctly returned zero sources, but `process_review` still marked the review `status="complete"` with 3 fabricated sections and `overall_score=0.81`, and the safety checks passed it.
 
 The Issue reproduction pytest lives at 'tests/unit/test_issue88_reproduction.py'.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:**\https://github.com/rohitpeets/pathreview/blob/fix/88-no-profile-associated-ingested-content-review-endpoint/PLAN.md
+
 
 **Walkthrough video (recommended):**
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+Need to confirm the intended contract for the zero-source case — reuse status="failed" with
+an error_message, add a new status, or reject at the endpoint with a 4xx. The issue also
+names tests/unit/test_review_routes.py, which doesn't exist yet, so I need to confirm whether route-level coverage is expected in addition to the service-level reproduction.
