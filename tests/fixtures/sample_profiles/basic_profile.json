@@ -1,0 +1,18 @@
+{
+  "github_username": "janedoe",
+  "resume_filename": "jane_doe_resume.pdf",
+  "resume_text": "Jane Doe\nSoftware Engineer\njane.doe@example.com | github.com/janedoe\n\nExperience:\n- Software Engineer at TechCorp (2022-2024)\n  Built REST APIs using Python and FastAPI.\n\nEducation:\n- B.S. Computer Science, State University (2022)\n\nSkills: Python, JavaScript, React, PostgreSQL, Docker",
+  "portfolio_url": "https://janedoe.dev",
+  "repos": [
+    {
+      "source_type": "repo",
+      "source_url": "https://github.com/janedoe/weather-app",
+      "filename": "README.md"
+    },
+    {
+      "source_type": "repo",
+      "source_url": "https://github.com/janedoe/portfolio-tracker",
+      "filename": "README.md"
+    }
+  ]
+}
