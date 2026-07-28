@@ -26,3 +26,26 @@ tests pass: `test_us_phone_number_redaction`, `test_us_phone_formats`,
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** (added in this commit)
+
+**Reproduction summary:**
+Ran the four tests named in the issue (`test_us_phone_number_redaction`,
+`test_us_phone_formats`, `test_detect_phone_pii`, `test_phone_at_start_of_text`)
+and confirmed all four fail on `main`. Also isolated the root cause directly:
+the `phone_us` regex in `safety/pii_scrubber.py` starts with `\b`, and `\b`
+never matches at a position between a space and a `(`, since neither side is
+a word character. So any phone number written as `(555) 123-4567` is silently
+skipped by both `scrub()` and `detect()`, while the dashed format
+`555-123-4567` matches fine.
+
+**PLAN.md link:** [PLAN.md](./PLAN.md)
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+Need to decide the exact replacement for the leading `\b` (negative lookbehind
+vs. restructuring the optional group) and confirm it doesn't change match
+priority against the `phone_intl` pattern for inputs like `+1 555 123 4567`.
