@@ -37,3 +37,20 @@ The exception occurs at `rag/evaluator/faithfulness_checker.py:34`, where
 `" ".join(...)` receives the `None` returned by `chunk.get("text", "")`.
 This confirms that the default handles a missing `text` key but not a key
 whose value is explicitly `None`.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/qingtaozhou/pathreview/commit/724ba44
+
+**Reproduction summary:**
+I ran the focused `test_none_context_chunk_text` pytest case with a context
+chunk containing `"text": None`. It consistently raised `TypeError` in
+`FaithfulnessChecker.check()` when `" ".join(...)` received the null value.
+
+**PLAN.md link:** https://github.com/qingtaozhou/pathreview/blob/fix/153-faithfulness-checker-crashes-error/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded.
+
+**Blockers or open questions:**
+No current blockers. The fix should remain narrowly scoped to explicit `None`
+text values rather than silently converting every malformed value to a string.
