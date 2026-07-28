@@ -21,3 +21,24 @@ I reviewed the issue scope and confirmed that the affected area is mainly the ag
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:**
+(To be added after pushing this commit.)
+
+**Reproduction summary:**
+
+I ran the application locally and traced the complete review workflow. By inspecting the orchestrator and session store, I found that session state is loaded before execution but saved only after all tools complete. This means intermediate progress may be lost if the API restarts before the final save.
+
+**PLAN.md link:**
+(To be added after pushing.)
+
+**Walkthrough video (recommended):**
+Not recorded.
+
+**Blockers or open questions:**
+
+I still need to verify the best checkpoint strategy and whether completed tools should be skipped when resuming a saved session.
