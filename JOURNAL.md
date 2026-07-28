@@ -35,7 +35,7 @@ for Weeks 8–9.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [ADD LINK AFTER YOU COMMIT — run `git log -1 --format="%H"` after committing, then use https://github.com/faisalkhansk3283/pathreview/commit/<hash>]
+**Reproduction commit link:** https://github.com/faisalkhansk3283/pathreview/commit/69bb0658eba950df6e28147c80e90e1862433ab0
 
 **Reproduction summary:**
 Ran the repro snippet from issue #150 against `TechDetector.execute()` with 2 Python files and
