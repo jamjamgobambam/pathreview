@@ -32,3 +32,17 @@ I located `_detect_sections()` in `ingestion/parsers/resume_parser.py` and read 
 
 **Part 4 — Scope and time:**
 No blockers or dependencies. The fix is a targeted regex change — estimated 2–3 hours including tests and PR writeup. The issue has no open dependencies and is not blocked by any other issue.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+To reproduce issue #147, I ran pytest tests/unit/test_resume_parser.py. The section detection tests failed as expected. The current parsing logic anchors headers strictly to the start of a line, meaning it fails to identify valid headers like 'Experience' when they contain the leading indentations commonly left behind by PDF text extraction.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
