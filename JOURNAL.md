@@ -41,3 +41,27 @@ behavior for normal chunks unchanged. I'll also add a regression test in
 **Cohort ledger:** [ ] Issue added to cohort ledger
 <!-- Do this yourself: add your name, GitHub username (mayoayileka09), and issue
      #153 to your section's tab in the cohort ledger. -->
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/mayoayileka09/pathreview/commit/b15093a11b1c1845883b33116e683942e9c9bd12
+
+**Reproduction summary:**
+Running `pytest tests/unit/test_faithfulness_checker.py` fails on
+`test_none_context_chunk_text` with `TypeError: sequence item 0: expected str
+instance, NoneType found` at the `" ".join(...)` line in
+`FaithfulnessChecker.check` — a context chunk of `{"text": None}` makes
+`chunk.get("text", "")` return `None` because the key is present, confirming the
+crash described in #153. The reproduction commit marks that exact line with a
+`BUG(#153)` comment; the fix itself is deferred to Week 9 per PLAN.md.
+
+**PLAN.md link:** https://github.com/mayoayileka09/pathreview/blob/fix/153-faithfulness-none-chunk/PLAN.md
+
+**Walkthrough video (recommended):** _Not recorded._
+
+**Blockers or open questions:**
+Three other tests in the same module (`test_partial_support_returns_middle_score`,
+`test_multiple_context_chunks`, `test_multiple_claims_varying_support`) also fail,
+but from the scoring *heuristic* returning `0.0`, not the `None` bug. I'm treating
+those as out of scope for #153 and will confirm my one-line fix leaves them
+unchanged.
