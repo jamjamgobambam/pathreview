@@ -20,7 +20,7 @@ This Tier 2 issue has a clear, manageable scope and matches my familiarity with 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [Add the GitHub commit link after pushing]
+**Reproduction commit link:** [docs: document issue reproduction and solution plan](https://github.com/thanh-cnguyen/pathreview/commit/c95a7b8deaf17ed0153b211a330732afec292228)
 
 **Reproduction summary:**
 I reproduced the documentation gap by comparing the public service functions on `upstream/main` with their signatures. The eight public functions in `profile_service.py` and `review_service.py` did not consistently document their parameters, return values, and applicable exceptions.
