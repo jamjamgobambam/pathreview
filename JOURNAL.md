@@ -33,9 +33,9 @@ I added a new failing unit test in `test_skill_extractor.py` that verifies the `
 
 ### Check-in 1 (mid-week)
 
-**Current progress:** Implemented `ingestion/parsers/workflow_parser.py` with `WorkflowParser` to extract CI/CD skills from GitHub Actions YAML files using lightweight regex matching for `uses:` actions and `run:` commands without requiring extra dependencies. Updated `ingestion/parsers/skill_extractor.py` to route `.github/workflows/*.yml` files to `WorkflowParser`, moved `SkillDetection` to `ingestion/parsers/base.py`, and added unit tests in `tests/unit/test_workflow_parser.py`.
+**Current progress:** Implemented `ingestion/parsers/workflow_parser.py` with the `WorkflowParser` class to extract CI/CD skills from GitHub Actions YAML files using lightweight regex matching for `uses:` actions and `run:` commands without requiring external dependencies like `pyyaml`. Updated `ingestion/parsers/skill_extractor.py` to route `.github/workflows/*.yml` files to `WorkflowParser` and moved `SkillDetection` to `ingestion/parsers/base.py` to prevent circular imports.
 
-**Next steps:** Run quality checks (`make check` and `make test-unit`), commit changes, open the pull request against `ascherj/pathreview`, and complete Check-in 2.
+**Next steps:** Write unit tests in `tests/unit/test_workflow_parser.py` covering action mappings, single-line/block run steps, confidence bounds, edge cases, and non-workflow filtering. Update `tests/unit/test_skill_extractor.py` to verify workflow path delegation. Run quality checks (`make check` and `make test-unit`), commit changes, open the pull request against `ascherj/pathreview`, and complete Check-in 2.
 
 **Blockers:** None.
 
@@ -49,7 +49,7 @@ I added a new failing unit test in `test_skill_extractor.py` that verifies the `
 
 **What you built:** Added `WorkflowParser` to parse `.github/workflows/*.yml` files using regex patterns for `uses:` actions and `run:` steps. Integrated it into `SkillExtractor` so that CI/CD skills like GitHub Actions, Docker, pytest, AWS, and Kubernetes are detected automatically from workflow definitions.
 
-**Tests added or updated:** Added `tests/unit/test_workflow_parser.py` with 25 unit tests covering action parsing, block scalar run steps, confidence bounds, edge cases, and non-workflow file filtering. Updated `tests/unit/test_skill_extractor.py` to verify delegation for workflow files.
+**Tests added or updated:** Created `tests/unit/test_workflow_parser.py` with 25 unit tests covering action parsing (`uses:`), single-line and block-scalar run steps (`run:`), confidence scores bounded between 0.0 and 1.0, edge cases with empty files or invalid input types, and filtering out non-workflow YAML files. Updated `tests/unit/test_skill_extractor.py` with `test_github_actions_workflow_detection` to verify delegation for workflow files.
 
 **Self-review confirmation:**
 [x] make check passes
