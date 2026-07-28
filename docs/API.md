@@ -22,7 +22,7 @@ Base URL: `http://localhost:8000`
 
 ### Reviews
 
-# This endpoint requires documentation regarding the correct input parameter details parsed from a multipart form to reflect an appropriate call to the API as per the code in api/routes/reviews.py
+# This endpoint requires documentation regarding the correct input parameter details parsed from a JSON body to reflect an appropriate call to the API as per the code in api/routes/reviews.py
 `POST /reviews` — Request a new portfolio review for a profile.
 `GET /reviews/{review_id}` — Retrieve a completed review.
 `GET /reviews` — List reviews for the authenticated user (paginated).
