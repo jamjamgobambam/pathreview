@@ -23,7 +23,7 @@ We have a failing test `test_document_with_no_headings` in `tests/unit/test_stru
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** _(added on submission)_
+**Reproduction commit link:** https://github.com/Wodehouse/pathreview/commit/2d95f3d909cdc86cc98132c44708ebbc5aec6a63
 
 **Local setup:**
 To run the app locally I needed a container runtime. I used Colima instead of
@@ -40,4 +40,6 @@ document produces 0 chunks. Traced it to `StructuralChunker._extract_sections`,
 where a section is only ever created after a heading match, so a doc with no
 heading has all its content discarded and returns `[]`. Full list of expected
 pass/fail tests is captured in FAILING_TESTS.md.
+
+**PLAN.md link:** https://github.com/Wodehouse/pathreview/blob/fix/149-structural-chunker-drops-headingless-docs/PLAN.md
 
