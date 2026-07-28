@@ -87,3 +87,34 @@ overlap ratio (e.g. a fraction of the claim's meaningful tokens must appear in t
 context). Pick whichever keeps existing multi-word tests green while letting a
 fully-grounded single-token claim count as supported. Add a regression test for the
 short-claim case.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** _https://github.com/tureh1/pathreview/commit/04c863c7862b2dab218b6231c17fbf560ce5412d
+
+**Reproduction summary:**
+I reproduced the bug two ways. Running `_is_supported("Is scalable", "The architecture
+is scalable and well-tested.")` returns `False` even though "scalable" appears verbatim
+in the context, and `check("Is scalable.", [grounded context])` returns `0.0`. The same
+wording as a longer claim scores `1.0`, which proves the score depends on claim length,
+not on whether the claim is grounded. I captured this as two failing unit tests in
+`tests/unit/test_faithfulness_checker.py`
+(`test_short_grounded_claim_is_supported_issue_152` and
+`test_check_scores_grounded_short_feedback_above_zero_issue_152`).
+
+**PLAN.md link:**
+https://github.com/tureh1/pathreview/blob/fix/152-faithfulness-short-claims/PLAN.md
+
+**Walkthrough video (recommended):** _<optional Loom link, ≤2 min — not graded>_
+
+**Blockers or open questions:**
+- Undecided between `min(2, meaningful_token_count)` and a ratio-based threshold; I'll
+  pick whichever fixes the short-claim tests without flipping
+  `test_feedback_with_no_support_in_context` / `test_is_supported_without_keywords`.
+- While reproducing, I found 4 pre-existing failures in this test file. Three
+  (`test_partial_support_returns_middle_score`, `test_multiple_context_chunks`,
+  `test_multiple_claims_varying_support`) stem from the same `>= 2` threshold and/or a
+  separate punctuation-tokenization weakness; one (`test_none_context_chunk_text`) is a
+  `TypeError` that belongs to issue #153, not #152, so it is out of scope here.
