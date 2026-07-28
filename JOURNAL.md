@@ -27,7 +27,22 @@ I added two unit tests in `tests/unit/test_health_safety_events.py`. The first d
 
 **PLAN.md link:** https://github.com/RadRebelSam/pathreview/blob/fix/68-health-check-safety-event-count/PLAN.md
 
-**Walkthrough video (recommended):** [not recorded yet]
-
 **Blockers or open questions:**
 The main open question is the "last hour" semantics: `get_event_count` ignores its `window_hours` argument and the Redis counters use a 24h TTL, so the count is cumulative rather than a true rolling hour. I need to confirm with the maintainer whether to relabel the field or implement hourly bucketed keys before Week 9.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+The fix is implemented and committed (`fix(api): report real safety event count in /health`). All of PLAN.md steps 1–4 are done: `SafetyMonitor.get_total_event_count()` sums `get_event_count()` across `VALID_EVENT_TYPES`; `/health` now builds one Redis client and reports that total in `safety_events_last_hour`; the reproduction test flipped from "always 0" to "reports the aggregated count"; and the file grew from 2 tests to 8, covering the aggregation helper, an empty counter set, unknown/legacy keys, a Redis read failure, and a full Redis outage. Step 3 (the "last hour" window question from Week 8) is resolved as a scoping decision rather than an implementation: true rolling-window counts need bucketed Redis keys, which would change `log_event`'s write path for every safety module — too large for a tier-1 issue — so I documented exactly what the number means in the docstrings and will raise the window semantics as a follow-up in the PR.
+
+One scope change from Week 8: I had planned to leave the broken `settings.redis_host`/`redis_port` lookup alone, but the endpoint could not build a Redis client at all because of it, so there was nothing to hand to `SafetyMonitor`. I switched that to `redis.from_url(settings.redis_url)` and reused the single client for both the redis dependency check and the safety count. It's a 3-line change my fix depends on, and it removes 3 pre-existing mypy errors in the file.
+
+**Next steps:**
+Open the draft PR, ask for peer review in Slack, address feedback, then mark it ready for review and fill in Check-in 2.
+
+**Blockers:**
+`make` isn't installed on my machine, so I run the Makefile targets directly out of `.venv/Scripts` (`ruff check .`, `black --check .`, `mypy api/ core/ ingestion/ rag/ agent/ safety/`, `pytest tests/unit -m unit`). Same commands, same results — noting it so the check-in matches what I actually ran.
+
+The repo also has substantial pre-existing failures unrelated to #68, which I recorded before touching anything: 182 ruff errors, 52 files black would reformat, 103 mypy errors, and 53 failing unit tests. After my change the failing-test set is byte-for-byte identical (383 passed, up from 377 — the 6 new tests), ruff reports the same 7 findings in the files I touched, the only black deviation left in `safety/monitoring.py` is the pre-existing missing trailing comma, and mypy in `api/routes/health.py` went from 11 errors to 8. So my changes introduce no new failures. I'll document this in the PR description.
