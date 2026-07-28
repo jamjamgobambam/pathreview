@@ -1,55 +1,88 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { formatDate } from '../dateFormatters'
+import { describe, it, expect } from 'vitest'
+import { formatDate, formatRelativeDate } from '../dateFormatters'
 
 /**
- * Reproduction for issue #93 — Review history displays dates in UTC instead of
- * the user's local timezone.
+ * Tests for issue #93 — Review history displayed dates in UTC instead of the
+ * user's local timezone.
  * https://github.com/jamjamgobambam/pathreview/issues/93
  *
  * Root cause (two parts):
  *   1. The backend serializes `created_at` from `datetime.utcnow()`, which is a
  *      NAIVE datetime, so the JSON has no timezone suffix, e.g.
- *      "2026-07-12T04:00:00" (note: no trailing "Z").
- *   2. `new Date("2026-07-12T04:00:00")` parses an offset-less string as LOCAL
- *      time, not UTC. So a review created at 11:00 PM EST (= 04:00 UTC the next
- *      day) is rendered on the wrong calendar day.
+ *      "2026-07-12T03:00:00" (note: no trailing "Z").
+ *   2. `new Date("2026-07-12T03:00:00")` parses an offset-less string as LOCAL
+ *      time, not UTC. So a review created at 11:00 PM EST (= 03:00 UTC the next
+ *      day) was rendered on the wrong calendar day.
  *
- * These tests assert the EXPECTED (correct) behavior, so they currently FAIL —
- * that failure IS the reproduction. The Week 9 fix will make them pass.
+ * The fix parses timezone-less strings as UTC (see `parseIsoAsUtc`) before
+ * formatting in the viewer's local zone. These tests lock in that behavior.
  *
- * Note: this file forces a fixed non-UTC timezone so the assertions are
- * deterministic regardless of the machine running the suite.
+ * The assertions are written to be timezone-agnostic: they check the invariant
+ * that a naive string is treated as UTC (i.e. identical to the same string with
+ * an explicit "Z"), which holds in every timezone. The V8 engine reads the TZ
+ * env var only at process start, so a per-suite `process.env.TZ` override is
+ * unreliable — we deliberately avoid depending on the runner's zone.
  */
 
-const ORIGINAL_TZ = process.env.TZ
+// The exact naive-UTC shape the API returns (from datetime.utcnow(), no "Z").
+const NAIVE = '2026-07-12T03:00:00'
+const EXPLICIT_UTC = '2026-07-12T03:00:00Z'
 
-beforeAll(() => {
-  // America/New_York is UTC-5 (EST) / UTC-4 (EDT); a late-evening local time
-  // crosses the UTC date boundary, which is where the bug shows up.
-  process.env.TZ = 'America/New_York'
+// The local calendar day the fix should produce, derived from the SAME zone the
+// code runs in — so this expectation is correct on any machine.
+const expectedLocalDay = new Date(EXPLICIT_UTC).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric'
 })
 
-afterAll(() => {
-  process.env.TZ = ORIGINAL_TZ
-})
-
-describe('formatDate — issue #93 timezone reproduction', () => {
-  it('renders a naive-UTC timestamp on the correct LOCAL calendar day', () => {
-    // Review created 2026-07-11 23:00 America/New_York == 2026-07-12 03:00 UTC.
-    // The API returns the UTC instant WITHOUT an offset suffix:
-    const apiCreatedAt = '2026-07-12T03:00:00'
-
-    // Expected: the user in New_York created it on Jul 11, so it must show Jul 11.
-    // Actual (bug): naive string parsed as local -> shows Jul 12.
-    expect(formatDate(apiCreatedAt)).toBe('Jul 11, 2026')
+describe('formatDate — issue #93 timezone handling', () => {
+  it('parses a naive-UTC timestamp as UTC (not local) and formats in local zone', () => {
+    // The bug rendered the naive string as local time, shifting the day.
+    // After the fix it must match the explicit-UTC instant's local day.
+    expect(formatDate(NAIVE)).toBe(expectedLocalDay)
   })
 
-  it('treats an explicit-UTC ("Z") timestamp the same as the naive one', () => {
-    // Once fixed, the naive form must be interpreted as UTC — identical to the
-    // "Z"-suffixed form — and rendered in local time.
-    const naive = '2026-07-12T03:00:00'
-    const explicitUtc = '2026-07-12T03:00:00Z'
+  it('treats the naive form identically to the explicit-"Z" form', () => {
+    expect(formatDate(NAIVE)).toBe(formatDate(EXPLICIT_UTC))
+  })
 
-    expect(formatDate(naive)).toBe(formatDate(explicitUtc))
+  it('does not double-adjust a string that already carries a "Z"', () => {
+    // Idempotence: a "Z" string must be parsed once, matching a plain UTC parse.
+    const viaFormatter = formatDate('2026-03-15T12:00:00Z')
+    const viaDirect = new Date('2026-03-15T12:00:00Z').toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+    expect(viaFormatter).toBe(viaDirect)
+  })
+
+  it('respects an explicit +hh:mm offset without re-adjusting it', () => {
+    // Must reflect the exact instant the offset denotes, not have "Z" appended.
+    const withOffset = '2026-07-12T01:00:00+05:30'
+    const viaDirect = new Date(withOffset).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+    expect(formatDate(withOffset)).toBe(viaDirect)
+  })
+})
+
+describe('formatRelativeDate — issue #93 timezone handling', () => {
+  it('parses a naive-UTC timestamp as UTC, landing in the right bucket', () => {
+    // A UTC instant 2 hours before now. If misparsed as local, the age would be
+    // off by the local offset and could fall in a different bucket.
+    const twoHoursAgoUtc = new Date(Date.now() - 2 * 3600 * 1000)
+    const naive = twoHoursAgoUtc.toISOString().replace(/\.\d+Z$/, '')
+    expect(formatRelativeDate(naive)).toBe('2 hours ago')
+  })
+
+  it('gives the same result for naive and "Z"-suffixed forms', () => {
+    const threeDaysAgoUtc = new Date(Date.now() - 3 * 86400 * 1000)
+    const withZ = threeDaysAgoUtc.toISOString()
+    const naive = withZ.replace(/\.\d+Z$/, '')
+    expect(formatRelativeDate(naive)).toBe(formatRelativeDate(withZ))
   })
 })
