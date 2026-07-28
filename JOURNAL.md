@@ -57,8 +57,6 @@ safety layer works" into "we can prove it on every commit."
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/himankgalundia/pathreview/commit/REPRO_COMMIT_SHA
-
 **Reproduction summary:**
 Confirmed the gap two ways: `pytest -m security --collect-only` reports "no tests
 collected (428 deselected)" and `tests/security/` holds only `__init__.py`, so the
