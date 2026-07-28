@@ -14,3 +14,7 @@ The issue that I am tackling for this project is one of documentation. Problem #
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction and Planning
+
+**Reproduction report:** Found and read through `docs/API.md`, and ensured that it did indeed lack any of the necessary `curl` commands that should be present there.
