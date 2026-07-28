@@ -93,7 +93,7 @@ If you have PostgreSQL installed natively on Windows (e.g. from a previous proje
 - In Docker Desktop: Settings → Resources → set Memory to at least 4 GB
 
 **`make setup` fails on Apple Silicon:**
-- Try: `ARCHFLAGS="-arch arm64" make setup`
+- Try: `ARCHFLAGS="-arch arm64" make setup` 
 
 **Missing `.env` variables:**
 - Ensure you copied `.env.example` to `.env`: `cp .env.example .env`

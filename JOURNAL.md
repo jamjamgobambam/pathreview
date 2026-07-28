@@ -52,3 +52,29 @@ safety layer works" into "we can prove it on every commit."
 - **Fit:** Good fit for building confidence with the codebase's testing and safety
   systems; the main stretch is the Tier 3 breadth, which I'll manage by starting
   with a small set of attack categories and expanding.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/himankgalundia/pathreview/commit/REPRO_COMMIT_SHA
+
+**Reproduction summary:**
+Confirmed the gap two ways: `pytest -m security --collect-only` reports "no tests
+collected (428 deselected)" and `tests/security/` holds only `__init__.py`, so the
+declared `security` marker guards nothing and CI has no security job. Adding a
+`security`-marked reproduction test also surfaced a real defensive bypass —
+`PromptDefense.INJECTION_PATTERNS` anchors every regex to a leading newline, so
+first-line attacks like "Ignore all previous instructions…" and "System: …" are
+**not** flagged (the four `test_first_line_*` cases fail while the newline-prefixed
+control passes).
+
+**PLAN.md link:** https://github.com/himankgalundia/pathreview/blob/test/71-prompt-injection-red-team-suite/PLAN.md
+
+
+**Blockers or open questions:**
+- Scope: does #71 want only the red-team suite, or also the `PromptDefense`
+  hardening the suite exposes? If hardening is out of scope, I'll track known
+  bypasses as `xfail(strict=True)` rather than ship a red build.
+- `PromptDefense` is currently imported only by tests, not by the request path —
+  need to confirm whether wiring it into the API is in or out of scope for #71.
