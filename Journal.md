@@ -30,7 +30,7 @@ I've never contributed to an opensource project and many of the formalities are 
 [1–2 sentences: How did you reproduce the issue? What did you observe?]
 Using the established testing client offered by fastapi and pytest, we are able to run the test file under tests/integration/test_get_health.py listed under test_health_endpoint. This test simply calls the get health endpoint and verifies whether it is successful or produces an error upon contacting or establishing a connection with it. This can also be replicated by running the app by using make run, and using gitbash to run the curl http://localhost:8000/health command which will return with the error description.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** (https://github.com/ascherj/pathreview/commit/2c5e3233325e113df8a1969205af1595b0aff47f)
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
