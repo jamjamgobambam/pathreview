@@ -17,3 +17,17 @@ A new feature request has been made that allows the user to click a copy link bu
 
 **Is this issue right for me?**
 This is a Tier 2 issue and it's a good fit for me. I've worked as a dev on React apps with backend APIs, so a feature that touches the frontend, a new service, and an API endpoint is in my wheelhouse. I've already located and read the code it affects-the Share button in ReviewPage.tsx and the get route in reviews.py, and reading the route is what told me I'll need a new unauthenticated endpoint instead of reusing the existing one. Right now the Share button copies an authenticated URL only the owner can open, and after the fix it copies a public link anyone can view for 30 days.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/crbridges/pathreview/commit/43e1ce6a3b55b22bf467055d0f4384abd93dd609
+
+**Reproduction summary:**
+This issue is a new feature (labeled `enhancement`), so there's no bug to reproduce. I confirmed the gap by tracing the code: every route in `api/routes/reviews.py` depends on `get_current_user`, `ReviewPage` is wrapped in `<ProtectedRoute>` in `App.tsx`, and the current Share button just copies `window.location.href` — so there is no way to view a review without logging in, and no public endpoint exists yet.
+
+**PLAN.md link:** https://github.com/crbridges/pathreview/blob/feat/101-add-copy-link-button/PLAN.md
+
+**Walkthrough video (recommended):** not recorded
+
+**Blockers or open questions:**
+The new `/shared/:token` route has to be registered outside `<ProtectedRoute>` or logged-out visitors get bounced to `/login`, and `<NavBar />` renders on every route so it may need to be hidden on the public page. Still deciding whether the public view exposes the full review or a trimmed summary.
