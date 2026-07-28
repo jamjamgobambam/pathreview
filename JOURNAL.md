@@ -15,6 +15,22 @@ would accomplish. Naming the part of the codebase it affects is helpful context.
 
 **Branch name:** fix/156-readme-scorer-test-fixture-too-short
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/thetireddude/ai201-week7-pathreview/commit/8d8dae87b67def84346d94fe3217b9eb2684d94a
+
+**Reproduction summary:**
+[1–2 sentences: How did you reproduce the issue? What did you observe?]
+
+the issue is a failing test case: `test_readme_with_all_quality_signals`. As per the issue description, running `pytest tests/unit/test_readme_scorer.py -q` reproduces the issue. It is observed that the test case fails due to an `assert data["word_count"] > 100` error.
+
+**PLAN.md link:** [PLAN.md](./PLAN.md)
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
