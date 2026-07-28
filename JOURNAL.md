@@ -21,3 +21,23 @@ We have a failing test `test_document_with_no_headings` in `tests/unit/test_stru
 
 **Cohort ledger:** [x] Issue added to cohort ledger
 
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** _(added on submission)_
+
+**Local setup:**
+To run the app locally I needed a container runtime. I used Colima instead of
+Docker Desktop so everything runs from the terminal with no extra desktop app:
+`brew install colima docker docker-compose`, `colima start`, then
+`docker compose up` (frontend at localhost:5173). Colima provides the Docker
+daemon/socket that `docker compose` talks to, so `docker-compose.yml` works
+unchanged.
+
+**Reproduction summary:**
+Ran `make test-unit` and confirmed `test_document_with_no_headings` in
+`tests/unit/test_structural_chunker.py` fails with `assert 0 >= 1` — a headingless
+document produces 0 chunks. Traced it to `StructuralChunker._extract_sections`,
+where a section is only ever created after a heading match, so a doc with no
+heading has all its content discarded and returns `[]`. Full list of expected
+pass/fail tests is captured in FAILING_TESTS.md.
+

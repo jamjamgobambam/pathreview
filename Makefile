@@ -1,4 +1,4 @@
-.PHONY: setup run test-unit test-integration test-all lint format typecheck check migrate seed reset-db eval clean
+.PHONY: setup run services test-unit test-integration test-all lint format typecheck check migrate seed reset-db eval clean
 
 SHELL := /bin/bash
 
@@ -15,7 +15,7 @@ PYTEST := $(VENV_BIN)/pytest
 
 # ---- Setup ----
 
-setup: ## First-time setup: venv, deps, migrations, seed data
+setup: services ## First-time setup: venv, deps, migrations, seed data
 	python -m venv .venv || python3 -m venv .venv
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
 	$(PIP) install -e ".[dev]"
@@ -26,9 +26,24 @@ setup: ## First-time setup: venv, deps, migrations, seed data
 	@echo ""
 	@echo "Setup complete. Run 'make run' to start the application."
 
+# ---- Services (container engine) ----
+
+services: ## Start the Colima engine + Docker Compose services (idempotent)
+	@command -v colima >/dev/null 2>&1 || { echo "colima not found. Install it with: brew install colima" >&2; exit 1; }
+	@colima status >/dev/null 2>&1 || colima start
+	@docker compose up -d
+	@printf "Waiting for Postgres to be ready"
+	@for i in $$(seq 1 30); do \
+		if docker compose exec -T db pg_isready -U pathreview >/dev/null 2>&1; then \
+			echo " ready."; exit 0; \
+		fi; \
+		printf "."; sleep 1; \
+	done; \
+	echo " timed out waiting for Postgres" >&2; exit 1
+
 # ---- Run ----
 
-run: ## Start backend + frontend dev servers
+run: services ## Start backend + frontend dev servers
 	@trap 'kill %1 %2 2>/dev/null' EXIT; \
 	source $(VENV_BIN)/activate && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
 	cd frontend && npm run dev & \
@@ -39,10 +54,10 @@ run: ## Start backend + frontend dev servers
 test-unit: ## Run unit tests only (~30 seconds)
 	$(PYTEST) tests/unit -v -m unit
 
-test-integration: ## Run integration tests only
+test-integration: services ## Run integration tests only
 	$(PYTEST) tests/integration -v -m integration
 
-test-all: ## Run full test suite
+test-all: services ## Run full test suite
 	$(PYTEST) tests/ -v
 
 # ---- Code Quality ----
@@ -60,13 +75,13 @@ check: lint format typecheck ## Run lint + format + typecheck
 
 # ---- Database ----
 
-migrate: ## Run pending database migrations
+migrate: services ## Run pending database migrations
 	$(VENV_BIN)/alembic upgrade head
 
-seed: ## Re-seed the database with sample data
+seed: services ## Re-seed the database with sample data
 	$(PYTHON) scripts/seed_db.py
 
-reset-db: ## Drop and recreate the development database
+reset-db: services ## Drop and recreate the development database
 	docker compose exec db psql -U pathreview -d postgres -c "DROP DATABASE IF EXISTS pathreview_dev;"
 	docker compose exec db psql -U pathreview -d postgres -c "CREATE DATABASE pathreview_dev;"
 	$(VENV_BIN)/alembic upgrade head
@@ -74,7 +89,7 @@ reset-db: ## Drop and recreate the development database
 
 # ---- Evaluation ----
 
-eval: ## Run the RAG evaluation suite
+eval: services ## Run the RAG evaluation suite
 	$(PYTHON) scripts/run_evals.py
 
 # ---- Cleanup ----
