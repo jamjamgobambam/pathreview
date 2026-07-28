@@ -75,7 +75,7 @@ async def health_check(db=Depends(get_db)):
     # Count safety events in last hour (placeholder)
     try:
         # This would be populated by actual safety event logging
-        health_status["safety_events_last_hour"] = 0
+        health_status["safety_events_last_hour"] = 0 # safety_event_last_hour is defaulted to 0
     except Exception as exc:
         log.error("safety_events_check_failed", error=str(exc))
 
