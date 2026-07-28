@@ -50,16 +50,16 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/338
 
 **Branch:** fix/154-health-check-sql
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+Wrapped the raw `"SELECT 1"` string in `text()` at `api/routes/health.py:31` so the postgres probe runs under SQLAlchemy 2.x instead of throwing on a bare string. `/health` now reports `dependencies.postgres: "healthy"` when the database is actually up, instead of a false 503.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+Added `tests/unit/test_health.py` with three tests against `health_check()`: one asserts `db.execute()` is called with a `TextClause` (not a raw string, so this can't silently regress on a future SQLAlchemy bump), one checks postgres reports `"healthy"` when the query succeeds, and one checks a real connection error still reports `"unhealthy"` with a 503.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
