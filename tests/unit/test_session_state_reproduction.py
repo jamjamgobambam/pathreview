@@ -1,10 +1,11 @@
 """Reproduction for issue #47: review sessions collide for one profile."""
 
-from typing import Any, cast
-
-import redis
+from typing import TYPE_CHECKING, Any, cast
 
 from agent.memory.session_store import SessionStore
+
+if TYPE_CHECKING:
+    import redis
 
 
 class FakeRedis:
