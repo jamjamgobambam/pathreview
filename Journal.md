@@ -21,3 +21,18 @@ The issue is that the database health check or probe within the ap/routes/health
 
 **Selection_Reasoning**
 I've never contributed to an opensource project and many of the formalities are new to me so I wanted to choose a issue that was self-contained. It's also my first time navigating such a large codebase so I wanted to choose a tier 1 problem since they only affect a small number of files, therefore, it gives me the chance to slowly ease open source contribution. I found that the issue was well defined and I could accurately predict the affected files or where to start looking, I've also handled past debugging issue much like this on so I feel especially confident with this nature of issue. In addition to this, I don't have much time these following weeks so I wanted to choose a problem that was more adjusted with my expected work output.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** (https://github.com/ascherj/pathreview/commit/af8dc3124ef7bf5db6ce9f784760c8f0adc86b3a)
+
+**Reproduction summary:**
+[1–2 sentences: How did you reproduce the issue? What did you observe?]
+Using the established testing client offered by fastapi and pytest, we are able to run the test file under tests/integration/test_get_health.py listed under test_health_endpoint. This test simply calls the get health endpoint and verifies whether it is successful or produces an error upon contacting or establishing a connection with it. This can also be replicated by running the app by using make run, and using gitbash to run the curl http://localhost:8000/health command which will return with the error description.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
