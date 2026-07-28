@@ -33,3 +33,17 @@ aren't wired into stdlib logging during tests, so pytest's `caplog` fixture (whi
   fewer claims than issues like #154/#155, and no PR was linked yet, so I expect smoother
   coaching/review. I estimate this is a 3–6 hour Tier 1 fix, achievable well within the
   Week 8–9 window, with no blockers noted on the issue.
+
+  ## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [will fill in after this commit]
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty -v` and confirmed the failure: `caplog.text` was empty even though the captured stdout showed the log line `[warning] Empty chunks list provided to BatchEmbeddingProcessor` was actually emitted. This confirms structlog output isn't propagating into stdlib logging, so caplog can't see it.
+
+**PLAN.md link:** [will fill in next]
+
+**Walkthrough video (recommended):** [optional, skipping for now]
+
+**Blockers or open questions:**
+[to fill in]
