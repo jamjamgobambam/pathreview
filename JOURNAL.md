@@ -17,7 +17,7 @@ Prompt templates drive the wording and structure of generated review output, so 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/vrushtipatel1307/pathreview/commit/1b00375
 
 **Reproduction summary:**
 I inspected [tests/unit/test_prompt_templates.py](tests/unit/test_prompt_templates.py) and confirmed it only checks template presence, placeholder coverage, and a hash length, not the exact prompt bodies. A small wording change in [rag/generator/prompt_templates.py](rag/generator/prompt_templates.py) would therefore not be guarded by a real snapshot failure, which reproduces the gap described in the issue.
