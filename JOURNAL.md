@@ -19,3 +19,46 @@ This issue has a focused scope because it primarily involves the bias detector a
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Note Reproduction
+
+**Issue:** Bias detector patterns are too narrow to match common phrasings
+**Issue link:** `https://github.com/ascherj/pathreview/issues/151`
+**Branch:** `fix/151-bias-detector-patterns`
+
+### Reproduction
+
+From the repository root, I ran:
+
+```bash
+source .venv/Scripts/activate
+python -m pytest tests/unit/test_bias_detector.py -q
+```
+
+The test suite returned **9 failed and 23 passed**. In the failing cases, `BiasDetector.detect_bias()` returned `(False, "")` for statements containing dismissive educational language or demographic assumptions.
+
+For example:
+
+```python
+BiasDetector.detect_bias(
+    "bootcamp graduates can't write production code"
+)
+```
+
+Observed:
+
+```python
+(False, "")
+```
+
+Expected:
+
+```python
+(True, "Dismissive language about educational background")
+```
+
+The issue appears in `safety/bias_detector.py`, where the patterns in `DISMISSIVE_PATTERNS` and `DEMOGRAPHIC_PATTERNS` are too narrow to recognize common wording variations.
+
+No production code was changed during reproduction.
+
