@@ -32,3 +32,34 @@ Side note, not part of this issue: the same `/health` call also reported redis a
 
 **Blockers or open questions:**
 Should the `redis_host`/`redis_port` mismatch get filed as its own issue? It's a real bug but outside what I scoped for #154.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Wrapped the postgres query in `text()` per the plan and confirmed `/health` returns 200 for postgres locally. Added `tests/unit/test_health.py` with three unit tests covering the wrapped query, the healthy path, and a simulated connection failure — all passing, and `make check`/`make test-unit` show no new failures against the pre-existing baseline.
+
+**Next steps:**
+Open the PR against `main` and address PR review comments if any.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** fix/154-health-check-sql
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
