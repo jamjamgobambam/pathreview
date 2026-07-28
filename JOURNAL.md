@@ -57,9 +57,9 @@ JavaScript and TypeScript related keywords from the text. The third and fourth p
 the `_detect_languages()` is called and can parse if the filename is provided. This shows that
 the extractor is working, but not covering all the extraction cases.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** [view PLAN.md](./PLAN.md)
 
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+**Walkthrough video (recommended):** Omitted
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+N/A

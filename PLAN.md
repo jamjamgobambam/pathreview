@@ -36,7 +36,7 @@ What are the steps to fix this issue?
 Break it into 3–5 concrete sub-tasks.
 
 1. In `_detect_languages()`, add a regex scan of the text for `.js`, `.jsx`, `.ts`, `.tsx` extensions so filename mentions in text are caught without a `filename` parameter.
-2. In `_detect_languages()`, expand the JS/TS keyword check to use more of `JS_TS_KEYWORDS` — add `const`, `let`, `var`, `export`, `function` alongside `import`/`require`. Also fix the require regex from `\s+` to `\s*` so `require('fs')` matches.
+2. In `_detect_languages()`, expand the JS/TS keyword check to use more of `JS_TS_KEYWORDS` — add `const`, `let`, `var`, `export`, `function` alongside `import`/`require`. Also fix the require regex from `\s+` to `\b` so `require('fs')` matches.
 3. In `_detect_languages()`, add TypeScript-specific text patterns: the word `typescript`, `interface` declarations, and generic type syntax (`: string`, `Promise<`, etc.) so TypeScript can be detected from prose without a `.ts` filename.
 4. In `_detect_tools()`, add Dockerfile keyword detection (`FROM`, `RUN`, `EXPOSE`, `CMD`, `ENTRYPOINT`) and docker-compose indicators (`services:`, `docker-compose`) so Docker is detected without the word "docker" appearing explicitly.
 5. Run the four failing tests to confirm they pass, and verify no existing passing tests regress.
@@ -46,7 +46,7 @@ What does your fix take as input? What should it produce or change?
 
 Input: A string of text (and an optional `filename` parameter) passed to `extract_skills()`. The text may be prose describing work experience, source code snippets, or configuration file content.
 
-Output: A list of `SkillDetection` objects sorted by confidence. After the fix, text containing JS/TS keywords, `.js`/`.ts`/`.tsx` extension mentions, TypeScript syntax, or Dockerfile/docker-compose content should produce the appropriate `SkillDetection` entries that are currently missing.
+Output: A list of `SkillDetection` objects sorted by confidence. After the fix, text containing JS/TS keywords, `.js`/`.jsx`/`.ts`/`.tsx` extension mentions, TypeScript syntax, or Dockerfile/docker-compose content should produce the appropriate `SkillDetection` entries that are currently missing.
 
 What changes: No new inputs or outputs are introduced — the function signature stays the same. Only the detection logic inside `_detect_languages()` and `_detect_tools()` changes to catch more patterns from the existing input.
 
