@@ -22,3 +22,17 @@ The app configures `structlog` for logging across most of the codebase (`core/lo
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [ff9b8b1 — docs(#159): document caplog/structlog repro in conftest](https://github.com/koechio/pathreview/commit/ff9b8b1)
+
+**Reproduction summary:**
+Ran `tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty` and confirmed it fails with `caplog.text == ''` even though the warning is visible under "Captured stdout call" — structlog never calls `configure_logging()` in the test process, so its output never reaches the stdlib root logger that `caplog` attaches to.
+
+**PLAN.md link:** [PLAN.md](https://github.com/koechio/pathreview/blob/fix/159-caplog-structlog-config/PLAN.md)
+
+**Walkthrough video (recommended):** Not recorded this week.
+
+**Blockers or open questions:**
+Still deciding fixture scope (session vs. function) for the structlog bridge in `tests/conftest.py`, and need to confirm `cache_logger_on_first_use` won't let a module cache a pre-fixture logger. Details in PLAN.md's Risks & unknowns section.
