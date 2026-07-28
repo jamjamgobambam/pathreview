@@ -26,7 +26,7 @@ Issue #106 addresses a missing shared test fixture: `tests/fixtures/sample_profi
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/michellejtan/pathreview/commit/7301bcdc4ebb6bb816b98b3c75319cabc849bd20
 
 **Reproduction summary:**
 Ran `ls tests/fixtures` and `find tests -iname "*profile*"` — confirmed the
