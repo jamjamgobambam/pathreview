@@ -39,12 +39,12 @@ I selected this issue because it is a Tier 1 task with a clearly defined and man
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [to be added after the reproduction commit is pushed]
+**Reproduction commit link:** https://github.com/mattmiara04/pathreview/commit/4b8bfce
 
 **Reproduction summary:**  
 I reproduced issue #36 by comparing `docs/ARCHITECTURE.md` with the hybrid retrieval implementation in `rag/retriever/hybrid.py`. The architecture document only states that hybrid retrieval combines vector similarity and BM25 keyword search, while the implementation normalizes both scores, applies default weights of 0.7 and 0.3, calculates a blended score, filters by a minimum score, and sorts the remaining results.
 
-**PLAN.md link:** [to be added after PLAN.md is created and pushed]
+**PLAN.md link:** https://github.com/mattmiara04/pathreview/blob/docs/36-hybrid-retrieval-scoring/PLAN.md
 
 **Walkthrough video (recommended):** Not recorded
 
