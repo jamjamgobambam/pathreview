@@ -63,3 +63,49 @@ Bootstrapped and verified the local environment before starting.
 `api/routes/health.py` (raw `SELECT 1` needs `text()` for SQLAlchemy 2.0; the
 redis check reads a nonexistent `settings.redis_host`/`redis_port`). The
 containers themselves are reachable.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/kredd2506/pathreview/commit/3cec9027cd92340440e0294b44d4f4be4590e082
+
+**Reproduction summary:**
+Ran the existing suite (`pytest tests/unit/test_pii_scrubber.py`) and found it
+already red on a clean checkout — 5 failed, 20 passed — with `(555) 123-4567`,
+the most common written US phone format, not redacted at all; a `hypothesis`
+harness with a strategy per PII type then failed 3 of 4 properties and shrank
+them to minimal counterexamples (`000-000 0000`, `+1 00 000`, `I worked for
+5 adr`). Root cause is two defects in `safety/pii_scrubber.py`: the phone
+separator classes are `[-.]?` and omit whitespace (so `+44 20 7946 0958` →
+`[REDACTED] 20 7946 0958`, which *looks* redacted but leaks the subscriber
+number), and `re.IGNORECASE` lets the two-letter address abbreviations `St`/`Dr`/
+`Pl` match inside ordinary words (so `5 years developing Python applications` →
+`[REDACTED]ications`).
+
+**PLAN.md link:** https://github.com/kredd2506/pathreview/blob/test/111-pii-scrubber-property-tests/PLAN.md
+
+**Walkthrough video (recommended):** *not recorded — script drafted locally*
+
+**Blockers or open questions:**
+1. **Scope — the main one.** The issue asks for tests, so my PR lands tests only,
+   with the failing properties as `xfail(strict=True)`. Rewriting the regexes is
+   a behavior change to a *safety* component and I think it deserves its own
+   issue and review. The fix is pre-drafted in PLAN.md in case the maintainer
+   wants it in the same PR. Asking on the issue thread before I open it.
+2. **Is dashed-only SSN intentional?** `123 45 6789` and `123456789` slip
+   through, but the regex has deliberate exclusions (`(?!000|666)`), so real
+   thought went into it. I don't want to assume the omission is a bug.
+3. **No hypothesis profile convention exists** in the repo — no registration in
+   `conftest.py`. I'll propose one rather than assume.
+4. **The wider unit suite is broadly red** — 53 pre-existing failures across
+   `skill_extractor`, `tech_detector`, `security`, `structural_chunker`.
+   Verified identical count with and without my file, so none are mine, but the
+   maintainer should know. Will flag on the issue thread.
+5. **Pre-commit mypy conflicts with repo convention.** `make typecheck` excludes
+   `tests/` and all 32 existing test functions are unannotated, but the
+   pre-commit mypy hook runs on every changed file and rejects them. I annotated
+   my file to satisfy the hook rather than bypass it; worth raising upstream as
+   a config mismatch.
+
+**Still outstanding from Week 7:** record #111 in the cohort ledger.
