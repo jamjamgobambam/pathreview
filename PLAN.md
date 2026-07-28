@@ -49,7 +49,7 @@ To implement Issue #71, I plan to complete the following steps:
 
 3. Create the `tests/fixtures/injection_attempts/` directory and organize reusable prompt injection examples that can be shared across multiple security tests.
 
-4. Write red-team test cases that verify the prompt defense correctly detects known prompt injection attacks while also confirming that legitimate user prompts are not incorrectly blocked.
+4. Write red-team test cases for role switching, instruction override attempts, template injection, separator-based attacks, obfuscated formatting, combined attacks, and benign prompts that should not be flagged.
 
 5. Run the project's unit tests and security tests to verify the new test suite works correctly and does not break the existing prompt defense behavior.
 
@@ -73,7 +73,10 @@ Another risk is creating false positives by treating legitimate user prompts as 
 
 I also need to determine what prompt injection examples should be included in the reusable fixture directory. I plan to review the existing prompt injection patterns and organize realistic attack examples that match the project's current implementation.
 
+The existing failure in `test_whitespace_variations_detected` is another unknown. Some new red-team examples may expose the same limitation in `PromptDefense.INJECTION_PATTERNS`. If that happens, I will document the failure clearly and determine whether updating the detection logic is required by Issue #71 or should be handled separately.
+
 Finally, I want to make sure my new tests follow the same project structure, naming conventions, and pytest style as the existing test files so the contribution is consistent with the rest of the codebase.
+
 
 
 ## Edge Cases

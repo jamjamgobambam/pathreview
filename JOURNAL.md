@@ -98,7 +98,7 @@ My goal is not only to complete the assignment, but also to learn how experience
 ## Week 8 — Reproduction & Solution Planning
 
 **Reproduction commit link:**
-(To be added after I create the reproduction commit.)
+https://github.com/Ataliosos/pathreview/commit/e4a6351
 
 **Reproduction summary:**
 
@@ -107,7 +107,7 @@ I reproduced the feature gap described in Issue #71 by reviewing the existing pr
 I also confirmed that the project does not contain the dedicated red-team security test suite (`tests/security/test_prompt_injection.py`) or the reusable prompt injection fixture directory (`tests/fixtures/injection_attempts/`) described in the issue. This confirms the missing functionality requested by Issue #71.
 
 **PLAN.md link:**
-(To be added after PLAN.md is created.)
+https://github.com/Ataliosos/pathreview/blob/test/71-prompt-injection-red-team/PLAN.md
 
 **Walkthrough video (recommended):**
 Not recorded.
