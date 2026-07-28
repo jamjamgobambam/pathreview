@@ -33,3 +33,29 @@ hours with a clear definition of done.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [fill in after committing — link to the commit adding `tests/unit/test_health_probe.py`]
+
+**Reproduction summary:**
+I reproduced the bug by running the app locally and hitting the health
+endpoint with a fully working database: `curl -i http://localhost:8000/health`.
+Even though Postgres was up and reachable, the endpoint returned
+`503 Service Unavailable` with `"postgres": "unhealthy"` in the JSON body, and
+the API logs showed `postgres_health_check_failed` with a SQLAlchemy
+`ArgumentError` — the raw string `"SELECT 1"` on `api/routes/health.py:31` is
+rejected by SQLAlchemy 2.x because textual SQL must be wrapped in `text()`. I
+then captured this in a unit test (`tests/unit/test_health_probe.py`): one test
+asserts the raw-string probe raises `ArgumentError`, and one asserts the
+`text("SELECT 1")` form succeeds against a live in-memory session.
+
+**PLAN.md link:** [link to PLAN.md in the repo root on this branch]
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+The reproduction test uses a sync SQLite connection because the `ArgumentError`
+comes from SQLAlchemy's statement coercion (identical sync/async) and
+`aiosqlite` isn't installed. Open question for Week 9: add `aiosqlite` for a
+true async route-level test, or mock the `get_db` dependency instead.
