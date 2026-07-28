@@ -1,82 +1,71 @@
-# PLAN — Issue #156: README scorer test fixture too short for its own assertions
+# Solution plan
 
-## Problem
+**Issue:** [README scorer test fixture is too short for its own word-count assertion — #156](https://github.com/ascherj/pathreview/issues/156)
+
+### Understand
 
 `tests/unit/test_readme_scorer.py::TestReadmeScorer::test_readme_with_all_quality_signals`
-fails. The test's inline `readme` fixture is a short README (~51 words), but the
-test asserts the scorer reports a large, "comprehensive" README:
+fails with `assert 51 > 100`.
 
-```
-assert data["word_count"] > 100            # fails: actual word_count == 51
-assert data["word_count_category"] == "comprehensive"
-```
+- **Expected (by the test):** a "comprehensive" README — `word_count > 100` and
+  `word_count_category == "comprehensive"`.
+- **Actual:** the inline fixture is only ~51 words, so the scorer returns
+  `word_count == 51` and `category == "minimal"`.
 
-This is a **test-data defect, not a scorer defect**. The scorer in
-`agent/tools/readme_scorer.py` correctly counts 51 words and correctly labels
-that `minimal`. The fixture and the assertions simply disagree.
+**Root cause:** a test-data mismatch, *not* a scorer bug. The scorer counts and
+categorizes correctly. The binding constraint is the category threshold: per
+`_score_readme` (`agent/tools/readme_scorer.py:70-75`),
+`< 100 = minimal`, `100–499 = adequate`, `≥ 500 = comprehensive`. To satisfy
+both assertions the fixture must contain **≥ 500 words**, not merely > 100.
 
-## Root cause
+### Map
 
-Two independent inconsistencies between the fixture and the assertions:
+Files involved:
 
-1. `word_count > 100` — the fixture only has ~51 words.
-2. `word_count_category == "comprehensive"` — per `_score_readme`
-   (`readme_scorer.py:70-75`), `comprehensive` requires **≥ 500 words**
-   (`< 100 = minimal`, `100–499 = adequate`, `≥ 500 = comprehensive`).
+- `tests/unit/test_readme_scorer.py` — **the only file I'll touch.** The fixture
+  string and assertions live in `test_readme_with_all_quality_signals`
+  (fixture lines 19–49, assertions lines 53–63).
+- `agent/tools/readme_scorer.py` — reference only (defines the thresholds and
+  scoring). **Not modified** — the logic is correct.
 
-So satisfying assertion (2) is the binding constraint: the fixture must contain
-**≥ 500 words** to be genuinely "comprehensive." That automatically satisfies
-`word_count > 100` as well.
+### Plan
 
-## Approach
+1. Rewrite the `readme` fixture in `test_readme_with_all_quality_signals` into a
+   genuine ≥ 500-word README (target ~550 for margin), expanding the existing
+   sections with real prose.
+2. Preserve every quality signal the assertions check: Installation section,
+   Usage section, badges (`![...](...)`), a demo link (`try it` / `demo`), and a
+   Tech Stack section.
+3. Leave all assertions unchanged — they now correctly describe the fixture.
+4. Run the single test, then the whole module, then the unit suite, to confirm
+   the fix and check for regressions.
 
-Enlarge the fixture README so it genuinely qualifies as comprehensive
-(≥ 500 words) while preserving every quality signal the test checks. This keeps
-the test's *intent* — validating a high-scoring, feature-complete README —
-instead of watering the assertions down to match a weak fixture.
+### Inputs & outputs
 
-Signals that must remain present so the other assertions still pass:
+- **Input:** the fixture is a hard-coded README string passed to
+  `scorer.execute({"readme_content": readme})`. No external/runtime input.
+- **Output / change:** the test's assertions pass. Expected scorer result for
+  the new fixture: `has_readme=True`, `word_count > 500`,
+  `word_count_category == "comprehensive"`, all section flags `True`, and
+  `overall_score == 1.0` (all 6 boolean signals + word bonus maxed at 1.0),
+  which satisfies `overall_score > 0.7`.
 
-- Installation section (`has_installation_section`)
-- Usage section (`has_usage_section`)
-- Badges (`has_badges`)
-- Demo link (`has_demo_link`)
-- Tech stack section (`has_tech_stack_section`)
-- `overall_score > 0.7`
+### Risks & unknowns
 
-With all boolean signals present and word_count ≥ 500 (word bonus maxes at 1.0),
-`overall_score` becomes `7/7 = 1.0`, comfortably above 0.7.
+- **Low risk** — change is confined to test data; no production code, deps,
+  migrations, or API surface affected.
+- Word counting is `len(content.split())` (whitespace split), so code fences,
+  list dashes, and punctuation all count as tokens. I'll pad to a comfortable
+  margin (~550+) so 500 isn't borderline.
+- Unknown: whether `make lint`/pre-commit imposes line-length limits on the long
+  string literal — will format the fixture to satisfy black/ruff if flagged.
 
-## Steps
+### Edge cases
 
-1. Expand the `readme` string literal in `test_readme_with_all_quality_signals`
-   to ≥ 500 words: flesh out the existing sections (Installation, Usage,
-   Features, Tech Stack) with real prose paragraphs, keeping the badges and
-   demo link intact.
-2. Leave all assertions unchanged — they now describe the fixture correctly.
-3. Run the single test, then the full `test_readme_scorer.py` module, then the
-   unit suite, to confirm no regressions.
-
-## Files to touch
-
-- `tests/unit/test_readme_scorer.py` — enlarge the fixture in
-  `test_readme_with_all_quality_signals` only. No other tests change.
-
-Not touched:
-- `agent/tools/readme_scorer.py` — scoring logic is correct; do not modify.
-
-## Testing
-
-```bash
-.venv/bin/python -m pytest tests/unit/test_readme_scorer.py -v -m unit
-```
-
-Expect: the previously-failing test passes and all sibling tests stay green.
-
-## Risks / unknowns
-
-- **Low risk.** Change is confined to test data.
-- Must count words carefully — `len(content.split())` splits on whitespace, so
-  markdown punctuation, code fences, and list dashes all count as tokens. I'll
-  target a comfortable margin (~550+ words) so the threshold isn't borderline.
-- No dependency, migration, or API surface is affected.
+- The fixture must stay **well above** 500 words so trivial edits don't drop it
+  back into `adequate`.
+- All regex-detected signals must remain intact after rewriting (a demo phrase,
+  at least one `![badge](url)`, and headings matching the install/usage/tech
+  patterns) so no sibling assertion breaks.
+- No behavior change for the other tests — verify the full module stays green,
+  not just the target test.
