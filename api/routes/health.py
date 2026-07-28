@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 import structlog
 from datetime import datetime, timedelta
+from typing import Any
 
 from core.database import get_db
 
@@ -14,6 +15,11 @@ async def health_check(db=Depends(get_db)):
     """
     Check health of PostgreSQL, Redis, and Vector DB.
     Returns 200 if all healthy, 503 if any dependency is down.
+
+    The response also carries ``safety_events_last_hour``: the number of safety
+    events (PII detections, injection attempts, content filtering, bias
+    detections, rate limits) recorded by ``SafetyMonitor``. It is best-effort
+    and reports 0 when Redis is unavailable.
     """
     health_status = {
         "status": "healthy",
@@ -36,21 +42,18 @@ async def health_check(db=Depends(get_db)):
         health_status["dependencies"]["postgres"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
+    redis_client: Any = None
     try:
         # Check Redis (if available)
         import redis
         from core.config import settings
 
-        r = redis.Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            db=0,
-            decode_responses=True,
-        )
-        r.ping()
+        redis_client = redis.from_url(settings.redis_url, decode_responses=True)
+        redis_client.ping()
         health_status["dependencies"]["redis"] = "healthy"
         log.debug("redis_health_check_passed")
     except Exception as exc:
+        redis_client = None
         log.error("redis_health_check_failed", error=str(exc))
         health_status["dependencies"]["redis"] = "unhealthy"
         health_status["status"] = "unhealthy"
@@ -72,10 +75,18 @@ async def health_check(db=Depends(get_db)):
         health_status["dependencies"]["vector_db"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
-    # Count safety events in last hour (placeholder)
+    # Count safety events recorded by the safety layer. Best-effort: the count
+    # stays 0 when Redis is unreachable so it never fails the health check.
     try:
-        # This would be populated by actual safety event logging
-        health_status["safety_events_last_hour"] = 0
+        if redis_client is not None:
+            from safety.monitoring import SafetyMonitor
+
+            monitor = SafetyMonitor(redis_client)
+            health_status["safety_events_last_hour"] = monitor.get_total_event_count()
+            log.debug(
+                "safety_events_check_passed",
+                count=health_status["safety_events_last_hour"],
+            )
     except Exception as exc:
         log.error("safety_events_check_failed", error=str(exc))
 

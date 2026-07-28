@@ -72,3 +72,20 @@ class SafetyMonitor:
         except Exception as e:
             logger.error("event_count_error", event_type=event_type, error=str(e))
             return 0
+
+    def get_total_event_count(self, window_hours: int = 1) -> int:
+        """Get the combined count of safety events across all event types.
+
+        Args:
+            window_hours: Time window in hours, forwarded to
+                :meth:`get_event_count` (see its note: the window is not
+                enforced, counters expire 24 hours after they are first set)
+
+        Returns:
+            Sum of the counts for every type in ``VALID_EVENT_TYPES``. Types
+            whose counter cannot be read contribute ``0``, so a Redis failure
+            degrades the total rather than raising.
+        """
+        return sum(
+            self.get_event_count(event_type, window_hours) for event_type in self.VALID_EVENT_TYPES
+        )
