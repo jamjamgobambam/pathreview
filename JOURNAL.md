@@ -59,7 +59,8 @@ the extractor is working, but not covering all the extraction cases.
 
 **PLAN.md link:** [view PLAN.md](./PLAN.md)
 
-**Walkthrough video (recommended):** Omitted
+**Walkthrough video (recommended):** [Loom video](https://www.loom.com/share/5cd041826f92401cbc701dcc4a884bf1)
 
 **Blockers or open questions:**
-N/A
+- Should the JS/TS keyword only trigger one of the languages or both?
+- Should I implement the minimum keyword matches before we declare a language skill detected?
