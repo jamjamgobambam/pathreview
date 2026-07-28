@@ -26,7 +26,7 @@ Issue #106 addresses a missing shared test fixture: `tests/fixtures/sample_profi
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/michellejtan/pathreview/commit/7301bcdc4ebb6bb816b98b3c75319cabc849bd20
+**Reproduction commit link:** https://github.com/michellejtan/pathreview/commit/ae1dde81f3ef04a4d660c08fbc644f05b2b701af
 
 **Reproduction summary:**
 Ran `ls tests/fixtures` and `find tests -iname "*profile*"` — confirmed the
@@ -36,9 +36,14 @@ remaining reference is a TODO comment in `scripts/run_evals.py` pointing at
 that path, suggesting the fixture was removed (or never committed) at some
 point and the reference was left behind.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/michellejtan/pathreview/blob/test/106-restore-basic-profile-fixture/PLAN.md
 
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+**Walkthrough video (recommended):** Not recorded.
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+No existing test or code consumes `basic_profile.json` today, so there's no schema to match
+exactly — I derived the shape from the `Profile` model fields and the issue's "GitHub
+username, resume, two repos" wording, but a reviewer may expect different field names.
+Separately, `IngestedSource` (the model repos map to) has no `name`/`description` fields, so
+my `repos` shape doesn't correspond 1:1 to any existing DB model — flagging this in case it
+should be reconciled before merging.
