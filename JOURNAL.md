@@ -29,13 +29,13 @@ without an extra dashboard lookup.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/GreyManGM/pathreview/commit/df01421d9f320723b60601d4691ce90863abef78
 
 **Reproduction summary:**
-[1–2 sentences: How did you reproduce the issue? What did you observe?]
+Started the backend locally via make run and ran curl -i http://localhost:8000/health. The response already includes a safety_events_last_hour field (currently 0), which contradicts the issue's premise that this field is missing... needs investigation into whether it's fully wired up to real data or just a stub. Separately, the response returned 503 Service Unavailable because postgres and redis dependencies reported as unhealthy in the same payload.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
-
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+**PLAN.md link:** https://github.com/GreyManGM/pathreview/blob/fix/68-add-safety-count/PLAN.md
 
 **Blockers or open questions:**
+- safety_events_last_hour already appears in the /health response, need to confirm whether it's reading real safety event counts from safety/monitoring.py or is a placeholder value that always returns 0. If it's a stub, the actual work is wiring it up correctly rather than adding the field from scratch.
+- /health currently returns 503 locally because Postgres and Redis dependencies are unhealthy, need to confirm whether this is a local environment/config issue (e.g. services not running) or a genuine problem worth its own ticket, since it's unrelated to the safety-metrics issue but is blocking a clean "healthy" baseline to test against.
