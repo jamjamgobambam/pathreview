@@ -108,6 +108,11 @@ class StructuralChunker(BaseChunker):
 
             else:
                 # Regular content line
+                # BUG(#149): content is only collected once a heading exists.
+                # For a document with NO headings, heading_stack stays empty and
+                # current_section_lines is never populated, so no section is ever
+                # emitted below (see the `and heading_stack` guards) and chunk()
+                # returns []. Repro: chunk("plain text " * 20, {}) -> 0 chunks.
                 if heading_stack or current_section_lines:  # Only collect if we have a heading
                     current_section_lines.append(line)
 
