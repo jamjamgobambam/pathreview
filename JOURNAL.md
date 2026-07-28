@@ -31,3 +31,25 @@ the existing failing test `test_none_context_chunk_text` green.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 - Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/skyler-hall/pathreview/commit/f8504f976e9482147f4dd6ef4b75baded9fa52e9
+
+**Reproduction summary:**
+Ran the unit test test_none_context_chunk_text against a chunk of {"text": None}. It raised
+TypeError: sequence item 0: expected str instance, NoneType found at
+rag/evaluator/faithfulness_checker.py:34, confirming that chunk.get("text", "") returns None
+(not "") when the key exists with a None value, and " ".join(...) then rejects the None. Bug
+reproduced reliably.
+
+**PLAN.md link:** https://github.com/skyler-hall/pathreview/blob/fix/153-faithfulness-none-context-chunk/PLAN.md
+
+**Walkthrough video (recommended):** N/A - not recorded
+
+**Blockers or open questions:**
+None blocking. Noted for Week 9: the unit suite has 3 pre-existing failures
+(test_partial_support_returns_middle_score, test_multiple_context_chunks,
+test_multiple_claims_varying_support) that fail on main and are unrelated to #153
+(they stem from the _is_supported >=2-token overlap threshold). My fix targets only
+test_none_context_chunk_text; I will not touch those.
