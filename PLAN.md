@@ -82,9 +82,18 @@ No other modules, API routes, DB models, or frontend code are involved.
   logic here. Mitigation: my change touches only `None`-coercion in the join;
   those three tests are expected to remain failing after my fix and are out of
   scope.
-- **Duplicate work.** The issue references a related PR (#211). Before opening my
-  PR I need to check whether #211 already resolves this or is stale, to avoid a
-  redundant PR.
+- **Prior art / duplicate work — PR #211 (checked Week 8).** An open, unmerged,
+  unreviewed PR by another contributor (ahmedtaha100) is titled
+  `fix(rag): support short claims in faithfulness checker` and declares both
+  `Closes #153` and `Closes #152`. It fixes my crash as a side effect of a larger
+  rewrite: it replaces the `" ".join(chunk.get("text", ""))` line with a guarded
+  tokenizer loop —
+  `chunk_text = chunk.get("text"); if isinstance(chunk_text, str): context_tokens |= self._tokenize(chunk_text)`.
+  Decision: I'm keeping my focused, minimal fix for #153 (null-coercion only, no
+  scoring changes). Rationale: #211 bundles two issues and rewrites scoring
+  (#152 territory), which a maintainer may ask to split; my change is narrower and
+  independently reviewable. If I open an upstream PR I will reference #211 and
+  argue for the scoped fix. My branch/grade does not depend on #211's outcome.
 - **Overly broad coercion.** Using `str(x)` on a non-`None`, non-`str` value
   (e.g. an int) would stringify it rather than drop it. Unknown whether chunks
   ever legitimately carry non-string text; I'll prefer coercing only `None`/falsy

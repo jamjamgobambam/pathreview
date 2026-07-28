@@ -71,8 +71,11 @@ tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_none_cont
 **Walkthrough video (recommended):** _(optional — not recorded / add Loom link here if you record one)_
 
 **Blockers or open questions:**
-Need to confirm whether the referenced PR #211 already fixes #153 (avoid
-duplicate work). Also deciding how strictly to handle non-string, non-None chunk
-text (coerce with `str(...)` vs. drop to `""`) — leaning conservative. Note: the
-same test file has 3 unrelated failing tests that belong to issue #152 (scoring
-thresholds), which are out of scope for this fix.
+Checked PR #211 (by ahmedtaha100): it is open, unmerged, unreviewed, and declares
+`Closes #153` and `Closes #152`, fixing my crash via a guarded tokenizer inside a
+larger scoring rewrite. Decision: I'm staying on #153 with a focused,
+minimal null-coercion fix (my branch/grade is independent of #211's outcome;
+#211 bundles two issues and may be asked to split). Still deciding how strictly
+to handle non-string, non-None chunk text (`str(...)` vs. drop to `""`) — leaning
+conservative. Note: the same test file has 3 unrelated failing tests that belong
+to issue #152 (scoring thresholds), which are out of scope for this fix.
