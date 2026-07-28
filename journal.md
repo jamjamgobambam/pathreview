@@ -28,4 +28,37 @@ In order to reproduce my bug I ran the test cases written for resume_parser.py a
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded] N/A
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+I've gone through the test file and understand where all of the exact issues are arrising. I still have not made any code changes. 
+
+**Next steps:**
+[What are you working on for the rest of the week?]
+I am working on rewriting the code in resume_parser.py
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+Not understanding the regex functionality completely in resume_parser.py
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
