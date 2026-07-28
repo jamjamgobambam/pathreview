@@ -26,3 +26,11 @@ a small loader in `tests/conftest.py`) and touches no production code.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduce the issue and plan the fix
+
+**Reproduction commit:** https://github.com/ujval9/pathreview/commit/f06165a1bdd781cd4331f20aaf30103c7e5a8451
+
+**PLAN.md:** https://github.com/ujval9/pathreview/blob/test/106-restore-basic-profile-fixture/PLAN.md
+
+**Walkthrough video:** Not recorded.
