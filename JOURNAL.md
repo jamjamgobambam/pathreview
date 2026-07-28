@@ -18,3 +18,16 @@ Currently the API rate limiter throws a 429 error when the client has exceeded t
 **Setup confirmation:** [✅] App runs locally at localhost:5173
 
 **Cohort ledger:** [✅ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+As this issue is feat, not a fix, in order to reproduce the issue I read through each of the files in the api/middleware directory and the safety/rate_limiter.py file. I asked Claude to explain how these files interact with each other and how the current rate limit route is constructed. I found that currently a 429 error is not thrown anywhere in the repo, this will be a feature that I will implement following the established error structure in api/middleware/auth.py. Additionally, rate_limiter.py currently computes the requests that the user has left. I can use this number as a header in the updated return statement. I will add the two new headers as a new api/middleware file and register them in api/main.py following the strucutre of request_id.py.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
