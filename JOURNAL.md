@@ -108,3 +108,17 @@ FAILED tests/unit/test_resume_parser.py::TestResumeParser::test_detect_sections 
 The issue is reproducible. Leading whitespace before resume section headings
 prevents the current regular-expression matching logic from identifying valid
 sections.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [https://github.com/pgazar/pathreview/commit/9ec209ca9828d9725b9acdaaa4cd4788ad8b7dfa]
+
+**Reproduction summary:**
+[Run ResumeParser.parse() on resume text where section headings such as Education: and Skills: have leading spaces or tabs. Confirm that result.metadata["detected_sections"] returns an empty list even though those valid section headings are present.]
+
+**PLAN.md link:** [https://github.com/pgazar/pathreview/blob/fix/147-Resume-section-detection-leading-whitespace/PLAN.md]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
