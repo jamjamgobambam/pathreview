@@ -17,12 +17,12 @@ There's already a test that looks like a snapshot test for the prompt templates,
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/riyan42069/pathreview/commit/db973ec
 
 **Reproduction summary:**
 Ran the existing `test_template_snapshot_content_hash` test and confirmed it passes at baseline. Then computed the same MD5 hash logic against a version of `PROMPT_TEMPLATES` with a wording edit to `skills_feedback` v1 (no version bump) - the hash changed as expected, but the test's actual assertions (`isinstance(hash, str)`, `len(hash) == 32`) pass regardless, since they never compare against a fixed expected value.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/riyan42069/pathreview/blob/test/37-snapshot-tests-prompt-templates/PLAN.md
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min - recommended, not graded]
 
