@@ -34,16 +34,16 @@ aren't wired into stdlib logging during tests, so pytest's `caplog` fixture (whi
   coaching/review. I estimate this is a 3–6 hour Tier 1 fix, achievable well within the
   Week 8–9 window, with no blockers noted on the issue.
 
-  ## Week 8 — Reproduction & solution planning
+## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [will fill in after this commit]
+**Reproduction commit link:** https://github.com/turanyavarri/pathreview/commit/fedded9
 
 **Reproduction summary:**
 Ran `pytest tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty -v` and confirmed the failure: `caplog.text` was empty even though the captured stdout showed the log line `[warning] Empty chunks list provided to BatchEmbeddingProcessor` was actually emitted. This confirms structlog output isn't propagating into stdlib logging, so caplog can't see it.
 
-**PLAN.md link:** [will fill in next]
+**PLAN.md link:** https://github.com/turanyavarri/pathreview/blob/fix/159-structlog-caplog-capture/PLAN.md
 
-**Walkthrough video (recommended):** [optional, skipping for now]
+**Walkthrough video (recommended):** Not recorded
 
 **Blockers or open questions:**
-[to fill in]
+Still need to check how structlog is configured in the app's production code (likely somewhere in `core/`) to make sure the test fixture mirrors the real processor chain rather than reinventing it.
