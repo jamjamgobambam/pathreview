@@ -1,3 +1,26 @@
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [REPRO_COMMIT_URL]
+
+**Reproduction summary:**
+Ran the target test in the project venv
+(`.venv/bin/python -m pytest tests/unit/test_readme_scorer.py::TestReadmeScorer::test_readme_with_all_quality_signals -v`);
+it fails deterministically (3/3 runs) with `assert 51 > 100`. The scorer
+correctly counts the ~51-word fixture as `minimal`, but the test asserts a
+`comprehensive` README with `word_count > 100`, so the defect is in the test
+data (`tests/unit/test_readme_scorer.py:56-57`), not the scorer.
+
+**PLAN.md link:** [https://github.com/gulziraAbudula/pathreview/blob/fix/156-resume-scorer-test/PLAN.md]
+
+**Walkthrough video (recommended):** [ ]
+
+**Blockers or open questions:**
+None — the plan is to enlarge the fixture to ≥ 500 words (the `comprehensive`
+threshold in `readme_scorer.py:70-75`) while keeping every quality signal, so
+both `word_count > 100` and `word_count_category == "comprehensive"` hold.
+
+---
+
 ## Week 7 — Issue selection
 
 **Issue link:** [https://github.com/ascherj/pathreview/issues/156]
