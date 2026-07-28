@@ -43,7 +43,7 @@ still giving me a real foothold in the retrieval code I'll build on next week.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** REPRO_COMMIT_URL
+**Reproduction commit link:** https://github.com/yic04/pathreview/commit/35bb7510657297c45c8c9f46047f67a893ec4388
 
 **Reproduction summary:**
 Because this is a documentation gap (not a runtime bug), I reproduced it by
@@ -68,7 +68,7 @@ $ grep -n "vector_weight\|keyword_weight\|blended_score\|min_score" rag/retrieve
 93:  results = [r for r in blended.values() if r["score"] >= min_score]
 ```
 
-**PLAN.md link:** PLAN_URL
+**PLAN.md link:** https://github.com/yic04/pathreview/blob/docs/36-hybrid-retrieval-scoring-formula/PLAN.md
 
 **Walkthrough video (recommended):**
 
