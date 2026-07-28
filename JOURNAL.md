@@ -1,32 +1,30 @@
-## Week 7 — Issue selection
+## Week 8: Reproduction & solution planning
 
-**Issue link:** https://github.com/ascherj/pathreview/issues/154
+**Reproduction commit link:** []
 
-**Issue title:** Health check DB probe passes a raw SQL string, which fails under SQLAlchemy 2.x
+**Reproduction summary:**
+To confirm the bug, I temporarily reverted the fix in `api/routes/health.py`,
+changing `await db.execute(text("SELECT 1"))` back to the original
+`await db.execute("SELECT 1")`. After restarting the server, calling
+`GET /health` returned `"postgres":"unhealthy"` in the response, and the
+server logs showed the exact error from the issue:
 
-**Tier:** <br> [x] Tier 1  <br> [ ] Tier 2  <br> [ ] Tier 3
-
-**Problem summary:**
-The `/health` endpoint checks database connectivity by calling `db.execute()`
-with a raw SQL string (`"SELECT 1"`). SQLAlchemy 2.x removed implicit string
-execution. The raw SQL must be wrapped in `text()`, so this call throws an
-exception on every request. As a result, the health check always reports
-Postgres as unhealthy and returns a 503, even when the database is running
-fine. This affects `api/routes/health.py`. The fix wraps the query in
-`sqlalchemy.text()` so it executes correctly and the endpoint accurately
-reflects database health.
-
-**Selection notes (Is this right for me? checklist):**
-I could explain the issue and expected fix without re-reading it, located
-the exact file and line via:
-```bash
-grep -rn "@router" api/ --include="*.py" | grep -i health
+```javascript
+error="Textual SQL expression 'SELECT 1' should be explicitly declared as text('SELECT 1')"
 ```
 
-and confirmed the fix scope was a single file/single line change. I verified via `curl` that Postgres now reports healthy after the fix; the endpoint still returns 503 overall due to an unrelated Redis config bug  (issue #155), which is out of scope for this PR.
+This confirmed the root cause. I then restored the `text()` wrapper and
+re-verified that `"postgres":"healthy"` returns correctly.
 
-**Branch name:** fix/154-health-check-raw-sql
+**PLAN.md link:** https://github.com/Kelllyy1/pathreview/blob/fix/154-health-check-raw-sql/PLAN.md
 
-**Setup confirmation:** [x] App runs locally at localhost:5173
+**Walkthrough video (recommended):** (skipped for now)
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Blockers or open questions:**
+None. The fix is already implemented and verified; remaining work for
+Week 9 is polishing tests and the PR description.
+
+To run the program again call:
+    - docker compose up -d
+    - docker compose ps
+    - make run
