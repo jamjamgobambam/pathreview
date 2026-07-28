@@ -40,3 +40,41 @@ still giving me a real foothold in the retrieval code I'll build on next week.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** REPRO_COMMIT_URL
+
+**Reproduction summary:**
+Because this is a documentation gap (not a runtime bug), I reproduced it by
+confirming the scoring concepts are absent from the doc while the behavior is
+fully implemented in code. Grepping `docs/ARCHITECTURE.md` for every relevant
+term (`blended`, `vector_weight`, `keyword_weight`, `0.7`, `normal`, `min_score`,
+`formula`) returns zero scoring-related hits — the lone `0.3` match is `ADR-003`,
+unrelated — yet all of it lives in `rag/retriever/hybrid.py` (`vector_weight=0.7`,
+`keyword_weight=0.3` at line 14; the normalize-and-blend at lines 70–93;
+`min_score=0.3` cutoff at line 93). The doc describes hybrid retrieval in a single
+sentence and never explains how the two scores combine.
+
+Reproduction evidence:
+
+```text
+$ grep -ci "blended|vector_weight|keyword_weight|normal|min_score|formula" docs/ARCHITECTURE.md
+0    # none of the scoring concepts appear in the doc
+
+$ grep -n "vector_weight\|keyword_weight\|blended_score\|min_score" rag/retriever/hybrid.py
+14:  vector_weight: float = 0.7, keyword_weight: float = 0.3
+78:  blended_score = (self.vector_weight * vector_score + self.keyword_weight * keyword_score)
+93:  results = [r for r in blended.values() if r["score"] >= min_score]
+```
+
+**PLAN.md link:** PLAN_URL
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+The issue text says the scores are "min-max normalized," but the code actually
+divides each score by the max of its own result set (max-normalization, no `min`
+subtracted). My plan is to document the code's real behavior; I'll confirm with
+the maintainer whether the code or the issue wording is the intended one before
+Week 9.
