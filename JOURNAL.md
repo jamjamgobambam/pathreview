@@ -31,3 +31,17 @@ The API reference lists the profile and review creation endpoints but does not e
 - Installed Docker Desktop, WSL 2, GNU Make, Python 3.11, and project dependencies.
 - Ran `make setup` successfully, including database migrations and seed data.
 - Ran `make run`; the frontend loaded at `http://localhost:5173` and the API responded at `http://localhost:8000`.
+
+## Week 8 - Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/menukaghalan/pathreview/commit/9f245c27a52dbf4089fe976daaa859eb8c590322
+
+**Reproduction summary:**
+I reproduced the documentation gap by opening `docs/API.md` and confirming that `POST /profiles` and `POST /reviews` were listed without request body details. I then traced the expected fields through `api/routes/profiles.py`, `api/schemas/profile.py`, and `api/schemas/review.py` to confirm what the docs needed to describe.
+
+**PLAN.md link:** https://github.com/menukaghalan/pathreview/blob/docs/issue-89-request-schemas/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded.
+
+**Blockers or open questions:**
+No blockers for the documentation plan. Local setup on this PC is still pending because WSL/Docker are not installed here yet; the earlier laptop setup had already confirmed the app could run locally.
