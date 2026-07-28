@@ -35,3 +35,36 @@ Ran `pytest tests/unit/test_resume_parser.py` locally with indented resume text 
 
 **Blockers or open questions:**
 Need to verify that adding `\s*` before the header word in each pattern does not cause false positives on lines that happen to contain a section keyword mid-sentence (e.g. "She has experience with…").
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed all four sub-tasks from PLAN.md. Identified the exact failure: the four pattern strings in `_detect_sections()` (lines 134–139 of `ingestion/parsers/resume_parser.py`) anchor section headers at `^` or `\n` with no allowance for leading whitespace, so indented PDF-extracted text like `    Education:` is never matched. Applied the fix — adding `\s*` before each header word — and verified the three originally failing tests (`test_detect_sections`, `test_parse_resume_no_work_experience`, `test_parse_single_column_resume_text`) now pass. Also confirmed the two unrelated pre-existing failures (`test_strip_markdown_syntax`, `test_parse_markdown_resume`) were already failing on the unmodified codebase and are not affected by this change.
+
+**Next steps:**
+Open the PR against `ascherj/pathreview`, fill in the PR template, and finalize JOURNAL.md Check-in 2 with the PR link.
+
+**Blockers:**
+None — the `make check` equivalents (ruff, black) flagged two pre-existing issues in unrelated lines (import sort at line 1, `raise...from` at line 78); my change introduces no new linting findings.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/332
+
+**Branch:** `fix/147-resume-section-detection-leading-whitespace`
+
+**What you built:**
+Added `\s*` before each header keyword in the four regex patterns inside `_detect_sections()` in `ingestion/parsers/resume_parser.py`, so section headers preceded by any amount of leading whitespace (spaces or tabs, as commonly preserved by PDF text extraction) are now detected correctly. The method signature, return type, and all callers are unchanged.
+
+**Tests added or updated:**
+No new test files were needed — `tests/unit/test_resume_parser.py` already contained the three failing tests that define the correct behavior (`test_detect_sections`, `test_parse_resume_no_work_experience`, `test_parse_single_column_resume_text`). All three now pass; the two pre-existing unrelated failures (`test_strip_markdown_syntax`, `test_parse_markdown_resume`) are documented in the PR description and unchanged.
+
+**Self-review confirmation:** [x] make check passes (no new findings)  [x] make test-unit passes (3 target tests green, 2 pre-existing unrelated failures documented)
+
+**Draft PR feedback received from:** none
