@@ -18,3 +18,10 @@ The issue that I am tackling for this project is one of documentation. Problem #
 ## Week 8 — Reproduction and Planning
 
 **Reproduction report:** Found and read through `docs/API.md`, and ensured that it did indeed lack any of the necessary `curl` commands that should be present there.
+
+**Reproduction commit link:** https://github.com/PokePonsh/pathreview/blob/docs/117-curl-commands-in-api-docs/JOURNAL.md
+
+**Reproduction summary:**
+There wasn't much to do when recreating this issue, as all I had to do was read through `API.md` and confirm that it did not have `curl` commands. 
+
+**PLAN.md link:** https://github.com/PokePonsh/pathreview/blob/docs/117-curl-commands-in-api-docs/PLAN.md
