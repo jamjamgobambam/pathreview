@@ -19,3 +19,19 @@ Worked through the "Is this right for me?" checklist: the change is isolated to 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** PLACEHOLDER
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_resume_parser.py` locally with indented resume text (spaces before section headers); `test_detect_sections` and `test_parse_resume_no_work_experience` both failed with `assert 0 > 0` — `_detect_sections()` returned an empty list because none of the four regex patterns allow whitespace between the line-start anchor and the header word.
+
+**PLAN.md link:** https://github.com/shivensaxena28/pathreview/blob/fix/147-resume-section-detection-leading-whitespace/PLAN.md
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:**
+Need to verify that adding `\s*` before the header word in each pattern does not cause false positives on lines that happen to contain a section keyword mid-sentence (e.g. "She has experience with…").
