@@ -46,3 +46,23 @@ Open the draft PR, ask for peer review in Slack, address feedback, then mark it 
 `make` isn't installed on my machine, so I run the Makefile targets directly out of `.venv/Scripts` (`ruff check .`, `black --check .`, `mypy api/ core/ ingestion/ rag/ agent/ safety/`, `pytest tests/unit -m unit`). Same commands, same results — noting it so the check-in matches what I actually ran.
 
 The repo also has substantial pre-existing failures unrelated to #68, which I recorded before touching anything: 182 ruff errors, 52 files black would reformat, 103 mypy errors, and 53 failing unit tests. After my change the failing-test set is byte-for-byte identical (383 passed, up from 377 — the 6 new tests), ruff reports the same 7 findings in the files I touched, the only black deviation left in `safety/monitoring.py` is the pre-existing missing trailing comma, and mypy in `api/routes/health.py` went from 11 errors to 8. So my changes introduce no new failures. I'll document this in the PR description.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/341
+
+**Branch:** `fix/68-health-check-safety-event-count`
+
+**What you built:**
+`/health` now reports a real `safety_events_last_hour` instead of a hardcoded `0`. I added `SafetyMonitor.get_total_event_count()`, which sums the existing per-type Redis counters across `VALID_EVENT_TYPES`, and wired the endpoint to it. The count is best-effort — a Redis failure leaves the field at `0` rather than breaking the health check — and I corrected the endpoint's Redis client construction (`settings.redis_host`/`redis_port`, which don't exist on `Settings`) to `redis.from_url(settings.redis_url)`, because without it no client existed to hand to the monitor.
+
+**Tests added or updated:**
+`tests/unit/test_health_safety_events.py`, from 2 reproduction tests to 8. They cover the aggregation helper (sums across types, empty counters, unknown/legacy keys ignored, Redis read error degrades to `0`) and the endpoint (reports the real aggregate, reports `0` when nothing has been logged, survives a full Redis outage while still marking the dependency unhealthy).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+Both in the "no new failures" sense the instructions describe — this repo has documented pre-existing failures (182 ruff, 52 black, 103 mypy, 53 unit tests). After my change: ruff 182 → 182, black 52 → 52, mypy 103 → 100, and the 53 failing tests are the same 53 test IDs with 6 additional passes. The baseline table is in the PR description.
+
+**Draft PR feedback received from:** _pending — draft opened Tue, requesting review in Slack_
