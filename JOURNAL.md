@@ -20,3 +20,17 @@ Currently, `Orchestrator.run()` keys the session store by `profile_id` (a per-us
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [https://github.com/zora123-svg/pathreview/commit/cf3e199f6c3e422f4a982dbf780565d3c108919e] (branch `fix/43-session-state-not-cleared`)
+
+**Reproduction summary:**
+Added `tests/unit/test_orchestrator_session_state.py`, which runs `Orchestrator.run()` twice for the same `profile_id` using a fake in-memory session store — first with a profile that triggers both `github_tool` and `tech_detector`, then again with a profile that only triggers `github_tool`. The test fails: the persisted session state after the second run still contains the first run's stale `tech_detector` result, confirming `session_state.update(results)` in `agent/orchestrator.py` never clears data from a prior review before merging in the current one.
+
+**PLAN.md link:** [https://github.com/zora123-svg/pathreview/blob/fix/43-session-state-not-cleared/PLAN.md]
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+Need to confirm whether any other part of the app reads the Redis `session:{profile_id}` key expecting cumulative history across reviews (would affect how aggressively I can change the keying/merge behavior) — see Risks & unknowns in PLAN.md.
