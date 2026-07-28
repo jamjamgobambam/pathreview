@@ -40,3 +40,9 @@ FAILED test_none_context_chunk_text                 (TypeError — this is issue
 The three unrelated failures are pre-existing scoring-threshold issues in `_is_supported` and are out of scope for this fix — noted here so they aren't mistaken for regressions introduced by this work.
 
 See [PLAN.md](PLAN.md) for the fix plan.
+
+***Fix implemented:*** `chunk.get("text", "") for chunk in context_chunks` → `chunk.get("text") or "" for chunk in context_chunks` in `rag/evaluator/faithfulness_checker.py`.
+
+***Verification:*** `test_none_context_chunk_text` passes; full unit suite 376 passed / 52 failed vs. baseline 375 passed / 53 failed — one test flipped, no regressions. ruff/black/mypy pass via pre-commit.
+
+***Pull Request:*** https://github.com/ascherj/pathreview/pull/339

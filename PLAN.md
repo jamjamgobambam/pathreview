@@ -2,6 +2,7 @@
 
 **Issue:** https://github.com/ascherj/pathreview/issues/153
 **Branch:** `fix/153-faithfulness-checker-null-chunk-text`
+**Pull Request:** https://github.com/ascherj/pathreview/pull/339 (open)
 
 ## Problem
 
