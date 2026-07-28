@@ -17,14 +17,16 @@ The POST /reviews endpoint accepts a profile_id, but core/services/review_servic
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/arollaramreddy/pathreview/commit/2d290d90a4eab158f625294376c29267aca6b5e7
 
 **Reproduction summary:**
 I reproduced the issue by tracing `POST /reviews` from `api/routes/reviews.py` into `core/services/review_service.py`. The route passes `current_user.id` into `create_review()`, but `create_review()` never checks `Profile.user_id`, so a review can be created for a profile owned by another user if the attacker knows that profile UUID.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/arollaramreddy/pathreview/blob/fix/163/Review-creation-does-not-verify-profile-ownership/PLAN.md
 
 **Walkthrough video (recommended):** Not recorded
+
+
 
 **Blockers or open questions:**
 I still need to confirm whether the rejected unauthorized request should return `404 Not Found` for consistency with existing profile/review endpoints, or `403 Forbidden` because the profile exists but belongs to another user.
