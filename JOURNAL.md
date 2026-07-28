@@ -22,16 +22,14 @@ The health check endpoint attempts to create a Redis client using `settings.redi
 
 ## Week 8 — Reproduction & solution planning
 
-## Week 8 — Reproduction & solution planning
-
 **Reproduction commit link:**
-(To be added after committing)
+https://github.com/yoyotop/pathreview/commit/66737da
 
 **Reproduction summary:**
 I reproduced the issue by running the application locally and sending a request to the `/health` endpoint. The health check attempted to access `settings.redis_host` and `settings.redis_port`, which do not exist in the application's configuration, causing the endpoint to fail. I verified that the application already uses `settings.redis_url`, making it the correct configuration to use.
 
 **PLAN.md link:**
-(To be added after pushing)
+https://github.com/yoyotop/pathreview/blob/fix-health-check-redis-host/PLAN.md
 
 **Walkthrough video (recommended):**
 N/A
