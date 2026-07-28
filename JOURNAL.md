@@ -107,14 +107,12 @@ INFO:     127.0.0.1:50248 - "POST /reviews HTTP/1.1" 200 OK
 2026-07-21 18:24:51 [info     ] review_processing_completed    overall_score=0.81 request_id=3e4018da-c780-4049-aba6-7cc8282d4387 review_id=daa4bfe3-a07c-46f0-a9d5-3b63f690bda5
 ```
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/priyalpatell/pathreview/commit/c0b67afe5b20c6eed9227392450a7f7a497aba05
 
 **Reproduction summary:**
-[1–2 sentences: How did you reproduce the issue? What did you observe?]
+I reproduced the issue by making 2 reviews using the same user and portfolio. In the logs, I observed that the RAG pipeline was ran for both runs, highlighting the need to caching to reduce these repetitive operations.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
-
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+**PLAN.md link:** https://github.com/priyalpatell/pathreview/blob/feat/32-cache-repeated-portfolio-queries/PLAN.md
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+None for now
