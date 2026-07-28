@@ -19,3 +19,18 @@ This is a well-scoped, single-line change in one file (`api/routes/health.py`) w
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [to be updated after push — see commit "test: add reproduction test for issue #154 bare SQL string"]
+
+**Reproduction summary:**
+Added a unit test (`tests/unit/test_health_db_probe.py`) that mocks the async DB session to raise the exact `ArgumentError` SQLAlchemy 2.x raises for a bare string. Running the test against the unfixed code confirms the route catches the error and returns HTTP 503 with `"postgres": "unhealthy"` — proving the bug is real and precisely located at `api/routes/health.py` line 31.
+
+**PLAN.md link:** https://github.com/sudhiracodes/pathreview/blob/fix/154-health-db-probe-text-sql/PLAN.md
+
+
+**Blockers or open questions:**
+None — the fix is a one-line change. Will run the full test suite after applying the fix to confirm no regressions before opening the PR.
