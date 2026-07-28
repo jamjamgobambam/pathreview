@@ -64,6 +64,23 @@ Redis connection string, and how a Redis client is obtained for the endpoint.
 5. **Verify** — run `make check` and `make test-unit`; update PLAN.md/JOURNAL.md
    with the final approach.
 
+### Decisions made during implementation (Week 9)
+
+- **Window semantics (step 3) — deferred, not implemented.** A true rolling hour
+  needs bucketed Redis keys, which would change `log_event`'s write path for
+  every safety module, well beyond a tier-1 "good first issue". I kept the
+  existing counters and documented precisely what the number means in the
+  `get_total_event_count` and `health_check` docstrings. Flagged in the PR as a
+  follow-up so the maintainer can decide between relabelling the field and
+  implementing buckets.
+- **Redis client wiring — fixed, because the change depends on it.** The
+  endpoint built its client from `settings.redis_host`/`redis_port`, which
+  `Settings` does not define, so the call raised `AttributeError` and no client
+  ever existed to hand to `SafetyMonitor`. Switched to
+  `redis.from_url(settings.redis_url)` and reused that one client for both the
+  redis dependency check and the safety count. This also removes 3 pre-existing
+  mypy errors in the file.
+
 ### Inputs & outputs
 
 - **Input:** the Redis safety counters keyed `safety:events:{event_type}`,
