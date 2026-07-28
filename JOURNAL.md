@@ -26,3 +26,25 @@ triggers a fresh generation. This work touches the RAG generator
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/sujalusa/pathreview/commit/b59487974ded0caedea73a255f2bc3aff84bb3b1
+
+**Reproduction summary:**
+I added an xfail unit test (`tests/unit/test_review_cache_reproduction.py`) that
+calls `process_review` twice for the same unchanged profile and asserts the
+expensive RAG generation step runs only once. It fails today (RAG runs twice),
+confirming there is no caching layer: identical submissions re-run the full
+pipeline in `core/services/review_service.py`.
+
+**PLAN.md link:** https://github.com/sujalusa/pathreview/blob/feat/32-portfolio-query-cache/PLAN.md
+
+**Walkthrough video (recommended):** [optional — add Loom link if recorded]
+
+**Blockers or open questions:**
+Deciding cache scope: hashing the four `Profile` content fields (github_username,
+portfolio_url, resume_text, resume_filename) should satisfy "if the portfolio
+hasn't changed," but I need to confirm whether ingested-source content must also
+be included. Also deciding whether to add a Redis fast path or rely solely on a
+`reviews.content_hash` DB lookup for the first pass.
