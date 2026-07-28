@@ -15,12 +15,14 @@ Base URL: `http://localhost:8000`
 
 ### Profiles
 
+# This endpoint requires documentation regarding the correct input parameter details parsed from a multipart form to reflect an appropriate call to the API as per the code in api/routes/profiles.py
 `POST /profiles` — Create a profile with resume and GitHub username.
 `GET /profiles/{profile_id}` — Retrieve a profile.
 `DELETE /profiles/{profile_id}` — Delete a profile and associated data.
 
 ### Reviews
 
+# This endpoint requires documentation regarding the correct input parameter details parsed from a multipart form to reflect an appropriate call to the API as per the code in api/routes/reviews.py
 `POST /reviews` — Request a new portfolio review for a profile.
 `GET /reviews/{review_id}` — Retrieve a completed review.
 `GET /reviews` — List reviews for the authenticated user (paginated).
