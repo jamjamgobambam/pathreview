@@ -18,7 +18,7 @@ tests for these formats.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:**
+**Reproduction commit link:** 1a15bd013ee862097b11fddbdc83fc1e54e0f99a
 
 **Reproduction summary:**
 Reproduced by importing `PIIScrubber` directly and calling `scrub()`/`detect()` on
