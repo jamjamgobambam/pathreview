@@ -29,7 +29,7 @@ tests pass: `test_us_phone_number_redaction`, `test_us_phone_formats`,
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** (added in this commit)
+**Reproduction commit link:** https://github.com/jaystopthinkingjuststart/pathreview/commit/5e68e7d
 
 **Reproduction summary:**
 Ran the four tests named in the issue (`test_us_phone_number_redaction`,
