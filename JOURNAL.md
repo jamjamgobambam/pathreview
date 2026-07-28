@@ -24,7 +24,7 @@ Worked through the "Is this right for me?" checklist: the change is isolated to 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** PLACEHOLDER
+**Reproduction commit link:** https://github.com/shivensaxena28/pathreview/commit/24b8e21
 
 **Reproduction summary:**
 Ran `pytest tests/unit/test_resume_parser.py` locally with indented resume text (spaces before section headers); `test_detect_sections` and `test_parse_resume_no_work_experience` both failed with `assert 0 > 0` — `_detect_sections()` returned an empty list because none of the four regex patterns allow whitespace between the line-start anchor and the header word.
