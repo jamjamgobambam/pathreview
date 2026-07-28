@@ -62,3 +62,20 @@ Created a fresh user, then a profile with no `github_username`, `portfolio_url`,
 
 **Blockers or open questions:**
 Still deciding whether "no documents ingested" should be judged from the profile's own fields (`github_username`/`portfolio_url`/`resume_text`) or from the `ingested_sources` table directly — these should normally agree, but could diverge if a profile has stale `IngestedSource` rows from a prior partial run. See Risks & unknowns in `PLAN.md` for details.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from `PLAN.md` step 1: `process_review()` in `core/services/review_service.py` now checks whether `_run_ingestion_pipeline()` returned any results, and if not, sets `status="failed"` with a descriptive `error_message` instead of continuing on to the placeholder agent/RAG/safety steps. Also completed step 2 — confirmed `error_message` is already exposed on `ReviewResponse` for `GET /reviews/{id}`, and added it to the lighter `GET /reviews/{id}/status` payload too, since that's the endpoint clients poll while a review is processing. Wrote both regression tests from steps 3–4 in `tests/unit/test_review_service.py`: one asserting a documentless profile ends in `status="failed"` with a non-null `error_message`, and a companion happy-path test asserting a profile with at least one source still reaches `status="complete"`. Re-ran the original curl reproduction from Week 8 against a live local server (Postgres via `docker compose up -d`) — confirmed the same profile shape now returns `status: "failed"` with the descriptive message on both endpoints, and confirmed a profile with `github_username` set is unaffected and still completes normally.
+
+Resolved the open question from Week 8: went with checking `_run_ingestion_pipeline()`'s return value (the profile's own fields) rather than querying `ingested_sources` directly, since that function is the sole writer of those rows and is already re-run fresh on every `process_review()` call.
+
+Verified no regressions: `make test-unit` still shows the same 53 pre-existing failures (all pre-existing mock-configuration bugs in unrelated test files) plus 377 passing (up from 375 — the 2 new tests). `make lint` (182 errors) and `make typecheck` (103 errors) are both unchanged from the pre-existing baseline I recorded before starting.
+
+**Next steps:**
+Finish filling out the PR template, double-check branch name and commit messages against `docs/CONTRIBUTING.md` conventions, and open the PR.
+
+**Blockers:**
+None.
