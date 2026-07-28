@@ -41,7 +41,8 @@ I feel that my bug choice is inline with my abilities. I also have a good unders
 **Reproduction summary:**
 [1–2 sentences: How did you reproduce the issue? What did you observe?]
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** [https://github.com/Wilder407/pathreview/blob/fix/43-Agent-session-not-resetting/PLAN.md]
+
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 

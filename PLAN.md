@@ -24,7 +24,7 @@ Optionally, invalidate persisted session state on a new review (`session_store.d
 Which files, functions, or modules are involved?
 List the specific files you expect to touch.
 **Files I plan to touch:**
-- `agent/orchestrato.py` - core fix
+- `agent/orchestrator.py` - core fix
 - `agent/memory/context_manager.py` - cache reset/keying (core)
 - `tests/unit/test_orchestrator.py` - flip the fix-target test, retire the repro test
 - `agent/memory/session_stoer.py` - *optional*; only for the hygiene invalidation
