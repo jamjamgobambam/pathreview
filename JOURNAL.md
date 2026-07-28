@@ -20,3 +20,21 @@ In summary, the code check if the database is working using 'SELECT 1'. However,
 - Part II: since this is my first attempt at contributing to open source, I chose issues that are in the tier 1 bracket.
 - Part III: I have the code the issues references in the subfolder routes under the api folder, and I have a rough draft plan on how I intend to the issue. 
 - Part IV: In terms of scope, I am fine with the number working on the same issue. I have a time estimate and I'm working on completing it by Week 9, and there no dependencies that needs to be solved before solving this issue. 
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/nancyAfycodes/pathreview/blob/fix/154-healthCheck-SQL-string/api/routes/health.py
+
+**Reproduction summary:** Once I verified SQLAlchemy version, I ran `make run` to start localhost:8000. Then I called the health check point `GET http://localhost:8000/health` and observed the response "503 Service Unavailable". The error is located in `api/routes/health.py`, line 32 as shown below, confirming that SQLAlchemy not longer accepts raw strings 
+```python
+await db.execute("SELECT 1")  # ❌ Fails in SQLAlchemy 2.x
+```
+
+**PLAN.md link:** https://github.com/nancyAfycodes/pathreview/blob/fix/154-healthCheck-SQL-string/PLAN.md
+
+**Walkthrough video (recommended):** I have included screenshots instead
+![Error Message](./Screenshots/error_message.png)
+![Localhost](./Screenshots/localhost_error_message.png)
+
+**Blockers or open questions:**
+Since issue has other dependencies not directly related, how would fixing this particular issue help in solving related issues associated with SQLAlchemy in the repo?
