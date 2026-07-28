@@ -1,6 +1,6 @@
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [REPRO_COMMIT_URL]
+**Reproduction commit link:** [https://github.com/gulziraAbudula/pathreview/commit/cb5b62d2b9efead4b13a943a73f2382165006d7c]
 
 **Reproduction summary:**
 Ran the target test in the project venv
