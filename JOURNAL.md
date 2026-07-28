@@ -16,7 +16,18 @@ _detect_sections() in resume_parser.py identifies resume sections (Education, Sk
 
 **Cohort ledger:** [x] Issue added to cohort ledger
 
-## Week 8 — Reproduction
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [Commit](https://github.com/sumanbista/pathreview/commit/bae24b97b890eb4887684d001a1bc361cb4bdad4)
+
+**Reproduction summary:**
+Ran the exact repro script from issue #147 against indented resume text and observed `detected_sections` return `[]` instead of `['Education', 'Skills']`; confirmed the same failure via the three tests named in the issue (`test_parse_single_column_resume_text`, `test_parse_resume_no_work_experience`, `test_detect_sections`), all of which fail with `3 failed, 7 deselected`.
+
+**PLAN.md link:** [PLAN.md](https://github.com/sumanbista/pathreview/blob/fix/147-resume-section-leading-whitespace/PLAN.md)
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
 
 **Reproduction steps:**
 ```python
