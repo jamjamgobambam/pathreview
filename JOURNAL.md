@@ -22,7 +22,7 @@ Prompt templates drive the wording and structure of generated review output, so 
 **Reproduction summary:**
 I inspected [tests/unit/test_prompt_templates.py](tests/unit/test_prompt_templates.py) and confirmed it only checks template presence, placeholder coverage, and a hash length, not the exact prompt bodies. A small wording change in [rag/generator/prompt_templates.py](rag/generator/prompt_templates.py) would therefore not be guarded by a real snapshot failure, which reproduces the gap described in the issue.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** [PLAN.md](PLAN.md)
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
