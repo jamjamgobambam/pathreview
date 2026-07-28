@@ -17,3 +17,16 @@ The test `test_readme_with_all_quality_signals` in `tests/unit/test_readme_score
 
 ### Selection & Scope Reasoning
 I picked Issue #156 because it is a straightforward Tier 1 bug in the unit testing suite. It has clear steps to reproduce in `tests/unit/test_readme_scorer.py` and doesn't require changing complex core backend logic. This makes it a great fit for practicing codebase navigation, running tests, and getting used to the open-source workflow without getting bogged down in scope creep.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [updated on GitHub]
+
+**Reproduction summary:**
+Reproduced the issue locally by running `.venv/Scripts/pytest tests/unit/test_readme_scorer.py -q`. Observed `AssertionError: assert 51 > 100` in `test_readme_with_all_quality_signals` because the mock `readme` fixture string only contains 51 words.
+
+**PLAN.md link:** [https://github.com/Nanzib/pathreview/blob/fix/156-readme-scorer-fixture/PLAN.md](https://github.com/Nanzib/pathreview/blob/fix/156-readme-scorer-fixture/PLAN.md)
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:** None.
