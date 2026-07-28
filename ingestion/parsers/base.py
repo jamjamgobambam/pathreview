@@ -4,6 +4,7 @@ from dataclasses import dataclass
 @dataclass
 class ParseResult:
     """Result of parsing a source document."""
+
     text: str
     metadata: dict
     source_type: str
@@ -27,3 +28,13 @@ class BaseParser:
             ValueError: If content format is invalid
         """
         raise NotImplementedError("Subclasses must implement parse()")
+
+
+@dataclass
+class SkillDetection:
+    """Result of detecting a skill from source content."""
+
+    name: str
+    category: str
+    confidence: float
+    evidence: list[str]
