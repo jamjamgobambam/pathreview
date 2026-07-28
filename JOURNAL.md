@@ -15,3 +15,29 @@ _detect_sections() in resume_parser.py identifies resume sections (Education, Sk
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction
+
+**Reproduction steps:**
+```python
+from ingestion.parsers.resume_parser import ResumeParser
+r = ResumeParser()
+res = r.parse('\n    John Smith\n    john@example.com\n\n    Education:\n    - B.S. Computer Science\n\n    Skills: Python\n')
+print(res.metadata['detected_sections'])
+```
+
+**Observed output:** `[]`
+**Expected output:** `['Education', 'Skills']`
+
+Also confirmed via the project's own test suite — the three tests named in the issue
+all fail on `main`/this branch before any fix:
+
+```
+python3 -m pytest tests/unit/test_resume_parser.py -k "test_parse_single_column_resume_text or test_parse_resume_no_work_experience or test_detect_sections" -v
+```
+Result: `3 failed, 7 deselected`
+
+**Root cause confirmed:** `_detect_sections()` in `ingestion/parsers/resume_parser.py`
+(lines 132–144). The regex patterns anchor the section keyword directly against `^`/`\n`
+with no `\s*` allowance for leading whitespace, so indented lines like `"    Education:"`
+never match, even though `re.MULTILINE` correctly makes `^` check every line.
