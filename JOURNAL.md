@@ -51,3 +51,28 @@ covered by the existing test `test_none_context_chunk_text` in
 - **Watch-out:** The issue references a related PR (#211). Before opening my own
   PR I will check whether that PR already resolves it or is stale, and note this
   when I claim the issue.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ilp90/pathreview/commit/57933a87702ae9b0f7742d6be500a27360223d98
+
+**Reproduction summary:**
+Ran the issue's two-line repro against my local venv —
+`FaithfulnessChecker().check("Knows Python.", [{"text": None}])` — and it raised
+`TypeError: sequence item 0: expected str instance, NoneType found` at
+`rag/evaluator/faithfulness_checker.py:43`; the existing unit test
+`test_none_context_chunk_text` fails with the same traceback (`pytest
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_none_context_chunk_text`).
+
+**PLAN.md link:** https://github.com/ilp90/pathreview/blob/fix/153-faithfulness-checker-none-text/PLAN.md
+
+**Walkthrough video (recommended):** _(optional — not recorded / add Loom link here if you record one)_
+
+**Blockers or open questions:**
+Need to confirm whether the referenced PR #211 already fixes #153 (avoid
+duplicate work). Also deciding how strictly to handle non-string, non-None chunk
+text (coerce with `str(...)` vs. drop to `""`) — leaning conservative. Note: the
+same test file has 3 unrelated failing tests that belong to issue #152 (scoring
+thresholds), which are out of scope for this fix.
