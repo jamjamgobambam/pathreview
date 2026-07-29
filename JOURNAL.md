@@ -36,10 +36,11 @@ I feel that my bug choice is inline with my abilities. I also have a good unders
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** [https://github.com/ascherj/pathreview/commit/251e9068f54978786ea383c0fe7a8d0fae2fed5f]
 
 **Reproduction summary:**
 [1–2 sentences: How did you reproduce the issue? What did you observe?]
+I was able to reproduce the issue by having Claude create three tests: current state/actual behavior (re-run all tools), reusing cached input to demonstrate the bug, and a third test for correct bug fix. I observed that the Orchestrator does't verify if the `ContextManager` is the same between portfolio review requests. `Orchestrator` retains the `market_analyzer` constant value and the tool's input hash isn't portfolio-dependent. These two issues generate a re-played first-review of the cache instead of generating a new portfolio review. 
 
 **PLAN.md link:** [https://github.com/Wilder407/pathreview/blob/fix/43-Agent-session-not-resetting/PLAN.md]
 
