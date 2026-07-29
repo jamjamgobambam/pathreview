@@ -76,3 +76,69 @@ need their own axe check, per the plan's Understand section.
 - jsdom (used by vitest) doesn't do real layout/paint, so `jest-axe` may not
   catch color-contrast violations in this environment — scoping expectations
   to what's actually testable
+
+  ## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All 5 sub-tasks from PLAN.md's Plan section are implemented and committed
+individually in `frontend/src/pages/__tests__/ReviewPage.test.tsx`: (1)
+`jest-axe`'s `toHaveNoViolations` matcher wired into global test setup
+(`src/test/setup.ts`), (2) test file scaffolded with `react-router-dom` and
+`useReviewStatus`/`apiClient` mocks, (3) `jest-axe` checks for the polling,
+failed, and complete states, (4) a check for stacked error banners (`error`
++ `fetchError` rendered together), and (5) full suite run — 5/5 tests pass.
+Also ran `make check`/`make test-unit` to baseline pre-existing failures
+(53 pytest failures, 182 ruff errors, 5 mypy errors, all in Python files
+this change never touches) and confirmed no new failures introduced.
+
+**Next steps:**
+Open the PR with the pre-existing-failures note in the description, and
+resolve the two open questions from Week 8: router mocking approach
+(went with mocking `react-router-dom`'s `useParams`/`useNavigate` directly,
+no `MemoryRouter`) and matcher registration (went with global, in
+`setup.ts`, rather than per-file) — both now resolved by the implementation,
+just need to reflect that back into Week 8 if graded together.
+
+**Blockers:**
+None currently. One thing to watch: `make format` (black) mutates files in
+place rather than just checking — accidentally reformatted 52 unrelated
+Python files when I ran `make check` for baselining; reverted with
+`git checkout --` before it touched staging. Using `black --check .`
+instead going forward to avoid repeating that.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/thisiswhale/pathreview/pull/1
+
+**Branch:** test/105-review-page-accessibility-tests
+
+**What you built:**
+Automated accessibility coverage for `ReviewPage` using `jest-axe`, with a
+separate check per conditionally-rendered state (polling, failed, complete)
+plus one for the stacked polling-error/fetch-error banners, since a
+violation could exist in one state and not another.
+
+**Tests added or updated:**
+- `frontend/src/pages/__tests__/ReviewPage.test.tsx` (new) — 5 tests: a
+  smoke render of the polling state, and `jest-axe` zero-violations checks
+  for polling, failed, complete, and stacked-error-banner states
+- `frontend/src/test/setup.ts` — registers `jest-axe`'s `toHaveNoViolations`
+  matcher globally so any test file can use it
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+Both are Python-only and don't cover this frontend-only change; checked
+under this codebase's documented-baseline definition — no new failures
+introduced. Baselined pre-existing failures before starting (53/428 pytest
+failures, 182 ruff errors, 5 mypy errors, 52 unformatted files, all in
+Python files this PR never touches — confirmed disjoint from this diff).
+Frontend: `npx vitest run` on the new file is 5/5 passing; one pre-existing
+frontend failure (`ReviewSection.test.tsx`) and one pre-existing broken
+file (`ProfileForm.test.tsx`, missing dep) predate this change too. Full
+detail in the PR description.
+
+**Draft PR feedback received from:** none 
