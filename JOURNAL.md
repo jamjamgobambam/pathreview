@@ -40,7 +40,7 @@ test/88-post-review-endpoint
 
 **Reproduction commit link:** 
 <!-- [link to commit documenting the reproduced issue] -->
-https://github.com/Kiniec/pathreview/commit/5ebfd5ff98c39f15ca333412048be0f8d2b88700
+https://github.com/Kiniec/pathreview/commit/b7af3beb36749ed1f6ef64191ed813dce58ea463
 
 **Reproduction summary:**
 <!-- 1–2 sentences: How did you reproduce the issue? What did you observe?-->
