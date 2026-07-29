@@ -37,3 +37,16 @@ This is why it maps to Tier 1 rather than a larger tier.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/sr-daniels/pathreview/commit/ff3d092aa82a4a02d189834f80c94d4f1f1338db
+
+**Reproduction summary:**
+Added a unit test that exercises the health check's Postgres probe with a mocked async session; confirmed db.execute("SELECT 1") raises sqlalchemy.exc.ArgumentError under SQLAlchemy 2.x, which the route's try/except catches and misreports as "postgres": "unhealthy".
+
+**PLAN.md link:** https://github.com/sr-daniels/pathreview/blob/fix/154-health-check-textual-sql/PLAN.md
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
