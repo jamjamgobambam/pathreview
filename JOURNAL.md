@@ -56,3 +56,51 @@ format with no parentheses. It wasn't individually reported as failing since
 the test loop's assert stops at the first failure, but it shares the same
 root cause (space not in the separator character class) and will need to be
 verified once the fix is in place.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix planned in PLAN.md step 1: updated the phone_us regex
+in safety/pii_scrubber.py to accept \s as a separator, matching all four
+target formats (dashed, dotted, parenthesized, space-separated). Verified
+against tests/unit/test_pii_scrubber.py -- all 4 previously-failing phone
+tests now pass.
+
+**Next steps:**
+Run the full test suite and make check to confirm no regressions, write
+the PR description with manual verification steps, and open a draft PR for
+early feedback.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [add once opened]
+
+**Branch:** fix/146-parenthesized-phone-redaction
+
+**What you built:**
+Fixed the phone_us regex in safety/pii_scrubber.py so parenthesized and
+space-separated US phone numbers are correctly redacted by scrub() and
+flagged by detect(), resolving issue #146.
+
+**Tests added or updated:**
+No new test files -- the existing tests/unit/test_pii_scrubber.py already
+had 4 tests covering this exact bug (test_us_phone_number_redaction,
+test_us_phone_formats, test_detect_phone_pii, test_phone_at_start_of_text),
+which now pass. Confirmed via before/after runs that all other tests in
+this file behave identically except one pre-existing, unrelated failure
+(test_mixed_pii_and_text).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(both in the sense defined by the assignment: no new failures introduced by
+this change -- 178 pre-existing ruff errors and 49 pre-existing test
+failures confirmed identical with and without this fix via git stash
+comparison, none in files this PR touches)
+
+**Draft PR feedback received from:** [fill in once you get peer/mentor review]
