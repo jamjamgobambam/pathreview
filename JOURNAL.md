@@ -22,12 +22,12 @@ This is my first time contributing to a codebase of this size, so I stayed in Ti
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [fill in after you push — link to the commit that adds this Week 8 entry + PLAN.md]
+**Reproduction commit link:** https://github.com/amit-tzadok/pathreview/commit/60c48e0
 
 **Reproduction summary:**
 Ran `pytest tests/unit/test_review_service.py -q` on the `fix/158-review-service-async-mocks` branch and observed **13 failed, 6 passed**. Every failure is `AttributeError: 'coroutine' object has no attribute 'first'` / `'all'`, raised at `core/services/review_service.py:47` and `:65` — confirming the mocked result's `scalars()` returns an un-awaited coroutine because the test builds it as an `AsyncMock`, while the (correct) service code calls the synchronous `.scalars().first()/.all()` on it.
 
-**PLAN.md link:** [link to PLAN.md on this branch, e.g. https://github.com/amit-tzadok/pathreview/blob/fix/158-review-service-async-mocks/PLAN.md]
+**PLAN.md link:** https://github.com/amit-tzadok/pathreview/blob/fix/158-review-service-async-mocks/PLAN.md
 
 **Walkthrough video (recommended):** [optional Loom link, ≤2 min — or leave blank]
 
