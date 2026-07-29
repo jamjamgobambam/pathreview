@@ -21,3 +21,24 @@ evaluation layer and shouldn't assume its inputs are always well-formed.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/batyrkhan9/pathreview/commit/59e4cba6e746810a266a572801d1c517a01d370e
+
+**Reproduction summary:**
+The bug was reproduced by inspecting the original implementation before my
+Week 7 fix: `chunk.get("text", "")` only supplies the default when the key
+is missing, so a chunk with `text: None` caused `" ".join()` to raise
+`TypeError: sequence item 0: expected str instance, NoneType found`. This is
+documented in the diff of commit 59e4cba, which shows the original buggy
+line and the corrected version.
+
+**PLAN.md link:** https://github.com/batyrkhan9/pathreview/blob/fix/153-faithfulness-checker-none-text/PLAN.md
+
+**Walkthrough video (recommended):** (skipped — not graded)
+
+**Blockers or open questions:**
+Not yet sure why some chunks end up with `text: None` upstream — treating
+it as an unknown for now and guarding at the checker boundary.
