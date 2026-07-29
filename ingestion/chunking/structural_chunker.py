@@ -38,6 +38,21 @@ class StructuralChunker(BaseChunker):
         # Extract sections with heading hierarchy
         sections = self._extract_sections(text)
 
+        # Fallback for documents with no headings (issue #149).
+        # _extract_sections() returns [] when there are no markdown headings,
+        # which would cause chunk() to silently return [] and drop the document
+        # from the vector index.  Wrap the full text as a single synthetic
+        # section so the loop below handles it normally — including sub-chunking
+        # via SemanticChunker if the text exceeds SECTION_TOKEN_LIMIT.
+        if not sections:
+            sections = [
+                {
+                    "content": text.strip(),
+                    "path": [],
+                    "level": 0,
+                }
+            ]
+
         chunks = []
         for section in sections:
             heading_path = " > ".join(section["path"])
@@ -107,15 +122,7 @@ class StructuralChunker(BaseChunker):
                 current_level = heading_level
 
             else:
-                # Regular content line
-                # BUG (issue #149): The guard below only collects lines when heading_stack is
-                # truthy. For documents with no headings, heading_stack is always empty and
-                # current_section_lines starts empty, so this condition is never True.
-                # Result: all lines are silently discarded, _extract_sections() returns [],
-                # and chunk() returns [] — the document is dropped from the vector index.
-                # Fix (planned in PLAN.md): add a fallback in chunk() so that when sections
-                # is empty after _extract_sections(), the full document text is wrapped in a
-                # single synthetic section before the loop runs.
+                # Regular content line — only collect when inside a heading section
                 if heading_stack or current_section_lines:  # Only collect if we have a heading
                     current_section_lines.append(line)
 
