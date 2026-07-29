@@ -41,11 +41,15 @@
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** Pending until this reproduction note is committed and pushed  
-**Reproduction summary:** I ran the existing snapshot test, changed `skills_feedback/v1` in an isolated Python process by appending `ACCIDENTAL SAME-VERSION EDIT`, and ran the assertion again. The test still passed while the template remained at version `v1`, confirming that the current MD5 type-and-length checks do not detect accidental prompt changes.  
-**PLAN.md link:** Pending until the solution plan is committed and pushed  
-**Walkthrough video (recommended):** Not recorded (optional and not graded)  
-**Blockers or open questions:** No blockers; the plan will decide how to store version-keyed expected hashes so additions and intentional version changes remain explicit.
+**Reproduction commit link:** https://github.com/neonforestmist/pathreview/commit/f3f028851e87f0095f512160bd9d976d433a6943
+
+**Reproduction summary:** I ran the existing snapshot test, changed `skills_feedback/v1` in an isolated Python process by appending `ACCIDENTAL SAME-VERSION EDIT`, and ran the assertion again. The test still passed while the template remained at version `v1`, confirming that the current MD5 type-and-length checks do not detect accidental prompt changes.
+
+**PLAN.md link:** https://github.com/neonforestmist/pathreview/blob/b7c4ac11a45e75b2fceb68244ceb3a3f565c8ded/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded (optional and not graded)
+
+**Blockers or open questions:** No blockers. The plan uses inline, version-keyed SHA-256 hashes so prompt additions and intentional version changes remain explicit in code review.
 
 ### Reproduction steps
 
