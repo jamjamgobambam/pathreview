@@ -17,7 +17,7 @@ The `extract_skills()` function in `ingestion/parsers/skill_extractor.py` fails 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [will fill in after pushing]
+**Reproduction commit link:** [will fill in after pushing]https://github.com/shresthapresto/pathreview/commit/2042e21b48e27b48894df564fee54d919ac6d397
 
 **Reproduction summary:**
 Ran `pytest tests/unit/test_skill_extractor.py -k "test_javascript_detection or test_text_with_typescript_files" -v` locally and confirmed both tests fail. `test_javascript_detection` fails because `require('fs')` has no space after `require`, so the detection regex `\b(import|require)\s+` never matches. `test_text_with_typescript_files` fails because TypeScript syntax (`export interface`, `export class`, `Promise<User>`) isn't recognized by any TS-specific pattern, and no false-positive React match occurs in this case since the text doesn't mention `.tsx`/`.jsx`.
@@ -29,7 +29,7 @@ FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_javascript_d
 2 failed, 16 deselected in 2.05s
 ```
 
-**PLAN.md link:** [will fill in after pushing]
+**PLAN.md link:** [\[will fill in after pushing\]](https://github.com/shresthapresto/pathreview/commit/2042e21b48e27b48894df564fee54d919ac6d397#diff-1d972b4ac04c89bf54f79f2111064626b16aeb8bb9488f4ca0aed3ab1e728d2c)
 
 **Walkthrough video (recommended):** [optional]
 
