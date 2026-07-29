@@ -29,3 +29,25 @@ Wrote an integration test hitting GET /health with a real Postgres instance (via
 
 **Blockers or open questions:**
 Noticed a separate, unrelated bug in the Redis check (settings.redis_host/redis_port don't exist on Settings — only redis_url does), which independently forces the endpoint to 503. Scoped my test assertion to just the postgres dependency so it isn't coupled to that separate issue.
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in api/routes/health.py (wrapped the raw "SELECT 1"
+string in sqlalchemy.text()). Added a unit test in tests/unit/test_health.py
+that mocks the DB session and verifies db.execute() receives a TextClause
+instead of a raw string, plus tests for both the healthy and failing-probe
+cases. Integration test from Week 8 passes against a real DB. Ran ruff/black
+scoped to the two files I touched — both pass clean.
+
+**Next steps:**
+Open a draft PR, get peer/mentor feedback in Slack, then finalize and mark
+ready for review.
+
+**Blockers:**
+None so far. Noted a separate pre-existing bug in the Redis check
+(settings.redis_host/redis_port don't exist on Settings) out of scope
+for #154, documented it in the PR notes rather than fixing it here.
