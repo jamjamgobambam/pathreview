@@ -35,3 +35,29 @@ failing the build if migrations don't apply cleanly.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/cbarnes0/pathreview/commit/1a5fb98a9abbc885e58008639e85fbb59936479f
+
+**Reproduction summary:**
+Brought up the dev Postgres container and confirmed `alembic upgrade head`
+applies both existing migrations cleanly against a fresh database — but
+running `pytest tests/integration -v --tb=short`, the exact command the
+`test-integration` CI job runs, collects 0 tests and exits 5, since
+`tests/integration/` has no test files and nothing else ever invokes
+Alembic. I also ran `alembic check` against the freshly migrated database
+and it reported real drift already on `main`: migration `001`'s
+`uq_users_email` constraint isn't represented in `core/models/user.py`'s
+metadata, so "schema matches models" is currently false — this issue is a
+real, present gap, not a hypothetical one.
+
+**PLAN.md link:** https://github.com/cbarnes0/pathreview/blob/feat/129-migration-validation-ci/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded this week.
+
+**Blockers or open questions:**
+The pre-existing `uq_users_email` schema drift needs to be fixed as part of
+this PR (see PLAN.md Risks & unknowns) or the new CI check will fail
+immediately on `main` after merge — still deciding whether that fix belongs
+in this PR or a split-out follow-up issue.
