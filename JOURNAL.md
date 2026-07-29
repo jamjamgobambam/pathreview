@@ -18,3 +18,22 @@ tests already named in the issue.
 **Branch name:** fix/146-pii-scrubber-parenthesized-phone
 **Setup confirmation:** [x] App runs locally at localhost:5173
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/spicyneutrino/pathreview/commit/<hash>
+
+**Reproduction summary:**
+Ran the scrub() and detect() methods locally against a string containing
+both a dashed and parenthesized phone number. Confirmed the parenthesized
+format passes through unredacted and detect() returns an empty list,
+matching the issue description. Also ran the four named failing tests in
+test_pii_scrubber.py and confirmed they fail as expected.
+
+**PLAN.md link:** https://github.com/spicyneutrino/pathreview/blob/fix/146-pii-scrubber-parenthesized-phone/PLAN.md
+
+**Walkthrough video (recommended):** 
+
+**Blockers or open questions:**
+Need to confirm whether the phone_us pattern is a single regex or several
+patterns, before finalizing the exact fix approach in Week 9.
