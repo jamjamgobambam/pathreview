@@ -20,7 +20,7 @@ I can explain this issue in my own words: the tests need a shared sample user pr
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** [ed63377](https://github.com/shp5238/pathreview/commit/ed633772c80709424fa7f5365589ff49be1e7f61)
 
 **Reproduction summary:**
 I reproduced the issue by checking for `tests/fixtures/sample_profiles/basic_profile.json` and confirming that the expected fixture path does not exist in the repository. The issue is that manifest and eval tooling still reference `tests/fixtures/sample_profiles/`, so tests or scripts that depend on this shared sample profile cannot run against the expected fixture data.
