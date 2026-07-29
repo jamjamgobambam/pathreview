@@ -32,3 +32,25 @@ Selection Reasoning:
 - **Part 2**: I already contributed to open source and have expansive experience in large codebases
 - **Part 3**: I read the `parsers/` flow and have sufficient understanding and confidence to implement the new feature
 - **Part 4**: I have alot of time, the scope is realistic to me, and there are no blockers on the issue
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Y4dd/pathreview/commit/6d607cefb3de1dfc4f852c64fce077f6a7feb762
+
+**Reproduction summary:**
+Added `tests/unit/test_workflow_parser.py`, which imports the not-yet-existent
+`ingestion.parsers.workflow_parser`. Running `pytest tests/unit/test_workflow_parser.py -v`
+fails at collection with `ModuleNotFoundError: No module named 'ingestion.parsers.workflow_parser'`,
+confirming the pipeline has no parser for `.github/workflows/*.yml` and therefore cannot detect
+CI/CD skills.
+
+**PLAN.md link:** https://github.com/Y4dd/pathreview/blob/feat/14-github-workflow-parser/PLAN.md
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+ChromaDB requires scalar metadata values (str/int/float/bool), so the extracted `skills` cannot be
+stored as a raw list — still deciding between a comma-joined string and boolean flags
+(`has_docker`, `runs_pytest`, `has_deployment`). Also weighing whether to rely on `SkillExtractor`'s
+substring matching (which over-matches, e.g. `git` inside `github`) versus inspecting structured
+`uses:`/`run:` values directly in the parser.
