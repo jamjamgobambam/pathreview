@@ -83,16 +83,20 @@ None - everything is clear.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/389
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `test/157-relevance-scorer-full-overlap`
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+Originally, `test_query_with_partial_overlap` in `tests/unit/test_relevance_scorer.py` set up a query with full overlap with chunk instead of a partial overlap, causing the test to incorrectly fail. The test now uses a query with a token (`"details"`) _not_ found in the test chunk, properly checking for partial overlap and allowing the test to pass.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+Updated `test_query_with_partial_overlap` in `tests/unit/test_relevance_scorer.py` to now cover partial overlap instead of the full overlap it incorrectly tested before.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:**
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+- [x] make check passes
+- [x] make test-unit passes
+
+**Draft PR feedback received from:**
+None - not required by instructor.
