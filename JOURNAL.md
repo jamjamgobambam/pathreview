@@ -40,7 +40,7 @@ and persists session state in `agent/orchestrator.py`.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/DevinChen02/pathreview/commit/<REPRODUCTION_COMMIT_SHA>
+**Reproduction commit link:** https://github.com/DevinChen02/pathreview/commit/d6a25b4
 
 **Reproduction summary:**
 I added `tests/unit/test_orchestrator_session_state.py`, which drives
