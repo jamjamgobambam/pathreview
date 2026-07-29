@@ -17,7 +17,7 @@
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** e5fbf96
+**Reproduction commit link:** c052e64
 
 **Reproduction summary:**
 Ran `.venv/bin/pytest tests/unit/test_tech_detector.py -v -m unit`. 2 of 27 tests fail: `test_node_modules_excluded` and `test_build_directory_excluded`, both expecting `primary_language == "Python"` but getting `"JavaScript"`. Root cause: `_should_skip_file` in `agent/tools/tech_detector.py` checks for substrings like `"/node_modules/"` and `"/build/"` which require a leading slash, but repo-relative paths (e.g. `node_modules/lib/index.js`, `build/bundle.js`) have no leading slash, so the skip patterns never match and vendored/build files aren't filtered out.
