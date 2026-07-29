@@ -19,3 +19,17 @@ I chose this Tier 1 issue because I am still getting comfortable with the PathRe
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [b3894e2 — document issue #152 reproduction](https://github.com/stardess/pathreview/commit/b3894e28238873dbf1ab3a44d214d52075bd5256)
+
+**Reproduction summary:**
+I reproduced the issue by checking `Knows Python. Knows SQL.` against context containing `python expert` and `sql expert`; the checker returned `0.0` even though the context supports both technologies. The three unit tests named in issue #152 also failed with `0.0`, confirming the problem in my local environment.
+
+**PLAN.md link:** [Solution plan for issue #152](https://github.com/stardess/pathreview/blob/fix/152-faithfulness-short-claims/PLAN.md)
+
+**Walkthrough video (recommended):** Not recorded
+
+**Blockers or open questions:**
+I need to confirm whether the fix should also change `_extract_claims()`'s minimum-length rule, which currently removes valid short statements such as `Knows SQL`, or remain limited to the support calculation. I also need to choose between splitting compound claims and returning graded support per claim so partial evidence produces a middle score without increasing false positives.
