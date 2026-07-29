@@ -50,6 +50,7 @@ class Orchestrator:
 
         # Execute plan
         results = {}
+        failed_tools = []
         for tool_name, tool_input in plan:
             try:
                 result = self._execute_tool(tool_name, tool_input)
@@ -60,6 +61,7 @@ class Orchestrator:
             except Exception as e:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
                 results[tool_name] = {"error": str(e), "success": False}
+                failed_tools.append(tool_name)
 
         # Persist state
         if self.session_store:
@@ -67,12 +69,14 @@ class Orchestrator:
             self.session_store.set(profile_id, session_state)
 
         logger.info("orchestrator_complete", profile_id=profile_id,
-                   tools_executed=len(results))
+                   tools_executed=len(results), failed_tools=failed_tools)
 
         return {
             "profile_id": profile_id,
             "tool_results": results,
-            "cached_results": self.context_manager.get_all_results()
+            "cached_results": self.context_manager.get_all_results(),
+            "has_errors": len(failed_tools) > 0,
+            "failed_tools": failed_tools,
         }
 
     def _build_plan(self, profile_data: dict) -> list[tuple[str, dict]]:
