@@ -81,7 +81,7 @@ PR and commenting to claim the issue are manual steps I still need to do through
 
 ### Check-in 2 (end of week)
 
-**PR link:** PR_LINK_TODO — _fill in the actual PR URL here before submitting_
+**PR link:** [ascherj/pathreview#383](https://github.com/ascherj/pathreview/pull/383)
 
 **Branch:** `fix/155-health-check-redis-config`
 
