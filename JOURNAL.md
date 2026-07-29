@@ -66,3 +66,26 @@ print("Detected sections:", result)
 Added a failing test `test_detect_sections_with_leading_whitespace` marked `@pytest.mark.xfail` to `tests/unit/test_resume_parser.py`. The test runs as XFAIL, proving the bug is real and showing exactly where the fix needs to go.
 
 **Branch URL:** https://github.com/lavgolla/pathreview/tree/fix/147-resume-parser-index-error
+
+---
+
+## Week 9 — PR Submission
+
+**PR link:** https://github.com/ascherj/pathreview/pull/232
+
+**PR title:** fix(ingestion): allow leading whitespace in resume section detection
+
+**What the PR does:**
+PDF-extracted resume text commonly has leading whitespace on each line. The 4 regex patterns in `_detect_sections()` were anchored to `^` and `\n` with no `\s*`, so section headers like `  Education` were silently skipped and the method returned `[]`. This PR adds `\s*` to all 4 patterns and applies the same fix to `_strip_markdown()` for indented markdown headers.
+
+**Files changed:**
+- `ingestion/parsers/resume_parser.py` — regex fix in `_detect_sections()` and `_strip_markdown()`
+- `tests/unit/test_resume_parser.py` — new test `test_detect_sections_with_leading_whitespace`
+
+**Checks:**
+- [x] `make test-unit` — 11/11 resume parser tests pass
+- [x] `make lint` — clean on all touched files (ruff + black)
+- [x] `make typecheck` — no issues on touched files
+- [x] Pre-existing failures in other modules are unrelated to this PR
+
+**Branch URL:** https://github.com/lavgolla/pathreview/tree/fix/147-resume-parser-index-error
