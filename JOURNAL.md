@@ -72,3 +72,56 @@ this while implementing the fix in Week 9. Docker isn't installed on my machine,
 reproduced the bug with a stubbed unit test rather than a live stack; the fix and its tests
 are fully verifiable this way, but I'll stand up Docker before opening the PR so I can smoke-test
 `GET /health` end to end.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the core fix from PLAN.md. Done so far: sub-task 2 (applied the fix in
+`api/routes/health.py` — replaced the `redis.Redis(host=settings.redis_host, port=...)`
+call with `redis.Redis.from_url(settings.redis_url, decode_responses=True)`) and sub-task 3
+(turned the Week 8 reproduction test green — the healthy path now returns 200 with
+`redis: "healthy"`). Verified locally: `pytest tests/unit/test_health.py` shows the
+healthy-path and root-cause tests passing.
+
+**Next steps:**
+Sub-task 4 — add the negative-path test (Redis unreachable → `redis: "unhealthy"` + 503).
+Sub-task 5 — run the full local gate (`make check`, `make test-unit`), record the
+pre-existing-failure baseline vs. my branch, fill in the PR template, and open the PR
+against `ascherj/pathreview`.
+
+**Blockers:**
+The suite has many pre-existing failures from the other seeded issues, so I need to
+establish a baseline to prove my change adds none. Also confirming `redis.Redis.from_url`
+accepts `decode_responses=True` on the pinned `redis>=5.0.0` — confirmed it does.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _PR to be opened against ascherj/pathreview — link added on submission_
+
+**Branch:** `fix/155-health-check-redis-host`
+
+**What you built:**
+`GET /health` now builds its Redis client from `settings.redis_url` via
+`redis.Redis.from_url(...)` instead of the nonexistent `settings.redis_host`/`redis_port`,
+so the endpoint reports Redis status correctly (200/healthy when reachable, 503/unhealthy
+when not) instead of always returning 503 with an `AttributeError` swallowed by the handler.
+
+**Tests added or updated:**
+Added `tests/unit/test_health.py` with three unit tests: (1) a regression guard that
+`settings.redis_url` exists while `redis_host`/`redis_port` do not; (2) the healthy path —
+GET /health returns 200 with `redis: "healthy"` and the client is built from `redis_url`
+with `decode_responses=True`; (3) the unreachable path — a failing `ping()` yields
+`redis: "unhealthy"` and HTTP 503. All three pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+_(Definition per the assignment: in this codebase with documented pre-existing failures,
+"passes" = my changes introduce no new failures. Baseline on pristine `upstream/main`:
+53 failed / 375 passed unit tests, ruff 161, mypy 106, black 52-to-reformat. On this
+branch: 53 failed / 378 passed (my 3 new tests all pass), ruff 161, mypy 100 (−6), black 52.
+Zero new failures introduced; 6 mypy errors removed.)_
+
+**Draft PR feedback received from:** none
