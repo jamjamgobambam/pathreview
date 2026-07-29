@@ -30,4 +30,4 @@ web framework for rapid development") contains all 4 query terms, so
 full-coverage scoring of 1.0 is correct. The bug is in the test fixture,
 not the scorer.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:**  https://github.com/nickventu/pathreview/blob/test/157-relevance-scorer-test-fixture/PLAN.md
