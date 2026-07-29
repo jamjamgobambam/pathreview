@@ -16,6 +16,34 @@ This is a small, well-scoped Tier 1 bug: the root cause is a one-line attribute 
 
 **Branch name:** fix/155-health-check-redis-host
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+*Note: on my machine, port 5173 was already occupied by an unrelated local project, so Vite
+auto-selected 5174 instead (`http://localhost:5174`) — confirmed it's genuinely the PathReview
+frontend (page `<title>PathReview - AI Portfolio Review Assistant</title>`), not a stale
+process. Backend confirmed running at `http://localhost:8000` per SETUP.md (also shifted to
+8010 locally for the same reason). This is a local port-conflict artifact, not a project bug.*
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+---
+
+## Week 8 — Reproduction and planning
+
+**Reproduced locally:** Yes. Ran `docker compose up -d`, `alembic upgrade head`, and
+`uvicorn api.main:app`, then called `GET /health`. Confirmed the exact `AttributeError` from
+the issue:
+
+```
+2026-07-29 00:45:07 [error] redis_health_check_failed error="'Settings' object has no attribute 'redis_host'"
+```
+
+**Important nuance found during reproduction:** the `AttributeError` is caught by an existing
+`except Exception` block in `api/routes/health.py`, so the endpoint doesn't crash outright —
+it silently reports `"redis": "unhealthy"` no matter what Redis's real status is. Full details
+and my fix approach are in [PLAN.md](PLAN.md).
+
+**Plan:** See [PLAN.md](PLAN.md) — root cause, files to change, step-by-step plan, test
+specification, and risks/edge cases.
+
+**Loom walkthrough:** [ ] Recorded (not yet — recommended but not graded)
