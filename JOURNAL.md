@@ -70,3 +70,19 @@ After this contribution, the test suite will include coverage for profiles that 
 Notes
 
 This issue focuses on strengthening the project’s automated test suite rather than adding new application functionality. Improving test coverage for edge cases increases confidence in the API’s behavior and helps maintain long-term reliability.
+
+## Week 8 — Reproduction & Solution Planning
+
+### Reproduction commit link
+https://github.com/rupesh-vk/pathreview/commit/2a1bd55 
+
+### Reproduction summary
+
+I investigated Issue #88 by locating the current review-related tests in the repository. Although the issue references `tests/unit/test_review_routes.py`, that file is no longer present in the current codebase. I found that review tests now exist in `tests/unit/test_review_service.py` and confirmed that there is no test covering the scenario where a valid profile exists but has no ingested documents. This reproduces the missing test coverage described in the issue.
+
+### Reproduction Notes
+
+- Verified that `tests/unit/test_review_routes.py` does not exist.
+- Located the current review test file: `tests/unit/test_review_service.py`.
+- Reviewed all existing review tests.
+- Confirmed there is no test for the "profile exists but has no ingested documents" scenario.
