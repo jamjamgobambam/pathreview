@@ -21,7 +21,7 @@ tests already named in the issue.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/spicyneutrino/pathreview/commit/<hash>
+**Reproduction commit link:** https://github.com/spicyneutrino/pathreview/commit/3977650c99490509cc8089cbb3f3d32611ad019a
 
 **Reproduction summary:**
 Ran the scrub() and detect() methods locally against a string containing
