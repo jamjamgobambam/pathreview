@@ -59,8 +59,7 @@ contained enough words to be classified as "adequate," causing the assertion
 to fail.
 
 **PLAN.md link:**
-
-(To be added after pushing.)
+https://github.com/wen7726/pathreview/blob/fix/readme-scorer-fixture-156/PLAN.md
 
 **Walkthrough video (recommended):**
 
