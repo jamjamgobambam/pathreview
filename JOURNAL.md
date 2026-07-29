@@ -22,14 +22,16 @@ All service files under core/services module don't have docstrings. Without docs
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/vanthuynh/pathreview-colab/commit/7fd95aa5658e03bdd66c04f17fbd4466da2f6034
 
 **Reproduction summary:**
-[1–2 sentences: How did you reproduce the issue? What did you observe?]
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+I reread the issue and confirmed that neither `services/profile_service.py` nor `services/review_service.py` have docstrings for their functions
 
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+**PLAN.md link:** https://github.com/vanthuynh/pathreview-colab/blob/docs/119-add-inline-docstrings/PLAN.md
+
+**Walkthrough video (recommended):** N/A
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+
+This issue is straightforward since I made time to clearly understand the issue and read the code base carefully. Also because I have completed week 7 objectives, which helped me tremendously before going to reproduction and solution planning step
