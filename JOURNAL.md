@@ -27,7 +27,7 @@ format, and leaves the existing phone/email/SSN cases still passing.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/yenscastro/pathreview/commit/71f526d71edbff00a53bb5e8b4b1d40fa432e1fc
+**Reproduction commit link:** https://github.com/yenscastro/pathreview/commit/e901ce4
 
 **Reproduction summary:**
 I ran the phone tests in `tests/unit/test_pii_scrubber.py` and added a dedicated
