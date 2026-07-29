@@ -17,11 +17,11 @@
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to the commit on fix/resume-section-leading-whitespace where you documented this]
+**Reproduction commit link:** https://github.com/Muta4ever/pathreview/commit/6fc0c29b9811ce0aa5871682a34d5ddfad83a06b
 
 **Reproduction summary:** Ran `pytest tests/unit/test_resume_parser.py -k test_detect_sections` locally and confirmed the failure: `_detect_sections` returns headers only when they sit at column 0 of a line, so indented headers (as produced by PDF extraction) are silently dropped from the result.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/Muta4ever/pathreview/blob/fix/resume-section-leading-whitespace/PLAN.md
 
 
 
