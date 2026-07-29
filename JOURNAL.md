@@ -29,3 +29,18 @@ The README scorer test expected the README fixture to be categorized as "compreh
 ### Selection notes ("Is this right for me?" checklist)
 
 I selected this issue because it is a Tier 1 issue and focuses on understanding an existing test rather than implementing a new feature. I was able to reproduce the failure locally, identify the root cause by reading the test and the README scoring logic, and make a targeted change without modifying production code. The scope was well-defined and appropriate for my first open-source contribution to this project.
+
+### Reproduction
+
+Running:
+
+python -m pytest tests/unit/test_readme_scorer.py -q
+
+initially produced:
+
+AssertionError:
+expected "comprehensive"
+received "adequate"
+
+The README fixture contained only 251 words, while the scorer classifies
+README files with more than 500 words as comprehensive.
