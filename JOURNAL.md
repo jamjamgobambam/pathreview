@@ -13,3 +13,17 @@
 **Setup confirmation:**  ✅ App runs locally at localhost:5173
 
 **Cohort ledger:**  ✅ Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to the commit on fix/resume-section-leading-whitespace where you documented this]
+
+**Reproduction summary:** Ran `pytest tests/unit/test_resume_parser.py -k test_detect_sections` locally and confirmed the failure: `_detect_sections` returns headers only when they sit at column 0 of a line, so indented headers (as produced by PDF extraction) are silently dropped from the result.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+
+
+**Blockers or open questions:**
+Not yet sure if real-world PDF extraction output uses tabs, spaces, or mixed indentation before headers — plan to check sample resumes in Week 9 before finalizing the regex.
