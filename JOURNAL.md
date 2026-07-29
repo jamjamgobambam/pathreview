@@ -42,3 +42,55 @@ confirmed the Redis probe never reaches `ping()` and the endpoint always returns
   `main`. Worked from the real, numbered tracker instead (issue #155) once I confirmed this.
 - Have not run `make test-integration` (requires Docker services), so the fix is verified at the
   unit level (mocked Redis client) but not against a live Redis instance.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All sub-tasks from `PLAN.md`'s Plan section are implemented:
+1. Reproduction test written and committed against the unmodified endpoint —
+   [`685f1ad`](https://github.com/salman-khan03/pathreview/commit/685f1ad), 3 of 5 tests fail.
+2. Minimal fix applied — [`ebcbe72`](https://github.com/salman-khan03/pathreview/commit/ebcbe72):
+   `redis.Redis.from_url(settings.redis_url, decode_responses=True)` replaces the two
+   nonexistent `settings.redis_host` / `settings.redis_port` fields.
+3. `tests/unit/test_health.py` re-run against the fix — all 5 tests pass.
+4. Full unit suite compared against a pre-fix baseline: 375 passed / 53 failed before, 380
+   passed / 53 failed after (the 5 new tests). The same 53 failures appear in both runs and
+   belong to other open issues (#149, #150, #157, #158, and others), not this one.
+5. `ruff`, `black`, and `mypy` run on the touched files: `black` clean, `ruff` shows the same 4
+   pre-existing errors in `health.py` before and after (none introduced by this change), `mypy`
+   error count on `health.py` dropped from 11 to 8 (the removed host/port lines were themselves
+   type errors).
+
+`PLAN.md` was rewritten to the required Understand/Map/Plan/Inputs & outputs/Risks &
+unknowns/Edge cases structure, and Week 7–8 `JOURNAL.md` entries are complete.
+
+**Next steps:**
+Open the PR against `ascherj/pathreview:main` as a draft, request review in the course Slack
+channel, address feedback, then mark ready for review and fill in Check-in 2 with the submitted
+PR link.
+
+**Blockers:**
+No `gh` CLI or GitHub API credentials are available in my local dev environment, so opening the
+PR and commenting to claim the issue are manual steps I still need to do through the browser.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _Pending — to be filled in on submission._
+
+**Branch:** `fix/155-health-check-redis-config`
+
+**What you built:**
+_To be filled in at submission._
+
+**Tests added or updated:**
+_To be filled in at submission._
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** _To be filled in at submission._
