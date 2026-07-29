@@ -21,8 +21,7 @@ This is a Tier 2 issue. It requires understanding how the RAG pipeline component
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [to be updated after push]
-
+**Reproduction commit link:** https://github.com/lynbergjean/pathreview/tree/test/38-integration-test-for-the-whole-rag-pipeline
 **Reproduction summary:**
 The integration test directory (`tests/integration/`) existed but contained only an empty `__init__.py` — no test exercised the full RAG pipeline. I added `tests/integration/test_rag_pipeline.py` with an `xfail` placeholder that raises `NotImplementedError`, confirming the gap is real and pinpointing exactly where the test needs to live.
 
