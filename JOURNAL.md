@@ -31,7 +31,7 @@ sufficiently defined before implementation.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [placeholder until the reproduction commit exists]
+**Reproduction commit link:** https://github.com/Ramen-Numeral/pathreview/commit/0573867f780dc37916d0660f64b8b4cae288c264
 
 **Reproduction summary:**
 Running `python3 scripts/run_evals.py` printed a completion message and exited
