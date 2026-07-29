@@ -24,3 +24,22 @@ for a first contribution.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to your Week 8 commit — we'll fill in after committing]
+
+**Reproduction summary:**
+Verified in the local checkout that the placeholder
+`test_template_snapshot_content_hash` in
+`tests/unit/test_prompt_templates.py` cannot detect template drift: it
+only asserts that an MD5 hex digest is 32 characters long, which is
+always true. Confirmed by editing
+`PROMPT_TEMPLATES["skills_feedback"]["v1"]` and re-running the test —
+it still passed, proving no protection existed.
+
+**PLAN.md link:** https://github.com/natanyanderson/pathreview/blob/feat/37-prompt-template-snapshots/PLAN.md
+
+**Walkthrough video (recommended):** [skipping — will do office hours if needed]
+
+**Blockers or open questions:** None. PR is already open (#[your PR number]) and passing tests locally.
