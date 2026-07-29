@@ -62,3 +62,20 @@ The issue appears in `safety/bias_detector.py`, where the patterns in `DISMISSIV
 
 No production code was changed during reproduction.
 
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** `https://github.com/zero3119/pathreview/commit/COMMIT_SHA`
+
+**Reproduction summary:**
+
+I reproduced Issue #151 by running `python -m pytest tests/unit/test_bias_detector.py -q`. Nine tests failed because the current regular expressions returned `(False, "")` for common phrasings of dismissive educational-background language and demographic assumptions.
+
+**PLAN.md link:** `https://github.com/zero3119/pathreview/blob/fix/151-bias-detector-patterns/PLAN.md`
+
+**Walkthrough video (recommended):** Not recorded.
+
+**Blockers or open questions:**
+
+The main open question is how much flexibility to add between related regex terms without causing false positives for the positive, factual, and neutral examples in `tests/unit/test_bias_detector.py`.
+
