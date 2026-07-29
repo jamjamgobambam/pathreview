@@ -14,3 +14,19 @@ The orchestrator caches agent state by user ID inside `agent/memory/session_stor
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/akao335/pathreview/commit/4310aac
+
+**Reproduction summary:**
+Wrote `scripts/reproduce_43.py`, which runs the same `Orchestrator.run()` call twice in a row for the same profile_id and portfolio data using a stub tool that counts its own executions. The first review executes the tool (`tool_result_cache_miss`, `call_count: 1`). The second review returns a cache hit (`tool_result_cache_hit`) and never re-executes the tool (`call_count` stays at `1`), proving the orchestrator's `ContextManager` cache persists across separate reviews instead of resetting.
+
+**PLAN.md link:** https://github.com/akao335/pathreview/blob/fix/43-clear-session-state/PLAN.md
+
+**Walkthrough video (recommended):** (none recorded)
+
+**Blockers or open questions:**
+Still need to confirm how `Orchestrator` is instantiated in the FastAPI app (singleton vs. per-request) before finalizing the exact fix approach. Also need to check whether the Redis-backed `session_store` (separate from `ContextManager`) needs its own invalidation logic once the `ContextManager` issue is fixed.
