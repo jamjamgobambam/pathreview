@@ -16,3 +16,12 @@ The review page previously showed a progress bar that reflected actual processin
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [\[link to commit documenting the reproduced issue\]](https://github.com/hanluu1/pathreview/commit/7eed904cf9f355b5955eaa413bd869697ec11235)
+
+**Reproduction summary:**
+Ran `python tests/repro_issue_97.py`, a static check of the full progress-reporting path — all 5 checks failed, confirming that `progress_pct` is dropped at every layer: no column on the `Review` model, never written by `process_review`, always returns `0` from the status route via a `getattr` fallback, missing from the frontend `Review` TypeScript interface, and `ReviewPage.tsx` renders only a static `<Loader>` spinner with no progress bar during polling.
+
+**PLAN.md link:** [\[link to PLAN.md in your fork\]](https://github.com/hanluu1/pathreview/commit/cd6762aef258140f639b1895ed0c8b66f2da2994)
