@@ -38,7 +38,7 @@ test, making the assertions pass against correct scorer behavior.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** _(fill in after pushing — see the "docs(agent): document Week 8 reproduction" commit on this branch)_
+**Reproduction commit link:** https://github.com/karanbinning/pathreview/commit/dce122984b14e78a39c165ad19036be82c972e13
 
 **Reproduction summary:**
 I ran the existing test in my local environment
