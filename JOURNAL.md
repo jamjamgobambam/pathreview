@@ -1,4 +1,4 @@
-## Week 7 — Issue selection
+## Week 7: Issue selection
 
 **Issue link:** https://github.com/ascherj/pathreview/issues/159
 
@@ -11,7 +11,7 @@ PathReview uses structlog for application logging, but its test configuration do
 not send those events through Python's standard logging system. As a result,
 tests that use pytest's `caplog` fixture cannot inspect log output even when the
 application correctly emits it. The affected test currently prints the expected
-warning to stderr, then fails because `caplog` is empty. A successful fix will
+warning to stdout, then fails because `caplog` is empty. A successful fix will
 configure structlog for the test environment so caplog-based assertions receive
 and can verify the emitted events.
 
@@ -28,7 +28,7 @@ is open, unassigned, and has no linked branch or pull request.
 
 **Cohort ledger:** [x] Issue added to cohort ledger
 
-## Week 8 — Reproduction & solution planning
+## Week 8: Reproduction and solution planning
 
 **Reproduction commit link:** [0bdd676](https://github.com/nancypatel12/pathreview/commit/0bdd67696f461d28d00f9733c637de8cda5e053d)
 
