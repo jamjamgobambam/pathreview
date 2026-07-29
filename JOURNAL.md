@@ -32,7 +32,7 @@ reviews so each run reflects the latest portfolio data.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [will paste after push — look for the commit that adds `tests/unit/test_orchestrator_session_state.py` and the #43 notes in `agent/orchestrator.py`]
+**Reproduction commit link:** https://github.com/priyavisingh/pathreview/commit/5396dc28e801c92caf01f70c78de09d82fcf0e64
 
 **Reproduction summary:**
 I reproduced issue #43 with unit tests against a fake session store and a counting
