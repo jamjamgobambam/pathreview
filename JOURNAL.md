@@ -31,7 +31,7 @@ Two-part reproduction. First, a structural test confirms the reranker module doe
 
 **PLAN.md link:** https://github.com/Modeste01/pathreview/blob/feat/34-setup-%26-short-description/PLAN.md
 
-**Walkthrough video (recommended):** (not recorded)
+**Walkthrough video (recommended):** https://youtu.be/pZt-e1viPQE
 
 **Blockers or open questions:**
 Need to decide which LLM to use for reranking (GPT-3.5-turbo is cheap and fast, but a local model would avoid API costs in tests). Also need to confirm whether batching all chunks in one prompt or scoring them individually gives more reliable results.
