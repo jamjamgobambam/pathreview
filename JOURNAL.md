@@ -32,9 +32,9 @@ None at this time. The reproduction is clear and the solution approach is straig
 **Current progress:**
 I have completed the core implementation of the fix. Both POST endpoints now have comprehensive request body schemas in docs/API.md:
 
-✅ **Step 1 complete:** Added POST /profiles schema with multipart/form-data format, all three fields (github_username, portfolio_url, resume_file), validation rules, and example curl request
-✅ **Step 2 complete:** Added POST /reviews schema with JSON format, profile_id field (UUID), error responses, and example curl request
-✅ **Step 5 complete:** Verified all documentation against source code (api/routes/profiles.py, api/routes/reviews.py, and Pydantic schemas) - everything is accurate
+**Step 1 complete:** Added POST /profiles schema with multipart/form-data format, all three fields (github_username, portfolio_url, resume_file), validation rules, and example curl request
+**Step 2 complete:** Added POST /reviews schema with JSON format, profile_id field (UUID), error responses, and example curl request
+**Step 5 complete:** Verified all documentation against source code (api/routes/profiles.py, api/routes/reviews.py, and Pydantic schemas) - everything is accurate
 
 The documentation now includes:
 - Content-Type specifications
@@ -52,3 +52,25 @@ The documentation now includes:
 
 **Blockers:**
 None. The fix is complete and ready for review. Note: make check and make test-unit cannot run in this environment (no .venv setup), but this is a documentation-only change with no code modifications, so no tests are needed.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** `docs/89-post-profiles-schema`
+
+**What you built:**
+I added comprehensive request body schema documentation to docs/API.md for the POST /profiles and POST /reviews endpoints. Each endpoint now includes field tables with types and requirements, Content-Type specifications, validation rules, example curl requests with proper headers, example response JSON, and error response documentation. All documentation was verified against the actual FastAPI route handlers and Pydantic schemas to ensure accuracy.
+
+**Tests added or updated:**
+N/A - This is a documentation-only change with no code modifications. No tests are required or applicable for updating API reference documentation.
+
+**Self-review confirmation:**
+- [ ] make check passes - N/A: Documentation-only change, no code to lint/typecheck
+- [ ] make test-unit passes - N/A: Documentation-only change, no code to test
+
+**Note:** This is a pure documentation change. The environment does not have .venv setup, so make commands cannot run. All documentation content was manually verified against source code files: api/routes/profiles.py, api/routes/reviews.py, api/schemas/profile.py, and api/schemas/review.py.
+
+**Draft PR feedback received from:** [none - will add after creating PR]
