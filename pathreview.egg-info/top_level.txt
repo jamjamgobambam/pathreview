@@ -1,6 +1,0 @@
-agent
-api
-core
-ingestion
-rag
-safety
