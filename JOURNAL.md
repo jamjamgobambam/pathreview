@@ -31,3 +31,16 @@ Ran the app locally and compared the auto-generated OpenAPI schema at `localhost
 
 **Blockers or open questions:**
 
+
+## Week 9 - Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+The API.md fix from Week 7 is complete - request schemas for POST /profiles and POST /reviews are documented with field tables and examples. Ran `make check` and `make test-unit` to confirm nothing broke.
+
+**Next steps:**
+Open a draft PR, get a quick peer review, then mark it ready for review.
+
+**Blockers:**
+
