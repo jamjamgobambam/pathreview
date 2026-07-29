@@ -14,3 +14,17 @@ The issue of ARCHITECTURE.md is that its description of the hybrid retrieval is 
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** The issue regarding missing details of the hybrid retrieval score in ARCHITECTURE.md exists in my local environment. Because it is documentation, I don't need to reproduce the issue by code. 
+
+**Reproduction summary:**
+[1–2 sentences: How did you reproduce the issue? What did you observe?]
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
