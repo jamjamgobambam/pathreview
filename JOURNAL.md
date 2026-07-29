@@ -68,7 +68,7 @@ root cause before the fix.
 
 **PLAN.md link:** https://github.com/BharathChalla/pathreview/blob/fix/152-faithfulness-short-claims/PLAN.md
 
-**Walkthrough video (recommended):** Not recorded.
+**Walkthrough video (recommended):** https://drive.google.com/file/d/1I2kA-4XKjCrFxrcCGrKFxDyHDlWbRVYX/view?usp=sharing
 
 **Blockers or open questions:**
 None going into Week 9 — the fix, tests, and PR (#262) are already up given
