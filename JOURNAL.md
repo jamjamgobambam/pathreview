@@ -25,11 +25,11 @@ This issue is a good fit for a Week 7 submission because it is focused on projec
 **Reproduction commit link:** [commit to be added after documenting the reproduction]
 
 **Reproduction summary:**
-I reproduced the issue by inspecting the orchestrator’s session-handling flow and confirming that prior session state is loaded for the same profile ID before a new review run starts. The current behavior allows data from an earlier review to persist into a later run unless that state is explicitly cleared.
+I reproduced the issue by inspecting the orchestrator’s session-handling flow in agent/orchestrator.py and confirming that prior session state is loaded for the same profile ID before a new review run starts. The current implementation merges a persisted session payload into the next run, which means stale context from an earlier review can leak into a later review unless that state is explicitly cleared.
 
 **PLAN.md link:** https://github.com/hfaugas/pathreview/blob/fix/43-clear-agent-session-state/PLAN.md
 
 **Walkthrough video (recommended):** Not recorded yet
 
 **Blockers or open questions:**
-I still need to confirm whether any part of the product intentionally relies on session reuse across runs before changing the persistence behavior.
+I still need to confirm whether any part of the product intentionally relies on session reuse across runs before changing the persistence behavior, especially around how the session store and orchestrator interact for repeated reviews.
