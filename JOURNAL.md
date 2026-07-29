@@ -50,3 +50,35 @@ that creates these public links and checks whether they have expired.
   grow in. The parts I will watch most closely are the expiry logic and the no-login
   access path, since those are where edge cases are most likely to hide, so I will make
   sure I have tests around token creation and expiry before I consider it done.
+
+## Week 8 — Reproduction and planning
+
+**Solution plan:** [PLAN.md](PLAN.md) — full design, API contract, and test plan.
+
+### Issue reproduced
+
+The Share button on the review page can only ever copy the review's own URL
+(`/reviews/{id}`), and that endpoint requires authentication. So the link it produces is
+useless to anyone who is not logged in — which is exactly the gap #101 describes. I
+confirmed this against the running backend with the seeded user `user1@example.com`,
+using a completed review (`85488186-4852-4fba-87d8-35f8ebab440e`):
+
+```
+# STEP 1 — a logged-out recipient of the shared link (no Authorization header)
+$ curl -s http://127.0.0.1:8000/reviews/85488186-4852-4fba-87d8-35f8ebab440e
+{"detail":"Not authenticated"}                                          # HTTP 401
+
+# STEP 2 — the owner, logged in, hitting the SAME url with their JWT
+$ curl -s http://127.0.0.1:8000/reviews/85488186-4852-4fba-87d8-35f8ebab440e \
+       -H "Authorization: Bearer <token>"
+<full review JSON>                                                      # HTTP 200
+```
+
+Step 2 shows the review data is fine; the only thing stopping a shared link from working
+is the auth gate (Step 1). In the browser this same barrier shows up one layer earlier:
+`ProtectedRoute` in `frontend/src/App.tsx` redirects a logged-out visitor of
+`/reviews/:id` straight to `/login`, so they never even see the 401.
+
+**Conclusion:** the fix must add a public, unauthenticated way to read a review summary —
+a tokenized `/share/{token}` route that does not depend on the current user — which is
+what PLAN.md specifies.
