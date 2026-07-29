@@ -1,28 +1,31 @@
-"""Reproduction for issue #111 — no property-based tests for the PII scrubber.
+"""Regression tests for the PII scrubber defects found via issue #111.
 
 https://github.com/ascherj/pathreview/issues/111
 
-This file is *evidence*, not the final deliverable. It pins the concrete PII
-formats that `PIIScrubber` fails to redact, so the defects are visible and
-regression-tested while the fix is discussed on the issue thread.
+This file started life as the *reproduction* for #111: every test below was
+written to fail, and was marked ``xfail(strict=True)`` so the suite stayed green
+while the fix was discussed on the issue thread. The fix has since landed in
+``safety/pii_scrubber.py``, every marker flipped to ``XPASS``, and the markers
+are gone -- these now assert the corrected behavior and guard against the
+defects coming back.
 
-Every test here is marked ``xfail(strict=True)``: the suite stays green today,
-and the moment someone fixes ``safety/pii_scrubber.py`` these flip to
-unexpected-pass and fail loudly, prompting removal of the marker.
+The values are not hand-picked. Each ``@example`` is the minimal counterexample
+``hypothesis`` shrank to when the properties in
+``test_pii_scrubber_properties.py`` first ran against the unfixed scrubber, so
+they are pinned here rather than left to the random seed.
 
-Two root causes, both in ``safety/pii_scrubber.py``:
+The three defects, all in ``safety/pii_scrubber.py``:
 
-1. The phone separator classes are ``[-.]?`` and do not include whitespace, so
-   space-separated numbers never match. ``phone_intl`` is worse than a miss --
-   it consumes only the country code, leaving the subscriber number in output
-   that *looks* redacted.
-2. ``scrub()`` applies ``re.IGNORECASE`` to ``street_address``, whose
-   alternation contains two-letter abbreviations (``St``, ``Dr``, ``Pl``,
-   ``Ct``). Lowercased, they match inside ordinary words.
-
-The ``@example`` decorators below are the counterexamples hypothesis shrank to
-on first run. They are pinned so these tests fail deterministically rather than
-depending on the random seed.
+1. **Phone separators omitted whitespace.** The separator classes were ``[-.]?``,
+   so every space-separated number -- the dominant written form -- went
+   unmatched, including ``(555) 123-4567``.
+2. **``phone_intl`` consumed only the country code.** This was *worse than a
+   miss*: ``+44 20 7946 0958`` became ``[REDACTED] 20 7946 0958``, output that
+   looks scrubbed to a reviewer while leaking the subscriber number.
+3. **``re.IGNORECASE`` let address abbreviations match inside words.** Lowercased,
+   the two-letter suffixes ``St``/``Dr``/``Pl`` matched inside ``applications``
+   and ``adr``, so ``5 years developing Python applications`` collapsed to
+   ``[REDACTED]ications``.
 """
 
 import pytest
@@ -35,18 +38,25 @@ pytestmark = pytest.mark.unit
 
 ISSUE = "https://github.com/ascherj/pathreview/issues/111"
 
+# `PIIScrubber` is stateless, and hypothesis rejects function-scoped fixtures
+# under `@given` because they are not reset between generated examples.
+SCRUBBER = PIIScrubber()
+
+DIGITS = "0123456789"
+SEPARATORS = st.sampled_from(["-", ".", " ", ""])
+
+property_test = settings(max_examples=200, deadline=None)
+
 
 @pytest.fixture
 def scrubber() -> PIIScrubber:
+    """Create a PIIScrubber instance."""
     return PIIScrubber()
 
 
 # ---------------------------------------------------------------------------
 # Strategies -- randomized but valid PII, the piece issue #111 says is missing.
 # ---------------------------------------------------------------------------
-
-DIGITS = "0123456789"
-SEPARATORS = st.sampled_from(["-", ".", " ", ""])
 
 
 @st.composite
@@ -75,33 +85,30 @@ def intl_phones(draw: st.DrawFn) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Defect 1 -- phone separators omit whitespace.
+# Defect 1 -- phone separators omitted whitespace.
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason=f"phone_us separators omit space -- {ISSUE}")
-@settings(max_examples=200, deadline=None)
+@property_test
 @given(us_phones())
 @example("000-000 0000")  # hypothesis-shrunk counterexample
 @example("(555) 123-4567")  # the most common written US format
-def test_property_us_phone_never_survives_scrub(phone: str) -> None:
+def test_us_phone_never_survives_scrub(phone: str) -> None:
     """INVARIANT: a generated US phone number never appears in scrub() output."""
-    assert phone not in PIIScrubber().scrub(f"Call me at {phone} today")
+    assert phone not in SCRUBBER.scrub(f"Call me at {phone} today")
 
 
-@pytest.mark.xfail(strict=True, reason=f"phone_intl consumes only country code -- {ISSUE}")
-@settings(max_examples=200, deadline=None)
+@property_test
 @given(intl_phones())
 @example("+1 00 000")  # hypothesis-shrunk counterexample
 @example("+44 20 7946 0958")
-def test_property_intl_phone_never_leaks_a_digit_group(phone: str) -> None:
+def test_intl_phone_never_leaks_a_digit_group(phone: str) -> None:
     """INVARIANT: no digit group of an international number survives scrub()."""
-    output = PIIScrubber().scrub(f"Reach me at {phone}")
+    output = SCRUBBER.scrub(f"Reach me at {phone}")
     leaked = [g for g in phone.lstrip("+").split() if len(g) >= 3 and g in output]
     assert not leaked, f"leaked {leaked} in {output!r}"
 
 
-@pytest.mark.xfail(strict=True, reason=f"space-separated phones unmatched -- {ISSUE}")
 @pytest.mark.parametrize(
     "phone",
     [
@@ -110,50 +117,48 @@ def test_property_intl_phone_never_leaks_a_digit_group(phone: str) -> None:
         "+1 555 123 4567",
     ],
 )
-def test_regression_space_separated_phone_is_redacted(scrubber: PIIScrubber, phone: str) -> None:
-    """Concrete formats the existing example suite already fails on."""
+def test_space_separated_phone_is_redacted(scrubber: PIIScrubber, phone: str) -> None:
+    """Concrete formats the example suite failed on before the fix."""
     assert "[REDACTED]" in scrubber.scrub(f"Contact: {phone}")
 
 
-def test_regression_intl_phone_partial_redaction_leaks_subscriber(
-    scrubber: PIIScrubber,
-) -> None:
-    """Documents current behavior: worse than a miss -- it *looks* redacted.
+def test_intl_phone_is_redacted_whole(scrubber: PIIScrubber) -> None:
+    """The partial-redaction leak is closed: the whole number goes, not just +44.
 
-    Not xfail: this asserts what the scrubber does TODAY, so the leak is
-    unmissable in the diff. Delete this test when the fix lands.
+    Before the fix this returned ``"[REDACTED] 20 7946 0958"`` -- output that
+    reads as scrubbed while the subscriber number sits beside it.
     """
-    assert scrubber.scrub("+44 20 7946 0958") == "[REDACTED] 20 7946 0958"
+    assert scrubber.scrub("+44 20 7946 0958") == "[REDACTED]"
 
 
 # ---------------------------------------------------------------------------
-# Defect 2 -- IGNORECASE makes address abbreviations match inside words.
+# Defect 2 -- IGNORECASE made address abbreviations match inside words.
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason=f"street_address false positives -- {ISSUE}")
-@settings(max_examples=200, deadline=None)
+@property_test
 @given(st.text(alphabet="abcdefghijklmnopqrstuvwxyz ", min_size=1, max_size=40))
 @example("adr")  # hypothesis-shrunk counterexample: contains "dr" (Drive)
 @example("years developing python applications")  # contains "pl" (Place)
-def test_property_prose_is_not_redacted_as_an_address(prose: str) -> None:
+def test_prose_is_not_redacted_as_an_address(prose: str) -> None:
     """INVARIANT: a digit followed by ordinary prose is not PII."""
     text = f"I worked for 5 {prose}"
-    assert "[REDACTED]" not in PIIScrubber().scrub(text), f"false positive on {text!r}"
+    assert "[REDACTED]" not in SCRUBBER.scrub(text), f"false positive on {text!r}"
 
 
 # ---------------------------------------------------------------------------
 # Control -- proves the properties fail on real defects, not on everything.
+# This one passed before the fix too, and must keep passing after it.
 # ---------------------------------------------------------------------------
 
 
-@settings(max_examples=200, deadline=None)
+@property_test
 @given(
     local=st.text(alphabet="abcdefghijklmnopqrstuvwxyz0123456789", min_size=1, max_size=10),
     domain=st.text(alphabet="abcdefghijklmnopqrstuvwxyz", min_size=1, max_size=10),
     tld=st.sampled_from(["com", "org", "co.uk", "io", "dev"]),
 )
-def test_property_email_never_survives_scrub(local: str, domain: str, tld: str) -> None:
-    """PASSES. The email regex holds up under randomized input."""
+def test_email_never_survives_scrub(local: str, domain: str, tld: str) -> None:
+    """The email regex held up under randomized input before and after the fix."""
     email = f"{local}@{domain}.{tld}"
-    assert email not in PIIScrubber().scrub(f"Contact {email} please")
+    assert email not in SCRUBBER.scrub(f"Contact {email} please")
