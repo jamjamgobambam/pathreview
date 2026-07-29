@@ -18,3 +18,32 @@
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** (this commit — see JOURNAL.md history on this branch)
+
+**Reproduction summary:**
+Reproduced the exact snippet from the issue: calling `StructuralChunker().chunk(text, {})` on a 20x-repeated plain-text paragraph with no markdown headings returns `[]`. I also ran the full existing suite, `pytest tests/unit/test_structural_chunker.py`, which shows `test_document_with_no_headings` failing with `assert 0 >= 1` while the other 14 tests in the file pass — confirming the bug is isolated to the no-headings path and everything else in the chunker already behaves correctly.
+
+```
+$ python3 -c "
+from ingestion.chunking.structural_chunker import StructuralChunker
+c = StructuralChunker()
+result = c.chunk('This is a plain document with no headings at all. ' * 20, {})
+print('chunks returned:', len(result))
+"
+chunks returned: 0
+
+$ pytest tests/unit/test_structural_chunker.py -v
+...
+FAILED tests/unit/test_structural_chunker.py::TestStructuralChunker::test_document_with_no_headings
+1 failed, 14 passed in 0.91s
+```
+
+**PLAN.md link:** [PLAN.md](PLAN.md)
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+While tracing the caller (`ingestion/chunking/strategy_selector.py`), I also found that preamble text appearing *before* the first heading in a document that otherwise does have headings gets silently dropped too — same root cause line, different trigger condition. It's not what issue #149 describes, so I'm treating it as an open question for Week 9: fix it in the same PR since it's the same line and same root cause, or leave it out to keep the PR scoped to what the issue actually reports.
