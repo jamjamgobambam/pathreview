@@ -119,4 +119,14 @@ class StructuralChunker(BaseChunker):
                 "level": heading_stack[-1][0] if heading_stack else 0,
             })
 
+        # Fallback: a nonempty document that produced no heading-based sections
+        # (i.e. it contains no Markdown headings) is returned as a single
+        # untitled section so its content is not silently dropped (issue #149).
+        if not sections and text.strip():
+            sections.append({
+                "content": text.strip(),
+                "path": [],
+                "level": 0,
+            })
+
         return sections
