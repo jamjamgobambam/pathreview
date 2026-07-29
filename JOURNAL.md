@@ -17,7 +17,7 @@ The agent’s plan-execute loop in agent/orchestrator.py currently catches any e
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/nchicas224/pathreview/commit/d491079637988b205cf71f3a231f0724d4b4bd7b
 
 **Reproduction summary:**
 Added unit-test tools that fail in two controlled ways: one returns
