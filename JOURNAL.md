@@ -51,3 +51,22 @@ Share the draft PR in the cohort feedback channel. Once I've either incorporated
 
 **Blockers:**
 None blocking my own progress. For context (not blocking): the repo has some pre-existing issues unrelated to #82 -- `core/services/review_service.py` fails `mypy` independent of this change, `make check`'s lint step has ~181 pre-existing ruff errors repo-wide in files this PR doesn't touch, and `tests/unit` has 53 pre-existing failures (confirmed identical before/after). All documented in the PR description under "Pre-existing issues."
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/229
+
+**Branch:** fix/82-concurrent-review-race-condition
+
+**What you built:**
+`process_review` in `core/services/review_service.py` now acquires a Postgres advisory lock (`pg_advisory_xact_lock`, keyed on `profile_id`) right after the "processing" status commit and holds it for the rest of the pipeline, so a second review for the same profile waits for the first to finish instead of running concurrently against shared state. Reviews for different profiles are unaffected and still run in parallel.
+
+**Tests added or updated:**
+`tests/integration/test_review_service.py` -- the Week 8 reproduction test (`test_concurrent_reviews_for_same_profile_are_not_serialized`) now passes unmodified, confirming the lock serializes same-profile reviews. Added `test_concurrent_reviews_for_different_profiles_are_not_blocked` to confirm the lock is scoped per-profile, not global.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(No new failures introduced -- pre-existing failures documented in the PR description under "Notes for Reviewers" and confirmed identical before/after this change.)
+
+**Draft PR feedback received from:** none received yet -- PR was opened as a draft for early feedback, then moved to ready for review before any feedback arrived. Will note in the Week 10 reflection if anything comes in after submission.
