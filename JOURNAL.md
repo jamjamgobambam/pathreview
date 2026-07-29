@@ -33,3 +33,50 @@ Not recorded.
 
 **Blockers or open questions:**
 The implementation was completed before this planning milestone because I initially understood the previous milestone to include implementing the issue. The plan below documents the investigation and implementation approach followed.
+
+## Week 9 — Implementation & validation
+
+**Pull request:**
+https://github.com/thanh-cnguyen/pathreview/pull/1
+
+**Implementation summary:**
+I added consistent Google-style docstrings to the eight public functions in
+`core/services/profile_service.py` and `core/services/review_service.py`.
+The docstrings now explain each function's arguments, return value, and raised
+exceptions where applicable.
+
+I also added minimal type annotations, including `AsyncSession` parameter types
+and explicit optional return types. These annotations improve type clarity without
+changing the runtime behavior of the service functions.
+
+**Validation performed:**
+
+- `make test-unit` was run and reported failures across multiple components.
+  I reproduced the relevant async-mock failures on `upstream/main`, confirming
+  that they were not introduced by this PR.
+- `make test-integration` was run, but pytest collected zero integration tests
+  and exited with status code 5.
+- `make lint` was run and reported 182 repository-wide errors.
+- `make typecheck` was run and reported repository-wide type-checking errors.
+- The applicable checks for the modified files were reviewed separately.
+
+**Testing scope:**
+This contribution updates documentation and type annotations without changing
+application behavior. Therefore, no new unit or integration tests were added.
+Not every validation item in the pull request template applies to this
+documentation-focused contribution.
+
+**Additional notes:**
+The pre-existing unit-test failures include errors such as `'coroutine' object
+has no attribute 'first'` and `'coroutine' object has no attribute 'all'`.
+The affected service methods still use the existing
+`result.scalars().first()` and `result.scalars().all()` implementations, which
+this PR does not modify.
+
+The issue also references `core/services/notification_service.py`, but that file
+does not exist on the current `upstream/main`. The implementation therefore
+covers the eight public functions in the existing profile and review service
+modules.
+
+**Blockers or open questions:**
+None at this time. The PR is ready for review.
