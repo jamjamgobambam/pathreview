@@ -147,3 +147,114 @@ class TestReadmeReingestionIdempotency:
             "stale embedding: the previous README version's chunk survived "
             "re-ingestion; retrieval can now return outdated content"
         )
+
+
+def _chunks_for_source(collection: FakeChromaCollection, source_id: str) -> list[dict]:
+    """Return the stored records whose metadata belongs to ``source_id``."""
+    return [
+        rec for rec in collection._store.values() if rec["metadata"].get("source_id") == source_id
+    ]
+
+
+@pytest.mark.unit
+class TestReingestionIsIdempotentAcrossSources:
+    """The delete-before-insert fix must hold on every ingest path and edge case.
+
+    These complement the README replacement test above: they assert that
+    re-ingestion never leaves a prior version's chunks behind for resumes and
+    repo metadata, that a shorter document does not strand orphaned chunks, that
+    re-ingesting identical content does not accumulate duplicates, and that
+    editing one source does not disturb a sibling source.
+    """
+
+    @pytest.fixture
+    def collection(self):
+        return FakeChromaCollection()
+
+    @pytest.fixture
+    def pipeline(self, collection):
+        # Force _check_skip's lookup to "not found" so ingestion always proceeds;
+        # idempotency must come from the delete step, not from skipping.
+        db_session = Mock()
+        db_session.query.return_value.filter_by.return_value.first.return_value = None
+        return IngestionPipeline(
+            vector_db=collection,
+            db_session=db_session,
+            embedding_provider=FakeEmbeddingProvider(),
+        )
+
+    def test_edited_resume_replaces_old_chunks(self, pipeline, collection):
+        """The resume path must be idempotent, not just the README path."""
+        pipeline.ingest_resume(
+            profile_id="P", content="# Resume\n\nSkilled in Flask.\n", filename="cv.md"
+        )
+        assert any("Flask" in doc for doc in collection.all_documents())
+
+        pipeline.ingest_resume(
+            profile_id="P", content="# Resume\n\nSkilled in FastAPI.\n", filename="cv.md"
+        )
+        docs = collection.all_documents()
+        assert any("FastAPI" in doc for doc in docs), "re-ingested resume content missing"
+        assert not any("Flask" in doc for doc in docs), "stale resume chunk survived"
+
+    def test_edited_repo_metadata_replaces_old_chunks(self, pipeline, collection):
+        """The repo-metadata path must be idempotent too.
+
+        Rather than assert on parser-generated text, check that only one content
+        version remains for the source — a robust proxy for "no stale chunks".
+        """
+        repo_v1 = {"name": "proj", "description": "A Flask service.", "language": "Python"}
+        repo_v2 = {"name": "proj", "description": "A FastAPI service.", "language": "Python"}
+
+        pipeline.ingest_repo_metadata(profile_id="P", repo_data=repo_v1)
+        pipeline.ingest_repo_metadata(profile_id="P", repo_data=repo_v2)
+
+        chunks = _chunks_for_source(collection, "repo_P_proj")
+        assert chunks, "repo metadata was not ingested"
+        hashes = {rec["metadata"]["content_hash"] for rec in chunks}
+        assert len(hashes) == 1, "more than one content version survived for the source"
+
+    def test_shrinking_readme_removes_orphaned_chunks(self, pipeline, collection):
+        """A shorter re-ingest must not strand chunks from the longer version."""
+        long_readme = (
+            "# Project\n\nIntro section.\n\n"
+            "## Setup\n\nSetup details here.\n\n"
+            "## Usage\n\nUsage details here.\n"
+        )
+        short_readme = "# Project\n\nJust an intro now.\n"
+
+        pipeline.ingest_readme(profile_id="P", repo_name="r", content=long_readme)
+        long_count = len(_chunks_for_source(collection, "readme_P_r"))
+
+        pipeline.ingest_readme(profile_id="P", repo_name="r", content=short_readme)
+
+        docs = collection.all_documents()
+        assert not any("Setup details" in d for d in docs), "orphaned 'Setup' chunk survived"
+        assert not any("Usage details" in d for d in docs), "orphaned 'Usage' chunk survived"
+        assert len(_chunks_for_source(collection, "readme_P_r")) < long_count
+
+    def test_reingesting_identical_content_does_not_duplicate(self, pipeline, collection):
+        """Re-ingesting unchanged content (skip bypassed) must not accumulate chunks."""
+        readme = "# Project\n\nStable content.\n"
+
+        pipeline.ingest_readme(profile_id="P", repo_name="r", content=readme)
+        first_count = len(_chunks_for_source(collection, "readme_P_r"))
+
+        pipeline.ingest_readme(profile_id="P", repo_name="r", content=readme)
+        assert len(_chunks_for_source(collection, "readme_P_r")) == first_count
+
+    def test_editing_one_repo_leaves_sibling_source_intact(self, pipeline, collection):
+        """Deletes are scoped to a source_id; a sibling repo must be untouched."""
+        pipeline.ingest_readme(profile_id="P", repo_name="a", content="# A\n\nAlpha content.\n")
+        pipeline.ingest_readme(profile_id="P", repo_name="b", content="# B\n\nBeta content.\n")
+
+        pipeline.ingest_readme(profile_id="P", repo_name="a", content="# A\n\nAlpha v2 content.\n")
+
+        docs = collection.all_documents()
+        assert any("Beta content" in d for d in docs), "sibling source B was wrongly deleted"
+        assert any("Alpha v2 content" in d for d in docs), "edited source A missing new content"
+        # Source A retains exactly one content version after the edit.
+        a_hashes = {
+            rec["metadata"]["content_hash"] for rec in _chunks_for_source(collection, "readme_P_a")
+        }
+        assert len(a_hashes) == 1
