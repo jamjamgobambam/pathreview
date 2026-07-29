@@ -1,15 +1,21 @@
-from uuid import UUID
-import structlog
 import json
-from datetime import datetime
-from sqlalchemy import select, and_
+from datetime import datetime, timedelta
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
+from core.models.share_link import ShareLink
 
 log = structlog.get_logger()
+
+SHARE_LINK_TTL_DAYS = 30
 
 
 async def create_review(
@@ -77,6 +83,39 @@ async def list_reviews(
     reviews = result.scalars().all()
 
     return reviews, total
+
+
+async def create_share_link(
+    db: AsyncSession,
+    review_id: UUID,
+) -> ShareLink:
+    """
+    Create a public share link for a review, expiring in SHARE_LINK_TTL_DAYS.
+    Returns the persisted ShareLink (its token is used in the public URL).
+    """
+    share_link = ShareLink(
+        review_id=review_id,
+        expires_at=datetime.utcnow() + timedelta(days=SHARE_LINK_TTL_DAYS),
+    )
+    db.add(share_link)
+    await db.commit()
+    await db.refresh(share_link)
+    return share_link
+
+
+async def get_share_link(
+    db: AsyncSession,
+    token: str,
+) -> ShareLink | None:
+    """
+    Fetch a share link by token with its review eager-loaded, regardless of
+    expiry. Returns None if no link exists for the token. The caller is
+    responsible for checking expires_at (so it can distinguish 404 from 410).
+    """
+    stmt = select(ShareLink).where(ShareLink.token == token).options(selectinload(ShareLink.review))
+    result = await db.execute(stmt)
+    share_link: ShareLink | None = result.scalars().first()
+    return share_link
 
 
 async def process_review(
