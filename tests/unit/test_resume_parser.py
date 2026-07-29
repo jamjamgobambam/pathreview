@@ -181,3 +181,29 @@ class TestResumeParser:
         assert "John Doe" in result.text
         assert "Software Engineer" in result.text
         assert "Python" in result.text
+
+    # Issue #147 — failing test documenting the bug
+    # PDF-extracted text commonly has leading whitespace on each line.
+    # _detect_sections() uses regex patterns anchored to ^ and \n with no \s*,
+    # so indented headers like "  Education" are never matched.
+    # Reproduced locally: parser._detect_sections(indented_text) returns []
+    # Fix: add \s* after ^ and \n in the 4 patterns in resume_parser.py:135-138
+    @pytest.mark.xfail(reason="Issue #147: leading whitespace breaks section detection")
+    def test_detect_sections_with_leading_whitespace(self, parser):
+        """Section headers with leading whitespace (common in PDF output) should be detected."""
+        text = """
+  Education
+  B.S. Computer Science, 2022
+
+  Experience
+  Software Engineer at Acme Corp
+
+  Skills
+  Python, JavaScript
+"""
+        sections = parser._detect_sections(text)
+
+        sections_lower = [s.lower() for s in sections]
+        assert any("education" in s for s in sections_lower)
+        assert any("experience" in s for s in sections_lower)
+        assert any("skills" in s for s in sections_lower)
