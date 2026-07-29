@@ -61,3 +61,59 @@ all 37 tests stayed green, proving nothing guards template content against accid
 Deciding whether the snapshot baseline should live in the test file (keeps scope to one
 file) or next to the templates in `rag/generator/prompt_templates.py`. Leaning toward the
 test file and will confirm with the reviewer in the PR.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the full fix on `test/37-prompt-template-snapshot-tests`. Completed sub-tasks
+from PLAN.md: captured the sha256 baseline for all five templates, added a module-level
+`EXPECTED_SNAPSHOTS` map plus a `_hash_template()` helper, and replaced the no-op
+`test_template_snapshot_content_hash` with two real tests —
+`test_every_template_version_matches_snapshot` (fails on any content drift, names the exact
+template) and `test_no_untracked_template_versions` (forces a newly added template/version to
+be registered). Re-ran the reproduction: a one-word edit to `skills_feedback` now fails the
+snapshot test with the intended message, and after reverting all 38 tests in the file pass.
+
+**Next steps:**
+Open a draft PR to `ascherj/pathreview`, request peer/mentor review in the cohort Slack
+channel, and address any feedback before marking it ready for review.
+
+**Blockers:**
+None. Noted a large number of pre-existing failures in the repo (53 failing unit tests and
+182 `ruff` errors across files I do not touch); confirmed my change introduces none and will
+document them in the PR.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** <!-- TODO: paste the PR URL here after opening it on ascherj/pathreview -->
+
+**Branch:** `test/37-prompt-template-snapshot-tests`
+
+**What you built:**
+Snapshot tests that pin each versioned prompt template to a stored sha256. Editing an
+existing template's text now fails `test_every_template_version_matches_snapshot` with a
+message telling the developer to add a new version rather than edit in place, and adding an
+unregistered template/version fails `test_no_untracked_template_versions`. No production code
+changed — this is a test-only guard.
+
+**Tests added or updated:**
+`tests/unit/test_prompt_templates.py` — removed the no-op `test_template_snapshot_content_hash`
+and added `test_every_template_version_matches_snapshot` and
+`test_no_untracked_template_versions`, backed by a new `EXPECTED_SNAPSHOTS` baseline and a
+`_hash_template()` helper.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+> "Passes" here means my change introduces **no new failures** in a repo with documented
+> pre-existing failures. Baseline before my change: `53 failed, 375 passed` (`make test-unit`)
+> and 182 pre-existing `ruff` errors (`make check`). After my change: `53 failed, 376 passed`
+> (my net +1 test, my file fully green) and no new `ruff`/`black`/`mypy` errors on the lines I
+> added. The pre-existing failures live entirely in files I did not touch (e.g.
+> `test_resume_parser.py`, `test_review_service.py`, `test_skill_extractor.py`) plus
+> pre-existing lint/type debt in the untouched portions of `test_prompt_templates.py`.
+
+**Draft PR feedback received from:** <!-- TODO: name or Slack handle, or "none" -->
