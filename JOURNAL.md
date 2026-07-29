@@ -35,3 +35,17 @@ Issue #111 concerns the test coverage of PathReview's PII scrubber in the safety
 - GitHub claim comment: https://github.com/ascherj/pathreview/issues/111#issuecomment-4998092019
 - The issue had earlier public interest comments; the formal course-ledger entry for Section 2a is the basis for this assignment claim.
 - No implementation or pull request has been completed in Week 7; those are intentionally deferred to the later module weeks.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** The reproduction record is committed in this Week 8 change; the final commit URL is added in the follow-up documentation commit after its hash is known.
+
+**Reproduction summary:** From the Week 7 branch, `pytest --collect-only -q tests/unit/test_pii_scrubber.py` collected 25 tests, all named fixed-example tests in `tests/unit/test_pii_scrubber.py`; searching that file for `hypothesis`, `@given`, `strateg`, or `property` returned no matches. This reproduces the Issue #111 gap: the scrubber has deterministic examples but no property-based coverage for randomized supported PII formats.
+
+**Baseline test result:** Running `pytest -q tests/unit/test_pii_scrubber.py` produced `20 passed, 5 failed`; the failures are existing phone/address matching expectations and are recorded as a separate baseline blocker rather than changed in Week 8.
+
+**PLAN.md link:** https://github.com/Thankyou-Cheems/pathreview/blob/test/111-pii-scrubber-hypothesis/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded; this is optional and not graded.
+
+**Blockers or open questions:** Docker Desktop/PostgreSQL remains unavailable for the full application environment. The later property-test implementation must decide how to handle regex overlap, especially street-address matches in ordinary prose and the overlap between US and international phone patterns. No production implementation or pull request is included in Week 8.
