@@ -10,3 +10,14 @@ This issue affects the unit tests for the README scoring module in `tests/unit/t
 **Branch name:** fix/156-readme-scorer-fixture-length
 **Setup confirmation:** [x] App runs locally at localhost:5173
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [Paste your commit link here after pushing]
+**Reproduction summary:**
+Ran `pytest tests/unit/test_readme_scorer.py -q` on branch `fix/156-readme-scorer-fixture-length`. Confirmed `test_readme_with_all_quality_signals` fails with `AssertionError: assert 51 > 100` because the string fixture in `test_readme_scorer.py` has only 51 words.
+
+**PLAN.md link:** [Paste link to PLAN.md in your GitHub fork]
+**Walkthrough video (recommended):** 
+**Blockers or open questions:**
+None.
