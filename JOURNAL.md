@@ -23,3 +23,17 @@ The orchestrator in the agent workflow is swallowing tool-call failures and cont
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/helpism/pathreview/commit/179625f44aa48d8df2ba3dd093e4ff8b96869253 
+
+**Reproduction summary:**
+I reproduced the issue by writing a unit test (`test_orchestrator_swallows_tool_failure_without_logging_exc_info`) that mocked a tool execution to raise an intentional `AttributeError`. I observed that while `orchestrator.run()` caught the failure and logged a generic error message, it completely omitted exception stack traces (`exc_info`) and silently swallowed intermediate retry attempts.
+
+**PLAN.md link:** https://github.com/helpism/pathreview/commit/48a9500d21d2c7b4960d5d9d52c74c869d290c04 
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+While i was attempting to find the cause of the issue, i hit several roadblock (e.g. tracing the wrong problem and then being stuck). What are steps to take to systematically isolate a root cause without getting side-tracked by false leads? Thanks in advance.
