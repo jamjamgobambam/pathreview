@@ -3,6 +3,16 @@ import { render, screen } from '@testing-library/react'
 import { axe } from 'jest-axe'
 import { ReviewPage } from '../ReviewPage'
 import { useReviewStatus } from '../../hooks/useReviewStatus'
+import { Review } from '../../types'
+
+const failedReview: Review = {
+  id: 'review-123',
+  profile_id: 'profile-123',
+  status: 'failed',
+  error_message: 'The analysis service timed out.',
+  created_at: '2026-07-01T00:00:00Z',
+  updated_at: '2026-07-01T00:05:00Z'
+}
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
@@ -41,6 +51,15 @@ describe('ReviewPage', () => {
 
     const { container } = render(<ReviewPage />)
 
+    expect(await axe(container)).toHaveNoViolations()
+  })
+
+  it('has no accessibility violations in the failed state', async () => {
+    mockUseReviewStatus.mockReturnValue({ review: failedReview, isPolling: false, error: null })
+
+    const { container } = render(<ReviewPage />)
+
+    expect(screen.getByText('Review Failed')).toBeInTheDocument()
     expect(await axe(container)).toHaveNoViolations()
   })
 })
