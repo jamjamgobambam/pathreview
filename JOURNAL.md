@@ -87,7 +87,8 @@ reachable directly: Postgres returns the 3 seeded users and Redis answers `PING`
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** _(this commit)_
+**Reproduction commit link:**
+https://github.com/thewildox/pathreview/commit/a7f98720c5f6399b8ca7b340c6d6b8c1f2e09ebb
 
 **Reproduction summary:**
 `pytest tests/unit/test_review_service.py -q` reproduces the issue exactly as reported —
@@ -124,7 +125,8 @@ against arbitrarily broken code — `test_list_reviews_returns_paginated_results
 (`result is None or result is not None`), and
 `test_list_reviews_ordered_by_created_at`, which asserts nothing about ordering at all.
 
-**PLAN.md link:** see `PLAN.md` in the repo root (added in the follow-up commit)
+**PLAN.md link:**
+https://github.com/thewildox/pathreview/blob/fix/158-review-service-async-mocks/PLAN.md
 
 **Walkthrough video (recommended):** not recorded
 
