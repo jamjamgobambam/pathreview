@@ -34,7 +34,6 @@ class TestPIIScrubber:
         assert "alice@example.com" not in scrubbed
         assert "bob@company.org" not in scrubbed
 
-    # fails, related to issue 146
     def test_us_phone_number_redaction(self, scrubber: PIIScrubber) -> None:
         """Test US phone number is redacted."""
         text = "Call me at (555) 123-4567"
@@ -43,7 +42,6 @@ class TestPIIScrubber:
         assert "[REDACTED]" in scrubbed
         assert "555" not in scrubbed or "1234567" not in scrubbed
 
-    # fails, related to issue 146
     def test_us_phone_formats(self, scrubber: PIIScrubber) -> None:
         """Test various US phone number formats."""
         formats = [
@@ -57,6 +55,25 @@ class TestPIIScrubber:
             text = f"Contact: {phone}"
             scrubbed = scrubber.scrub(text)
             assert "[REDACTED]" in scrubbed
+
+    def test_space_separated_phone_formats_no_leak(self, scrubber: PIIScrubber) -> None:
+        """Test US phone formats using spaces are redacted with no digit leak."""
+        formats = [
+            "555 123 4567",  # spaces throughout (the core issue-146 case)
+            "(555) 123-4567",  # parens + space
+            "+1 555 123 4567",  # country code + spaces
+            "1 555 123 4567",  # leading 1 + spaces
+        ]
+
+        for phone in formats:
+            text = f"Contact: {phone}"
+            scrubbed = scrubber.scrub(text)
+
+            assert "[REDACTED]" in scrubbed  # something was redacted
+            assert phone not in scrubbed  # full number gone
+            assert "555" not in scrubbed  # no area-code leak
+            assert "123" not in scrubbed  # no exchange leak
+            assert "4567" not in scrubbed  # no line-number leak
 
     def test_international_phone_redaction(self, scrubber: PIIScrubber) -> None:
         """Test international phone number is redacted."""
@@ -124,7 +141,6 @@ class TestPIIScrubber:
         assert len(email_detections) > 0
         assert "alice@example.com" in email_detections[0]["value"]
 
-    # fails, related to issue 146
     def test_detect_phone_pii(self, scrubber: PIIScrubber) -> None:
         """Test detect() finds phone number PII."""
         text = "Phone: (555) 123-4567"
@@ -132,6 +148,15 @@ class TestPIIScrubber:
 
         phone_detections = [d for d in detected if "phone" in d["type"]]
         assert len(phone_detections) > 0
+
+    def test_detect_space_separated_phone(self, scrubber: PIIScrubber) -> None:
+        """Test detect() finds a space-separated phone number with full value."""
+        text = "Phone: 555 123 4567"
+        detected = scrubber.detect(text)
+
+        phone_detections = [d for d in detected if d["type"] == "phone_us"]
+        assert len(phone_detections) > 0
+        assert "555 123 4567" in phone_detections[0]["value"]
 
     def test_detect_ssn_pii(self, scrubber: PIIScrubber) -> None:
         """Test detect() finds SSN PII."""
@@ -182,7 +207,6 @@ class TestPIIScrubber:
             scrubbed = scrubber.scrub(text)
             assert email not in scrubbed or "[REDACTED]" in scrubbed
 
-    # fails, related to issue 146
     def test_phone_at_start_of_text(self, scrubber: PIIScrubber) -> None:
         """Test phone number at start of text."""
         text = "(555) 123-4567 is my phone number."
@@ -226,7 +250,6 @@ class TestPIIScrubber:
         scrubbed = scrubber.scrub(text)
         assert scrubbed == text
 
-    # fails, but NOT related to issue 146 (phone number correctly scrubbed)
     def test_mixed_pii_and_text(self, scrubber: PIIScrubber) -> None:
         """Test text with mix of PII and regular content."""
         text = """
