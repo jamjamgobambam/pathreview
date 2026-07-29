@@ -40,7 +40,6 @@ Outputs:
 
 ### Risks & unknowns
 - I need to confirm whether the preferred fix is `redis.from_url(...)` or parsing `redis_url` into host and port values before constructing the client.
-- The local notes currently disagree on issue number: Week 7 references `#156`, but the issue text provided this week says `#155`.
 - There is no existing health-route test coverage, so I need to be careful not to lock the test too tightly to one implementation detail.
 
 ### Edge cases

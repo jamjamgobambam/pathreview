@@ -1,6 +1,6 @@
 ## Week 7 -- Issue selection
 
-**Issue link:** https://github.com/ascherj/pathreview/issues/156
+**Issue link:** https://github.com/ascherj/pathreview/issues/155
 
 **Issue title:** Health check references settings.redis_host, which does not exist on Settings
 
@@ -32,4 +32,4 @@ I reproduced the issue locally on Wednesday, July 29, 2026 by calling the health
 **Walkthrough video (recommended):** Not recorded yet
 
 **Blockers or open questions:**
-The local notes disagree on the issue number: my existing Week 7 entry and branch name reference `#156`, but the issue text I am working from says `#155`. I also still need to choose whether the Week 9 fix should use `redis.from_url(...)` directly or parse `redis_url` before building the client.
+I still need to choose whether the Week 9 fix should use `redis.from_url(...)` directly or parse `redis_url` before building the client.
