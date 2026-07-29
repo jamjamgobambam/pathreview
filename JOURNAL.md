@@ -42,7 +42,7 @@ other tests breaking.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** _(added in follow-up commit — see below)_
+**Reproduction commit link:** https://github.com/GORLEABHILASH/pathreview/commit/c9bfaf19e139d727fe7aeafb1c46351583902d4a
 
 **Reproduction summary:**
 Ran `.venv/bin/python -m pytest tests/unit/test_pii_scrubber.py -v` on this
@@ -62,7 +62,7 @@ FAILED test_phone_at_start_of_text
 FAILED test_mixed_pii_and_text  (pre-existing street_address bug, see PLAN.md)
 ```
 
-**PLAN.md link:** _(added in follow-up commit — see below)_
+**PLAN.md link:** https://github.com/GORLEABHILASH/pathreview/blob/fix/146-pii-scrubber-parenthesized-phones/PLAN.md
 
 **Walkthrough video (recommended):** _Not recorded yet (optional)._
 
