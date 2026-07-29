@@ -39,3 +39,17 @@ completely untouched, as if no PII pattern existed.
 - Multiple phone numbers in the same text, mixing formats (e.g., the original issue's repro string with both a parenthesized and a dashed number)
 - The `"+1 555 123 4567"` fully space-separated format with no parens or dashes at all
 - Numbers with inconsistent separators, e.g. `(555)-123.4567` mixing styles in one number
+
+## Update (Week 9)
+
+**Scope note:** During implementation, the pre-commit hook blocked the commit
+due to two pre-existing lint errors in `safety/pii_scrubber.py` (an unused
+loop variable and a line-length violation on the unrelated `street_address`
+pattern) that existed before this change touched the file. Per the "scope
+grows" decision framework, I chose to fix these two lint-only issues
+(no behavior change, verified byte-for-byte) rather than scope down further
+or split into a separate PR, since they were blocking in the same file and
+trivial to resolve. The `street_address` regex's actual behavioral bug
+(unrelated false-positive match inside "applications") was left out of
+scope and documented in the PR description instead, since fixing it would
+expand this PR beyond issue #146.
