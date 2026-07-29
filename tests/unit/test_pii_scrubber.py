@@ -53,6 +53,16 @@ class TestPIIScrubber:
             scrubbed = scrubber.scrub(text)
             assert "[REDACTED]" in scrubbed
 
+    def test_fully_space_separated_phone_number(self, scrubber: PIIScrubber) -> None:
+        """Test phone number with spaces as the only separator (no dashes/parens)."""
+        text = "Contact: +1 555 123 4567"
+        scrubbed = scrubber.scrub(text)
+        assert "[REDACTED]" in scrubbed
+
+        detected = scrubber.detect(text)
+        phone_detections = [d for d in detected if "phone" in d["type"]]
+        assert len(phone_detections) > 0
+
     def test_international_phone_redaction(self, scrubber):
         """Test international phone number is redacted."""
         text = "Reach me at +44 20 7946 0958"
