@@ -42,3 +42,26 @@ being installed, since resolved. Still working through the Postgres piece.)*
 
 
 
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/clem0g/pathreview/commit/b12000e
+
+**Reproduction summary:**
+Ran the reproduction snippet from the issue against
+FaithfulnessChecker.check() -- confirmed a faithfulness score of 0.0 for
+two short claims ("Knows Python.", "Knows SQL.") that are both fully
+supported by their matching context chunks. Also noticed only 1 claim was
+counted instead of 2, tracing to a separate length-filter issue in
+_extract_claims() that drops sentences under 10 characters -- noted in
+PLAN.md as a related but out-of-scope finding.
+
+**PLAN.md link:** https://github.com/clem0g/pathreview/blob/fix/152-faithfulness-short-claims/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded this week.
+
+**Blockers or open questions:**
+Need to decide whether the scaled overlap threshold should count raw
+tokens or non-stopword tokens only, and whether the _extract_claims()
+length-filter bug is in scope for this issue or should be filed
+separately.
