@@ -50,3 +50,30 @@ without breaking the existing Python detection.
   the affected tests locally with `make test-unit`.
 - **Estimated effort:** 2–3 hours per the issue label — realistic for the
   scope of extending the detection patterns.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ktran37/pathreview/commit/dd893af297afb902a1fd78e3a9e80c57f4dcc9cf
+
+**Reproduction summary:**
+Ran `python3 -m pytest tests/unit/test_skill_extractor.py -q` and confirmed the
+four tests named in the issue fail — `test_javascript_detection`,
+`test_text_with_typescript_files`, `test_devops_tool_detection`, and
+`test_docker_compose_detection`. The extractor returns no JavaScript/TypeScript
+skill for `require('fs')` or content-only TS (`interface`), and no Docker skill
+for Dockerfile/compose content, because detection is filename- and
+literal-substring-driven. I marked the exact buggy lines in
+`ingestion/parsers/skill_extractor.py` with `BUG(#148)` comments in the
+reproduction commit. (A fifth failure, `test_database_technology_detection`, is
+an `UnboundLocalError` from a typo in the test itself on line 138 — a separate
+pre-existing bug, not part of #148.)
+
+**PLAN.md link:** https://github.com/ktran37/pathreview/blob/fix/148-skill-extractor-js-ts/PLAN.md
+
+**Walkthrough video (recommended):** _(not recorded)_
+
+**Blockers or open questions:**
+Need to confirm the JS signal set (`const`, `=>`, `async`) is specific enough to
+avoid false positives on non-JS prose, and decide the exact threshold for the
+Docker content heuristic (single `FROM` directive vs. requiring ≥2 co-occurring
+directives) before writing the fix in Week 9.
