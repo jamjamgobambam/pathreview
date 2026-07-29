@@ -21,7 +21,7 @@
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** (this commit — see JOURNAL.md history on this branch)
+**Reproduction commit link:** https://github.com/BarkotBeyene/pathreview/commit/ec85aa2
 
 **Reproduction summary:**
 Reproduced the exact snippet from the issue: calling `StructuralChunker().chunk(text, {})` on a 20x-repeated plain-text paragraph with no markdown headings returns `[]`. I also ran the full existing suite, `pytest tests/unit/test_structural_chunker.py`, which shows `test_document_with_no_headings` failing with `assert 0 >= 1` while the other 14 tests in the file pass — confirming the bug is isolated to the no-headings path and everything else in the chunker already behaves correctly.
