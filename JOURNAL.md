@@ -33,3 +33,25 @@ test/88-post-review-endpoint
 - I've checked the issue comments and the ledger's Claims count, and I'm fine with how many others are on this issue.
 - I've estimated the time this will take and I'm confident I can complete it before the Week 9 deadline.
 - This issue has no open blockers or dependencies on other unresolved issues.
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** 
+<!-- [link to commit documenting the reproduced issue] -->
+
+**Reproduction summary:**
+<!-- 1–2 sentences: How did you reproduce the issue? What did you observe?-->
+The issue was reproduce by reviewing test methods in `/tests/unit`. Unit test currently has a test for `test_review_service.py` and not a test to test if a profile has no additional ingested any information.
+
+**PLAN.md link:** 
+<!-- [link to PLAN.md in your fork] -->
+
+
+**Walkthrough video (recommended):** 
+<!-- [link to your Loom video, ≤2 min — recommended, not graded] -->
+
+**Blockers or open questions:**
+<!-- [Anything you're still uncertain about going into Week 9, or leave blank] -->
+One concern that has risen is the reproduction of the test. Should product code be changed to make the test works properly or should the test be able to perform with out any change to code in the codebase? 
