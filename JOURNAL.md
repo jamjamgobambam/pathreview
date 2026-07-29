@@ -38,7 +38,7 @@ Issue #111 concerns the test coverage of PathReview's PII scrubber in the safety
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** The reproduction record is committed in this Week 8 change; the final commit URL is added in the follow-up documentation commit after its hash is known.
+**Reproduction commit link:** https://github.com/Thankyou-Cheems/pathreview/commit/d9aeb8a9bb514613c1bb9e5e6a2f50f3c046cdf8
 
 **Reproduction summary:** From the Week 7 branch, `pytest --collect-only -q tests/unit/test_pii_scrubber.py` collected 25 tests, all named fixed-example tests in `tests/unit/test_pii_scrubber.py`; searching that file for `hypothesis`, `@given`, `strateg`, or `property` returned no matches. This reproduces the Issue #111 gap: the scrubber has deterministic examples but no property-based coverage for randomized supported PII formats.
 
