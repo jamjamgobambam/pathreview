@@ -20,7 +20,7 @@ The phone number regex in pii_scrubber.py only detects dashed formats (e.g., 555
 **Reproduction commit link:** [link to commit documenting the reproduced issue]
 
 **Reproduction summary:**
-[1–2 sentences: How did you reproduce the issue? What did you observe?]
+I reproduced the issue by adding the parenthesized phone number format (555) 123-4567 to the inputs in tests/unit/test_pii_scrubber.py. When running the tests, I observed that the scrub() method left the number unredacted and detect() failed to identify it as PII, causing the tests to fail as expected.
 
 **PLAN.md link:** [link to PLAN.md in your fork]
 
