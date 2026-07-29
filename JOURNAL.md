@@ -26,6 +26,26 @@ reviews so each run reflects the latest portfolio data.
 
 **Branch name:** fix/43-session-state-not-cleared
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
+**Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [will paste after push — look for the commit that adds `tests/unit/test_orchestrator_session_state.py` and the #43 notes in `agent/orchestrator.py`]
+
+**Reproduction summary:**
+I reproduced issue #43 with unit tests against a fake session store and a counting
+GitHub tool. On a second `Orchestrator.run()` with the same profile inputs, the
+tool only executes once because `ContextManager` caches by input hash for the
+orchestrator lifetime; Redis session state also keeps stale tool keys via
+`session_state.update()`. Comments in `orchestrator.py` mark the buggy sites.
+
+**PLAN.md link:** https://github.com/priyavisingh/pathreview/blob/fix/43-session-state-not-cleared/PLAN.md
+
+**Walkthrough video (recommended):** 
+
+**Blockers or open questions:**
+Need to confirm whether the API constructs one shared `Orchestrator` or a new
+instance per review — that affects how aggressive context clearing must be.
+No other blockers for starting the Week 9 implementation.
