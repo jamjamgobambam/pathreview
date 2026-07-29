@@ -35,7 +35,7 @@ I reproduced the issue by running `tests/unit/test_bias_detector.py`, which prod
 `test_assumption_vs_observation`.
 I also ran the example from Issue #151 and confirmed the detector misses the intended phrasing, returning `(False, "")` for a statement that should be flagged.
 
-**PLAN.md link:** [Pending](https://github.com/rahp124/pathreview/blob/fix/151-expand-bias-detection-patterns/PLAN.md)
+**PLAN.md link:** [Link](https://github.com/rahp124/pathreview/blob/fix/151-expand-bias-detection-patterns/PLAN.md)
 
 **Blockers or open questions:**
 The main open question is how much flexibility to add to the regex patterns without causing positive, neutral, or factual references to educational backgrounds to be incorrectly flagged.
