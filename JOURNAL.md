@@ -48,7 +48,7 @@ The issue was reproduce by reviewing test methods in `/tests/unit`. Unit test cu
 
 **PLAN.md link:** 
 <!-- [link to PLAN.md in your fork] -->
-
+https://github.com/Kiniec/pathreview/tree/test/88-post-review-endpoint/PLAN.md
 
 **Walkthrough video (recommended):** 
 <!-- [link to your Loom video, ≤2 min — recommended, not graded] -->
