@@ -1,7 +1,10 @@
 """GitHub repository metadata tool."""
 
+from datetime import date, timedelta
+
 import httpx
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -43,6 +46,10 @@ class GitHubTool(BaseTool):
 
         try:
             repo_data = self._fetch_repo_metadata(username, repo_name)
+            contribution_dates = self._fetch_contribution_dates(username)
+            repo_data["contribution_streak"] = self._calculate_longest_streak(
+                contribution_dates
+            )
             return ToolResult(success=True, data=repo_data)
 
         except httpx.HTTPStatusError as e:
@@ -113,6 +120,91 @@ class GitHubTool(BaseTool):
                    language=metadata["primary_language"], stars=metadata["star_count"])
 
         return metadata
+
+    def _fetch_contribution_dates(self, username: str) -> list[str]:
+        """Fetch user-wide commit contribution dates from the previous year."""
+        if not self.api_token:
+            raise ValueError("GitHub API token required for contribution history")
+
+        query = """
+        query($login: String!) {
+          user(login: $login) {
+            contributionsCollection {
+              commitContributionsByRepository(maxRepositories: 100) {
+                contributions(first: 100) {
+                  nodes {
+                    occurredAt
+                  }
+                  pageInfo {
+                    hasNextPage
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+        response = httpx.post(
+            f"{self.base_url}/graphql",
+            json={"query": query, "variables": {"login": username}},
+            headers={"Authorization": f"Bearer {self.api_token}"},
+            timeout=10.0,
+        )
+        response.raise_for_status()
+        payload = response.json()
+
+        if payload.get("errors"):
+            messages = ", ".join(
+                error.get("message", "Unknown GraphQL error")
+                for error in payload["errors"]
+            )
+            raise ValueError(f"GitHub GraphQL error: {messages}")
+
+        user = payload.get("data", {}).get("user")
+        if user is None:
+            raise ValueError("GitHub user not found")
+
+        try:
+            repositories = user["contributionsCollection"][
+                "commitContributionsByRepository"
+            ]
+        except (KeyError, TypeError):
+            raise ValueError("Invalid GitHub contribution response") from None
+
+        contribution_dates: list[str] = []
+        for repository in repositories:
+            contributions = repository.get("contributions", {})
+            if contributions.get("pageInfo", {}).get("hasNextPage"):
+                raise ValueError("GitHub contribution history exceeds query limit")
+
+            for contribution in contributions.get("nodes") or []:
+                occurred_at = contribution.get("occurredAt")
+                if occurred_at:
+                    contribution_dates.append(occurred_at[:10])
+
+        return contribution_dates
+
+    @staticmethod
+    def _calculate_longest_streak(dates: list[str]) -> int:
+        """Calculate the longest run of consecutive unique dates."""
+        contribution_days = sorted({date.fromisoformat(value) for value in dates})
+        longest_streak = 0
+        current_streak = 0
+        previous_day: date | None = None
+
+        for contribution_day in contribution_days:
+            if (
+                previous_day is not None
+                and contribution_day == previous_day + timedelta(days=1)
+            ):
+                current_streak += 1
+            else:
+                current_streak = 1
+
+            longest_streak = max(longest_streak, current_streak)
+            previous_day = contribution_day
+
+        return longest_streak
 
     def _has_readme(self, username: str, repo_name: str) -> bool:
         """Check if repository has a README file.
