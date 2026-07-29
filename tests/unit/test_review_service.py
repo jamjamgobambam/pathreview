@@ -2,7 +2,7 @@
 
 import pytest
 from uuid import uuid4
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import asyncio
 
 from core.services.review_service import (
@@ -78,7 +78,7 @@ class TestReviewService:
         mock_review.id = review_id
 
         # Setup mock execute to return review
-        mock_result = AsyncMock()
+        mock_result = MagicMock()
         mock_result.scalars.return_value.first.return_value = mock_review
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -95,7 +95,7 @@ class TestReviewService:
         wrong_user_id = uuid4()
 
         # Setup mock to return None
-        mock_result = AsyncMock()
+        mock_result = MagicMock()
         mock_result.scalars.return_value.first.return_value = None
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -112,7 +112,7 @@ class TestReviewService:
         mock_reviews = [Mock() for _ in range(5)]
 
         # Setup execute mock to return reviews
-        mock_result = AsyncMock()
+        mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = mock_reviews
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -129,7 +129,7 @@ class TestReviewService:
         page_size = 20
 
         # Setup mock
-        mock_result = AsyncMock()
+        mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -147,7 +147,7 @@ class TestReviewService:
         """Test list_reviews returns (reviews, total) tuple."""
         user_id = uuid4()
 
-        mock_result = AsyncMock()
+        mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -198,7 +198,7 @@ class TestReviewService:
         review_id = uuid4()
         user_id = uuid4()
 
-        mock_result = AsyncMock()
+        mock_result = MagicMock()
         mock_result.scalars.return_value.first.return_value = None
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -212,7 +212,7 @@ class TestReviewService:
         """Test list_reviews uses default pagination."""
         user_id = uuid4()
 
-        mock_result = AsyncMock()
+        mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -228,7 +228,7 @@ class TestReviewService:
         user_id = uuid4()
         custom_page_size = 50
 
-        mock_result = AsyncMock()
+        mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -258,7 +258,7 @@ class TestReviewService:
         review_id = uuid4()
         user_id = uuid4()
 
-        mock_result = AsyncMock()
+        mock_result = MagicMock()
         mock_result.scalars.return_value.first.return_value = None
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -273,7 +273,7 @@ class TestReviewService:
         user_id = uuid4()
 
         mock_reviews = [Mock() for _ in range(5)]
-        mock_result = AsyncMock()
+        mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = mock_reviews
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -288,7 +288,7 @@ class TestReviewService:
         user_id = uuid4()
 
         mock_reviews = [Mock(spec=['id', 'status']) for _ in range(3)]
-        mock_result = AsyncMock()
+        mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = mock_reviews
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -316,7 +316,7 @@ class TestReviewService:
         review_id = uuid4()
         user_id = uuid4()
 
-        mock_result = AsyncMock()
+        mock_result = MagicMock()
         mock_result.scalars.return_value.first.return_value = None
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -330,11 +330,12 @@ class TestReviewService:
         """Test list_reviews returns results ordered by created_at desc."""
         user_id = uuid4()
 
-        mock_result = AsyncMock()
+        mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
         reviews, total = await list_reviews(mock_db_session, user_id)
 
-        # Should order by created_at descending
-        mock_db_session.execute.assert_called_once()
+        # list_reviews issues two queries (count + paginated page), so
+        # execute is called twice rather than once.
+        assert mock_db_session.execute.call_count == 2
