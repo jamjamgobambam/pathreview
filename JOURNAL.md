@@ -39,3 +39,33 @@ about making those tests pass rather than writing test infrastructure from
 scratch. Matches the tier-1 "good first issue" label and the 2-3 hour effort
 estimate — a good first issue to learn the agent tool module structure
 without much risk of scope creep.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Omarhus01/pathreview/commit/cab0279
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_tech_detector.py -k "test_node_modules_excluded or test_build_directory_excluded" -v`
+against the unmodified code. Both tests fail with
+`AssertionError: assert 'JavaScript' == 'Python'`, confirming that
+`_should_skip_file`'s leading-slash patterns (e.g. `"/node_modules/"`) never
+match the leading-slash-free relative paths the tool actually receives, so
+vendored `.js` files leak into the language count. Documented the root
+cause as a comment at the buggy check in `agent/tools/tech_detector.py`
+(no fix applied yet).
+
+**PLAN.md link:** https://github.com/Omarhus01/pathreview/blob/fix/150-tech-detector-vendor-build-files/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded this week.
+
+**Blockers or open questions:**
+While reproducing, noticed `primary_language` is actually chosen as
+`sorted(languages)[0]` (alphabetically first), not by file-count frequency
+as the issue description implies. The two pinned tests still pass once
+filtering is fixed because filtering correctly leaves only `{"Python"}` in
+both cases, so I don't think this needs a separate fix for #150 — flagging
+it in PLAN.md's Risks section and will call it out in the PR description
+rather than silently expanding scope. Also noting for Week 9: a full
+`pytest tests/unit -m unit` run currently shows 53 pre-existing failures
+unrelated to this issue (only 2 belong to #150) — will re-confirm that
+count doesn't grow after the fix.
