@@ -1,12 +1,17 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from datetime import datetime
+
 import structlog
-from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from core.database import get_db
 
 log = structlog.get_logger()
 
 router = APIRouter(prefix="/health", tags=["health"])
+
+# TODO (Issue #68): The current response omits any safety metrics
+# it has to be updated to include the 'safety_events_last_hour' field by integrating event
+# tracking from safety/monitoring.py.
 
 
 @router.get("")
@@ -39,6 +44,7 @@ async def health_check(db=Depends(get_db)):
     try:
         # Check Redis (if available)
         import redis
+
         from core.config import settings
 
         r = redis.Redis(

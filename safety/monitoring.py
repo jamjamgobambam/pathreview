@@ -1,10 +1,13 @@
 """Safety event monitoring."""
 
+from datetime import datetime
+
 import redis
 import structlog
-from datetime import datetime, timedelta
 
 logger = structlog.get_logger()
+
+##Issue 68 temp marking
 
 
 class SafetyMonitor:
@@ -16,7 +19,7 @@ class SafetyMonitor:
         "injection_attempt",
         "content_filtered",
         "bias_detected",
-        "rate_limited"
+        "rate_limited",
     }
 
     def __init__(self, redis_client: redis.Redis):
