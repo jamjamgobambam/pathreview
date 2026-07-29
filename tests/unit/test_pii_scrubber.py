@@ -190,6 +190,19 @@ class TestPIIScrubber:
 
         assert "[REDACTED]" in scrubbed
 
+    def test_paren_phone_fully_consumed(self, scrubber):
+        """Test the opening paren is redacted with the number (issue #146)."""
+        text = "Call (555)123-4567 today."
+        scrubbed = scrubber.scrub(text)
+
+        assert scrubbed == "Call [REDACTED] today."
+
+        detected = scrubber.detect(text)
+        phones = [d for d in detected if d["type"] == "phone_us"]
+        assert len(phones) == 1
+        assert phones[0]["value"] == "(555)123-4567"
+        assert text[phones[0]["start"]] == "("
+
     def test_address_variations(self, scrubber):
         """Test various street address formats."""
         addresses = [
