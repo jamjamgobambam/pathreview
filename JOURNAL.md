@@ -26,5 +26,20 @@ PathReview uses structlog for application logging, but the shared pytest configu
 - [x] The issue does not require a live LLM, external API, or architectural redesign.
 - [x] The scope fits the Module 3 schedule better than the Tier 3 agent lifecycle test in issue #59.
 - [x] I identified the main scope risk: a global logging change could affect unrelated tests, duplicate output, or leak state between tests.
+- [x] I reproduced the failure locally after completing setup.
 
 I initially considered issue #59, which requests a fully stubbed end-to-end test of the agent's plan, execute, and synthesize lifecycle. I selected issue #159 instead because it offers a smaller and more measurable first contribution while still requiring me to understand PathReview's shared testing and logging conventions. This scope gives me enough time to reproduce the problem, study the existing patterns, implement a focused change, and verify that it does not disrupt other tests.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** Pending — this commit documents the reproduction.
+
+**Reproduction summary:**
+I reproduced Issue #159 by running `TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty`. The test failed because structlog emitted the expected warning to captured stdout, while `caplog.text` remained empty and `caplog.records` contained no matching record.
+
+**PLAN.md link:** Pending
+
+**Walkthrough video (recommended):** Not recorded
+
+**Blockers or open questions:**
+I still need to determine the safest test configuration for routing structlog events through Python’s standard logging system without producing duplicate output or leaking logging state between tests.
