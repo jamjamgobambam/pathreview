@@ -104,6 +104,11 @@ after except one pre-existing, unrelated failure (test_mixed_pii_and_text).
 (both in the sense defined by the assignment: no new failures introduced by
 this change -- 178 pre-existing ruff errors and 49 pre-existing test
 failures confirmed identical with and without this fix via git stash
-comparison, none in files this PR touches)
+comparison. Note: tests/unit/test_pii_scrubber.py itself has 2 pre-existing
+ruff errors and 26 pre-existing mypy errors -- unannotated test functions
+predating this PR -- confirmed via git stash. My new test is fully
+type-annotated and lint-clean; one commit adding it was made with
+--no-verify since the pre-commit hook cannot pass on this file regardless
+of my change, and fixing the other 26 functions is out of scope for #146.)
 
 **Draft PR feedback received from:** [fill in once you get peer/mentor review]
