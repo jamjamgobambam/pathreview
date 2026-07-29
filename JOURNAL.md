@@ -34,3 +34,10 @@ like "python expert" should score as supported.
 
 *Parts 3 and 4:* I believe it will take me around 3 hours to debug given the failing tests
 
+## Week 8 - Reproduction of Issue
+
+Ran `pytest tests/unit/test_faithfulness_checker.py -v` 
+Tests all failed:
+- test_partial_support_returns_middle_score: assert 0.2 < 0.0
+- test_multiple_context_chunks: assert 0.0 > 0.5
+- test_multiple_claims_varying_support: assert 0.2 < 0.0
