@@ -1,121 +1,105 @@
-# Solution Plan — Issue #155
+## Solution plan
 
-**Issue:** [#155 — Health check references `settings.redis_host`, which does not exist on Settings](https://github.com/ascherj/pathreview/issues/155)
-**Tier:** 1 (`bug`, `api`, `good first issue`)
-**Branch:** `fix/155-health-check-redis-config`
+**Issue:** [#155 — Health check references `settings.redis_host`, which does not exist](https://github.com/ascherj/pathreview/issues/155)
 
----
+### Understand
 
-## 1. Problem Summary
-
-The `/health` endpoint probes three dependencies: PostgreSQL, Redis, and the vector DB.
-The Redis probe constructs its client from two settings fields that do not exist:
+**Root cause:** `api/routes/health.py` builds its Redis client with:
 
 ```python
-# api/routes/health.py:44-49
 r = redis.Redis(
-    host=settings.redis_host,   # <-- not defined on Settings
-    port=settings.redis_port,   # <-- not defined on Settings
+    host=settings.redis_host,
+    port=settings.redis_port,
     db=0,
     decode_responses=True,
 )
 ```
 
-`core/config.py` defines Redis connectivity as a **single URL field**, not host/port:
+`core/config.py`'s `Settings` model has no `redis_host` or `redis_port` field. Redis is
+configured as a single URL string instead:
 
 ```python
-# core/config.py:12
 redis_url: str = Field(default="redis://localhost:6379/0")
 ```
 
-Accessing `settings.redis_host` therefore raises `AttributeError`.
+**Expected behavior:** `/health` reports the true status of Postgres, Redis, and the vector DB,
+returning 200 when all are reachable and 503 when one genuinely is not.
 
-## 2. Impact
+**Actual behavior:** Accessing `settings.redis_host` raises `AttributeError`. That exception is
+caught by the broad `except Exception` at line 53, so it's misreported as "Redis unreachable"
+rather than surfaced as a config bug. Because `health_status["status"]` is set to `"unhealthy"`
+whenever any dependency fails, this makes the endpoint return HTTP 503 unconditionally — even
+when Postgres, Redis, and the vector DB are all fully healthy. The `r.ping()` call is never
+reached, so the probe never actually tests connectivity.
 
-The `AttributeError` is raised inside the `try` block and swallowed by the broad
-`except Exception` handler on line 53. The consequences are:
+### Map
 
-1. **The Redis probe never runs.** `r.ping()` is unreachable — the exception is thrown while
-   building the client, one line earlier.
-2. **Redis is always reported `"unhealthy"`**, regardless of the actual state of the server.
-3. **`/health` always returns HTTP 503.** Line 83 escalates any unhealthy dependency to an
-   overall unhealthy status, so the endpoint fails permanently — even on a fully healthy system.
-4. **The failure is silent and misleading.** The logged error is an `AttributeError` about a
-   config field, not a connection problem, so the log points away from the real cause.
+Files involved:
 
-This makes the health check actively harmful: any uptime monitor, load balancer, or container
-orchestrator polling `/health` sees the service as permanently down.
+- `api/routes/health.py` — contains the bug (lines 44–49) and the route itself. **Will change.**
+- `core/config.py` — defines `Settings`; confirms `redis_url` exists and `redis_host`/`redis_port`
+  do not. **Read-only reference**, no change needed here.
+- `tests/unit/test_health.py` — did not exist before this issue. **New file**, added to cover the
+  endpoint's dependency probes.
 
-## 3. Root Cause
+No other module reads `settings.redis_host` or `settings.redis_port` (confirmed via repo-wide
+search), so the blast radius is contained to this one route.
 
-A mismatch between the config schema and its consumer. `Settings` models Redis as a URL
-(consistent with `database_url` and `vector_db_url`), but the health route was written against
-a host/port shape that was never added to the model.
+### Plan
 
-## 4. Proposed Fix
+1. **Reproduce first.** Write `tests/unit/test_health.py` against the *current* code and confirm
+   it fails with the exact `AttributeError` the issue describes, so the bug is proven before
+   anything is touched. (Done — see reproduction commit `685f1ad`.)
+2. **Apply the minimal fix.** Replace the `redis.Redis(host=..., port=...)` construction with
+   `redis.Redis.from_url(settings.redis_url, decode_responses=True)`, using the config field that
+   actually exists rather than inventing new ones.
+3. **Re-run the new tests** and confirm all pass against the fixed code.
+4. **Run the full unit suite** (`make test-unit`) and compare failure counts against a baseline
+   with the fix reverted, to confirm no regressions are introduced elsewhere.
+5. **Run `make check`** (ruff, black, mypy) scoped to the touched files, and note any pre-existing
+   issues in those files separately from anything the fix introduces.
 
-Use the field that actually exists, via the `redis-py` URL constructor:
+### Inputs & outputs
 
-```python
-r = redis.Redis.from_url(settings.redis_url, decode_responses=True)
-```
+- **Input:** the `Settings` singleton (`core/config.settings`), specifically its `redis_url`
+  field, which is populated from the `REDIS_URL` environment variable or the `.env` file.
+- **Output:** the `/health` endpoint's JSON response — specifically
+  `dependencies.redis` (`"healthy"` / `"unhealthy"`) and the overall `status` /
+  HTTP status code, which should now reflect Redis's actual reachability instead of being
+  permanently `"unhealthy"`.
+- No API contract changes: the response shape is identical, only the *values* it reports change.
 
-**Why this approach over adding `redis_host`/`redis_port` to `Settings`:**
+### Risks & unknowns
 
-- `redis_url` is already defined, already documented in `.env`, and already the project's
-  convention for service connection strings (`database_url`, `vector_db_url` follow it).
-- Adding host/port fields would create **two competing sources of truth** for the same
-  connection — they could drift out of sync, and it is ambiguous which one wins.
-- `from_url` parses db index, credentials, and TLS (`rediss://`) from the URL for free. The
-  current code hardcodes `db=0`, silently ignoring the `/0` segment of the URL.
-- It is a one-line change confined to a single file, matching the Tier-1 scope of the issue.
+- **`from_url` parsing differences:** `redis.Redis.from_url` parses the DB index, username,
+  password, and scheme (`redis://` vs `rediss://`) from the URL itself. The previous code
+  hardcoded `db=0`. If `redis_url` in some environment encodes a different DB index (e.g.
+  `redis://localhost:6379/1`), behavior will change from "always DB 0" to "whatever the URL
+  says." I judge this to be the *correct* fix, not a regression, but it's worth flagging since
+  it's a behavior change beyond just fixing the crash.
+- **No live Redis in the dev/test environment.** All tests mock `redis.Redis.from_url` rather
+  than hitting a real Redis instance, per the `unit` marker's "no external dependencies"
+  contract. This means the fix is verified against the *interface* (the client is constructed
+  and `ping()` is called) but not against a real Redis server. Integration-level verification
+  would need Docker services (`make test-integration`), which I did not run.
+- **Broad exception handling elsewhere in the same function.** The Postgres and vector-DB probes
+  use the same broad `except Exception` pattern. This issue only fixes the Redis probe's root
+  cause; the masking pattern itself is untouched and could hide a similar bug in those probes
+  later. Out of scope for this issue, but worth a follow-up.
 
-## 5. Files to Change
+### Edge cases
 
-| File | Change |
-|---|---|
-| `api/routes/health.py` | Replace the `redis.Redis(host=…, port=…)` call with `redis.Redis.from_url(settings.redis_url, …)` |
-| `tests/unit/test_health.py` | **New file** — unit tests for the health endpoint's Redis probe |
-
-## 6. Test Plan
-
-No `tests/unit/test_health.py` exists today, so this adds one, following the conventions in
-`tests/unit/test_review_service.py` (`@pytest.mark.unit` class, `AsyncMock` for the DB session,
-`unittest.mock.patch` for external clients).
-
-Cases to cover:
-
-1. **Regression test (fails before the fix):** patch `redis.Redis.from_url` to return a mock
-   whose `ping()` succeeds, and assert `dependencies["redis"] == "healthy"`. Before the fix this
-   fails, because the `AttributeError` marks Redis unhealthy regardless of the mock.
-2. **Config contract:** assert `Settings` exposes `redis_url` and that the probe reads it —
-   guards against the same schema/consumer drift reappearing.
-3. **Genuine failure still detected:** make `ping()` raise `ConnectionError`; assert Redis is
-   reported `"unhealthy"` and the endpoint returns 503. Confirms the fix doesn't mask real outages.
-4. **Healthy path:** with all probes mocked healthy, assert HTTP 200 and `status == "healthy"`.
-
-All tests mock the Redis client, so they satisfy the `unit` marker's "no external dependencies"
-contract and run without Docker.
-
-## 7. Verification Steps
-
-```bash
-make check        # ruff + black + mypy
-make test-unit    # unit suite, including the new tests
-```
-
-Manual confirmation of the reproduction and the fix:
-
-```bash
-# Before: AttributeError -> redis always "unhealthy" -> 503
-# After:  probe runs against redis_url and reports the true state
-curl -i localhost:8000/health
-```
-
-## 8. Out of Scope
-
-- The bare `await db.execute("SELECT 1")` on line 31 (raw SQL string) — that is **issue #154**
-  and belongs in its own PR.
-- The `safety_events_last_hour` placeholder on line 78 — tracked separately as #D-08.
-- Broadening the `except Exception` handlers. Worth doing, but it changes behavior beyond this
-  issue's scope and would make the diff harder to review.
+- **Redis genuinely unreachable** (wrong host, server down, connection refused): `ping()` should
+  raise, and the probe should still report `"unhealthy"` and return 503. Covered by
+  `test_unreachable_redis_returns_503`, using a mocked `ConnectionError`.
+- **Redis fully healthy alongside the other two dependencies:** the endpoint should return 200
+  with `status: "healthy"`. Covered by `test_all_dependencies_healthy`.
+- **`redis_url` missing or malformed:** not explicitly tested — `Settings` provides a default
+  value, so this can't happen via normal config loading, but a malformed URL passed via
+  environment variable would raise inside `from_url` and still be caught by the existing
+  `except Exception`, degrading to `"unhealthy"` rather than crashing the endpoint. Existing
+  behavior, not something this fix needs to change.
+- **Config/consumer drift recurring:** `test_settings_defines_redis_url_not_host_port` asserts
+  `Settings` has `redis_url` and does *not* have `redis_host`/`redis_port`, so if someone
+  reintroduces the old fields (or the health check reverts to reading them) without updating the
+  other side, this test fails immediately instead of the bug resurfacing silently.
