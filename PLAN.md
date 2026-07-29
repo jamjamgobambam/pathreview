@@ -1,6 +1,6 @@
 ## Solution plan 
 
-**Issue:** Faithfulness checker crashes when a context chunk has `text: None` — [paste GitHub issue #153 URL here]
+**Issue:** Faithfulness checker crashes when a context chunk has `text: None` — https://github.com/ascherj/pathreview/issues/153
 
 ### Understand
 The root cause is a misuse of `dict.get()` in `FaithfulnessChecker.check()`. The
