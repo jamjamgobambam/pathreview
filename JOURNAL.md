@@ -77,3 +77,65 @@ open judgment call noted in PLAN.md's Risks section: the new comma/"and"
 claim-splitting could over-fragment feedback that uses "and" in a
 non-listing sense (e.g. "fast and reliable"); flagged as a known limitation
 rather than solved.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All 5 sub-tasks from PLAN.md are implemented: lowered the `_extract_claims`
+length floor and added comma/"and" splitting, replaced `_is_supported`'s
+fixed 2-token overlap rule with capitalized-key-term matching plus a
+non-stopword fallback, added the `test_short_claims_can_be_supported`
+regression test using the issue's exact example, and confirmed the three
+tests the issue names now pass. `make check` and `make test-unit` were run
+before and after the change to confirm no new failures.
+
+**Next steps:**
+PR #262 is already open (not draft) against `ascherj/pathreview:main`. Remaining
+work this week is process, not code: get draft PR feedback from a peer or
+mentor in Slack, address anything raised, and complete both journal
+check-ins.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/262
+
+**Branch:** `fix/152-faithfulness-short-claims`
+
+**What you built:**
+Fixed `FaithfulnessChecker` so short, factually-correct claims (e.g. "Knows
+Python") can be scored as supported instead of being structurally capped at
+unsupported. `_is_supported` now matches on capitalized key terms (e.g.
+"Python", "SQL") instead of requiring a fixed count of overlapping tokens
+that short claims can never reach, and `_extract_claims` no longer drops
+short claims before they're scored.
+
+**Tests added or updated:**
+`tests/unit/test_faithfulness_checker.py` — added
+`test_short_claims_can_be_supported` (the issue's exact repro case),
+updated a stale assertion/comment in `test_minimum_overlap_required`
+to match the corrected behavior, fixed a pre-existing unused-variable
+lint failure in `test_common_words_filtered_in_overlap`, and added type
+annotations throughout the file so it satisfies the repo's pre-commit
+mypy hook. 22 of 23 tests in the file pass; the one failure
+(`test_none_context_chunk_text`) is a pre-existing, unrelated `None`-context
+crash confirmed present on `main` before this change and untouched by it.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+*(Scoped to this change, per the Week 9 guidance on pre-existing failures:
+`ruff` and `mypy` pass cleanly on the two changed files. Whole-repo
+`make lint`/`make typecheck` surface pre-existing issues unrelated to this
+fix — 180 ruff errors on this branch vs. 182 on `main`, and mypy
+import-stub errors for `PyPDF2`/`jose`/`passlib`/`rank_bm25` present on
+`main` too. `make test-unit` : 50 failing / 379 passing on this branch vs.
+53 failing / 375 passing on `main` — this change fixes 3 tests and
+introduces 0 new failures.)*
+
+**Draft PR feedback received from:** none yet
