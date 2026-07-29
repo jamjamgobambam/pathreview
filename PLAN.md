@@ -1,6 +1,6 @@
 ## Solution plan
 
-**Issue:** [#64 — Prompt injection defense doesn't sanitize newline characters in user-supplied resume text](https://github.com/ascherj/pathreview/issues/64)
+**Issue:** #64 — Prompt injection defense doesn't sanitize newline characters in user-supplied resume text
 
 ### Understand
 

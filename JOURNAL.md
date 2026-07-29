@@ -2,7 +2,7 @@
 
 ## Week 7 — Issue selection
 
-**Issue link:** https://github.com/ascherj/pathreview/issues/64
+**Issue link:** #64
 
 **Issue title:** Prompt injection defense doesn't sanitize newline characters in user-supplied resume text
 
