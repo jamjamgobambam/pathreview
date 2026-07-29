@@ -33,3 +33,38 @@ test, making the assertions pass against correct scorer behavior.
   the risk is limited to the test suite.
 - **Right size for a first contribution.** Matches the Tier 1 "good first
   issue" profile — small, understandable, and verifiable end-to-end.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** _(fill in after pushing — see the "docs(agent): document Week 8 reproduction" commit on this branch)_
+
+**Reproduction summary:**
+I ran the existing test in my local environment
+(`pytest tests/unit/test_readme_scorer.py::TestReadmeScorer::test_readme_with_all_quality_signals -q`)
+and it fails with `assert 51 > 100`. The scorer log confirms the fixture is
+counted as `word_count=51, category=minimal`, proving the bug lives in the
+test's fixture (too short) rather than in `agent/tools/readme_scorer.py`.
+
+Observed output:
+
+```
+>       assert data["word_count"] > 100
+E       assert 51 > 100
+tests/unit/test_readme_scorer.py:56: AssertionError
+--- Captured stdout ---
+readme_scored  category=minimal  score=0.8717142857142858  word_count=51
+FAILED tests/unit/test_readme_scorer.py::...test_readme_with_all_quality_signals
+1 failed
+```
+
+**PLAN.md link:** [PLAN.md](./PLAN.md)
+
+**Walkthrough video (recommended):** _(not recorded / optional)_
+
+**Blockers or open questions:**
+The issue allows either extending the fixture or correcting the assertion. I
+plan to extend the fixture to ≥500 words (the `comprehensive` threshold) since
+the test's intent is to validate a comprehensive README. I'll confirm this
+direction is preferred in the PR description.
