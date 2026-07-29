@@ -20,7 +20,7 @@ I can explain the issue in my own words without rereading the tracker: the scrub
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [to be filled after the reproduction commit is created]
+**Reproduction commit link:** [docs: add week 8 reproduction and plan](https://github.com/rafayet-git/pathreview/commit/2ae2318fb2fde17045085ff51d23cd4220f40327)
 
 **Reproduction summary:**
 I ran `pytest tests/unit/test_pii_scrubber.py -q` and confirmed that `(555) 123-4567` is not redacted by `scrub()` and is not detected by `detect()`. The focused test run failed in the expected phone-number cases, which shows the bug is real and isolated to the phone regex in `safety/pii_scrubber.py`.
