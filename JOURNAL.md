@@ -49,17 +49,18 @@ None. The Week 8 open question (whether 0.7/0.3 are confirmed production default
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/376
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `docs/36-hybrid-retrieval-scoring-formula`
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+Added a "Hybrid Retrieval Scoring" subsection to `docs/ARCHITECTURE.md` that explains how `HybridRetriever` (in `rag/retriever/hybrid.py`) combines vector similarity and BM25 keyword scores: each signal is normalized to 0–1 per query, blended as `vector_weight * vector_score + keyword_weight * keyword_score` (defaults 0.7/0.3), filtered by a `min_score` threshold, and illustrated with a worked numeric example. No application code changed — this is a documentation-only fix.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+None. This issue is scoped entirely to `docs/ARCHITECTURE.md` (per PLAN.md and the issue's own scope) — no code paths were added, changed, or removed, so there is no new behavior to cover with tests. I confirmed the documented formula against the existing (untouched) logic in `rag/retriever/hybrid.py` and `rag/retriever/keyword_search.py` rather than adding tests for it.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both commands have pre-existing failures unrelated to this change — 182 pre-existing ruff errors and 19 pre-existing test failures across 7 files, confirmed via `git stash` to be identical with and without this change. Per the pre-existing-failures policy, "passes" here means this change introduces no new failures, which is confirmed since it only touches `docs/ARCHITECTURE.md`.)
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** Pending — PR posted in course Slack channel, awaiting review.
 
