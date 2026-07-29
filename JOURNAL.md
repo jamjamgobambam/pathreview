@@ -65,3 +65,16 @@ Confirmed both halves of the problem summary hands-on, no server/DB required.
    - `_run_safety_checks` (line 357) only validates structural shape
      (non-empty strings, confidence in range), so the placeholder output
      always passes.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/wvalera1/pathreview/commit/d0193c363ec9f2b77f009b78d154ba64cd740d7e
+
+**Reproduction summary:**
+Ran `process_review()` directly against a `Profile` with no `github_username`,
+`portfolio_url`, or `resume_text` (zero ingested sources) using an in-memory
+mock DB session; observed the review still finishes `status="complete"` with
+3 fabricated feedback sections and a fake 0.81 score, confirming the endpoint
+and background pipeline do no document-presence validation.
+
+**PLAN.md link:** https://github.com/wvalera1/pathreview/blob/8c0be0d1d21557af98001d163477965e1c6aa7d8/PLAN.md
