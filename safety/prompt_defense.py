@@ -1,6 +1,7 @@
 """Prompt injection detection and defense."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -12,12 +13,21 @@ class PromptDefense:
     # Patterns indicating prompt injection attempts
     INJECTION_PATTERNS = [
         r"\n\s*---+\s*\n",  # Separator line
-        r"\n\s*(?:System|Human|Assistant):",  # Role switching
+        r"\n\s*(?:System|Human|Assistant)\s*:",  # Role switching
         r"{{.*?}}",  # Template injection
         r"{%.*?%}",  # Jinja-like injection
         r"\n\s*(?:Ignore|Forget|Disregard|Override)",  # Explicit instructions to ignore
         r"(?:execute|run|eval)\s*\(",  # Code execution attempts
     ]
+
+    # Newline boundary patterns neutralized by sanitize() (issue #64).
+    # Detection stays broader (Ignore/Forget/eval); sanitize focuses on
+    # prompt-boundary markers that can look like a new system turn.
+    _SEPARATOR_PATTERN = re.compile(r"\n\s*---+\s*\n")
+    _ROLE_SWITCH_PATTERN = re.compile(
+        r"\n\s*(?:System|Human|Assistant)\s*:",
+        re.IGNORECASE,
+    )
 
     # Characters to strip from input
     DANGEROUS_CHARS = {
@@ -35,7 +45,9 @@ class PromptDefense:
             text: User input text
 
         Returns:
-            Sanitized text
+            Sanitized text with template/angle-bracket markup removed and
+            newline prompt-boundary markers (``---`` separators and
+            System/Human/Assistant role labels) neutralized.
         """
         sanitized = text
 
@@ -45,6 +57,12 @@ class PromptDefense:
 
         # Remove angle brackets
         sanitized = sanitized.replace("<", "").replace(">", "")
+
+        # Neutralize newline prompt boundaries (#64): collapse fake
+        # separators, then strip role-switch labels while keeping the
+        # remainder of the line so resume prose stays readable.
+        sanitized = PromptDefense._SEPARATOR_PATTERN.sub("\n", sanitized)
+        sanitized = PromptDefense._ROLE_SWITCH_PATTERN.sub("\n", sanitized)
 
         return sanitized
 
