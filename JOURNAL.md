@@ -152,7 +152,7 @@ x-request-id: af3aae52-40a4-4a97-8e98-b9b0d7097c4c
     {"detail":"Invalid authentication credentials"}
 
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** [\[link to PLAN.md in your fork\]](https://github.com/mmim14/pathreview/blob/test/90-add-tests-authentication/PLAN.md)
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
