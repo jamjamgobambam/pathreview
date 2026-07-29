@@ -109,7 +109,7 @@ isolation instead (see Check-in 2). Not a blocker for the #150 fix.
 
 ### Check-in 2 (end of week)
 
-**PR link:** <!-- PASTE YOUR SUBMITTED (non-draft) PR URL HERE -->
+**PR link:** https://github.com/ascherj/pathreview/pull/362
 
 **Branch:** `fix/150-exclude-vendored-build-files`
 
