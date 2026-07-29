@@ -27,3 +27,24 @@ fix/88-review-no-ingested-documents-test
 **Cohort ledger:**
 
 - [x] Issue added to cohort ledger
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:**
+(To be filled in after creating the Week 8 reproduction commit.)
+
+**Reproduction summary:**
+
+I reproduced the issue by tracing the POST `/reviews` request flow from the route into the review service and examining the existing test suite. I confirmed that there was no route test covering the scenario where a profile exists but has no ingested documents, leaving this edge case unverified.
+
+**PLAN.md link:**
+(To be filled in after creating PLAN.md.)
+
+**Walkthrough video (recommended):**
+Not recorded yet.
+
+**Blockers or open questions:**
+
+I'm still confirming whether the project expects a pure route unit test or a more integrated test that exercises the review creation flow with a profile that has no ingested documents.
