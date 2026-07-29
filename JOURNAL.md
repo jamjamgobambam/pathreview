@@ -33,7 +33,8 @@ fix/88-review-no-ingested-documents-test
 ## Week 8 — Reproduction & solution planning
 
 **Reproduction commit link:**
-(To be filled in after creating the Week 8 reproduction commit.)
+
+9dde931ce7d1818e95fffd99f9ea33390340d722
 
 **Reproduction summary:**
 
