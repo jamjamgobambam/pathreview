@@ -34,3 +34,14 @@ The faithfulness checker's `check()` method builds context by pulling `text` out
 - Checked the issue comments and ledger: 3 other students are also on #153, plus an open PR (#162) referencing it. Per the checklist, claims are non-exclusive and grading is based on my own artifacts, so I'm fine proceeding — I'll write my own fix and tests independently rather than referencing the existing PR.
 - Time estimate: this is a one-line fix plus getting one named test passing — well under the 3–6 hour Tier 1 window, so it's realistic for Weeks 8–9 alongside my other coursework.
 - No blockers: issue body names no dependency on other unresolved issues.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/kacp3rrr/pathreview/commit/30ce358697d819085967aec917661d22445e4b08
+
+**Reproduction summary:**
+Ran the existing test `test_none_context_chunk_text` in `tests/unit/test_faithfulness_checkcer.py`, which fails with `TypeError: sequence item 0: expected str instance, NoneType found` at line 34 of `faithfulness_checker.py`. The crash occurs in `context_text = " ".join([chunk.get("text", "") for chunk in context_chunks])` when a chunk has `text: None`, since `.get()`'s default only accounts for missing keys, not explicit `None` values, which cause a type error when joining with a string.
+
+**PLAN.md link:** https://github.com/kacp3rrr/pathreview/blob/fix/153-faithfulness-none-text-crash/PLAN.md
+
+**Blockers or open questions:**
