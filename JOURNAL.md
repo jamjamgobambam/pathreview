@@ -17,3 +17,19 @@ This is a Tier 2 issue. It requires understanding how the RAG pipeline component
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [ X] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [to be updated after push]
+
+**Reproduction summary:**
+The integration test directory (`tests/integration/`) existed but contained only an empty `__init__.py` — no test exercised the full RAG pipeline. I added `tests/integration/test_rag_pipeline.py` with an `xfail` placeholder that raises `NotImplementedError`, confirming the gap is real and pinpointing exactly where the test needs to live.
+
+**PLAN.md link:** [PLAN.md](./PLAN.md)
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:**
+- Need to confirm whether `RelevanceScorer` and `FaithfulnessChecker` make any external calls before deciding if they need to be mocked in the integration test.
+- Need to verify the exact JSON shape the mock LLM response must return so `output_parser.py` parses it into named sections rather than falling back to plaintext.
