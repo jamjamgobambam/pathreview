@@ -1,3 +1,29 @@
+# JOURNAL.md
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (Jul 28)
+
+**Current progress:**
+
+Steps 1–4 from PLAN.md are done: I reproduced the failures, fixed the
+`phone_us` regex by broadening its separators from `[-.]` to `[-. ]` (a literal
+space, not `\s`), and confirmed the 4 phone tests now pass with no regressions.
+For step 4, I chose to keep the pattern permissive rather than adding stricter
+validation — over-redaction is safer than missing a real phone number, since a
+false negative leaks PII.
+
+**Next steps:**
+
+Finish step 5 by documenting the root cause in JOURNAL.md (the missing
+whitespace separator, not the parentheses as first hypothesized). I'll also add
+1–2 new test cases that specifically target space-separated phone numbers,
+which should pass now that the fix is in place.
+
+After finishing these, I will open a PR and ask for reviews.
+
+**Blockers:** none
+
 ## Week 8 — Reproduction & solution planning
 
 **Reproduction commit link:** [`8fa4eee - docs(safety): add planning framework for fixing issue`](https://github.com/ru1nw/pathreview/commit/8fa4eee5f6b1579ffdc0055453c7c5cb49fe297a)
