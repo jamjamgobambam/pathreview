@@ -71,8 +71,8 @@ class LLMReranker:
             )
             raw = response.choices[0].message.content or ""
             return self._parse_score(raw, fallback=chunk.get("score", 0.0))
-        except Exception:
-            logger.warning("reranker_llm_call_failed", chunk_id=chunk.get("id"))
+        except Exception as exc:
+            logger.warning("reranker_llm_call_failed", chunk_id=chunk.get("id"), error=str(exc))
             return float(chunk.get("score", 0.0))
 
     @staticmethod

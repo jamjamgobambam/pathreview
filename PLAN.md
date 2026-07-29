@@ -1,6 +1,6 @@
 ## Solution plan
 
-**Issue:** [Implement a re-ranking step that uses an LM to score retrieved chunks before generation](https://github.com/ascherj/pathreview/issues/34)
+**Issue:** [Implement a re-ranking step that uses an LLM to score retrieved chunks before generation](https://github.com/ascherj/pathreview/issues/34)
 
 ### Understand
 
