@@ -52,3 +52,17 @@ lives entirely in `docs/API.md` and doesn't require modifying any application co
 - [X] This issue has no open blockers or dependencies on other unresolved issues.
 
 **Verdict:** I'm ready to claim this issue.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/tsh594/pathreview/commit/4aa05ff
+
+**Reproduction summary:** Opened `docs/API.md` and confirmed it lists API endpoints but contains no `curl` examples. The documentation describes what each endpoint does but doesn't show how to call it.
+
+**PLAN.md link:** https://github.com/tsh594/pathreview/blob/docs/117-api-curl-examples/PLAN.md
+
+**Walkthrough video (recommended):** [Not recorded yet – I'll record one before Week 9 if needed]
+
+**Blockers or open questions:**
+- Need to confirm the exact format for OAuth2 login with `curl` (form data vs JSON)
+- Need to verify how to get a valid profile UUID for the `GET /profiles/{profile_id}` example
