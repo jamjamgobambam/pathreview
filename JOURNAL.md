@@ -19,3 +19,18 @@ This issue has a clearly defined scope and affects only a small part of the code
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Streakywolff/pathreview/commit/0cd9b64
+
+**Reproduction summary:**
+I reproduced the feature gap by running the application locally and requesting the `/health` endpoint. The endpoint reported the status of PostgreSQL, Redis, and the vector database, but it did not calculate the safety event count from the existing Redis counters maintained by `SafetyMonitor`.
+
+**PLAN.md link:** https://github.com/Streakywolff/pathreview/blob/feat/68-safety-event-health-count/PLAN.md
+
+**Walkthrough video (recommended):**
+Not recorded.
+
+**Blockers or open questions:**
+None.
