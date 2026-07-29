@@ -30,3 +30,34 @@ I added a test showing that calling sanitize on text containing a newline based 
 
 **Blockers or open questions:**
 PromptDefense is not called anywhere in the actual resume processing flow, so fixing sanitize alone does not yet protect real user input end to end. I am not sure if that is in scope for this issue or worth flagging as a separate follow up issue.
+
+## Week 9 — Solution building and PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the fix in safety/prompt_defense.py by adding a new NEWLINE_INJECTION_PATTERNS list and updating sanitize to loop through it and remove matches using a regular expression, completing sub-tasks 1 and 2 from my PLAN.md. I also completed sub-task 3 by adding seven new unit tests in tests/unit/test_prompt_defense.py covering separator lines, System, Human, and Assistant role switching, explicit ignore instructions, preservation of legitimate dashes in date ranges, and multiple stacked injection patterns in one input. I completed sub-tasks 4 and 5 by running the full test suite and confirming my Week 8 reproduction test, which previously failed, now passes with no new failures introduced anywhere else in the codebase.
+
+**Next steps:**
+I still need to open my pull request, get peer or mentor feedback on the draft, address any feedback I agree with, and mark it ready for review before the deadline.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/344
+
+**Branch:** fix/64-newline-sanitization
+
+**What you built:**
+I fixed the sanitize method in safety/prompt_defense.py so it actually removes newline based prompt injection patterns, such as fake separator lines and System, Human, or Assistant role switching attempts, instead of leaving them completely untouched like it did before. The fix reuses the same detection patterns the codebase already had in is_injection_attempt, applying them as removals inside sanitize instead of only using them for detection.
+
+**Tests added or updated:**
+I added seven new tests to tests/unit/test_prompt_defense.py. They cover removal of separator lines, removal of each role switching pattern individually, removal of explicit ignore instructions, preservation of legitimate content like date ranges written with a dash, and correct handling of multiple stacked injection patterns appearing together in a single input.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none yet
