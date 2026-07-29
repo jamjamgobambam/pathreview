@@ -13,3 +13,19 @@ The current codebase skip Github tool tests because they require live Github acc
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/xxy361/pathreview/commit/7bc126023c004fe8894f0c7c103efb56c1a44f0a
+
+**Reproduction summary:**
+Since the issue is on creating tests for GitHub tools, I focused on understanding the existing implementation for GitHub tools (`agent\tools\github_tool.py`), particularly looking at the try-and-except blocks to see what errors are expected. The docstrings are very helpful for understanding the functions, as well as inputs/outputs.
+
+**PLAN.md link:** https://github.com/xxy361/pathreview/blob/test/57-mock-github-server/PLAN.md
+
+**Walkthrough video (recommended):** 
+N/A
+
+**Blockers or open questions:**
+N/A

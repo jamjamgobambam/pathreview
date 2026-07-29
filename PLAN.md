@@ -41,7 +41,6 @@ Break it into 3–5 concrete sub-tasks.
     - a response with some nulls to test out how the nulls are being handled when extract metadata (lines 98-110 in `github_tool.py`)
     - a response with `status_code` as `404`, `403`, and another generic error for fetching metadata. See if error messages for the`HTTPStatusError`exception are correct
     - a HEAD handler retruning `200` when README is present
-    - a HEAD handler r
 2. Set up the mock server and write out the names for the tests needed without implementing them
     - need to inject `tool.base_url = httpserver.url_for("")`
 3. Implement the tests the cover:
