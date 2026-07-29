@@ -81,3 +81,25 @@ The scorer also reports `category=minimal`, so the later
 "comprehensive". The bug is in the test's expectations, not the tool. Fix is
 to extend the fixture past 100 words (or correct the assertion) so the test
 validates the comprehensive-length branch it intends to.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/sayalibadole/pathreview/commit/82fafcc0b25e71cc22876e7b0a10a54bcb25c3a3
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_readme_scorer.py -q` and observed
+`test_readme_with_all_quality_signals` fail with `assert 51 > 100` — the
+scorer correctly reports `word_count=51` / `category=minimal`, confirming the
+fixture is too short for its own assertions (test bug, not a scorer bug).
+
+**PLAN.md link:** https://github.com/sayalibadole/pathreview/blob/test/156-readme-scorer-fixture-word-count/PLAN.md
+
+**Walkthrough video (recommended):** _(not recorded)_
+
+**Blockers or open questions:**
+The scorer only labels a README `"comprehensive"` at **≥ 500 words**, so the
+fixture must reach 500 (not merely >100) to satisfy both assertions — I've
+planned for this. One open question for review: the issue allows either
+extending the fixture or correcting the assertion; I chose to extend the
+fixture to preserve the test's intent, but I'll defer to maintainer preference
+if feedback differs.
