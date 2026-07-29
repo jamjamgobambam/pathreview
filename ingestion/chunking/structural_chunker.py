@@ -108,10 +108,17 @@ class StructuralChunker(BaseChunker):
 
             else:
                 # Regular content line
+                # BUG(#149): content is only collected once a heading has been
+                # seen, so a document with no headings collects nothing and
+                # chunk() returns [] — the document is silently dropped from
+                # the RAG index. Preamble text before the first heading is
+                # lost for the same reason. Repro: tests/unit/test_issue_149_reproduction.py
                 if heading_stack or current_section_lines:  # Only collect if we have a heading
                     current_section_lines.append(line)
 
         # Save final section
+        # BUG(#149): the final section is discarded unless heading_stack is
+        # non-empty, which also drops heading-less documents.
         if current_section_lines and heading_stack:
             sections.append({
                 "content": "\n".join(current_section_lines).strip(),
