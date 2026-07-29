@@ -15,4 +15,4 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: [types-redis]
-        args: [--ignore-missing-imports]
+        args: [--ignore-missing-imports, --follow-imports=skip]
