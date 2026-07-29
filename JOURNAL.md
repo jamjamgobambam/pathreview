@@ -137,3 +137,59 @@ uvicorn log:
   in the PR description, or leave it entirely alone?
 - Before the Week 9 PR I still need to make `make check` pass (pre-existing `B008` lint + mypy
   `dict[str, object]` findings in `health.py`, documented in PLAN.md → Risks).
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+The one-line fix (`text("SELECT 1")` + import) was already committed in Week 8 (`ae88d0e`). This
+week I completed the test sub-task from PLAN.md: added `tests/unit/test_health.py` with three
+cases — `/health` returns 200 with `postgres: "healthy"` when the probe succeeds, raises
+`HTTPException(503)` with `postgres: "unhealthy"` when it errors, and a regression guard
+(`test_probe_uses_text_clause_not_raw_string`) that asserts the probe runs a SQLAlchemy
+`TextClause` rather than a raw string. The first two cover the 200/503 branching; the third is
+what actually catches issue #154 — I verified that reverting the fix to `db.execute("SELECT 1")`
+fails *only* that third test. All three pass and the new file is ruff- and black-clean.
+
+I also recorded the repo's pre-existing CI baseline before touching anything: `make test-unit` is
+53 failed / 375 passed and `ruff check .` reports 179 errors — all unrelated to #154 (and mypy
+can't run to completion locally on a numpy stub). After my change the suite is 53 failed / **378
+passed**: my 3 tests added, zero new failures.
+
+**Next steps:**
+- Open a draft PR to `ascherj/pathreview` early this week, template fully filled, documenting the
+  pre-existing baseline and the out-of-scope Redis bug in Notes for Reviewers.
+- Request peer/mentor review in Slack; iterate on feedback.
+- Mark the PR ready for review, then complete Check-in 2 with the PR link and submit the branch
+  URL via the portal.
+
+**Blockers:**
+- Resolved the two open questions from Week 8: the out-of-scope Redis bug will be **mentioned in
+  the PR, not fixed** (keeps the diff Tier-1); and `make check` cannot pass cleanly on this repo
+  regardless of my change (documented pre-existing failures), so "passes" here means my changes
+  introduce no new failures — which I've confirmed. No hard blockers.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _(to be added Sunday once the draft PR is marked ready for review)_
+
+**Branch:** `fix/154-health-db-probe-text`
+
+**What you built:**
+_(fill Sunday)_
+
+**Tests added or updated:**
+`tests/unit/test_health.py` — three unit tests covering the 200 healthy path, the 503 probe-error
+path, and a regression guard that the probe uses a SQLAlchemy `text()` clause.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+_(Note: this repo has documented pre-existing failures — see PR "Notes for Reviewers." "Passes"
+here means my changes introduce no new failures: unit suite 53 pre-existing fails unchanged,
++3 of my tests passing.)_
+
+**Draft PR feedback received from:** _(fill Sunday)_
