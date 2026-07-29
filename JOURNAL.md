@@ -44,3 +44,23 @@ Open a draft PR and request feedback from a classmate or mentor in Slack before 
 
 **Blockers:**
 None currently. Still slightly unsure whether the exact shape of `failed_tools` (a list of names vs. a dict with error details) is the ideal design, but decided to keep it simple per PLAN.md's original scope rather than over-engineer before getting reviewer feedback.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/351
+
+**Branch:** fix/44-orchestrator-error-logging
+
+**What you built:**
+Added a `has_errors` (bool) and `failed_tools` (list) field to the dict returned by `Orchestrator.run()` in `agent/orchestrator.py`. Previously, when a tool call failed, the error was only logged internally and buried inside `tool_results` — nothing at the top level indicated a failure occurred. Now callers can check `result["has_errors"]` directly instead of manually inspecting every tool's result.
+
+**Tests added or updated:**
+Created `tests/unit/test_orchestrator.py` (no tests existed for this file before). Added 4 tests: `test_all_tools_succeed_no_errors_surfaced` (confirms no false positives), `test_one_tool_fails_is_surfaced` (confirms a single failure is correctly named), `test_all_tools_fail_all_are_surfaced` (confirms multiple failures are all captured), and `test_empty_plan_has_no_errors` (confirms an empty plan doesn't error out).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+*(Note: the codebase has documented pre-existing failures — 53 in `make test-unit`, 183 in `make check` — recorded in `tests/unit/pre_existing_failures_baseline.txt` and `tests/unit/pre_existing_lint_baseline.txt`. Per course guidance, "passes" here means my changes introduce no new failures on top of that baseline, which I confirmed by comparing before/after runs.)*
+
+**Draft PR feedback received from:** none
