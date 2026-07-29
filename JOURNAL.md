@@ -105,4 +105,4 @@ _(In this repo both commands have documented pre-existing failures; "passes" her
 means my changes introduce no new failures — verified: test-unit went 54→53 failing
 with +6 of my tests passing, and ruff went 182→181 errors. Details in the PR.)_
 
-**Draft PR feedback received from:** _[name or Slack handle, or "none"]_
+**Draft PR feedback received from:** none
