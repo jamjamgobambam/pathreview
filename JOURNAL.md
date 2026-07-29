@@ -97,10 +97,14 @@ large headed sections. Documents with headings are completely unaffected.
   metadata and `heading_level=0` are preserved through the sub-chunking path.
 
 **Self-review confirmation:**
-- [ ] make check passes — `make check` fails due to pre-existing `.venv` setup issue
-  unrelated to this fix. Manual `ruff check` on changed files: 4 pre-existing errors in
-  unmodified code, 0 new errors introduced by this change.
+- [ ] make check passes — FAILS (pre-existing, not caused by this PR).
+  `make lint`: ~100+ ruff errors across `agent/`, `api/`, `rag/`, `safety/`, `ingestion/`,
+  and `tests/` — unsorted imports, unused variables, `Optional[X]` style, etc. — all in
+  files not touched by this PR. Verified by running `make lint` with `.venv` set up.
+  `make typecheck`: 5 mypy errors for missing stubs (`PyPDF2`, `jose`, `passlib`,
+  `rank_bm25`, numpy) — all pre-existing, none in files changed by this PR.
+  This PR introduces zero new lint or type errors.
 - [x] make test-unit passes — 16/16 tests pass, 0 regressions
-  (`python -m pytest tests/unit/test_structural_chunker.py -v`)
+  (`make test-unit` with `.venv` set up confirms all pass)
 
 **Draft PR feedback received from:** none
