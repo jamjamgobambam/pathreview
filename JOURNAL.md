@@ -17,3 +17,16 @@ I chose this as a Tier 1 issue since this is my first time contributing to a cod
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [TODO: fill in after committing — see instructions below]
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_readme_scorer.py -q` and observed that `test_readme_with_all_quality_signals` fails. The test fixture contains only 51 words, so the scorer correctly reports `word_count=51` and `word_count_category="minimal"`, causing the test's expectations of `word_count > 100` and `"comprehensive"` to fail.
+
+**PLAN.md link:** https://github.com/FremahA/pathreview/blob/fix/156-readme-scorer-fixture-word-count/PLAN.md
+
+**Walkthrough video (recommended):** 
+
+**Blockers or open questions:**
