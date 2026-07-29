@@ -27,7 +27,4 @@ I ran `pytest tests/unit/test_pii_scrubber.py -q` and confirmed that `(555) 123-
 
 **PLAN.md link:** [PLAN.md](PLAN.md)
 
-**Walkthrough video (recommended):**
-
-**Blockers or open questions:**
-None.
+**Blockers or open questions:** Wondering if other formats can/should also be redacted by these functions. 
