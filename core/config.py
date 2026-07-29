@@ -1,14 +1,16 @@
 """Application configuration loaded from environment variables and .env file."""
 
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Application settings with support for .env file and environment variables."""
 
     # Database
-    database_url: str = Field(default="postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_dev")
+    database_url: str = Field(
+        default="postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_dev"
+    )
     redis_url: str = Field(default="redis://localhost:6379/0")
     vector_db_url: str = Field(default="http://localhost:8001")
 
@@ -39,10 +41,11 @@ class Settings(BaseSettings):
     # Rate Limiting
     rate_limit_per_minute: int = Field(default=60)
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
 
 
 # Singleton instance

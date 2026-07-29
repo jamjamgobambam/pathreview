@@ -48,3 +48,42 @@ I opened core/services/profile_service.py and review_service.py and could confir
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+
+- I have written my docstrings for the profile_service.py, checking in with Claude's analysis of the codebase and comparing it with my own.
+  - Explains the params, what the function does with the params, and return values.
+  - I brought up "Raise" conditions where an error may happen.
+- Created a pytest for profile_service for my own test purposes to verify docstring is correct.
+
+**Next steps:**
+
+- I plan on continuing to working on the review_service.py docstrings.
+- I see that there is already a test_review_service.py function, I may run it, see if there is anything I will need to add to make it run properly.
+
+**Blockers:**
+
+- Claude went down today 11/29, so it may take a bit of time to get back on track.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
