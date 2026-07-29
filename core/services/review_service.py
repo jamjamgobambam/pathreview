@@ -1,27 +1,78 @@
-from uuid import UUID
-import structlog
+import hashlib
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
 
-async def create_review(
-    db,
+def _calculate_content_hash(
+    github_username: str | None,
+    resume_text: str | None,
+    portfolio_url: str | None,
+) -> str:
+    """Calculate SHA-256 hash of profile content."""
+    content = f"{github_username or ''}|{resume_text or ''}|{portfolio_url or ''}"
+    return hashlib.sha256(content.encode()).hexdigest()
+
+
+async def _get_cached_review(db: AsyncSession, content_hash: str) -> Review | None:
+    """Get cached review if portfolio content hasn't changed."""
+    stmt = select(Review).where(
+        and_(Review.content_hash == content_hash, Review.status == "complete")
+    )
+    result = await db.execute(stmt)
+    review = result.scalars().first()
+    return review if isinstance(review, Review) else None
+
+
+async def get_or_create_review(
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
     """
-    Create a new review with status="pending".
+    Get cached review if portfolio hasn't changed, otherwise create new review.
+
+    1. Fetch profile to calculate content hash
+    2. Check for existing completed review with same hash
+    3. Return cached review if found
+    4. Otherwise create new review in pending status with content_hash stored
     """
+    # Get profile
+    stmt = select(Profile).where(Profile.id == profile_id)
+    result = await db.execute(stmt)
+    profile = result.scalars().first()
+
+    if not profile:
+        raise ValueError(f"Profile {profile_id} not found")
+
+    # Calculate content hash
+    content_hash = _calculate_content_hash(
+        profile.github_username, profile.resume_text, profile.portfolio_url
+    )
+
+    # Check for cached review
+    cached_review = await _get_cached_review(db, content_hash)
+    if cached_review:
+        log.info(
+            "returning_cached_review", content_hash=content_hash, review_id=str(cached_review.id)
+        )
+        return cached_review
+
+    # Create new review
     review = Review(
         profile_id=profile_id,
+        content_hash=content_hash,
         status="pending",
         sections=None,
         overall_score=None,
@@ -29,26 +80,27 @@ async def create_review(
     db.add(review)
     await db.commit()
     await db.refresh(review)
+    log.info("created_new_review", content_hash=content_hash, review_id=str(review.id))
     return review
 
 
 async def get_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    return result.scalars().first()  # type: ignore
 
 
 async def list_reviews(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     page: int = 1,
     page_size: int = 20,
@@ -80,7 +132,7 @@ async def list_reviews(
 
 
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
@@ -194,7 +246,7 @@ async def process_review(
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
 
-async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
+async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[dict]:
     """
     Run ingestion pipeline to extract data from profile sources.
     Returns list of ingested source data.

@@ -1,14 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from typing import Annotated, Any
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
 from core.database import get_db
+from core.models.user import User
 from core.services.review_service import (
-    create_review,
+    get_or_create_review,
     get_review,
     list_reviews,
     process_review,
@@ -23,33 +24,39 @@ router = APIRouter(prefix="/reviews", tags=["reviews"])
 async def create_review_endpoint(
     data: ReviewCreate,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Any, Depends(get_db)],
+) -> ReviewResponse:
     """
-    Create a new review for a profile.
-    Triggers ingestion pipeline and agent orchestration asynchronously.
-    Returns review with status="pending" immediately.
+    Get or create a review for a profile.
+    If portfolio hasn't changed, returns cached review.
+    Otherwise, creates new review and triggers pipeline asynchronously.
     """
     try:
-        # Create review with status="pending"
-        review = await create_review(
+        # Get or create review (checks cache based on content hash)
+        review = await get_or_create_review(
             db=db,
             profile_id=data.profile_id,
             user_id=current_user.id,
         )
 
-        # Add background task for processing
-        background_tasks.add_task(process_review, db, review.id, data.profile_id)
+        # Only queue background task if review is pending (not cached)
+        if review.status == "pending":
+            background_tasks.add_task(process_review, db, review.id, data.profile_id)
+            log.info(
+                "review_created",
+                review_id=str(review.id),
+                profile_id=str(data.profile_id),
+                user_id=str(current_user.id),
+            )
+        else:
+            log.info(
+                "review_returned_from_cache",
+                review_id=str(review.id),
+                profile_id=str(data.profile_id),
+            )
 
-        log.info(
-            "review_created",
-            review_id=str(review.id),
-            profile_id=str(data.profile_id),
-            user_id=str(current_user.id),
-        )
-
-        return ReviewResponse.model_validate(review)
+        return ReviewResponse.model_validate(review)  # type: ignore
 
     except HTTPException:
         raise
@@ -59,15 +66,15 @@ async def create_review_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create review",
-        )
+        ) from exc
 
 
 @router.get("/{review_id}", response_model=ReviewResponse)
 async def get_review_endpoint(
     review_id: UUID,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Any, Depends(get_db)],
+) -> ReviewResponse:
     """
     Get a review by ID.
     Returns 404 if not found or not owned by current user.
@@ -86,7 +93,7 @@ async def get_review_endpoint(
                 detail="Review not found",
             )
 
-        return ReviewResponse.model_validate(review)
+        return ReviewResponse.model_validate(review)  # type: ignore
 
     except HTTPException:
         raise
@@ -95,16 +102,16 @@ async def get_review_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve review",
-        )
+        ) from exc  # noqa: B904
 
 
 @router.get("", response_model=ReviewListResponse)
 async def list_reviews_endpoint(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Any, Depends(get_db)],
     page: int = 1,
     page_size: int = 20,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+) -> ReviewListResponse:
     """
     List reviews for current user with pagination.
     """
@@ -133,15 +140,15 @@ async def list_reviews_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to list reviews",
-        )
+        ) from exc  # noqa: B904
 
 
 @router.get("/{review_id}/status")
 async def get_review_status(
     review_id: UUID,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Any, Depends(get_db)],
+) -> dict[str, Any]:
     """
     Get review status and progress.
     Returns {review_id, status, progress_pct}
@@ -173,4 +180,4 @@ async def get_review_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve review status",
-        )
+        ) from exc  # noqa: B904
