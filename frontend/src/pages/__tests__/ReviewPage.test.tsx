@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { axe } from 'jest-axe'
 import { ReviewPage } from '../ReviewPage'
 import { useReviewStatus } from '../../hooks/useReviewStatus'
+import { apiClient } from '../../services/api'
 import { Review } from '../../types'
 
 const failedReview: Review = {
@@ -10,6 +11,23 @@ const failedReview: Review = {
   profile_id: 'profile-123',
   status: 'failed',
   error_message: 'The analysis service timed out.',
+  created_at: '2026-07-01T00:00:00Z',
+  updated_at: '2026-07-01T00:05:00Z'
+}
+
+const completeReview: Review = {
+  id: 'review-123',
+  profile_id: 'profile-123',
+  status: 'complete',
+  overall_score: 0.82,
+  sections: [
+    {
+      section_name: 'Code Quality',
+      content: 'Solid structure overall.',
+      suggestions: ['Add more inline comments for complex logic'],
+      confidence: 0.9
+    }
+  ],
   created_at: '2026-07-01T00:00:00Z',
   updated_at: '2026-07-01T00:05:00Z'
 }
@@ -32,6 +50,7 @@ vi.mock('../../services/api', () => ({
 }))
 
 const mockUseReviewStatus = vi.mocked(useReviewStatus)
+const mockGetReview = vi.mocked(apiClient.getReview)
 
 describe('ReviewPage', () => {
   beforeEach(() => {
@@ -60,6 +79,17 @@ describe('ReviewPage', () => {
     const { container } = render(<ReviewPage />)
 
     expect(screen.getByText('Review Failed')).toBeInTheDocument()
+    expect(await axe(container)).toHaveNoViolations()
+  })
+
+  it('has no accessibility violations in the complete state', async () => {
+    mockUseReviewStatus.mockReturnValue({ review: completeReview, isPolling: false, error: null })
+    mockGetReview.mockResolvedValue(completeReview)
+
+    const { container } = render(<ReviewPage />)
+
+    await screen.findByText('Portfolio Review')
+
     expect(await axe(container)).toHaveNoViolations()
   })
 })
