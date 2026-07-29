@@ -38,14 +38,15 @@ test/88-post-review-endpoint
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** 
+**Reproduction commit link:**
+
 <!-- [link to commit documenting the reproduced issue] -->
 https://github.com/Kiniec/pathreview/commit/b7af3beb36749ed1f6ef64191ed813dce58ea463
 
 **Reproduction summary:**
 <!-- 1–2 sentences: How did you reproduce the issue? What did you observe?-->
 
-  Traced the request path for POST /reviews (api/routes/reviews.py → review_service.process_review) to check for a crash when a profile has no ingested source documents. No exception is raised: _run_agent_orchestration/_run_rag_retrieval_generation return hardcoded sections regardless of input, so the review completes successfully with fake content instead of signaling that there was nothing to review.
+Ran the system locally with input of `user1@example.com` and received a review output. Traced the request path for POST /reviews (api/routes/reviews.py → review_service.process_review) to check for a crash when a profile has no ingested source documents. No exception is raised: _run_agent_orchestration/_run_rag_retrieval_generation return hardcoded sections regardless of input, so the review completes successfully with fake content instead of signaling that there was nothing to review.
 
 **PLAN.md link:** 
 <!-- [link to PLAN.md in your fork] -->
