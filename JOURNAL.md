@@ -59,3 +59,44 @@ The main open question is the intended contract for an empty profile: should the
 complete, short-circuit to a distinct status, or simply not error? I want to confirm this with
 the maintainers before writing the assertion in Week 9 so I don't codify the current
 placeholder behavior if it's unintended.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the test-only fix for issue #88 in `tests/unit/test_review_service.py`. Working
+from PLAN.md, I added an `empty_profile` fixture (all four source fields — `github_username`,
+`portfolio_url`, `resume_text`, `resume_filename` — set to `None`) and three focused tests:
+
+1. `_run_ingestion_pipeline` returns `[]` for an empty profile and still commits with nothing staged
+2. a contrast test showing a profile with a GitHub username yields a non-empty result, so the empty assertion isn't vacuous
+3. `process_review` runs the empty-document path
+end-to-end without raising and processes the empty profile (rather than rejecting it as "not found"). 
+
+Following the plan's decision to keep assertions contract-neutral while the maintainer contract is unconfirmed, the tests deliberately do not assert the final review status and they pin only the deterministic, defensible behavior.
+
+All three new tests pass. Before my change `tests/unit/test_review_service.py` was 6 passed / 13 failed; after it is 9 passed / 13 failed — the same 13 pre-existing failures, +3 new passing tests, no new failures.
+
+**Next steps:**
+Run the full `make check` and `make test-unit` and record pre-existing vs. new failures, open a draft PR, and request peer/mentor feedback in the Slack channel before marking it ready.
+
+**Blockers:**
+No any major blockers
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** 
+
+**Branch:** `test/88-reviews-no-ingested-docs`
+
+**What you built:**
+
+
+**Tests added or updated:**
+
+**Self-review confirmation:** 
+
+**Draft PR feedback received from:** 
