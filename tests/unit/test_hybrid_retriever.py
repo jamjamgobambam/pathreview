@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from rag.retriever.hybrid import HybridRetriever
+from rag.retriever.reranker import Reranker
 
 QUERY = "leadership and team management experience"
 
@@ -10,31 +11,33 @@ GENUINE_TEXT = "Led a team of 4 engineers on the checkout redesign project"
 DECOY_TEXT = "Managed weekend shift schedule at campus bakery"
 
 
+@pytest.fixture
+def mock_vector_store() -> MagicMock:
+    store = MagicMock()
+    store.query.return_value = [
+        {"id": "genuine-1", "text": GENUINE_TEXT, "metadata": {}, "score": 0.55},
+        {"id": "decoy-1", "text": DECOY_TEXT, "metadata": {}, "score": 0.82},
+    ]
+    store.get_collection.return_value.get.return_value = {
+        "ids": [],
+        "documents": [],
+        "metadatas": [],
+    }
+    return store
+
+
+@pytest.fixture
+def mock_keyword_searcher() -> MagicMock:
+    searcher = MagicMock()
+    searcher.search.return_value = [
+        {"id": "decoy-1", "text": DECOY_TEXT, "bm25_score": 6.4},
+        {"id": "genuine-1", "text": GENUINE_TEXT, "bm25_score": 3.1},
+    ]
+    return searcher
+
+
 @pytest.mark.unit
 class TestHybridRetriever:
-
-    @pytest.fixture
-    def mock_vector_store(self) -> MagicMock:
-        store = MagicMock()
-        store.query.return_value = [
-            {"id": "genuine-1", "text": GENUINE_TEXT, "metadata": {}, "score": 0.55},
-            {"id": "decoy-1", "text": DECOY_TEXT, "metadata": {}, "score": 0.82},
-        ]
-        store.get_collection.return_value.get.return_value = {
-            "ids": [],
-            "documents": [],
-            "metadatas": [],
-        }
-        return store
-
-    @pytest.fixture
-    def mock_keyword_searcher(self) -> MagicMock:
-        searcher = MagicMock()
-        searcher.search.return_value = [
-            {"id": "decoy-1", "text": DECOY_TEXT, "bm25_score": 6.4},
-            {"id": "genuine-1", "text": GENUINE_TEXT, "bm25_score": 3.1},
-        ]
-        return searcher
 
     @pytest.fixture
     def retriever(
@@ -67,3 +70,67 @@ class TestHybridRetriever:
         # Current retrieve() has no mechanism to catch this: the topically
         # irrelevant decoy wins purely on blended keyword/vector score.
         assert decoy_score >= genuine_score
+
+
+@pytest.mark.unit
+class TestHybridRetrieverWithReranker:
+
+    @pytest.fixture
+    def mock_llm_client(self) -> MagicMock:
+        client = MagicMock()
+        response = MagicMock()
+        response.choices = [
+            MagicMock(message=MagicMock(content='{"genuine-1": 0.95, "decoy-1": 0.05}'))
+        ]
+        client.chat.completions.create.return_value = response
+        return client
+
+    @pytest.fixture
+    def reranker(self, mock_llm_client: MagicMock) -> Reranker:
+        return Reranker(client=mock_llm_client, model="test-model")
+
+    @pytest.fixture
+    def retriever(
+        self,
+        mock_vector_store: MagicMock,
+        mock_keyword_searcher: MagicMock,
+        reranker: Reranker,
+    ) -> HybridRetriever:
+        return HybridRetriever(mock_vector_store, mock_keyword_searcher, reranker=reranker)
+
+    def test_reranker_promotes_genuine_over_decoy(self, retriever: HybridRetriever) -> None:
+        """With reranking enabled, the LLM's relevance judgment overrides the
+        blended vector/keyword ranking, fixing the exact gap demonstrated in
+        TestHybridRetriever.test_decoy_outranks_genuine_match.
+        """
+        results = retriever.retrieve(
+            query=QUERY,
+            profile_id="test-profile",
+            query_embedding=[0.1] * 8,
+        )
+
+        assert results[0]["id"] == "genuine-1"
+        assert results[0]["score"] == 0.95
+
+    def test_reranker_failure_falls_back_to_blended_order(
+        self,
+        mock_vector_store: MagicMock,
+        mock_keyword_searcher: MagicMock,
+        mock_llm_client: MagicMock,
+    ) -> None:
+        """If the LLM call fails, retrieve() should still return results
+        (the pre-rerank blended order) instead of losing the request.
+        """
+        mock_llm_client.chat.completions.create.side_effect = Exception("API down")
+        reranker = Reranker(client=mock_llm_client, model="test-model")
+        retriever = HybridRetriever(mock_vector_store, mock_keyword_searcher, reranker=reranker)
+
+        results = retriever.retrieve(
+            query=QUERY,
+            profile_id="test-profile",
+            query_embedding=[0.1] * 8,
+        )
+
+        result_ids = [r["id"] for r in results]
+        assert "genuine-1" in result_ids
+        assert "decoy-1" in result_ids
