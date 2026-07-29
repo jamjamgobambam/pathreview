@@ -17,3 +17,17 @@ This is a good first issue because it is isolated to one agent tool and has a cl
 **Setup confirmation:** [ ] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 - Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/JohnsonGNEP/pathreview/commit/96a97240a534624b6569ce0fa9ada2db8cbc91f8
+
+**Reproduction summary:**
+I reproduced the issue with a file list containing real Python files plus generated JavaScript paths like `node_modules/lib/index.js` and `build/bundle.js`. The original path filter only matched slash-wrapped directory patterns, so root-relative ignored paths were not skipped and could skew detected languages away from the user's real source files.
+
+**PLAN.md link:** https://github.com/JohnsonGNEP/pathreview/blob/fix/150-exclude-vendored-build-files/PLAN.md
+
+**Loom walkthrough:** TODO - add Loom link after recording the <=2 minute walkthrough.
+
+**Blockers or open questions:**
+No code blockers. The remaining course deliverable is recording and adding the Loom walkthrough link.
