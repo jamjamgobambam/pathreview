@@ -45,6 +45,8 @@ place. This affects the agent subsystem (`agent/tools/tech_detector.py`).
 
 ## Week 8 — Reproduction & solution planning
 
+**Reproduction commit link:** https://github.com/VincentTLe/pathreview/commit/f0358585adf3cd6d6164526b5d226c234440505b
+
 **Reproduction summary:**
 Ran the two vendored/build exclusion tests against the current code and both
 fail: `primary_language` comes back `"JavaScript"` instead of `"Python"`, and
@@ -69,3 +71,13 @@ FAILED tests/unit/test_tech_detector.py::TestTechDetector::test_node_modules_exc
 FAILED tests/unit/test_tech_detector.py::TestTechDetector::test_build_directory_excluded
 2 failed, 1 passed, 24 deselected
 ```
+
+**PLAN.md link:** https://github.com/VincentTLe/pathreview/blob/fix/150-tech-detector-vendored-files/PLAN.md
+
+**Walkthrough video (recommended):** _(optional — not recorded; not graded)_
+
+**Blockers or open questions:**
+Keeping the Week 9 fix scoped to the vendored/build exclusion. The separate
+`sorted(languages)[0]` "primary = alphabetical, not most-common" behavior is a
+real but distinct bug; leaning toward raising it as a follow-up rather than
+expanding this Tier-1 PR.
