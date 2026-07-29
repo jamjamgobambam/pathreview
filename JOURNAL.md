@@ -16,3 +16,19 @@ I chose this as a Tier 1 issue because it's my first time contributing to a larg
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [paste link here after you commit]
+
+**Reproduction summary:**
+Attempted to run the app locally (`docker compose up -d`, `make setup`, `make run` via Git Bash). Docker services (Redis, Postgres, vector DB) started successfully, but the backend API server did not respond (frontend logged repeated "socket hang up" errors when proxying to it), so I could not confirm the bug via a live HTTP request. Instead, I confirmed the issue directly in the source: in `api/routes/health.py`, the `safety_events_last_hour` field is hardcoded to `0` inside a comment marked "placeholder," and is never populated from `SafetyMonitor.get_event_count()` in `safety/monitoring.py`, which already tracks real event counts in Redis. This confirms the gap exists and shows exactly where it lives, even though I wasn't able to hit the live endpoint due to a local backend startup issue I'm still debugging.
+
+**PLAN.md link:** [paste link here after you commit]
+
+**Walkthrough video (recommended):** [optional — add if you record one]
+
+**Blockers or open questions:**
+Still need to trace where `SafetyMonitor` is instantiated in the app so I can access it from `health.py` (it currently only depends on `get_db`, not Redis). Also unsure whether to fix the "last hour" windowing bug in `get_event_count` (it's actually a flat 24-hour Redis expiry, not enforced hourly) or just document that discrepancy for now and address it during implementation.
+
