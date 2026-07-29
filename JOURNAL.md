@@ -81,16 +81,90 @@ PR and commenting to claim the issue are manual steps I still need to do through
 
 ### Check-in 2 (end of week)
 
-**PR link:** _Pending — to be filled in on submission._
+**PR link:** PR_LINK_TODO — _fill in the actual PR URL here before submitting_
 
 **Branch:** `fix/155-health-check-redis-config`
 
 **What you built:**
-_To be filled in at submission._
+Fixed the `/health` endpoint, which returned HTTP 503 unconditionally because its Redis probe
+read `settings.redis_host` / `settings.redis_port`, fields that don't exist on `Settings`
+(Redis is configured as a single `redis_url`). Replaced the broken client construction with
+`redis.Redis.from_url(settings.redis_url, decode_responses=True)`, so the probe now reports
+Redis's actual reachability instead of always failing.
 
 **Tests added or updated:**
-_To be filled in at submission._
+Added `tests/unit/test_health.py` (new file, 5 tests): a config-contract test asserting
+`Settings` exposes `redis_url` and not `redis_host`/`redis_port`, a healthy-path test, a test
+that the probe is built from the configured URL, a genuine-outage test (mocked
+`ConnectionError` still returns 503), and an all-dependencies-healthy test. The reproduction
+test was committed separately from the fix (`685f1ad` fails against the bug, `ebcbe72` fixes it)
+so the before/after state is visible in history.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+_(both scoped to the files this PR touches — the codebase has pre-existing lint errors and test
+failures unrelated to this issue, documented in the PR description and PLAN.md)_
 
-**Draft PR feedback received from:** _To be filled in at submission._
+**Draft PR feedback received from:** none yet
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — not a feature this term (Su26)
+
+**Summary of feedback:**
+No reviewer feedback mechanism was available this term. The PR was self-reviewed against
+`docs/CONTRIBUTING.md` and the pre-submission checklist instead.
+
+**How you responded:**
+N/A — see self-review notes in Check-in 2 above.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Trusting the curated issue tracker less than I expected to. My first pick, C-01 (a `KeyError`
+on a missing GitHub repo description), turned out to already be fixed on `main` — the code
+already guarded with `.get("description") or ""`. The committed
+`scripts/issues_manifest.json` (130 seed issues) didn't match the actual live tracker on
+`ascherj/pathreview` at all; several of its "bugs," including my first pick, simply weren't
+present in the code. I had to check the real GitHub issues (numbered #149–#163+) and verify
+each candidate against the actual source before committing to one. I expected the harder part
+of this module to be the fix itself; the harder part was actually confirming the problem was
+real in the first place.
+
+**What did you learn about working in a large codebase?**
+That "does this reproduce" is a real, separate question from "does the issue description sound
+plausible" — and skipping straight from the description to a fix is how you end up submitting
+a no-op PR. I also learned that a codebase can ship with dozens of known-failing tests on
+purpose (this repo had 53 pre-existing unit test failures on a clean checkout, corresponding to
+other open issues) and that the job isn't to fix all of them — it's to prove your change doesn't
+add to the count. That reframes what "passing tests" even means in a shared codebase: it's a
+comparison against a baseline, not an absolute state.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for the investigative work: triaging which of 130 candidate
+issues were still real by reading the actual source, tracing the bug from the route handler
+back to the config schema, and matching the existing test file conventions when writing new
+tests. It also helped structure the commit history deliberately — a failing reproduction commit
+followed by a one-line fix commit — rather than bundling everything together.
+
+It fell short anywhere that required a real GitHub session or my own judgment: it couldn't post
+issue comments, open the PR, or push without my credentials, so all of that stayed manual. It
+also couldn't substitute for actually being at the keyboard — partway through the branch got
+switched by my own editor while a git operation was in progress, and that needed a human
+(me) to notice and confirm nothing was overwritten before continuing.
+
+**What would you do differently if you started over?**
+I'd verify the issue against the live code in the first five minutes, before reading the
+description closely enough to get attached to it. I picked C-01 partly because it looked like
+the cleanest possible first issue, and only discovered it was already fixed after digging in.
+A five-minute grep at the start would have saved that detour.
+
+**What are you most proud of from this module?**
+Catching the mismatch between the seeded issue manifest and the real tracker before writing any
+code against a bug that didn't exist. It would have been easy to open a PR for C-01 that changed
+nothing meaningful, and it's the kind of mistake that's invisible until a reviewer points it out.
