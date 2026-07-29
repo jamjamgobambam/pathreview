@@ -86,7 +86,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _[add when PR is opened]_
+**PR link:** https://github.com/ascherj/pathreview/pull/382
 
 **Branch:** `fix/27-vector-store-stale-embeddings-error`
 
@@ -100,6 +100,9 @@ surface stale embeddings.
 `tests/unit/test_ingestion_reingest.py` — README replacement (reproduction) plus resume,
 repo-metadata, chunk-shrink, identical-content, and sibling-source cases.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+_(In this repo both commands have documented pre-existing failures; "passes" here
+means my changes introduce no new failures — verified: test-unit went 54→53 failing
+with +6 of my tests passing, and ruff went 182→181 errors. Details in the PR.)_
 
 **Draft PR feedback received from:** _[name or Slack handle, or "none"]_
