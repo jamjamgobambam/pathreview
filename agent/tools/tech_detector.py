@@ -1,6 +1,7 @@
 """Technology stack detector tool."""
 
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -75,7 +76,7 @@ class TechDetector(BaseTool):
                     "primary_language": "Unknown",
                     "all_languages": [],
                     "frameworks": [],
-                }
+                },
             )
 
         try:
@@ -84,11 +85,7 @@ class TechDetector(BaseTool):
 
         except Exception as e:
             logger.error("tech_detector_error", error=str(e))
-            return ToolResult(
-                success=False,
-                data={},
-                error=str(e)
-            )
+            return ToolResult(success=False, data={}, error=str(e))
 
     def _detect_tech(self, files: list[str]) -> dict:
         """Detect technologies from file list.
@@ -100,10 +97,7 @@ class TechDetector(BaseTool):
             Dict with detected languages and frameworks
         """
         # Filter out vendor/build directories
-        filtered_files = [
-            f for f in files
-            if not self._should_skip_file(f)
-        ]
+        filtered_files = [f for f in files if not self._should_skip_file(f)]
 
         languages = set()
         frameworks = set()
@@ -131,8 +125,12 @@ class TechDetector(BaseTool):
         all_languages = sorted(languages)
         all_frameworks = sorted(frameworks)
 
-        logger.info("tech_detected", primary_lang=primary,
-                   languages_count=len(all_languages), frameworks_count=len(all_frameworks))
+        logger.info(
+            "tech_detected",
+            primary_lang=primary,
+            languages_count=len(all_languages),
+            frameworks_count=len(all_frameworks),
+        )
 
         return {
             "primary_language": primary,
@@ -150,6 +148,17 @@ class TechDetector(BaseTool):
         Returns:
             True if file should be skipped
         """
+        # Reproduced for #150: skip_patterns below only match when the
+        # directory name has a leading "/" (e.g. "/node_modules/"). The
+        # `files` list this method receives holds repo-relative paths with
+        # no leading slash (e.g. "node_modules/pkg/index.js"), so `in`
+        # never matches and vendor/build files leak into the language
+        # count. Confirmed locally: `pytest tests/unit/test_tech_detector.py
+        # -k "test_node_modules_excluded or test_build_directory_excluded"`
+        # fails on current main, both asserting primary_language == "Python"
+        # but getting "JavaScript" because the vendored .js files aren't
+        # filtered out. Fix (planned in PLAN.md) is to also match the
+        # pattern as a path-segment prefix so a leading slash isn't required.
         skip_patterns = [
             "/node_modules/",
             "/vendor/",
