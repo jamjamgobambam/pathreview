@@ -3395,73 +3395,36 @@ make: *** [test-unit] Error 1
 
 For journal.md, based on your Week 9 PR work and these results, put this exactly:
 
-# Week 9 Journal — Implementation & PR Submission
+## Week 9 — Solution building & PR submission
 
-## Issue Selected
-I worked on issue #146: **PII scrubber fails to redact parenthesized US phone numbers**.
+### Check-in 1 (mid-week)
 
-The goal of this issue was to fix a bug where phone numbers formatted with parentheses, such as `(123) 456-7890`, were not being detected and redacted by the PII scrubber.
+**Current progress:**
+Implemented the fix for issue #146, which addressed the PII scrubber failing to redact parenthesized US phone numbers. I investigated the existing phone number regex, identified the formatting edge case, and updated the implementation to better support valid US phone number formats.
 
-## Implementation Summary
-I investigated the existing PII scrubber implementation and identified that the phone number regex did not correctly handle all valid US phone number formats. I updated the pattern so that parenthesized area codes and other common formatting variations are detected.
+**Next steps:**
+Run targeted tests, verify the fix does not introduce regressions, complete self-review, and submit the pull request.
 
-I verified the change by running the existing PII scrubber unit tests:
+**Blockers:**
+Full repository checks revealed unrelated existing test and lint failures outside the scope of this issue.
 
+---
 
-.venv/bin/python -m pytest tests/unit/test_pii_scrubber.py -v
+### Check-in 2 (end of week)
 
+**PR link:** [(https://github.com/ascherj/pathreview/pull/349)]
 
-The targeted tests confirmed that the phone number detection behavior was improved.
+**Branch:** `fix/146-pii-scrubber-phone-redaction`
 
-## Testing and Validation
-I ran the full unit test suite:
+**What you built:**
+Updated the PII scrubber phone detection logic to correctly identify and redact US phone numbers with parenthesized area codes. The change improves handling of common phone number formats while maintaining existing behavior.
 
-make test-unit
+**Tests added or updated:**
+Updated PII scrubber functionality and verified behavior using:
+`.venv/bin/python -m pytest tests/unit/test_pii_scrubber.py -v`
 
+**Self-review confirmation:**
+[ ] make check passes (pre-existing unrelated lint failures documented in PR)
+[ ] make test-unit passes (pre-existing unrelated test failures documented in PR)
 
-The repository currently has multiple pre-existing failures unrelated to my PII scrubber change. The failures are spread across several areas including:
-
-- review service async database mocking
-- skill extraction detection
-- structural chunking
-- tech detection ranking
-- bias detection
-- faithfulness checking
-- parsers
-- security password validation
-- prompt defense
-- keyword search
-- formatting/lint issues
-
-My changes were isolated to the PII scrubber functionality and did not introduce failures outside that area.
-
-I also ran:
-
-make check
-
-The check command reported linting issues across the repository, including:
-
-- unsorted imports
-- unused imports
-- unused variables
-- line length violations
-- minor style issues
-
-Most of these issues appear in existing test files and unrelated modules rather than the files changed for this issue.
-
-## Challenges Encountered
-The main challenge was separating failures caused by my implementation from existing repository issues. Running the full test suite revealed many unrelated failures, so I focused validation on the affected PII scrubber functionality.
-
-I also learned the importance of checking both targeted tests and full project checks before submitting a PR. A targeted test can confirm a feature works, while the full suite helps identify broader repository health issues.
-
-## What I Learned
-This task improved my understanding of:
-
-- debugging regular expressions for edge cases
-- writing and validating bug fixes in an existing codebase
-- using targeted tests before running a full suite
-- interpreting CI/lint output
-- distinguishing implementation problems from unrelated repository failures
-
-## PR Readiness
-The PII scrubber fix is complete and ready for review. The remaining test and lint failures should be addressed separately because they are outside the scope of this issue.
+**Draft PR feedback received from:** none
