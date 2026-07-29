@@ -1,6 +1,7 @@
 """Check if generated feedback is supported by retrieved context."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -20,8 +21,11 @@ class FaithfulnessChecker:
             Faithfulness score 0.0-1.0 (ratio of supported claims)
         """
         if not feedback or not context_chunks:
-            logger.info("faithfulness_empty_input", has_feedback=bool(feedback),
-                       has_chunks=bool(context_chunks))
+            logger.info(
+                "faithfulness_empty_input",
+                has_feedback=bool(feedback),
+                has_chunks=bool(context_chunks),
+            )
             return 0.0
 
         # Extract key claims from feedback (sentences)
@@ -31,58 +35,104 @@ class FaithfulnessChecker:
             return 0.5  # Default to neutral if no extractable claims
 
         # Concatenate context text
-        context_text = " ".join([
-            chunk.get("text", "") for chunk in context_chunks
-        ])
+        context_text = " ".join(
+            [chunk.get("text") or "" for chunk in context_chunks if isinstance(chunk, dict)]
+        )
+        if not context_text:
+            logger.info("faithfulness_empty_context")
+            return 0.0
 
         # Check each claim for support
         supported = 0
         for claim in claims:
-            if self._is_supported(claim, context_text):
+            if FaithfulnessChecker._is_supported(claim, context_text):
                 supported += 1
 
         score = supported / len(claims) if claims else 0.0
 
-        logger.info("faithfulness_checked", claims_count=len(claims),
-                   supported_count=supported, score=score)
+        logger.info(
+            "faithfulness_checked", claims_count=len(claims), supported_count=supported, score=score
+        )
 
         return score
 
     @staticmethod
     def _extract_claims(text: str) -> list[str]:
-        """Extract key claims from feedback text.
+        """Extract key claims from feedback text."""
+        if not text or not isinstance(text, str):
+            return []
 
-        Args:
-            text: Feedback text
+        # First split by major sentence boundaries
+        sentences = re.split(r"[.!?]+", text)
 
-        Returns:
-            List of claims (sentences)
-        """
-        # Split by sentence (simple regex)
-        sentences = re.split(r'[.!?]+', text)
-        claims = [s.strip() for s in sentences if s.strip() and len(s.strip()) > 10]
-        return claims[:10]  # Limit to 10 claims for scoring
+        claims = []
+        for sentence in sentences:
+            sentence = sentence.strip()
+            if not sentence:
+                continue
+
+            # If a sentence contains conjunctions/commas (e.g. "Python, JavaScript, and Docker"),
+            # split into sub-claims so each skill is evaluated independently
+            sub_parts = re.split(r",|\band\b", sentence)
+            if len(sub_parts) > 1:
+                for part in sub_parts:
+                    part_clean = part.strip()
+                    if len(part_clean) >= 3:
+                        claims.append(part_clean)
+            elif len(sentence) >= 3:
+                claims.append(sentence)
+
+        return claims[:10]
 
     @staticmethod
     def _is_supported(claim: str, context: str) -> bool:
-        """Check if a claim is supported by context.
+        """Check if a claim is supported by context."""
+        stop_words = {
+            "a",
+            "an",
+            "the",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "and",
+            "or",
+            "but",
+            "in",
+            "of",
+            "to",
+            "for",
+            "that",
+            "with",
+            "has",
+            "have",
+            "had",
+            "shows",
+            "showing",
+            "demonstrates",
+            "developer",
+            "expertise",
+            "experience",
+            "skills",
+            "knowledge",
+        }
 
-        Args:
-            claim: Claim text
-            context: Context text
+        # Extract clean words using regex (automatically strips commas, periods, etc.)
+        claim_words = re.findall(r"\b\w+\b", claim.lower())
+        context_words = re.findall(r"\b\w+\b", context.lower())
 
-        Returns:
-            True if claim is supported
-        """
-        # Tokenize and check for keyword overlap
-        claim_tokens = set(claim.lower().split())
-        context_tokens = set(context.lower().split())
+        claim_tokens = set(w for w in claim_words if w not in stop_words)
+        context_tokens = set(w for w in context_words if w not in stop_words)
 
-        # Require at least some meaningful overlap
-        overlap = claim_tokens & context_tokens
-        # Filter out common stop words
-        stop_words = {'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been',
-                     'and', 'or', 'but', 'in', 'of', 'to', 'for', 'that'}
-        meaningful_overlap = overlap - stop_words
+        if not claim_tokens:
+            return False
 
-        return len(meaningful_overlap) >= 2
+        meaningful_overlap = claim_tokens & context_tokens
+
+        # For short claims (1 key token like "rust"), 1 match is sufficient.
+        # Otherwise require min(2, len(claim_tokens)).
+        required_overlap = 1 if len(claim_tokens) <= 2 else 2
+
+        return len(meaningful_overlap) >= required_overlap

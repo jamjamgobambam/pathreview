@@ -26,3 +26,13 @@ Short, accurate claims get scored 0.0 by the faithfulness evaluator. The problem
 **Walkthrough video (recommended):** None
 
 **Blockers or open questions:** None
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:** I have fully implemented the fix for Issue #152. I updated `faithfulness_checker.py` to handle `None` context chunks safely and refactored `_extract_claims` and `_is_supported` to correctly parse and score short claims. All `PLAN.md` sub-tasks are complete, and `make test-unit` (including a new short claim test) and `make check` pass successfully.
+
+**Next steps:** Open a draft PR on GitHub to get feedback, refine if necessary, and then submit the final Pull Request by the Sunday deadline.
+
+**Blockers:** None at this time!
