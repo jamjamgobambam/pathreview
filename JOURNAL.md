@@ -9,7 +9,9 @@
 **Problem summary:**
 This issue is about a bug in the agent workflow where state from one review can carry over into a later review for the same user. That stale session information can cause the next review to behave incorrectly or reuse context that should have been reset. A successful fix would ensure each new review starts with a clean agent session so the behavior is consistent and predictable.
 
-**Branch name:** chore/43-week7-setup
+**Branch name:** fix/43-clear-agent-session-state
+
+**Branch URL:** https://github.com/hfaugas/pathreview/tree/fix/43-clear-agent-session-state
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
