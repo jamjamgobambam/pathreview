@@ -19,3 +19,17 @@ All service files under core/services module don't have docstrings. Without docs
 - There are no blockers that need to be resolved first before this issue
 
 - I have 2 weeks before end of module 9 to add docstrings to all functions within `profile_service.py` and `review_service.py` so I'm confident I can complete this task.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+[1–2 sentences: How did you reproduce the issue? What did you observe?]
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
