@@ -33,6 +33,44 @@ I reproduced the issue by running `ResumeParser` on resume text where `Education
 The main open question is how narrow to keep the regex so it detects indented headers without matching ordinary sentences that mention words like education, skills, or experience. The planned approach is to keep the regex anchored to the start of each line and only allow optional leading whitespace before known section names.
 
 
+## Week 9 - Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the parser fix from my PLAN.md by updating `ResumeParser._detect_sections` so it allows optional leading whitespace before known section headers. I also added regression coverage in `tests/unit/test_resume_parser.py` for indented `Education:`, tab-indented `Skills:`, and indented `Experience:` headers, plus a guard test to make sure section words in normal sentences are not treated as headers.
+
+**Next steps:**
+Run the targeted resume parser tests in WSL with `.venv/bin/python -m pytest tests/unit/test_resume_parser.py -q`, then run `make test-unit` and `make check` before opening the PR. After the PR is submitted, update Check-in 2 with the PR link and final test status.
+
+**Blockers:**
+The targeted resume parser checks pass locally: `python -m ruff check ingestion/parsers/resume_parser.py tests/unit/test_resume_parser.py`, `python -m black --check ingestion/parsers/resume_parser.py tests/unit/test_resume_parser.py`, and `python -m pytest tests/unit/test_resume_parser.py -q`. Broader `make test-unit` and `make check` currently fail in unrelated modules outside this issue, including safety, RAG, review service, skill extraction, and repository-wide lint issues. I need to document those unrelated failures in the PR description.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** TODO after opening PR
+
+**Branch:** fix/147-resume-section-leading-whitespace
+
+**What you built:**
+I updated resume section detection so known headers are recognized even when PDF-extracted text includes leading spaces or tabs. The regex remains anchored to line starts, so it handles indentation without matching section words in the middle of ordinary sentences.
+
+**Tests added or updated:**
+Updated `tests/unit/test_resume_parser.py` with a regression test for indented section headers and a guard test for normal prose containing section words.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+Targeted check: [x] `.venv/bin/python -m pytest tests/unit/test_resume_parser.py -q` passes.
+
+Targeted lint/format: [x] `python -m ruff check ingestion/parsers/resume_parser.py tests/unit/test_resume_parser.py` passes; [x] `python -m black --check ingestion/parsers/resume_parser.py tests/unit/test_resume_parser.py` passes.
+
+Project-wide check notes: `make test-unit` and `make check` currently fail on unrelated existing tests/lint outside the resume parser files.
+
+**Draft PR feedback received from:** TODO
+
+
 
 <!--
 PAUSED DUE TO MISSING FILES
