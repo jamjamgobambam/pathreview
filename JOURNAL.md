@@ -22,7 +22,7 @@ This issue is a good fit for a Week 7 submission because it is focused on projec
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/hfaugas/pathreview/commit/126bbff
+**Reproduction commit link:** https://github.com/hfaugas/pathreview/commit/720920c
 
 **Reproduction summary:**
 I reproduced the issue by inspecting the orchestrator’s session-handling flow in agent/orchestrator.py and confirming that prior session state is loaded for the same profile ID before a new review run starts. The current implementation merges a persisted session payload into the next run, which means stale context from an earlier review can leak into a later review unless that state is explicitly cleared.
