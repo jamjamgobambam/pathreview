@@ -14,3 +14,17 @@
 **Setup confirmation:** App runs locally at localhost:5173
 
 **Cohort ledger:** Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [commit link](https://github.com/Harsh-D20/pathreview/commit/a6de94d85f04585a36c050509589de238312f7c4)
+
+**Reproduction summary:**
+Ran `.venv/bin/pytest tests/unit/test_bias_detector.py -v` and confirmed 9 of 32 tests fail exactly as described in the issue — e.g. `test_dismissive_bootcamp_language_detected` ("bootcamp graduates can't write production code") and `test_demographic_assumption_age_detected` ("young developers can't handle complex systems") both return `is_biased=False` because the existing regexes only match singular subjects and a narrow set of verb phrasings. Documented the root cause with an inline comment in `safety/bias_detector.py`.
+
+**PLAN.md link:** [PLAN.md link](https://github.com/Harsh-D20/pathreview/blob/fix/151-bias-detector-too-narrow/PLAN.md)
+
+**Walkthrough video (recommended):** N/A
+
+**Blockers or open questions:**
+None currently — candidate regex patterns for both `DISMISSIVE_PATTERNS` and `DEMOGRAPHIC_PATTERNS` were hand-validated against all 32 test assertions in a scratch script (0 mismatches) before writing PLAN.md, so the approach is de-risked going into implementation in Week 9. Still need to apply the patterns to `safety/bias_detector.py` itself and confirm against the real `pytest` run (scratch validation isn't a substitute for that).
