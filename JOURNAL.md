@@ -32,3 +32,29 @@ anyone else's PR.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/BettinaGeorge/pathreview/commit/a9dcec0
+
+**Reproduction summary:**
+I wrote `tests/unit/test_health.py`, which calls `health_check()` directly with a mocked
+database dependency. One test confirms the root cause directly — the real `Settings`
+object has no `redis_host`/`redis_port` fields, only `redis_url`. The second test calls
+the actual route function and confirms it raises `HTTPException(503)` with
+`dependencies.redis == "unhealthy"` even though Postgres reports healthy — proving the
+`AttributeError` from the missing settings field is silently caught by the route's broad
+`except Exception` block rather than surfacing as a crash.
+
+**PLAN.md link:** https://github.com/BettinaGeorge/pathreview/blob/fix/155-health-check-redis-host/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded this week.
+
+**Blockers or open questions:**
+Before implementing the fix, I need to grep the codebase for any other `redis.Redis(...)`
+call sites to confirm `api/routes/health.py` is the only place that needs to change.
+Separately, running mypy against this file surfaced several pre-existing type errors in
+`health.py` unrelated to this issue (missing type annotations, dict-indexing errors on a
+loosely-typed `health_status` object) — I bypassed the pre-commit hook for my reproduction
+commit since those errors predate my change, but I'll decide in Week 9 whether cleaning
+them up belongs in this PR's scope, since I'll already be editing that exact function.
