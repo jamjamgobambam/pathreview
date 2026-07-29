@@ -66,3 +66,46 @@ The repo also has substantial pre-existing failures unrelated to #68, which I re
 Both in the "no new failures" sense the instructions describe — this repo has documented pre-existing failures (182 ruff, 52 black, 103 mypy, 53 unit tests). After my change: ruff 182 → 182, black 52 → 52, mypy 103 → 100, and the 53 failing tests are the same 53 test IDs with 6 additional passes. The baseline table is in the PR description.
 
 **Draft PR feedback received from:** none — peer/mentor review is optional for this cohort. I opened the PR as a draft first, self-reviewed it against `docs/CONTRIBUTING.md` (branch name, conventional commits, Google-style docstrings, tests alongside the change), then marked it ready for review.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. As of the Week 10 deadline, PR #341 is open and marked ready for review with 0 reviews, 0 comments, and no CI checks configured on the branch. Per the Su26 course note, reviewer feedback isn't a feature this term.
+
+**How you responded:**
+N/A — no feedback to respond to. In place of an external review I did a second self-review pass against `docs/CONTRIBUTING.md` before marking the PR ready, and I pre-empted the two questions I'd expect a maintainer to raise by addressing them directly in the PR description: why I touched the Redis client construction (outside the literal issue scope) and why I did *not* implement true rolling-window counting.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Two things. First, telling my own breakage apart from the repo's. This codebase ships with 53 failing unit tests, 182 ruff errors, 103 mypy errors, and 52 files black would reformat. The first time I ran the checks I assumed I'd broken something. What actually worked was capturing a baseline *before* editing anything and then diffing the failing test IDs afterward — not the counts, the IDs — so I could say "the same 53 tests fail, and 6 more pass" instead of "roughly the same number." That turned an unusable signal into a usable one.
+
+Second, the issue was not the one-line change it looked like. The visible bug was `safety_events_last_hour` assigned a literal `0` with a "placeholder" comment. But when I went to wire in the real count, there was nothing to wire it to: the endpoint built its Redis client from `settings.redis_host` and `settings.redis_port`, and `Settings` in `core/config.py` only defines `redis_url`. Every call raised `AttributeError`, the `except` swallowed it, and no client object ever existed. The "one-line fix" had a dead dependency underneath it that I hadn't seen from the outside.
+
+**What did you learn about working in a large codebase?**
+That the ratio is inverted from personal projects. My actual change is about 25 lines across two files; the reading, baselining, and justifying around it took the overwhelming majority of the time. In my own code I'd have just fixed the Redis client, the unused `timedelta` imports, the `F841` unused `timestamp` variable in `safety/monitoring.py`, and the missing trailing comma black keeps flagging — they're all sitting right there in files I already had open. Here, leaving them alone was the correct call, because every unrelated line I touch is a line a reviewer has to evaluate and a chance to break something I don't understand yet.
+
+The corollary is that scope isn't binary. I *did* have to change the Redis client because my fix couldn't function without it — so the discipline isn't "never expand scope," it's "expand only where the change is load-bearing, and say so out loud." I put that rationale in the PR body with an explicit offer to split it into a separate PR if the maintainer would rather review it on its own.
+
+I also learned to treat existing patterns as constraints rather than suggestions. The endpoint calls a synchronous Redis client inside an `async def`, which blocks the event loop and is not what I'd write from scratch. I matched it anyway. Introducing async Redis would have been a better design and a much worse pull request.
+
+**How did AI tools help — and where did they fall short?**
+Most useful for orientation and mechanical throughput: mapping which files mattered, drafting the aggregation helper and the eight tests, running the baseline-vs-after comparison, and turning my notes into a PR description. Work that would have taken me a long evening took a fraction of that.
+
+Where it fell short is more interesting. It got the repository situation confidently wrong — it inspected `jamjamgobambam/pathreview` and `ascherj/pathreview`, saw an identical issue #68 in both, and concluded these were two mirrored copies of the course repo. They aren't. The repo was transferred and GitHub silently redirects the old URL, so every API call against the old path was returning the new repo's data. The tooling had no way to see the redirect, the evidence looked consistent, and the conclusion was wrong. I knew the old link just redirects, so I corrected it. That's the pattern I want to remember: AI is confident in proportion to how consistent its evidence looks, not to how correct it is, and the check on that is context it can't observe.
+
+The judgment calls were also mine to make, not the tool's. Whether the Redis client fix belonged in this PR, and whether to implement true hourly bucketing or defer it, are questions about what a maintainer will accept — a social question about a project, not a technical question about code. AI can lay out the tradeoff. It can't tell you which side of it a reviewer lives on.
+
+**What would you do differently if you started over?**
+I'd reproduce the bug against a running system, not only in unit tests. My Week 8 reproduction mocked Redis and asserted the endpoint returned `0`. That test passed and proved the bug, but it mocked away the very thing that was actually broken — the client construction — so I recorded `settings.redis_host` as an "adjacent bug, scoped out" and only found out in Week 9 that my fix depended on it. Ten minutes hitting `/health` against a live Redis would have surfaced it a week earlier and my plan would have been right the first time.
+
+I'd also push on the ambiguous requirement earlier instead of carrying it. I flagged the "last hour" problem in Week 8 — `get_event_count` ignores its `window_hours` argument and the counters carry a 24h TTL, so the number is cumulative, not a rolling hour — and then spent two weeks holding it as an open question before resolving it myself by documenting the real semantics and proposing a follow-up. That's a defensible answer, but I could have opened a comment on the issue in Week 8 and possibly had a real one.
+
+**What are you most proud of?**
+The PR description, more than the code. It states plainly that I went outside the issue's scope and why, admits the field still doesn't literally mean "last hour" and explains what a real fix would cost, shows a before/after table for four separate checks in a repo full of pre-existing failures, and leaves the `make test-integration` box unchecked because I genuinely didn't run it. The temptation with a first contribution is to make it look cleaner than it is. I think a maintainer can read that description and know exactly what they're getting, which seems more valuable than 25 tidy lines.
