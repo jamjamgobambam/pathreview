@@ -29,11 +29,12 @@ The exact test file will be confirmed by searching the existing test suite for `
 
 ### Plan
 
-1. Inspect the existing GitHub tests and determine how GitHub API responses are mocked.
-2. Add a method that retrieves the user's commit or contribution dates from GitHub.
-3. Add a helper method that removes duplicate dates, sorts the dates, and calculates the longest consecutive-day streak.
-4. Add the calculated value to the GitHub analysis output as `contribution_streak`.
-5. Add tests for normal behavior, missing contribution data, duplicate dates, unsorted dates, and gaps between contribution days.
+1. Add focused unit tests for the GitHub tool and mock its HTTP requests with `unittest.mock`.
+2. Use GraphQL `commitContributionsByRepository` to retrieve the user's commit dates from the previous year.
+3. Collect each commit contribution's `occurredAt` date across the returned repositories.
+4. Add a helper that removes duplicate dates, sorts them, and calculates the longest consecutive-day streak.
+5. Add the calculated value to the existing GitHub metadata as `contribution_streak`.
+6. Return an unsuccessful `ToolResult` when the contribution request fails or GraphQL returns errors.
 
 ### Inputs & outputs
 
@@ -46,7 +47,7 @@ The existing tool takes:
 }
 ```
 
-The fix will continue using the GitHub username to retrieve contribution activity.
+The fix will continue using the GitHub username to retrieve user-wide commit activity. The repository name will still be used for the existing metadata request.
 
 The output should keep all existing repository metadata and add:
 
@@ -60,15 +61,17 @@ The value should be an integer representing the user's longest sequence of conse
 
 Multiple commits on the same day should count as one contribution day.
 
-### Risks & unknowns
+### Design decisions and limits
 
-- The current repository API endpoint does not provide contribution history, so another GitHub API request will be required.
-- It is not yet confirmed whether the maintainers expect user-wide GitHub activity or commits only from the selected repository.
-- GitHub's contribution calendar may require an authenticated GraphQL request.
-- GitHub API pagination could cause an incorrect streak if only part of the commit history is retrieved.
-- Private contributions may not be available depending on the API token permissions.
-- Time zones may affect which calendar day a commit belongs to.
-- I need to confirm whether a contribution-history request failure should fail the entire tool or leave the streak unavailable.
+- The issue asks for the user's GitHub contribution history, so the streak will be user-wide instead of limited to `repo_name`.
+- `commitContributionsByRepository` returns commit-only contribution dates grouped by repository.
+- The query covers the previous year. Fetching the user's full account history is outside this issue's current scope.
+- Repository groups and commit-day connections must not be silently truncated.
+- GraphQL requires `api_token`. A missing token will return an unsuccessful result instead of using zero.
+- Private commit data depends on the token permissions.
+- The calculation will use each commit contribution's GitHub date without changing time zones.
+- A successful response with no commit days will return zero.
+- HTTP failures and GraphQL errors will fail the whole tool instead of returning zero.
 
 ### Edge cases
 
