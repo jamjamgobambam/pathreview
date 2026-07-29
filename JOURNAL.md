@@ -17,3 +17,17 @@ This issue is about a bug in the agent workflow where state from one review can 
 
 **Selection notes:**
 This issue is a good fit for a Week 7 submission because it is focused on project setup and contribution workflow rather than a large feature implementation. The scope is limited enough for a first contribution, and the work mainly involves documenting or clarifying setup expectations rather than changing core application behavior.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [commit to be added after documenting the reproduction]
+
+**Reproduction summary:**
+I reproduced the issue by inspecting the orchestrator’s session-handling flow and confirming that prior session state is loaded for the same profile ID before a new review run starts. The current behavior allows data from an earlier review to persist into a later run unless that state is explicitly cleared.
+
+**PLAN.md link:** https://github.com/hfaugas/pathreview/blob/fix/43-clear-agent-session-state/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded yet
+
+**Blockers or open questions:**
+I still need to confirm whether any part of the product intentionally relies on session reuse across runs before changing the persistence behavior.
