@@ -52,3 +52,29 @@ restoring meaningful real-time feedback for long-running reviews.
   processing (not just 0 → 100); decide on graceful fallback if the field is
   missing; add/adjust a test for the hook. These are contained and don't expand
   the blast radius.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Nothoon/pathreview/commit/de1aa0d8928f011e517a0dbbfd976eb1b1e2d7e7
+
+**Reproduction summary:**
+I added `tests/repro_issue_97.py`, a stdlib-only script that statically inspects
+every file on the progress-reporting path and asserts each gap. Running
+`python tests/repro_issue_97.py` reports 4/4 checks FAIL, confirming the issue:
+`progress_pct` is dropped at every layer — the `Review` model has no such column,
+`process_review` never writes progress, so `get_review_status`'s
+`getattr(review, "progress_pct", 0)` is always `0`, the frontend `Review` type
+omits the field, and `ReviewPage` renders a static spinner during polling.
+
+**PLAN.md link:** https://github.com/Nothoon/pathreview/blob/fix/97-review-progress-indicator/PLAN.md
+
+**Walkthrough video (recommended):**
+
+**Blockers or open questions:**
+Reproduction revealed the fix is broader than the Week 7 frontend-only framing:
+the backend reports `progress_pct: 0` on every poll, so the bar would sit at 0%
+until complete unless `process_review` emits progress per pipeline stage. Open
+question for a mentor: are coarse per-stage milestones (5 fixed values) an
+acceptable scope, or is finer progress expected?
