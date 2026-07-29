@@ -14,3 +14,17 @@ If a user submits the same portfolio twice without editing anything, they sit th
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/codyholm/pathreview/commit/163ae55
+
+**Reproduction summary:**
+Submitted the same unchanged profile twice via `POST /reviews` and observed two distinct reviews created, the full pipeline running twice in the server logs with byte-identical output (same sections, same 0.81 score), and the profile's review history growing from 3 to 5 rows. The reproduction commit adds `tests/unit/test_review_cache.py`, whose 6 failing tests pin the expected caching behavior — return the stored review when profile content is unchanged — against the current code in `core/services/review_service.py`, which unconditionally creates a new review on every submit.
+
+**PLAN.md link:** https://github.com/codyholm/pathreview/blob/feat/32-portfolio-query-cache/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded
+
+**Blockers or open questions:**
+None
