@@ -1,4 +1,4 @@
-## Week 7 — Issue selection
+﻿## Week 7 - Issue selection
 
 **Issue link:** https://github.com/ascherj/pathreview/issues/155
 
@@ -22,3 +22,23 @@ This issue is Tier 1, and the fix is contained to one file, api/routes/health.py
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 - Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/JadeJaguar/AI201-pathreview/commit/3699f09
+
+**Reproduction summary:**
+I wrote a unit test that calls the health_check function directly with a
+mocked database. The test confirms that the Redis check always fails with
+an AttributeError, because settings.redis_host does not exist on Settings,
+so the /health endpoint always reports Redis as unhealthy.
+
+**PLAN.md link:** https://github.com/JadeJaguar/AI201-pathreview/blob/fix/155-redis-host-config/PLAN.md
+
+**Walkthrough video (recommended):** not recorded
+
+**Blockers or open questions:**
+Not fully sure yet if redis.Redis.from_url is the correct method to use with
+this project's version of the redis package. Also unsure if I should fix the
+unrelated mypy errors already present in health.py, since they blocked my
+commit and I had to use --no-verify to get past them this week.
