@@ -46,4 +46,5 @@ htmlcov/
 # Build artifacts
 *.pyc
 assignment.md
+assignment-week7.md
 grading.md
