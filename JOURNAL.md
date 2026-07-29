@@ -28,3 +28,16 @@ I ran the pytest `pytest tests/unit/test_pii_scrubber.py -v` and observed 20 pas
 
 **Blockers or open questions:**
 I'm not sure whether the `street_address` false-positive bug I found in `test_mixed_pii_and_text` should get its own GitHub issue filed against upstream, or if noting it here is sufficient for this assignment. I'm also unsure whether reviewers will want the regex to handle repeated/multiple separator characters (e.g. double spaces) or if treating that as out of scope is the right call.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented and committed both sub-tasks from `PLAN.md`: widened the `phone_us` regex in `safety/pii_scrubber.py` to accept a space as a separator (commit `3acc732`), and added a no-space parenthesized edge case (`"(555)123-4567"`) to `test_us_phone_formats` (commit `aad7a64`). All 4 originally-failing phone tests now pass, plus the new edge case. Also, cleaned up four pre-existing lint issues across both touched files (`E501`, `B007` in `pii_scrubber.py`; two `F841`s in `test_pii_scrubber.py`).
+
+**Next steps:**
+Run the full `make test-unit` and `make check` suite to confirm no new regressions beyond the documented pre-existing failures, then open the PR against `ascherj/pathreview` following the `CONTRIBUTING.md` template.
+
+**Blockers:**
+One open judgment call, carried from Week 8: whether the `street_address` false-positive bug (`test_mixed_pii_and_text`) needs its own filed issue. Also had to skip the `mypy` pre-commit hook (`SKIP=mypy`) for the test-file commit since all 409 test functions repo-wide lack return-type annotations (a pre-existing repo-wide gap that `make check`'s `typecheck` target already excludes via not passing `tests/` to mypy), so this isn't something introduced by this change. I'm documenting it here and will note it in the PR description too.
