@@ -1,9 +1,31 @@
 """Tests for prompt_templates.py - Snapshot tests"""
 
-import pytest
 import hashlib
 
+import pytest
+
 from rag.generator.prompt_templates import PROMPT_TEMPLATES, get_template
+
+# Snapshot baseline: sha256 of each (template, version) text, captured 2026-07-27.
+# The wording of these prompts directly shapes the AI-generated reviews, so an
+# accidental edit must not pass silently. Each (name, version) is hashed on its
+# own so a failure names the exact template that drifted. To change a template's
+# text on purpose, add a NEW version entry in prompt_templates.py and register
+# its hash here -- do not edit an existing version's text in place.
+EXPECTED_SNAPSHOTS = {
+    "skills_feedback": {"v1": "a24d6d717d4f365c28a686f28b3e77f47204c325ce892fc32d68eb82259f6816"},
+    "projects_feedback": {"v1": "7e53575582f45389e4a3e4f93c7c137da629d3a14809e16f746732b9a06740d1"},
+    "presentation_feedback": {
+        "v1": "87230b7045d66a1fae7d06e2509c6fae31046e0c4e8d30a3c3d6fe9ad2a7a3d7"
+    },
+    "gaps_feedback": {"v1": "b2673a1a1f018f2f2fdf37b2dfb6b30634404ba7bb2c241cc01b6240b9097950"},
+    "first_impression": {"v1": "9e7697ff3efd892c82c63ffcc8365690685fb1c29f79d45d84e057b2d0672dd0"},
+}
+
+
+def _hash_template(text: str) -> str:
+    """Return the sha256 hex digest of a template's text (UTF-8 encoded)."""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 @pytest.mark.unit
@@ -172,34 +194,47 @@ class TestPromptTemplates:
 
         assert template_default == template_v1
 
-    def test_template_snapshot_content_hash(self):
-        """Snapshot test: verify template content hash."""
-        # ---------------------------------------------------------------
-        # REPRODUCTION — issue #37 (add snapshot tests for prompt templates)
-        #
-        # This is the ONLY test that claims to be a snapshot test, but it is
-        # a no-op guard: it computes a hash of the concatenated templates and
-        # then only asserts the hash is a 32-char string. It never compares
-        # against a stored/expected value, so ANY edit to a template still
-        # passes. Verified 2026-07-27: rewriting the skills_feedback template
-        # ("Analyze the skills demonstrated" -> arbitrary text) left all 37
-        # tests green. Nothing forces a version bump on content changes.
-        #
-        # Fix (Week 9): pin per-template hashes to stored snapshots and fail
-        # when content changes without a matching new version entry.
-        # ---------------------------------------------------------------
-        # Create hash of all template content
-        template_content = ""
-        for name in sorted(PROMPT_TEMPLATES.keys()):
-            for version in sorted(PROMPT_TEMPLATES[name].keys()):
-                template_content += PROMPT_TEMPLATES[name][version]
+    def test_every_template_version_matches_snapshot(self):
+        """Every live template must hash-match its stored snapshot.
 
-        content_hash = hashlib.md5(template_content.encode()).hexdigest()
+        This is the real guard for issue #37. The previous version of this
+        test only asserted the hash was a 32-char string, so any edit to a
+        template passed silently. Here we compare each (name, version) text
+        against a pinned sha256, so an accidental one-word change to a prompt
+        fails the suite and names the exact template that drifted.
+        """
+        for name, versions in PROMPT_TEMPLATES.items():
+            for version, text in versions.items():
+                digest = _hash_template(text)
+                assert digest == EXPECTED_SNAPSHOTS[name][version], (
+                    f"Template '{name}' {version} changed "
+                    f"(hash {digest} != snapshot {EXPECTED_SNAPSHOTS[name][version]}). "
+                    f"If this change is intentional, add a NEW version entry in "
+                    f"prompt_templates.py and register its hash in EXPECTED_SNAPSHOTS; "
+                    f"do not edit an existing version's text in place."
+                )
 
-        # Expected hash - update if templates intentionally change
-        # This helps detect unintended changes to templates
-        assert isinstance(content_hash, str)
-        assert len(content_hash) == 32  # MD5 hash length
+    def test_no_untracked_template_versions(self):
+        """Every live (name, version) must be registered in EXPECTED_SNAPSHOTS.
+
+        Catches *additions* the content-hash check alone would miss: a newly
+        added template or a new version (e.g. skills_feedback['v2']) must be
+        registered with its own snapshot before the suite passes.
+        """
+        live_keys = {
+            (name, version) for name, versions in PROMPT_TEMPLATES.items() for version in versions
+        }
+        snapshot_keys = {
+            (name, version) for name, versions in EXPECTED_SNAPSHOTS.items() for version in versions
+        }
+
+        unregistered = live_keys - snapshot_keys
+        stale = snapshot_keys - live_keys
+        assert live_keys == snapshot_keys, (
+            f"Template snapshot registry out of sync. "
+            f"Unregistered live templates (add a snapshot): {sorted(unregistered)}. "
+            f"Stale snapshots with no live template (remove them): {sorted(stale)}."
+        )
 
     def test_skills_feedback_requests_json_format(self):
         """Test skills_feedback requests JSON output."""
