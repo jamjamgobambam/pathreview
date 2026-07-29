@@ -36,8 +36,23 @@ like "python expert" should score as supported.
 
 ## Week 8 - Reproduction of Issue
 
-Ran `pytest tests/unit/test_faithfulness_checker.py -v` 
-Tests all failed:
-- test_partial_support_returns_middle_score: assert 0.2 < 0.0
-- test_multiple_context_chunks: assert 0.0 > 0.5
-- test_multiple_claims_varying_support: assert 0.2 < 0.0
+## Week 8 — Reproduction & solution planning
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** (https://github.com/landon517/pathreview/commit/a3f670ecac2b9bfebc9413ceb58d987cb55704ab)
+
+**Reproduction summary:**
+Ran the failing tests and the repro script from issue #152; confirmed the
+faithfulness checker returns 0.0 for claims that should be fully supported,
+because `_is_supported()`'s hardcoded overlap threshold of 2 tokens can't be
+met by short claims.
+
+**PLAN.md link:** 
+
+**Walkthrough video (recommended):** 
+
+**Blockers or open questions:**
+Also noticed `test_none_context_chunk_text` fails with a TypeError — appears
+unrelated to #152 (crashes on None context text rather than a scoring issue),
+treating as out of scope for this fix.
