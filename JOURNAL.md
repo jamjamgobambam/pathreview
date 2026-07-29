@@ -14,3 +14,17 @@ The architecture documentation says that hybrid retrieval combines vector and ke
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [add commit link after committing]
+
+**Reproduction summary:**
+I reviewed the hybrid retrieval section in `docs/ARCHITECTURE.md`. The section states that vector and keyword scores are blended, but it does not document the scoring formula, the default weights, or a worked scoring example.
+
+**PLAN.md link:** [add PLAN.md link after pushing]
+
+**Walkthrough video (recommended):** Not completed
+
+**Blockers or open questions:**
+I still need to verify the exact default scoring weights and score normalization behavior from the hybrid retrieval implementation.
