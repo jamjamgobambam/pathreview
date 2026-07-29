@@ -90,7 +90,7 @@ holds for grading.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _[FILL IN after opening the PR — see Docs/PR-158-description.md]_
+**PR link:** https://github.com/ascherj/pathreview/pull/371
 
 **Branch:** `fix/158-review-service-async-mocks`
 
