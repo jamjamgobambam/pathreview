@@ -15,37 +15,119 @@ class TestReadmeScorer:
         return ReadmeScorer()
 
     def test_readme_with_all_quality_signals(self, scorer):
-        """Test README with all quality signals returns high score."""
+        """Test README with all quality signals returns high score.
+
+        The fixture is a genuinely comprehensive README (600+ words) so that the
+        scorer legitimately reports the ``comprehensive`` word-count category,
+        whose threshold is 500+ words. It exercises every quality signal the
+        scorer looks for: installation, usage, badges, a demo link, and a tech
+        stack section.
+        """
         readme = """
-        # Project Name
-        A comprehensive project description.
-
-        ## Installation
-        ```bash
-        pip install package
-        ```
-
-        ## Usage
-        ```python
-        import package
-        package.run()
-        ```
-
-        ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
-
-        ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
+        # PathReview
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
+        ![License](https://example.com/license.svg)
+
+        PathReview is a comprehensive, AI-powered portfolio review assistant that
+        helps software engineers turn their GitHub profiles and resumes into
+        polished, recruiter-ready portfolios. It ingests your repositories,
+        analyzes the quality of your documentation, detects the technologies you
+        work with, and produces actionable feedback you can apply immediately.
+        This project exists because most developers have strong work that is
+        poorly presented, and a good README, a clear tech stack, and a live demo
+        can make the difference between a profile that gets ignored and one that
+        gets an interview.
+
+        ## Installation
+
+        Getting started with PathReview is straightforward. First, clone the
+        repository from GitHub and change into the project directory. Then create
+        a virtual environment and install the dependencies using the provided
+        Makefile, which wires up the database, seed data, and pre-commit hooks
+        for you automatically.
+
+        ```bash
+        git clone https://github.com/ascherj/pathreview
+        cd pathreview
+        make setup
+        ```
+
+        The setup command creates a Python virtual environment, installs every
+        backend dependency, runs the database migrations, seeds sample data, and
+        installs the frontend packages with npm. Once it finishes you are ready
+        to run the application locally without any further configuration.
+
+        ## Usage
+
+        After installation, start the backend and frontend development servers
+        with a single command. The backend runs on port eight thousand and the
+        frontend runs on port five thousand one hundred and seventy three. Open
+        the frontend in your browser and sign in with the seeded test account to
+        explore the full review workflow end to end.
+
+        ```python
+        from agent.orchestrator import Orchestrator
+
+        orchestrator = Orchestrator()
+        result = orchestrator.review(github_username="octocat")
+        print(result.summary)
+        ```
+
+        For a quick example, submit any public GitHub username and PathReview
+        will fetch the associated repositories, score each README, extract the
+        detected skills, and return a ranked list of improvement suggestions.
+
+        ## Features
+
+        - Automated README quality scoring with word count analysis
+        - Skill and technology detection across many programming languages
+        - Resume parsing that understands multiple document formats
+        - Retrieval augmented generation for grounded, context aware feedback
+        - Safety filters that keep generated feedback constructive and fair
+        - A responsive React frontend for browsing your review history
+
+        ## Tech Stack
+
+        PathReview is built with a modern, well tested technology stack. The
+        backend is written in Python using FastAPI for the web layer and
+        SQLAlchemy for database access. Data is stored in PostgreSQL, background
+        caching uses Redis, and vector search is powered by ChromaDB. The
+        frontend is a single page application written in TypeScript and React.
+
+        - Python 3.11 and FastAPI
+        - SQLAlchemy and PostgreSQL
+        - Redis and ChromaDB
+        - TypeScript, React, and Vite
+
+        ## Architecture
+
+        The system is organized into clear, independent modules. The ingestion
+        pipeline fetches and parses documents, the retrieval layer indexes and
+        searches content, the agent orchestrator coordinates the scoring tools,
+        and the safety module reviews every generated response before it reaches
+        the user. Each module is covered by its own suite of fast unit tests.
 
         ## Live Demo
-        [Try it here](https://demo.example.com)
+
+        Want to see PathReview in action before installing anything? A hosted
+        instance is available online so you can explore the interface with sample
+        data. [Try it here](https://demo.example.com) and walk through a complete
+        portfolio review in just a few minutes.
+
+        ## Contributing
+
+        Contributions are welcome and appreciated. Please read the contributing
+        guide, create a branch that follows the naming convention, write tests
+        for your changes, and make sure the full check suite passes before you
+        open a pull request. We review every contribution carefully and aim to
+        respond to new pull requests within a couple of business days.
+
+        ## License
+
+        This project is released under the MIT license, so you are free to use,
+        modify, and distribute it in both personal and commercial projects.
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -157,9 +239,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +301,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +317,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
