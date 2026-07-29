@@ -19,3 +19,17 @@ This is my first time contributing to a codebase of this size, so I stayed in Ti
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [fill in after you push — link to the commit that adds this Week 8 entry + PLAN.md]
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_review_service.py -q` on the `fix/158-review-service-async-mocks` branch and observed **13 failed, 6 passed**. Every failure is `AttributeError: 'coroutine' object has no attribute 'first'` / `'all'`, raised at `core/services/review_service.py:47` and `:65` — confirming the mocked result's `scalars()` returns an un-awaited coroutine because the test builds it as an `AsyncMock`, while the (correct) service code calls the synchronous `.scalars().first()/.all()` on it.
+
+**PLAN.md link:** [link to PLAN.md on this branch, e.g. https://github.com/amit-tzadok/pathreview/blob/fix/158-review-service-async-mocks/PLAN.md]
+
+**Walkthrough video (recommended):** [optional Loom link, ≤2 min — or leave blank]
+
+**Blockers or open questions:**
+Deciding between a minimal per-test fix (swap `AsyncMock()` → `MagicMock()` in each of the 13 tests) and refactoring the mock setup into a shared helper/fixture to prevent the mistake recurring. Leaning toward the shared helper, but want to confirm it doesn't disturb the 6 already-passing `create_review` tests.
