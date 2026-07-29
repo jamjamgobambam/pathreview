@@ -65,4 +65,4 @@ The repo also has substantial pre-existing failures unrelated to #68, which I re
 
 Both in the "no new failures" sense the instructions describe — this repo has documented pre-existing failures (182 ruff, 52 black, 103 mypy, 53 unit tests). After my change: ruff 182 → 182, black 52 → 52, mypy 103 → 100, and the 53 failing tests are the same 53 test IDs with 6 additional passes. The baseline table is in the PR description.
 
-**Draft PR feedback received from:** _pending — draft opened Tue, requesting review in Slack_
+**Draft PR feedback received from:** none — peer/mentor review is optional for this cohort. I opened the PR as a draft first, self-reviewed it against `docs/CONTRIBUTING.md` (branch name, conventional commits, Google-style docstrings, tests alongside the change), then marked it ready for review.
