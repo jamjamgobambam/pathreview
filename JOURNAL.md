@@ -33,3 +33,31 @@ Module 3 timeline.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/SameeraaGKan/pathreview/commit/f8e1692
+
+**Reproduction summary:**
+Ran `GitHubTool.execute({"github_username": ..., "repo_name": ...})` directly
+against two real repos (`octocat/Hello-World` and my own `sameeraagkan/Aura_`)
+and inspected the returned data keys — no `contribution_streak` field, and no
+commit-history fetch anywhere in `github_tool.py`. Also confirmed `GET
+/repos/{owner}/{repo}/commits` returns each commit's date nested at
+`commit.author.date`, and that pagination works via the `Link` response
+header. Committed a failing unit test
+(`tests/unit/test_github_tool.py::test_contribution_streak_field_missing`)
+that asserts `"contribution_streak" in result.data` — it fails today (red),
+which documents the gap in a way that will flip to passing once the fix
+lands.
+
+**PLAN.md link:** https://github.com/SameeraaGKan/pathreview/blob/feat/52-contribution-streak/PLAN.md
+
+**Walkthrough video (recommended):** [not recorded]
+
+**Blockers or open questions:**
+Haven't confirmed exactly how GitHub's `?author=` filter matches (GitHub
+login vs. commit email) or how to keep pagination bounded on a very active
+repo without an arbitrary cap. Also need to decide whether `GITHUB_TOKEN`
+should be required (vs. optional) for this feature given the 60/hour
+unauthenticated rate limit.
