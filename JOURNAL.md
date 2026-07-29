@@ -65,15 +65,13 @@ No production code was changed during reproduction.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** `https://github.com/zero3119/pathreview/commit/COMMIT_SHA`
+**Reproduction commit link:** `https://github.com/zero3119/pathreview/commit/a7e29c920e1615e4b62be8b4935912ccfc045fb9`
 
 **Reproduction summary:**
 
 I reproduced Issue #151 by running `python -m pytest tests/unit/test_bias_detector.py -q`. Nine tests failed because the current regular expressions returned `(False, "")` for common phrasings of dismissive educational-background language and demographic assumptions.
 
-**PLAN.md link:** `https://github.com/zero3119/pathreview/blob/fix/151-bias-detector-patterns/PLAN.md`
-
-**Walkthrough video (recommended):** Not recorded.
+**PLAN.md link:** `https://github.com/zero3119/pathreview/blob/fix/151-bias-detector-patterns/plan`
 
 **Blockers or open questions:**
 
