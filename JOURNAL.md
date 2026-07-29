@@ -19,14 +19,14 @@ The issue is that the app's logging (via structlog) isn't wired up to feed into 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/harshi-puli/pathreview/tree/fix/159-stucture-output-capturing
 
 **Reproduction summary:**
 I ran `.venv/bin/python -m pytest tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty -q` and confirmed the failure. The captured stdout showed the expected warning log line was actually emitted, but `caplog.text` and `caplog.records` were empty, proving structlog's output never routes through Python's stdlib logging module that `caplog` reads from.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/harshi-puli/pathreview/blob/fix/159-stucture-output-capturing/PLAN.md
 
 **Walkthrough video (recommended):** no video.
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+Nothing so far.
