@@ -16,3 +16,15 @@ There's already a `RateLimiter` in `safety/rate_limiter.py` that tracks how many
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** need to commit first
+
+**Reproduction summary:**
+Got the full stack running locally (Docker for postgres/redis/chroma, then `make run` for the API + frontend) and hit the root endpoint directly: `curl -i http://localhost:8000/`. The response comes back with `x-request-id` in the headers but there's no `x-ratelimit-limit` or `x-ratelimit-remaining` anywhere, on any request. Grepping the codebase confirms why: `RateLimiter.check_rate_limit` is only ever called from its own unit tests, never from `api/main.py` or anywhere in the actual request path. The class works, it's just not wired up to anything.
+
+**PLAN.md link:** [PLAN.md](./PLAN.md)
+
+**Blockers or open questions:**
+Still need to figure out where a shared Redis client should live (there isn't one right now ,`health.py` just builds its own inline) and whether the sync `redis` client `RateLimiter` uses is going to be an issue inside an otherwise-async middleware. Details are in PLAN.md under Risks & unknowns.
