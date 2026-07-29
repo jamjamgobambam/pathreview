@@ -20,7 +20,7 @@ The architecture documentation says that hybrid retrieval combines vector and ke
 **Reproduction commit link:** (https://github.com/ascherj/pathreview/commit/dfb3e54db650ace92c2b59103e4409572aad096a)
 
 **Reproduction summary:**
-I reviewed the hybrid retrieval section in `docs/ARCHITECTURE.md`. The section states that vector and keyword scores are blended, but it does not document the scoring formula, the default weights, or a worked scoring example.
+I reviewed the RAG System section in `docs/ARCHITECTURE.md` and confirmed that it only states that vector similarity and BM25 keyword retrieval are combined. I then traced the implementation to `rag/hybrid.py`, where the scores are normalized and blended using default weights of 0.7 for vector similarity and 0.3 for BM25 relevance, none of which is currently documented.
 
 **PLAN.md link:** [add PLAN.md link after pushing]
 
