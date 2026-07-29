@@ -1,15 +1,27 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
+
+
+async def _acquire_profile_lock(db: AsyncSession, profile_id: UUID) -> None:
+    """
+    Block until an exclusive lock for this profile is acquired, scoped to
+    the current transaction. Serializes concurrent process_review calls
+    for the same profile; releases automatically on commit, rollback, or
+    a lost connection -- no manual unlock needed.
+    """
+    await db.execute(select(func.pg_advisory_xact_lock(func.hashtext(str(profile_id)))))
 
 
 async def create_review(
@@ -40,8 +52,8 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
     return result.scalars().first()
@@ -121,6 +133,10 @@ async def process_review(
         review.status = "processing"
         db.add(review)
         await db.commit()
+
+        # Serialize the rest of this pipeline per-profile (issue #82): blocks
+        # here until any other in-flight review for this profile finishes.
+        await _acquire_profile_lock(db, profile_id)
 
         log.info("review_processing_started", review_id=str(review_id), profile_id=str(profile_id))
 
@@ -275,7 +291,8 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
                 error=str(exc),
             )
 
-    await db.commit()
+    # No commit here -- these inserts ride along in the same locked
+    # transaction that process_review commits once at the end (issue #82).
     return sources
 
 
