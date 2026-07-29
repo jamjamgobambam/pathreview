@@ -87,3 +87,32 @@ None blocking. Open question for Week 9: how much of the post-blend behavior
 versus keeping the section focused strictly on the formula + weights + example
 the issue asks for. Current plan leans toward mentioning the thresholds
 briefly and no further.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md: added a new "Hybrid Retrieval Scoring"
+subsection to `docs/ARCHITECTURE.md`, right after the existing RAG System
+paragraph. It covers the blending formula, the default weights
+(`vector_weight=0.7`, `keyword_weight=0.3`), the max-normalization step
+applied to each score set before blending, a worked two-chunk numeric
+example showing how normalization and weighting affect the final ranking,
+and a short note on the post-blend `min_score`/`max_chunks` filtering. This
+completes PLAN.md steps 2–4. Before starting, I captured a baseline of
+`make check`/`make test-unit` on `main`: 182 pre-existing lint errors, 5
+pre-existing mypy errors (all missing type stubs), and 53 failed / 375
+passed unit tests — none in `docs/` or touching `rag/retriever/hybrid.py`,
+so they're unrelated to this issue.
+
+**Next steps:**
+Finish PLAN.md step 5 — proofread the new section against
+`rag/retriever/hybrid.py` line-by-line to confirm every number and file
+reference is accurate. Re-run `make lint`/`make typecheck` after the edit to
+confirm the pre-existing counts are unchanged. Then push the branch, open
+the PR against the upstream repo as a draft, and request peer review in
+Slack before marking it ready.
+
+**Blockers:**
+None.
