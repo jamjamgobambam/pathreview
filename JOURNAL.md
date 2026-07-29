@@ -53,3 +53,31 @@ cover. This lives in `tests/unit/test_readme_scorer.py` against the
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+### Reproduction
+
+Ran the test suite for the scorer to confirm the failure is real and matches
+the issue report:
+
+```
+$ pytest tests/unit/test_readme_scorer.py -q
+...
+>       assert data["word_count"] > 100
+E       assert 51 > 100
+
+tests/unit/test_readme_scorer.py:56: AssertionError
+--- Captured stdout ---
+readme_scored  category=minimal score=0.8717142857142858 word_count=51
+
+1 failed, 22 passed in 0.33s
+```
+
+**Observed:** `test_readme_with_all_quality_signals` fails at the assertion
+`data["word_count"] > 100` because the fixture README scores `word_count=51`.
+The scorer also reports `category=minimal`, so the later
+`word_count_category == "comprehensive"` assertion would fail too.
+
+**Diagnosis:** The scorer is correct — the ~51-word fixture genuinely is not
+"comprehensive". The bug is in the test's expectations, not the tool. Fix is
+to extend the fixture past 100 words (or correct the assertion) so the test
+validates the comprehensive-length branch it intends to.
