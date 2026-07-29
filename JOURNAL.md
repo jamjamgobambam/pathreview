@@ -1,6 +1,6 @@
 ## Week 7 — Issue selection
 
-**Issue link:** https://github.com/jamjamgobambam/pathreview/issues/68
+**Issue link:** https://github.com/ascherj/pathreview/issues/68
 
 **Issue title:** Add a safety event count to the health check endpoint
 
