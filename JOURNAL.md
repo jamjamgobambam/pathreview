@@ -57,3 +57,34 @@ Ran the issue's exact repro script locally: `FaithfulnessChecker().check("Knows 
 
 **Blockers or open questions:**
 No blockers. Still deciding on the exact scaling formula for the overlap threshold (ratio-based vs. a sliding minimum) — noted as an open risk in PLAN.md and something I may bring to office hours before finalizing the implementation in Week 9.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented both fixes from PLAN.md in `rag/evaluator/faithfulness_checker.py`: removed the `len() > 10` filter in `_extract_claims()`, and replaced the fixed `>= 2` overlap threshold in `_is_supported()` with one that scales to the claim's own meaningful-token count (1 for claims with <=2 meaningful tokens, 2 otherwise). Landed on the scaling formula I was undecided on in Week 8 — a sliding minimum rather than a pure ratio, since a ratio-based threshold made longer claims incorrectly *harder* to support than before. Along the way also found and fixed a real tokenization bug (`.split()` left punctuation attached to words, e.g. `"PostgreSQL,"` never matched `"PostgreSQL"` in context) and had to switch `check()` from a binary supported/unsupported count to a proportional per-claim score, since a couple of existing tests expect a "middle" score from feedback that's structurally a single claim — impossible with pure binary scoring. Added a regression test reproducing the issue's exact repro script. All 3 named tests pass; verified via diff against a stashed baseline that no other test in `tests/unit/` regressed.
+
+**Next steps:**
+Run `make check` and `make test-unit`, finalize the PR description (including documenting pre-existing failures per the module's guidance), and open the PR against upstream for review.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/352
+
+**Branch:** `fix/152-faithfulness-checker-short-claims`
+
+**What you built:**
+Fixed two compounding bugs in `FaithfulnessChecker` that caused short, accurate feedback claims (e.g. "Knows Python.") to always score as unsupported: a length filter dropped them before scoring, and a fixed overlap threshold was unreachable for short claims. The overlap requirement now scales with claim length, and `check()` gives proportional credit per claim instead of a strict binary count.
+
+**Tests added or updated:**
+`tests/unit/test_faithfulness_checker.py` — added `test_short_claims_fully_supported_score_1`, a regression test reproducing the issue's exact repro script. No other test files touched; the 3 previously-failing named tests (`test_partial_support_returns_middle_score`, `test_multiple_context_chunks`, `test_multiple_claims_varying_support`) now pass unmodified.
+
+**Self-review confirmation:** [x] make check passes (on changed files — see PR for pre-existing repo-wide failures) [x] make test-unit passes (zero new failures vs. stashed baseline)
+
+**Draft PR feedback received from:** none yet — opened as draft for review
