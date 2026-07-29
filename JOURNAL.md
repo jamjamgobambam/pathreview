@@ -24,12 +24,12 @@ This issue lies within the safety directory in pii_scrubber.py. Currently a numb
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** N/A - mypy and ruff specifies test constraints I have not been able to meet.
 
 **Reproduction summary:**
 I used the reproduction code given on the issue's page. I observed the scrub() function failing to scrub a phone number with parentheses around a set of its numbers and the detect() function failing to detect the same phone number as PII.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** [PLAN.md](https://github.com/IGS1I/guided-PathReview/blob/fix/146-pii-scrubber-fails-parenthesized-phone-number-redaction/PLAN.md)
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
