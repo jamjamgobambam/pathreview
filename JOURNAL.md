@@ -37,3 +37,24 @@ and persists session state in `agent/orchestrator.py`.
   can be covered with unit tests without external services.
 - **I understand the domain:** Caching invalidation and session lifecycle are
   well-scoped, testable concerns.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/DevinChen02/pathreview/commit/<REPRODUCTION_COMMIT_SHA>
+
+**Reproduction summary:**
+I added `tests/unit/test_orchestrator_session_state.py`, which drives
+`Orchestrator.run()` twice for the same profile using a fake Redis-backed
+`SessionStore` and a tool whose output changes on every call. The second review
+returns the first run's memoized result (`{"call": 1}` instead of `{"call": 2}`)
+and the persisted session still holds the stale `github_tool` result — both
+tests fail, confirming session/context state is never invalidated between
+reviews.
+
+**PLAN.md link:** https://github.com/DevinChen02/pathreview/blob/fix/43-clear-session-state-between-reviews/PLAN.md
+
+**Blockers or open questions:**
+Deciding between clearing the session key vs. namespacing it per review — a
+review ID isn't currently threaded into `Orchestrator.run()`, so namespacing
+would require a small signature change. I'll confirm nothing depends on
+cross-review persistence before choosing.
