@@ -82,3 +82,56 @@ issues #154 (passes a raw `"SELECT 1"` string, which SQLAlchemy 2.x rejects) and
 reachable directly: Postgres returns the 3 seeded users and Redis answers `PING`.
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** _(this commit)_
+
+**Reproduction summary:**
+`pytest tests/unit/test_review_service.py -q` reproduces the issue exactly as reported —
+13 failed, 6 passed — against unmodified service code. Every failure lands inside
+`core/services/review_service.py` on `result.scalars()`, with
+`AttributeError: 'coroutine' object has no attribute 'first'` (for `get_review`) or
+`'all'` (for `list_reviews`), accompanied by
+`RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited`.
+
+The cause is that the tests build the object returned by `db.execute(...)` as
+`AsyncMock()` (13 occurrences in `tests/unit/test_review_service.py`). Because
+`AsyncMock` propagates to its auto-created children, `mock_result.scalars` is itself an
+`AsyncMock`, so `result.scalars()` returns a coroutine and the configured
+`.first.return_value` chain is never reached. That does not match SQLAlchemy 2.x, where
+`AsyncSession.execute()` is the only awaitable in the chain and the `Result` it returns
+is synchronous.
+
+The 6 passing tests are exactly the `create_review` ones, which only touch
+`db.add`/`commit`/`refresh` and never call `execute` — so the failure boundary lines up
+precisely with the diagnosis.
+
+**Beyond the issue report:** I prototyped the mock-wiring fix in a scratch copy before
+planning, and it yields **18 passed, 1 failed**, not the 19 the issue predicts.
+`test_list_reviews_ordered_by_created_at` asserts
+`mock_db_session.execute.assert_called_once()`, but `list_reviews` calls `execute` twice
+by design — the count query at `review_service.py:64` and the paginated query at
+`review_service.py:76` (`Expected 'execute' to have been called once. Called 2 times.`).
+The broken async mocks were masking a second, independent defect: a wrong assertion.
+Fixing only what the issue describes would leave the file red, so my plan covers both.
+
+I also found three assertions that pass for any possible input and would stay green
+against arbitrarily broken code — `test_list_reviews_returns_paginated_results:121`
+(`len(reviews) > 0 or len(reviews) == 0`), `test_get_review_with_valid_uuid:326`
+(`result is None or result is not None`), and
+`test_list_reviews_ordered_by_created_at`, which asserts nothing about ordering at all.
+
+**PLAN.md link:** see `PLAN.md` in the repo root (added in the follow-up commit)
+
+**Walkthrough video (recommended):** not recorded
+
+**Blockers or open questions:**
+Going into Week 9, the open question is scope. Correcting the mock wiring and the
+call-count assertion is required to get the file green. Rewriting the tautological
+assertions is not strictly required by the issue text, but leaving them means shipping
+tests that cannot fail — which is the same class of problem the issue is about. My plan
+does both and flags the split, so a maintainer can ask me to cut the second half into a
+follow-up PR.
