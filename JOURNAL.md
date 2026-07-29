@@ -23,3 +23,25 @@ PathReview has unit tests for individual RAG components, but it does not have an
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [202d0fe](https://github.com/vrajhm/pathreview/commit/202d0feb83f2ad681d18e8975e5087081d1e893e)
+
+**Reproduction summary:**
+I ran `pytest --collect-only -q tests/integration` and observed `no tests
+collected in 0.01s` because the integration-test package contains no test
+module. Tracing the RAG code confirmed that retrieval/ranking, generation, and
+parsing exist as separate components but are never exercised together with a
+mock LLM.
+
+**PLAN.md link:** [PLAN.md](https://github.com/vrajhm/pathreview/blob/test/38-rag-pipeline-integration-test/PLAN.md)
+
+**Walkthrough video (recommended):** Not recorded.
+
+**Blockers or open questions:**
+The issue calls out reranking, but the current codebase has no standalone
+reranker; the plan treats hybrid score blending and sorting in
+`rag/retriever/hybrid.py` as that stage. The local shell also lacks project
+dependencies, so the full suite currently stops during collection and must be
+rerun in the configured development environment.
