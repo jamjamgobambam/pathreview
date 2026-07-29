@@ -51,3 +51,16 @@ enforced, and wired `SafetyMonitor` into `/health`. See
 `docs/plans/safety-events-health-metric.md` for the full design writeup, and
 `tests/unit/test_health.py` / `tests/unit/test_monitoring.py` for regression coverage
 added alongside the fix.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Qianyu2021/pathreview/commit/5e1950f
+
+**Reproduction summary:**
+Checked out the pre-fix version of `api/routes/health.py` and `safety/monitoring.py`
+(parent commit `d5f196d`) and ran them directly: logging 5 events and calling
+`get_event_count()` with a near-zero window vs. a 24h window both returned `5`,
+confirming `window_hours` was never enforced, and confirmed `health_check()` hardcoded
+`safety_events_last_hour` to `0` regardless of any logged events.
+
+**PLAN.md link:** https://github.com/Qianyu2021/pathreview/blob/fix/68-safety-event-count-health-check/PLAN.md
