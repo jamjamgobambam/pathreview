@@ -2,7 +2,7 @@
 
 import pytest
 
-from ingestion.parsers.skill_extractor import SkillExtractor, SkillDetection
+from ingestion.parsers.skill_extractor import SkillDetection, SkillExtractor
 
 
 @pytest.mark.unit
@@ -135,7 +135,7 @@ class TestSkillExtractor:
         """
         result = extractor.extract_skills(text)
 
-        skill_names = [s.name for s in skill_names]
+        skill_names = [s.name for s in result]
         # Should detect PostgreSQL
         assert any("postgres" in s.lower() or "sql" in s.lower() for s in skill_names)
 
@@ -169,6 +169,22 @@ class TestSkillExtractor:
         skill_names = [s.name for s in result]
         # Filename should provide Python hint
         assert any("python" in s.lower() for s in skill_names)
+
+    def test_js_extension_in_text(self, extractor):
+        """Test JavaScript detection from file extension mentions in text."""
+        text = "Wrote index.js and utils.jsx for the frontend components."
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("javascript" in s.lower() for s in skill_names)
+
+    def test_ts_extension_in_text(self, extractor):
+        """Test TypeScript detection from file extension mentions in text."""
+        text = "Built app.tsx and types.ts for the user interface."
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("typescript" in s.lower() for s in skill_names)
 
     def test_javascript_detection(self, extractor):
         """Test JavaScript detection."""
@@ -232,10 +248,7 @@ class TestSkillExtractor:
     def test_skill_detection_dataclass(self):
         """Test SkillDetection dataclass structure."""
         skill = SkillDetection(
-            name="Python",
-            category="Language",
-            confidence=0.95,
-            evidence=["import statement"]
+            name="Python", category="Language", confidence=0.95, evidence=["import statement"]
         )
 
         assert skill.name == "Python"
