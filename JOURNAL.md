@@ -22,3 +22,7 @@ test_us_phone_formats, test_detect_phone_pii, test_phone_at_start_of_text).
 **Setup confirmation:** [ ] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 reproduction notes
+
+Ran python -m pytest tests/unit/test_pii_scrubber.py -v on branch fix/146-pii-scrubber-parenthesized-phone. Confirmed issue #146: 5 tests fail, all related to parenthesized phone format (555) 123-4567 not being detected or redacted by PIIScrubber.detect()/scrub(). Dashed and dotted formats pass; parenthesized format returns 0 detections.
