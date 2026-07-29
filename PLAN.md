@@ -138,10 +138,13 @@ mocked `db`.
 
 ### Risks & unknowns
 
-1. **A mocked test does not prove the real fix.** An `AsyncMock` `execute` accepts *any* argument,
-   so both the raw string and `text("SELECT 1")` would "pass" the unit test. The unit test guards
-   the 200/503 branching logic; the *actual* SQLAlchemy-2.x behavior is only proven by the live
-   reproduction (Plan step 2). I will not claim the test alone validates the fix.
+1. **A mocked test does not, by itself, prove the real fix — so I added a guard that does.** An
+   `AsyncMock` `execute` accepts *any* argument, so the 200/503 branching tests pass whether the
+   code uses a raw string or `text("SELECT 1")`. To close that gap, `test_health.py` includes
+   `test_probe_uses_text_clause_not_raw_string`, which asserts the argument passed to `execute` is
+   a SQLAlchemy `TextClause` (not a raw `str`). Reverting the fix to `db.execute("SELECT 1")` makes
+   *only* that test fail — verified. The live reproduction (Plan step 2) remains the end-to-end
+   proof against a real SQLAlchemy-2.x session; the unit guard prevents silent regression.
 2. **Pre-existing lint/type failures in `health.py`** (present on upstream `main`, *not*
    introduced by me): `B008` (`Depends(get_db)` in an argument default — standard FastAPI idiom
    ruff dislikes) and mypy inferring `health_status` as `dict[str, object]`, which errors on every
