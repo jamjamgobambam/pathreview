@@ -1,27 +1,28 @@
 ## Solution plan
 
-**Issue:** Agent session state is not cleared between reviews for the same user
+**Issue:** Agent session state leaks between consecutive reviews for the same profile.
 
 ### Understand
-The bug appears to come from the orchestrator reusing persisted session data for the same profile ID across runs. In the current implementation, the orchestrator loads prior session state from the session store and merges it into the next run, which can cause stale context from a previous review to leak into a new review. The expected behavior is that a fresh review should begin with an empty or reset session state rather than inheriting previous review context.
+The issue appears in the orchestrator flow. Each run loads any existing session payload for the profile ID from the session store, merges new tool results into it, and writes the combined state back. Because the same profile ID is reused across reviews, stale context from an earlier review can persist into the next one. The expected behavior is that a new review should begin with a fresh session state unless the workflow explicitly intends to resume or continue an existing session.
 
 ### Map
 Likely files involved:
-- agent/orchestrator.py
-- agent/memory/session_store.py
-- potentially agent/memory/context_manager.py if the fix needs to clear or isolate cached tool results
+- agent/orchestrator.py: loads and persists session state for each run
+- agent/memory/session_store.py: serializes and retrieves session data from storage
+- agent/memory/context_manager.py: may need adjustment if cached tool results also contribute to stale context
 
 ### Plan
-1. Inspect the orchestrator flow to confirm when session state is loaded and persisted for a profile.
-2. Update the session-handling logic so a new review starts from a clean state unless the workflow explicitly intends to reuse state.
-3. Add or adjust a regression test that reproduces two consecutive reviews for the same profile and verifies the second review does not inherit stale session data.
-4. Run the relevant unit tests and review the behavior in the local environment.
+1. Inspect the orchestrator flow to confirm exactly when session state is loaded, merged, and saved for a profile.
+2. Change the session-handling logic so a new review starts from a clean state unless a resume path is explicitly requested.
+3. Ensure the session store is cleared or overwritten in a way that prevents stale review data from surviving into later runs.
+4. Add a regression test that performs two consecutive reviews for the same profile and verifies the second run does not inherit stale session data from the first.
+5. Run the relevant unit tests and verify the behavior in the local environment.
 
 ### Inputs & outputs
-The fix will take the profile ID and the current review input as input. It should produce a fresh session payload for the new review and ensure no stale state is reused unless explicitly requested.
+The fix will take the profile ID and the current review input as inputs. It should produce a fresh session payload for the new review and prevent previous review state from being reused unless explicit resume behavior is intended.
 
 ### Risks & unknowns
-The biggest risk is that some parts of the workflow may intentionally rely on cached state across runs. I need to verify whether that behavior is desired before changing the persistence logic. Another concrete risk is that clearing the state too aggressively could remove useful data in the same profile session if the product expects partial reuse. This uncertainty is tied to the logic in agent/orchestrator.py and the serialization behavior in agent/memory/session_store.py.
+The main risk is that some parts of the workflow may intentionally rely on cached or persisted state across runs. I will confirm whether that behavior is desired before changing the persistence logic. A second risk is that clearing state too aggressively could remove useful context in cases where partial reuse is actually expected.
 
 ### Edge cases
 The fix should handle:
