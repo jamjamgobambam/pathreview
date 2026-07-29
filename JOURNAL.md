@@ -19,3 +19,20 @@ This issue has a focused scope and an existing failing unit test that clearly de
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [add after committing and pushing]
+
+**Reproduction summary:**
+I reproduced issue #149 by running the existing `test_document_with_no_headings` unit test in `tests/unit/test_structural_chunker.py`. The test failed because `StructuralChunker.chunk()` returned an empty list for non-empty text without Markdown headings, causing `assert len(result) >= 1` to fail with `assert 0 >= 1`.
+
+**PLAN.md link:** [add after creating and pushing PLAN.md]
+
+**Walkthrough video (recommended):** Not recorded yet
+
+**Blockers or open questions:**
+I still need to determine where the fallback behavior should be implemented—entirely within `StructuralChunker`, or if another part of the chunking pipeline is also involved.
+
+
