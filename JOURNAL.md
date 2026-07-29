@@ -27,7 +27,7 @@ for a first contribution.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to your Week 8 commit — we'll fill in after committing]
+**Reproduction commit link:** https://github.com/natanyanderson/pathreview/commit/a7d77a8aaf2f5b83fcddb48f059f404de31dc2a0
 
 **Reproduction summary:**
 Verified in the local checkout that the placeholder
