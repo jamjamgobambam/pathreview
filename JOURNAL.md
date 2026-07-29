@@ -52,3 +52,55 @@ Running `pytest tests/unit/test_structural_chunker.py::TestStructuralChunker::te
 
 **Blockers or open questions:**
 Need to confirm before implementing that `strategy_selector.py` does not rely on an empty return from `chunk()` as a signal, and that `SemanticChunker` preserves `heading_path` metadata when sub-chunking the no-headings fallback section.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All five PLAN.md sub-tasks complete. Implemented the no-headings fallback in
+`StructuralChunker.chunk()` (15 lines added after `_extract_sections()` call). Added new
+regression test `test_large_heading_free_document_is_sub_chunked` covering the >800-token
+sub-chunking path. 16/16 unit tests pass, 0 regressions. Manually confirmed ruff introduces
+0 new errors (4 pre-existing errors in unchanged code).
+
+**Next steps:**
+Push branch to GitHub, open draft PR against ascherj/pathreview, fill in PR template,
+then mark ready for review.
+
+**Blockers:**
+GitHub auth requires a personal access token — need to set that up to push.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [to be added after push]
+
+**Branch:** `fix/149-structural-chunker-no-headings`
+
+**What you built:**
+Added a no-headings fallback in `StructuralChunker.chunk()`: when `_extract_sections()`
+returns an empty list (because the document has no markdown headings), the full document
+text is wrapped in a single synthetic section before the existing chunking loop runs.
+Small heading-free documents (≤ 800 tokens) become one `Chunk`; large ones (> 800 tokens)
+are handed off to `SemanticChunker` for sub-chunking — exactly the same path used for
+large headed sections. Documents with headings are completely unaffected.
+
+**Tests added or updated:**
+- `tests/unit/test_structural_chunker.py` — existing `test_document_with_no_headings`
+  now passes (was the failing test that reproduced the issue); new test
+  `test_large_heading_free_document_is_sub_chunked` verifies that a 1,401-token
+  heading-free document is sub-chunked into multiple `Chunk` objects and that caller
+  metadata and `heading_level=0` are preserved through the sub-chunking path.
+
+**Self-review confirmation:**
+- [ ] make check passes — `make check` fails due to pre-existing `.venv` setup issue
+  unrelated to this fix. Manual `ruff check` on changed files: 4 pre-existing errors in
+  unmodified code, 0 new errors introduced by this change.
+- [x] make test-unit passes — 16/16 tests pass, 0 regressions
+  (`python -m pytest tests/unit/test_structural_chunker.py -v`)
+
+**Draft PR feedback received from:** none
