@@ -20,7 +20,7 @@ This issue has a clearly identified implementation file, reproducible examples, 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/rahp124/pathreview/commit/383d61b066f0939e296d990015ed00e0118d844b
+**Reproduction commit link:** https://github.com/rahp124/pathreview/commit/f10c4bfefdfd4e0773bf71dd1db7e58b58cb2140
 
 **Reproduction summary:**
 I reproduced the issue by running `tests/unit/test_bias_detector.py`, which produced nine failing test functions involving natural variations of dismissive educational language and demographic assumptions. The failing cases were:
@@ -35,9 +35,7 @@ I reproduced the issue by running `tests/unit/test_bias_detector.py`, which prod
 `test_assumption_vs_observation`.
 I also ran the example from Issue #151 and confirmed the detector misses the intended phrasing, returning `(False, "")` for a statement that should be flagged.
 
-**PLAN.md link:** Pending
-
-**Walkthrough video (recommended):** Not recorded
+**PLAN.md link:** [Pending](https://github.com/rahp124/pathreview/blob/fix/151-expand-bias-detection-patterns/PLAN.md)
 
 **Blockers or open questions:**
 The main open question is how much flexibility to add to the regex patterns without causing positive, neutral, or factual references to educational backgrounds to be incorrectly flagged.
