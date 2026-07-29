@@ -38,3 +38,36 @@
 - [x] The issue lists no blockers or dependencies on unresolved work.
 
 **Verdict:** Issue #37 is well understood, appropriately scoped, and ready for implementation on this branch.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** Pending until this reproduction note is committed and pushed  
+**Reproduction summary:** I ran the existing snapshot test, changed `skills_feedback/v1` in an isolated Python process by appending `ACCIDENTAL SAME-VERSION EDIT`, and ran the assertion again. The test still passed while the template remained at version `v1`, confirming that the current MD5 type-and-length checks do not detect accidental prompt changes.  
+**PLAN.md link:** Pending until the solution plan is committed and pushed  
+**Walkthrough video (recommended):** Not recorded (optional and not graded)  
+**Blockers or open questions:** No blockers; the plan will decide how to store version-keyed expected hashes so additions and intentional version changes remain explicit.
+
+### Reproduction steps
+
+1. Confirm the current test passes:
+
+   ```bash
+   .venv/bin/pytest tests/unit/test_prompt_templates.py::TestPromptTemplates::test_template_snapshot_content_hash -q
+   ```
+
+2. In an isolated Python process, append text to an existing version and invoke the same test:
+
+   ```python
+   from tests.unit.test_prompt_templates import TestPromptTemplates
+   from rag.generator.prompt_templates import PROMPT_TEMPLATES
+
+   original = PROMPT_TEMPLATES["skills_feedback"]["v1"]
+   PROMPT_TEMPLATES["skills_feedback"]["v1"] = (
+       original + "\nACCIDENTAL SAME-VERSION EDIT"
+   )
+   TestPromptTemplates().test_template_snapshot_content_hash()
+   ```
+
+**Observed result:** Both runs pass. `test_template_snapshot_content_hash` computes an MD5 digest but only checks that the result is a 32-character string, which is true for every MD5 digest regardless of the prompt content.
+
+**Expected result:** A content change to an existing `(template name, version)` pair should fail the snapshot test and direct the contributor to add a new prompt version and its reviewed snapshot.
