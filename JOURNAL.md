@@ -55,7 +55,7 @@ lives entirely in `docs/API.md` and doesn't require modifying any application co
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/tsh594/pathreview/commit/4aa05ff
+**Reproduction commit link:** https://github.com/tsh594/pathreview/commit/cddf3a6
 
 **Reproduction summary:** Opened `docs/API.md` and confirmed it lists API endpoints but contains no `curl` examples. The documentation describes what each endpoint does but doesn't show how to call it.
 
