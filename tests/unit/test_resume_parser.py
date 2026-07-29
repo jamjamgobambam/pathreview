@@ -1,11 +1,11 @@
 """Tests for resume_parser.py"""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
+from unittest.mock import Mock, patch
 
-from ingestion.parsers.resume_parser import ResumeParser
+import pytest
+
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.resume_parser import ResumeParser
 
 
 @pytest.mark.unit
@@ -142,6 +142,26 @@ class TestResumeParser:
         assert any("experience" in s for s in sections_lower)
         assert any("education" in s for s in sections_lower)
         assert any("skills" in s for s in sections_lower)
+
+    @pytest.mark.xfail(
+        reason="Issue #147: indented section headers are not detected yet",
+        strict=True,
+    )
+    def test_detect_sections_with_leading_whitespace_reproduction(self, parser):
+        """Reproduce issue #147 from the owner comment."""
+        text = """
+            John Smith
+            john@example.com
+
+            Education:
+            - B.S. Computer Science
+
+            Skills: Python
+        """
+        sections_lower = [s.lower() for s in parser.parse(text).metadata["detected_sections"]]
+
+        assert "education" in sections_lower
+        assert "skills" in sections_lower
 
     def test_strip_markdown_syntax(self, parser):
         """Test markdown syntax stripping."""
