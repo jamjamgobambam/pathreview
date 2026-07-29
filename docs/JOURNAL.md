@@ -27,3 +27,19 @@ I imported ResumeParser from ingestion.parsers.resume_parser and called parse() 
 
 **Blockers or open questions:**
 None
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+Completed steps 1–5 from PLAN.md for issue #147. Confirmed reproduction: `test_detect_sections` failed because indented headers (leading spaces before `Experience:`, `Education:`, `Skills:`) did not match. Updated all four regex patterns in `_detect_sections` (`ingestion/parsers/resume_parser.py`) to allow optional `\s*` after `^` and `\n`. Re-ran the resume parser unit tests: `test_detect_sections` passes, and flush-left fixtures (`test_parse_single_column_resume_text`, `test_parse_resume_no_work_experience`) still pass. Verified end-to-end via `ResumeParser.parse()` on the indented sample — `metadata["detected_sections"]` now returns `['Experience', 'Education', 'Skills']`. Manually checked edge cases: tabs and multiple leading spaces match; mid-line headers like `See Experience: below` do not.
+
+**Next steps:**
+
+Commit and push the fix on branch `fix/147-Resume-section-detection-fails-on-text-with-leading-whitespace`, open a PR, and run `make check` and `make test-unit` for self-review confirmation. Fill in Check-in 2 (PR link, test summary, draft feedback) once the PR is submitted.
+
+**Blockers:**
+
+Two pre-existing failures in `test_resume_parser.py` (`test_parse_markdown_resume`, `test_strip_markdown_syntax`) are unrelated to this fix — `_strip_markdown` does not strip `#` headers when lines are indented. They may cause `make test-unit` to report failures beyond the scope of #147; otherwise none.
