@@ -51,3 +51,36 @@ area-code form (and the space/format variants around it) so both `scrub()` and
   existing dashed-format test guards against.
 - **Conclusion:** appropriately scoped for Week 7 — no hidden dependencies or
   scope creep expected.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/shahriarshabib/pathreview/commit/6fb7d3fc84a926334f87a977eaa0557da648649a
+
+**Reproduction summary:**
+In my freshly cloned fork I created a lightweight virtualenv (`pytest` +
+`structlog`, no Docker needed for this safety-layer unit) and ran the four phone
+tests in `tests/unit/test_pii_scrubber.py` — all four fail
+(`test_us_phone_number_redaction`, `test_us_phone_formats`, `test_detect_phone_pii`,
+`test_phone_at_start_of_text`). The issue's repro snippet reproduces it directly:
+`scrub("Call me at (555) 123-4567 or 555-123-4567")` returns
+`"Call me at (555) 123-4567 or [REDACTED]"` (only the dashed number is redacted)
+and `detect("(555) 123-4567")` returns `[]`. This confirms the `phone_us` regex in
+`safety/pii_scrubber.py` cannot consume the space after `)`, so the most common US
+phone format leaks through unredacted. The reproduction commit pins a `BUG(#146)`
+comment on the exact regex line.
+
+**PLAN.md link:** https://github.com/shahriarshabib/pathreview/blob/fix/146-pii-scrubber-parenthesized-phone/PLAN.md
+
+**Walkthrough video (recommended):** _(not recorded)_
+
+**Blockers or open questions:**
+- The full app still isn't running at `localhost:5173` (Docker not installed on
+  this machine), but issue #146 is a self-contained safety-layer unit, so it is
+  reproduced and will be verified via `tests/unit/test_pii_scrubber.py` rather than
+  the running web app.
+- Open question for Week 9: whether `+1 555 123 4567` should be matched by
+  `phone_us` or `phone_intl` (the `test_us_phone_formats` fixture includes it).
+- Noted but out of scope: `test_mixed_pii_and_text` also fails, for an unrelated
+  reason — the `street_address` regex over-matches (`"Pl"` inside "applications"),
+  which redacts "Python". Not part of #146; flagged so I don't confuse it with a
+  regression from my fix.
