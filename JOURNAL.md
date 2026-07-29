@@ -109,3 +109,118 @@ number), and `re.IGNORECASE` lets the two-letter address abbreviations `St`/`Dr`
    a config mismatch.
 
 **Still outstanding from Week 7:** record #111 in the cohort ledger.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+Sub-tasks 1–4 of PLAN.md are done, and the Week 8 open question about scope is
+resolved: **the PR now carries the regex fix as well as the tests.** The issue
+text asks for property tests, but the properties only have value if something
+acts on what they find, and what they found was a live PII leak. Shipping tests
+that document a leak while leaving it open was the wrong call. The fix is
+staged as its own commit so the test-only change stays reviewable on its own.
+
+- *Sub-task 1 — Reproduction.* Done in Week 8 (commit `3cec902`).
+- *Sub-task 2 — Strategies.* Done. Five `@st.composite` strategies in
+  `tests/unit/test_pii_scrubber_properties.py` — `emails()`, `us_phones()`,
+  `intl_phones()`, `ssns()`, `street_addresses()` — each parameterizing the
+  dimensions the fixed examples hold constant (separator character,
+  parenthesized vs. bare area code, optional `+1`, TLD shape, casing).
+  `street_addresses()` draws from `STREET_SUFFIXES`, now exported from
+  `safety/pii_scrubber.py`, so the strategy cannot drift from the pattern.
+- *Sub-task 3 — Round-trip properties.* Done. One per PII type plus a combined
+  property that puts all four types in one string, since `scrub()` applies its
+  patterns sequentially to progressively rewritten text and composition is
+  where the interesting bugs live.
+- *Sub-task 4 — Cross-API and invariant properties.* Done. `detect()`/`scrub()`
+  agreement, offset correctness, idempotence, no-PII passthrough, plus negative
+  properties so a scrubber that redacted *everything* would not pass either.
+- *Sub-task 5 — Stabilize and land.* In progress — see Next steps.
+
+**The fix.** Three defects from PLAN.md, plus two more the properties found
+that I had not predicted:
+
+1. Phone separators omitted whitespace (`[-.]?` → `[-.\s]?`). The leading `\b`
+   was also load-bearing in the wrong direction — it can never match before a
+   `(`, so `(555) 123-4567` failed on two counts. Replaced with a
+   `(?<![-.\d])` lookbehind.
+2. `phone_intl` consumed only the country code. It now consumes every digit
+   group, and requires at least two so `+12` is not read as a phone number.
+3. `re.IGNORECASE` applied to `street_address` matched `St`/`Dr`/`Pl` inside
+   ordinary words. Patterns are now compiled individually; `street_address` is
+   case-sensitive and requires a capitalized name word before the suffix.
+4. **New, found by the properties:** pattern *ordering* leaked a country code.
+   `phone_us` ran first and ate the national part of `+2-000-000-0000`,
+   stranding `+2-` outside the redaction. `phone_intl` now runs first.
+5. **New, found by the properties:** `1000-000-0000` — an unseparated trunk
+   prefix running into the area code — matched nothing at all.
+
+Defects 4 and 5 are the direct payoff of the issue: I did not think of either
+format, and hypothesis shrank both to minimal counterexamples in one run. That
+is the argument for property tests in a nutshell.
+
+**Verification so far** (measured against a clean `main` worktree, since the
+repo has a large pre-existing red baseline):
+
+| | `main` | this branch |
+|---|---|---|
+| `tests/unit` | 53 failed, 375 passed | **48 failed, 408 passed** |
+| `ruff check .` | 182 errors | **178** |
+| `black --check .` | 52 files unformatted | **51** |
+| `mypy` (as `make typecheck` runs it) | 5 errors in 4 files | **5 errors in 4 files** |
+
+Diffing the two failure lists: **zero new failures**, and the five that
+disappear are exactly the `test_pii_scrubber.py` phone/address cases the fix
+addresses. `tests/unit/test_pii_scrubber.py` now passes 25/25 without being
+modified — I treated it as a fixed contract rather than editing it to match
+new behavior. `ruff`, `black` and `mypy` are all clean on the files I touched.
+
+**Next steps:**
+
+1. Open the PR and post it for peer review (Slack), flagging the scope
+   decision and the SSN question specifically.
+2. Fill in the PR template completely, including a documented list of the
+   pre-existing failures and an explicit statement that this branch does not
+   affect them.
+3. Address review feedback, then write Check-in 2 with the PR link and submit
+   the `/tree/test/111-pii-scrubber-property-tests` URL to the course portal.
+
+**Blockers:**
+
+1. **No maintainer response on the issue thread.** I asked about scope in Week 8
+   and nothing came back, and four other people have commented claiming #111.
+   I stopped waiting and made the call myself, but the PR description leads with
+   the scope decision so a maintainer can push back cheaply — reverting to
+   tests-only is one commit.
+2. **The SSN question from Week 8 is still open, and I made a judgment call.**
+   I added the space-separated form (`123 45 6789`) but deliberately *not* the
+   unseparated one (`123456789`). A bare nine-digit run carries no signal
+   distinguishing an SSN from an order number or an ID, so matching it trades a
+   real leak for a broad false-positive class in a component that feeds LLM
+   prompts. I flagged it in the PR rather than deciding it silently.
+3. **`make check` cannot be run as written.** The `check` target depends on
+   `format`, which runs `black .` and rewrites 52 unrelated files. I ran
+   `black --check` instead and am reporting per-file results; worth raising
+   upstream as a separate issue, since the documented pre-PR command mutates
+   the working tree.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** *pending — to be filled in on submission*
+
+**Branch:** `test/111-pii-scrubber-property-tests`
+
+**What you built:** *pending*
+
+**Tests added or updated:** *pending*
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** *pending*
