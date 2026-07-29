@@ -90,12 +90,15 @@ space-separated US phone numbers are correctly redacted by scrub() and
 flagged by detect(), resolving issue #146.
 
 **Tests added or updated:**
-No new test files -- the existing tests/unit/test_pii_scrubber.py already
-had 4 tests covering this exact bug (test_us_phone_number_redaction,
-test_us_phone_formats, test_detect_phone_pii, test_phone_at_start_of_text),
-which now pass. Confirmed via before/after runs that all other tests in
-this file behave identically except one pre-existing, unrelated failure
-(test_mixed_pii_and_text).
+Modified tests/unit/test_pii_scrubber.py: added one new test,
+test_fully_space_separated_phone_number, covering the "+1 555 123 4567"
+format with its own independent pass/fail signal (previously only
+exercised inside test_us_phone_formats's loop, where an early assert
+could mask a failure on this specific format). Also confirmed the 4
+existing tests covering this bug (test_us_phone_number_redaction,
+test_us_phone_formats, test_detect_phone_pii, test_phone_at_start_of_text)
+now pass. All other tests in this file behave identically before and
+after except one pre-existing, unrelated failure (test_mixed_pii_and_text).
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 (both in the sense defined by the assignment: no new failures introduced by
