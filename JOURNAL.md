@@ -14,3 +14,22 @@ The test test_query_with_partial_overlap is meant to verify that the relevance s
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_relevance_scorer.py -q` and confirmed
+`test_query_with_partial_overlap` fails with `assert 1.0 < 0.9`. The
+scorer is behaving correctly — the fixture chunk ("Django is a Python
+web framework for rapid development") contains all 4 query terms, so
+full-coverage scoring of 1.0 is correct. The bug is in the test fixture,
+not the scorer.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Blockers or open questions:**
