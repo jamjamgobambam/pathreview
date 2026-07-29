@@ -23,3 +23,20 @@ rather than vendored dependencies.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** (https://github.com/sojsun17/pathreview/commit/d88c906)
+
+**Reproduction summary:**
+Ran the exact repro from issue #150 both manually in a Python REPL and via a committed script (`reproduce_issue_150.py`). Confirmed `primary_language` returns `'JavaScript'` instead of the expected `'Python'` when vendored files under `node_modules/` and `build/` are included, and verified the existing `test_node_modules_excluded` and `test_build_directory_excluded` tests fail with the same assertion error. 
+
+**PLAN.md link:** https://github.com/sojsun17/pathreview/blob/fix/150-tech-detector-exclude-paths/PLAN.md
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+nothing at the moment
