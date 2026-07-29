@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { axe } from 'jest-axe'
 import { ReviewPage } from '../ReviewPage'
 import { useReviewStatus } from '../../hooks/useReviewStatus'
 
@@ -33,5 +34,13 @@ describe('ReviewPage', () => {
     render(<ReviewPage />)
 
     expect(screen.getByText('Analyzing your portfolio...')).toBeInTheDocument()
+  })
+
+  it('has no accessibility violations in the polling state', async () => {
+    mockUseReviewStatus.mockReturnValue({ review: null, isPolling: true, error: null })
+
+    const { container } = render(<ReviewPage />)
+
+    expect(await axe(container)).toHaveNoViolations()
   })
 })
