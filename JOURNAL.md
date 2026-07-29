@@ -9,7 +9,7 @@
 **Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-The health endpoint currently reports the service status but does not include information about recent safety-system activity. This makes it difficult for operators to quickly determine whether safety events have occurred without checking the monitoring dashboard. This issue affects the health route and the safety monitoring module. A successful fix will add a `safety_events_last_hour` field to the health-check response and ensure it reports the correct number of recent safety events.
+The health endpoint currently reports the service status but does not include information about recent safety-system activity. This makes it difficult for operaStors to quickly determine whether safety events have occurred without checking the monitoring dashboard. This issue affects the health route and the safety monitoring module. A successful fix will add a `safety_events_last_hour` field to the health-check response and ensure it reports the correct number of recent safety events.
 
 **Selection notes ("Is this right for me?" checklist):**
 This issue has a clearly defined scope and affects only a small part of the codebase. The issue description identifies the main files involved, making it easier to locate the relevant code. It is labeled Tier 1, which makes it appropriate for a first open-source contribution. I expect to understand how safety events are tracked, connect that information to the health endpoint, and update or add tests.
