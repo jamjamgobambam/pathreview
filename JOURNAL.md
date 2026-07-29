@@ -36,3 +36,17 @@ Short, accurate claims get scored 0.0 by the faithfulness evaluator. The problem
 **Next steps:** Open a draft PR on GitHub to get feedback, refine if necessary, and then submit the final Pull Request by the Sunday deadline.
 
 **Blockers:** None at this time!
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/377
+
+**Branch:** `fix/152-short-claims-faithfulness`
+
+**What you built:** I fixed an issue where short claims were being incorrectly discarded and evaluated as 0.0. I updated the context string concatenation to safely handle `None` values and refactored the claim extraction and overlap logic to scale down required token matches for short sentences.
+
+**Tests added or updated:** Added `test_short_claims_retained_and_evaluated` to `tests/unit/test_faithfulness_checker.py` to ensure concise claims are preserved and scored correctly.
+
+**Self-review confirmation:** [x] make check passes [x] make test-unit passes
+
+**Draft PR feedback received from:** none
