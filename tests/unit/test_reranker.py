@@ -1,11 +1,6 @@
-"""Tests for LLMReranker — issue #34.
+"""Tests for LLMReranker — issue #34."""
 
-These tests are intentionally failing: rag/retriever/reranker.py does not exist yet.
-They document the expected interface for the LLM re-ranking feature and serve as
-the reproduction commit showing exactly what is missing.
-"""
-
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -103,3 +98,59 @@ class TestLLMReranker:
 
         sig = inspect.signature(HybridRetriever.__init__)
         assert "reranker" in sig.parameters
+
+
+@pytest.mark.unit
+class TestBuildReranker:
+    """Tests for the build_reranker() factory."""
+
+    def test_build_reranker_returns_none_when_no_api_key(self) -> None:
+        """build_reranker() should return None when GROQ_API_KEY is not set."""
+        from rag.retriever.reranker import build_reranker
+
+        mock_settings = MagicMock()
+        mock_settings.groq_api_key = ""
+
+        with patch("rag.retriever.reranker.settings", mock_settings):
+            result = build_reranker()
+
+        assert result is None
+
+    def test_build_reranker_returns_llm_reranker_when_key_set(self) -> None:
+        """build_reranker() should return an LLMReranker when GROQ_API_KEY is set."""
+        from rag.retriever.reranker import LLMReranker, build_reranker
+
+        mock_settings = MagicMock()
+        mock_settings.groq_api_key = "gsk_test_key"
+        mock_settings.groq_base_url = "https://api.groq.com/openai/v1"
+        mock_settings.groq_model = "llama-3.3-70b-versatile"
+
+        with (
+            patch("rag.retriever.reranker.settings", mock_settings),
+            patch("rag.retriever.reranker.openai.OpenAI") as mock_openai,
+        ):
+            result = build_reranker()
+
+        assert isinstance(result, LLMReranker)
+        mock_openai.assert_called_once_with(
+            api_key="gsk_test_key",
+            base_url="https://api.groq.com/openai/v1",
+        )
+
+    def test_build_reranker_uses_groq_model(self) -> None:
+        """build_reranker() should configure LLMReranker with the groq_model."""
+        from rag.retriever.reranker import build_reranker
+
+        mock_settings = MagicMock()
+        mock_settings.groq_api_key = "gsk_test_key"
+        mock_settings.groq_base_url = "https://api.groq.com/openai/v1"
+        mock_settings.groq_model = "llama-3.3-70b-versatile"
+
+        with (
+            patch("rag.retriever.reranker.settings", mock_settings),
+            patch("rag.retriever.reranker.openai.OpenAI"),
+        ):
+            result = build_reranker()
+
+        assert result is not None
+        assert result.model == "llama-3.3-70b-versatile"

@@ -1,11 +1,31 @@
 """LLM-based re-ranker for retrieved chunks."""
 
 import re
-from typing import Any
+from typing import Any, Optional
 
+import openai
 import structlog
 
+from core.config import settings
+
 logger = structlog.get_logger()
+
+
+def build_reranker() -> Optional["LLMReranker"]:
+    """Return a Groq-backed LLMReranker, or None if GROQ_API_KEY is not set.
+
+    Uses the openai SDK pointed at Groq's OpenAI-compatible endpoint so no
+    extra dependency is needed beyond what pathreview already requires.
+    """
+    if not settings.groq_api_key:
+        logger.info("reranker_disabled_no_groq_key")
+        return None
+
+    client = openai.OpenAI(
+        api_key=settings.groq_api_key,
+        base_url=settings.groq_base_url,
+    )
+    return LLMReranker(client=client, model=settings.groq_model)
 
 
 class LLMReranker:
