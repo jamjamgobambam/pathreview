@@ -17,3 +17,18 @@ I can explain this issue in my own words: the tests need a shared sample user pr
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I reproduced the issue by checking for `tests/fixtures/sample_profiles/basic_profile.json` and confirming that the expected fixture path does not exist in the repository. The issue is that manifest and eval tooling still reference `tests/fixtures/sample_profiles/`, so tests or scripts that depend on this shared sample profile cannot run against the expected fixture data.
+
+
+**PLAN.md link:** [./PLAN.md](PLAN.md)
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded](loom video demo link)
+
+**Blockers or open questions:**
+Need to confirm the exact JSON shape expected by the skipped integration tests before writing the fixture. If those tests are not currently present or are also skipped/unfinished, I will model the fixture around the existing profile, resume, repository, and ingestion schemas so it remains realistic and reusable.
