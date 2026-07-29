@@ -43,3 +43,31 @@ pass/fail tests is captured in FAILING_TESTS.md.
 
 **PLAN.md link:** https://github.com/Wodehouse/pathreview/blob/fix/149-structural-chunker-drops-headingless-docs/PLAN.md
 
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in `ingestion/chunking/structural_chunker.py`; all four
+PLAN.md sub-tasks are done. `_extract_sections` now collects content lines
+unconditionally (sub-task 1), and a new `_build_section` helper emits a
+headingless section with an empty path and level 0 when no heading has been seen
+(sub-task 2). Verified `chunk()` routes the empty `heading_path` through both the
+single-chunk and semantic sub-chunk branches (sub-task 3), and grepped
+`heading_path` consumers to confirm nothing reads it except the chunker itself
+(sub-task 4). Added 4 edge-case tests in `tests/unit/test_structural_chunker.py`;
+the existing `test_document_with_no_headings` now passes (19/19 chunker tests
+green). Committed as `fix(ingestion): …` + `test(ingestion): …`.
+
+**Next steps:**
+Open a draft PR and request peer/mentor review in Slack, address feedback, then
+do a final `make check` / `make test-unit` pass and mark the PR ready for review
+with Check-in 2.
+
+**Blockers:**
+None. The repo has documented pre-existing test/lint failures unrelated to this
+change (tracked in FAILING_TESTS.md); the fix introduces no new failures
+(unit suite goes 53 → 52 pre-existing failures, +4 new passing tests).
+
+---
+
