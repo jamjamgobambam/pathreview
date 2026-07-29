@@ -102,7 +102,7 @@ $ curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/docs
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [to be filled in with this commit's URL after pushing]
+**Reproduction commit link:** https://github.com/GurupavanSudhakar/pathreview/commit/6a3e495
 
 **Reproduction summary:**
 Issue #38 is a feature gap, not a crash, so "reproducing" it means confirming the gap is
