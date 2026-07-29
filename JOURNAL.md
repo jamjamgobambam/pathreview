@@ -19,7 +19,7 @@ There's already a `RateLimiter` in `safety/rate_limiter.py` that tracks how many
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** need to commit first
+**Reproduction commit link:** [need to commit first](https://github.com/tanvi-g2/pathreview/commit/c80bda54d463dd2a08111b9cf441daf8b24a9015)
 
 **Reproduction summary:**
 Got the full stack running locally (Docker for postgres/redis/chroma, then `make run` for the API + frontend) and hit the root endpoint directly: `curl -i http://localhost:8000/`. The response comes back with `x-request-id` in the headers but there's no `x-ratelimit-limit` or `x-ratelimit-remaining` anywhere, on any request. Grepping the codebase confirms why: `RateLimiter.check_rate_limit` is only ever called from its own unit tests, never from `api/main.py` or anywhere in the actual request path. The class works, it's just not wired up to anything.
