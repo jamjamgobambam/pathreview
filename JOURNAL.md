@@ -100,7 +100,7 @@ accepts `decode_responses=True` on the pinned `redis>=5.0.0` — confirmed it do
 
 ### Check-in 2 (end of week)
 
-**PR link:** _PR to be opened against ascherj/pathreview — link added on submission_
+**PR link:** https://github.com/ascherj/pathreview/pull/374
 
 **Branch:** `fix/155-health-check-redis-host`
 
