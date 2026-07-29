@@ -12,3 +12,17 @@ The issue requires a thorough understanding of the codebase and how each file in
 **Setup confirmation:** [yes] App runs locally at localhost:5173
 
 **Cohort ledger:** [yes] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [docs/121-contributor-onboarding-guide reproduction note](https://github.com/Morenayd/pathreview/commit/HEAD)
+
+**Reproduction summary:**
+I documented the Week 8 reproduction step as a documentation-focused investigation of the repository structure and contributor workflow. The reproduction confirmed that the current guidance is dispersed across multiple docs and does not yet provide a single, end-to-end onboarding path for a new contributor.
+
+**PLAN.md link:** [PLAN.md](PLAN.md)
+
+**Walkthrough video (recommended):** Not recorded yet
+
+**Blockers or open questions:**
+I am still working through how the API, agent, ingestion, and frontend components fit together so the onboarding guide can describe the project clearly without oversimplifying it.
