@@ -50,7 +50,7 @@ assertions pass without changing the application code.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** _(this commit — permalink added in the follow-up entry below)_
+**Reproduction commit link:** [`669ba55` — docs: reproduce #159 — structlog bypasses stdlib logging](https://github.com/ShawarmaOnGit/pathreview/commit/669ba5577b602043a8ce1125a7fb11b2ee6793fb)
 
 **Reproduction summary:**
 I ran the single failing test in a clean local environment and confirmed the failure is
@@ -58,9 +58,13 @@ real: `caplog.text` comes back as the empty string, while pytest's own stdout ca
 shows the warning was definitely emitted. So the log fires, but `caplog` never sees it —
 the two logging systems aren't connected.
 
-**PLAN.md link:** _(added in Week 8 planning commit)_
+**PLAN.md link:** [PLAN.md](https://github.com/ShawarmaOnGit/pathreview/blob/fix/159-structlog-caplog-capture/PLAN.md)
+(added in [`8f96737`](https://github.com/ShawarmaOnGit/pathreview/commit/8f96737ab2ae727fda700654837461183edf2ff1))
 
-**Walkthrough video (recommended):** _(not recorded)_
+**Walkthrough video (recommended):** _Not recorded — optional and not graded._
+
+**Branch URL (portal submission):**
+https://github.com/ShawarmaOnGit/pathreview/tree/fix/159-structlog-caplog-capture
 
 **Blockers or open questions:**
 None blocking. One open design question I'll settle in Week 9: whether to reuse the
