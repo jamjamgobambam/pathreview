@@ -22,7 +22,7 @@ This matches Tier 1 because it is a localized bug fix in one small part of the c
 
 ## Week 8 - Reproduction & solution planning
 
-**Reproduction commit link:** [4a99a50](https://github.com/davidobi2911/pathreview/commit/4a99a50)
+**Reproduction commit link:** [224d77c](https://github.com/davidobi2911/pathreview/commit/224d77c)
 
 **Reproduction summary:**
 I reproduced the issue locally on Wednesday, July 29, 2026 by calling the health route with a healthy mocked database session through the project virtual environment. The route logged `'Settings' object has no attribute 'redis_host'`, marked Redis unhealthy, and raised `HTTPException 503`, which matches the config mismatch between `api/routes/health.py` and `core/config.py`.
