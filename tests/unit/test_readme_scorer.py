@@ -15,7 +15,16 @@ class TestReadmeScorer:
         return ReadmeScorer()
 
     def test_readme_with_all_quality_signals(self, scorer):
-        """Test README with all quality signals returns high score."""
+        """Test README with all quality signals returns high score.
+
+        Reproduction (issue #156): this fixture is only ~51 words, but the
+        assertions below expect word_count > 100 and category ==
+        "comprehensive" (which per ReadmeScorer._score_readme requires
+        word_count >= 500). Running
+        `pytest tests/unit/test_readme_scorer.py -k all_quality_signals -q`
+        reproduces the failure: `assert 51 > 100`.
+        See PLAN.md for the proposed fix.
+        """
         readme = """
         # Project Name
         A comprehensive project description.
@@ -157,9 +166,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +228,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +244,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
