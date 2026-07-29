@@ -18,7 +18,7 @@
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [fill in after pushing — the commit that adds this Week 8 note]
+**Reproduction commit link:** https://github.com/jocelynGonzalez/pathreview/commit/23dc974
 
 **Reproduction summary:**
 I called `FaithfulnessChecker.check("Has Python skills", [{"text": None}])` against the current code
@@ -30,7 +30,7 @@ the crash is specific to an explicit `None`. The repo's own test `test_none_cont
 (`tests/unit/test_faithfulness_checker.py:231`) encodes the expected graceful behavior and currently
 fails with this same error.
 
-**PLAN.md link:** [fill in after pushing — https://github.com/jocelynGonzalez/pathreview/blob/bug/153-faithfullnesschecker-crashes-when-text-none/PLAN.md]
+**PLAN.md link:** https://github.com/jocelynGonzalez/pathreview/blob/bug/153-faithfullnesschecker-crashes-when-text-none/PLAN.md
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
