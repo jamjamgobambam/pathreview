@@ -1,72 +1,80 @@
 ## Solution plan
 
-**Issue:** Explain hybrid retrieval scoring logic in `docs/ARCHITECTURE.md` — [paste issue link]
+**Issue:** Explain hybrid retrieval scoring logic in `docs/ARCHITECTURE.md` — https://github.com/ascherj/pathreview/issues/36
 
 ### Understand
 
-The RAG System section in `docs/ARCHITECTURE.md` states that the application uses hybrid retrieval by combining vector similarity and BM25 keyword retrieval. However, the documentation does not explain how the two scores are combined.
+The RAG System section in `docs/ARCHITECTURE.md` states that the application uses hybrid retrieval by combining vector similarity and BM25 keyword retrieval. However, it does not explain the scoring formula, the default weights, the normalization process, or provide a worked example.
 
-The expected documentation should include the exact scoring formula, the default vector and keyword weights, definitions of the score components, and a numerical example. Currently, readers cannot determine how the final hybrid ranking score is produced.
+The expected documentation should explain that vector and BM25 scores are normalized separately and then combined using a weighted sum. The default weights are 0.7 for vector similarity and 0.3 for BM25 keyword relevance.
+
+The current documentation does not provide enough information for a reader to understand or reproduce the final ranking score.
 
 ### Map
 
 Files and modules involved:
 
-- `docs/ARCHITECTURE.md` — contains the incomplete hybrid retrieval documentation.
-- `rag/` — expected location of the hybrid retrieval implementation.
-- The retrieval implementation file inside `rag/` — expected to contain the score-combination logic.
-- Any configuration or constants file that defines the default vector and BM25 weights.
-- Any retrieval tests that verify hybrid ranking behavior.
+- `docs/ARCHITECTURE.md` — contains the incomplete hybrid retrieval description and will be updated.
+- `rag/hybrid.py` — contains the hybrid retrieval logic, score normalization, default weights, filtering, and sorting.
+- `rag/vector_store.py` — converts ChromaDB distance values into vector similarity scores.
+- `rag/keyword_search.py` — calculates and returns BM25 keyword scores.
 
 The primary file expected to change is:
 
 - `docs/ARCHITECTURE.md`
 
-The implementation and test files will be inspected to verify the documentation, but they are not expected to require changes.
+The files in `rag/` will be used as the source of truth but are not expected to require changes.
 
 ### Plan
 
-1. Search the `rag/` directory to locate the function or class that combines vector similarity and BM25 keyword scores.
-2. Identify the exact scoring formula, default weights, and any normalization performed before the scores are combined.
-3. Check configuration files and retrieval tests to confirm that the documented defaults match the implementation.
-4. Add a hybrid retrieval scoring subsection to `docs/ARCHITECTURE.md` that defines the formula and each variable.
-5. Add a worked numerical example using the verified default weights and compare the documentation against the implementation.
+1. Document how `rag/vector_store.py` converts vector distance into a similarity score using `1 / (1 + distance)`.
+2. Explain how `rag/hybrid.py` normalizes vector and BM25 scores by dividing each score by the maximum score returned by its retrieval method.
+3. Add the weighted scoring formula to `docs/ARCHITECTURE.md`, using the default weights of 0.7 for vector similarity and 0.3 for BM25 relevance.
+4. Add a worked numerical example showing how normalized vector and keyword scores produce a final hybrid score.
+5. Review the new documentation against `rag/hybrid.py`, `rag/vector_store.py`, and `rag/keyword_search.py` to confirm accuracy.
 
 ### Inputs & outputs
 
-The hybrid scoring process takes the following inputs:
+The hybrid retrieval process takes:
 
-- a vector similarity score
-- a BM25 keyword score
-- a vector score weight
-- a keyword score weight
+- a text query
+- a query embedding
+- vector similarity search results
+- BM25 keyword search results
+- a vector weight, defaulting to 0.7
+- a keyword weight, defaulting to 0.3
+- a minimum score threshold, defaulting to 0.3
+- a maximum number of chunks, defaulting to 10
 
-It produces a combined hybrid score used to rank retrieved documents.
+The retrieval process produces a ranked list of chunks containing:
 
-The documentation change should produce:
+- the chunk ID
+- chunk text
+- metadata
+- final blended score
+- normalized vector score
+- normalized keyword score
 
-- the exact hybrid scoring formula
-- the default vector and keyword weights
-- an explanation of score normalization, if used
-- definitions of each variable
-- a numerical example showing the calculation
+The documentation change should produce a clear explanation of the formula, defaults, normalization process, and a complete example.
 
 ### Risks & unknowns
 
-- Vector similarity and BM25 scores may have different numerical ranges and may require normalization.
-- The default weights may be defined in a configuration file rather than directly in the retrieval function.
-- Users may be able to override the default weights.
-- The implementation may convert vector distance into similarity before combining scores.
-- Existing tests may reveal scoring behavior that is not currently described in the architecture documentation.
+- Vector and BM25 scores use different numerical scales, so the documentation must clearly explain that they are normalized separately.
+- The vector store collection uses cosine space, while a comment in `rag/vector_store.py` states that ChromaDB distances are Euclidean by default. The documentation should describe the implemented conversion without making unsupported claims about the exact distance type.
+- The weights can be overridden when `HybridRetriever` is created, so the documentation must distinguish default values from required values.
+- The code does not verify that the two weights add up to 1.0.
+- Normalization depends on the maximum score in the current result set, so normalized scores may change depending on which documents are returned.
+- Results with a final score below the default minimum threshold of 0.3 are removed.
 
 ### Edge cases
 
-The documentation should explain or account for:
+The documentation should account for:
 
-- a vector score of zero
-- a BM25 score of zero
-- documents with no keyword matches
-- one scoring component having a weight of zero
-- custom weights that differ from the defaults
-- equal final hybrid scores
-- normalized versus unnormalized component scores
+- no vector search results
+- no keyword search results
+- a maximum vector or keyword score of zero
+- a document appearing in only one retrieval method
+- one component receiving a weight of zero
+- custom weights that do not add up to 1.0
+- documents with equal blended scores
+- blended scores below the minimum threshold
