@@ -77,7 +77,7 @@ GitHub auth requires a personal access token — need to set that up to push.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [to be added after push]
+**PR link:** https://github.com/ascherj/pathreview/pull/353
 
 **Branch:** `fix/149-structural-chunker-no-headings`
 
