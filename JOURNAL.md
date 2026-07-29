@@ -40,9 +40,41 @@ No blockers or dependencies. The fix is a targeted regex change — estimated 2�
 **Reproduction summary:**
 To reproduce issue #147, I ran pytest tests/unit/test_resume_parser.py. The section detection tests failed as expected. The current parsing logic anchors headers strictly to the start of a line, meaning it fails to identify valid headers like 'Experience' when they contain the leading indentations commonly left behind by PDF text extraction.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/rcraig-2023/pathreview/blob/fix/147-resume-section-detection-whitespace/PLAN.md
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed the core implementation for Issue #147. I successfully updated the regex logic in `ingestion/parsers/resume_parser.py` to accurately detect PDF sections and strip out Markdown headers. I also rebuilt the local `.venv` virtual environment to resolve tooling configuration errors, ran `make test-unit` (confirming all 10 unit tests for `test_resume_parser.py` pass), and resolved the specific `ruff` linting errors for the files I touched via `make check`. 
+
+**Next steps:**
+Push my working branch to GitHub and open a draft Pull Request. I will document the pre-existing `make check` failures in the PR description as required by the contribution guidelines, and then request peer review in Slack. Once I receive and implement any necessary feedback, I will complete Check-In 2 and submit the final PR.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** 
+[ ] make check passes  
+[ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
