@@ -70,3 +70,34 @@ None blocking my own progress. For context (not blocking): the repo has some pre
 (No new failures introduced -- pre-existing failures documented in the PR description under "Notes for Reviewers" and confirmed identical before/after this change.)
 
 **Draft PR feedback received from:** none received yet -- PR was opened as a draft for early feedback, then moved to ready for review before any feedback arrived. Will note in the Week 10 reflection if anything comes in after submission.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+N/A -- No reviewer feedback.
+
+**How you responded:**
+N/A --No feedback.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Two things. First, just getting a stable local environment took longer than the fix itself -- a Docker Compose port conflict caused by a completely unrelated, native PostgreSQL 18 install on the exact port the project wanted, which `lsof` couldn't even see without sudo. Second, picking the *right* locking mechanism was harder than picking *a* locking mechanism. My first instinct (a session-scoped `pg_advisory_lock`) looked reasonable until I worked through how SQLAlchemy's connection pooling actually behaves under concurrency -- it doesn't guarantee the same physical connection stays checked out across multiple commits, which means that lock could silently protect nothing under real load while still looking like it worked in casual testing. That's a genuinely scary failure mode for a fix whose entire job is correctness under concurrency.
+
+**What did you learn about working in a large codebase?**
+Most of the actual work wasn't writing code -- it was verifying claims instead of assuming them. Tracing exactly which functions called `_run_ingestion_pipeline` before touching its transaction behavior. Actually diffing the full `tests/unit` failure list before and after my change instead of checking it looked the same. Checking whether the frontend actually rendered the "processing" status differently from "pending" before assuming it was safe to change when that status became visible. Large codebases punish assumptions in a way a solo project never does, because you can't see all the consumers of a function just by reading the function.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest at fast, systematic investigation -- tracing call graphs, running reproduction and regression tests, diffing baselines, drafting the actual lock code once a design was settled. It fell short at the actual judgment calls, and needed real pushback from me to get right: it initially proposed "fixing" pre-existing mypy debt in functions unrelated to my change just to satisfy a pre-commit hook, which I had to catch and reject as scope creep. It also initially misdiagnosed the Docker port conflict (assumed restarting Docker Desktop would fix it) before the real root cause -- a native Postgres install -- was actually found. AI is good at generating plausible next steps; however i had to verify the *right* ones, not just the most immediately available ones.
+
+**What would you do differently if you started over?**
+I'd try to get the local Docker environment fully stable before committing to a Tier 3 issue, since a real chunk of early time went into unrelated environment debugging rather than the actual problem.
+
+**What are you most proud of from this module?**
+Catching that the "obvious" locking approach had a subtle correctness bug before writing a single line of it. It would have been easy to implement the session-scoped lock, watch the reproduction test pass, and ship it -- and it might have looked completely fine in review. The bug only would have shown up under real concurrent production load, which is exactly the scenario the original issue was about. Reasoning through *why* it was wrong instead of just going with the first thing that worked in testing is the part of this module I'd point to as real engineering judgment, not just following steps.
