@@ -46,3 +46,16 @@ No blockers. Four open items carried into Week 9:
 - `IngestionPipeline` has no callers anywhere in the repository, confirmed by `grep -rn "IngestionPipeline("`. Converting its methods to `async` therefore breaks nothing, but the contract is being chosen rather than matched, and the unit tests are its only consumer.
 - Whether `_record_ingested_source` should commit or flush is unsettled. Committing makes the pipeline self-contained; flushing would leave transaction control to a caller that does not yet exist.
 - `core/services/review_service.py` constructs `IngestedSource` with a `raw_data=` keyword matching no column on the model. It is a separate ingestion path that never touches `IngestionPipeline`, so it stays out of scope and will be noted for the reviewer in the pull request.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the core fix in `ingestion/pipeline.py`. `_check_skip` now runs a real `select(IngestedSource)` matched on `content_hash`, `profile_id`, and `source_type` and returns a skip result when a row exists; `_record_ingested_source` persists a row and commits. The three `ingest_*` methods and both helpers are now async to match the `AsyncSession` the app supplies, and `_hash_content` returns the full 64-char digest for storage while `source_id` keeps its 16-char slice. Rewrote `tests/unit/test_ingestion_pipeline.py` as six passing async tests driven through an in-memory fake session, covering skip on identical re-ingest, no skip on changed content, per-profile scoping, empty-check, row persistence with commit, and full-digest hashing. That closes sub-tasks 1 through 6 from PLAN.md. Draft PR #305 is open against the upstream repo with the description filled in.
+
+**Next steps:**
+Request peer review in the cohort Slack channel, address any feedback, then flip the PR from draft to ready. Add Check-in 2 at submission with the PR link and self-review boxes.
+
+**Blockers:**
+None. The pre-existing broken gates (53 test failures, 183 lint errors, 12 mypy errors on `main`) are documented in the PR and unaffected by this change.
