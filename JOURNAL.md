@@ -25,3 +25,15 @@ Codebase readiness: Read FaithfulnessChecker.check() and its helpers, confirmed 
 
 Scope and time: PR #162 is already open on this issue; claims are non-exclusive, so proceeding but will check that PR first. Estimate 3-4 hours (reproduction, fix, tests, PR), within Tier 1's 3-6 hour range and the Week 8-9 window. No blockers noted.
 
+Week 8 — Reproduction & solution planning
+
+Reproduction commit link: https://github.com/jasmitha-alle/pathreview/commit/92e141ee7bb3f53e858607f0f57c509bbd7f87e4
+
+Reproduction summary: Called FaithfulnessChecker().check("Knows Python.", [{"text": None}]) directly in a Python shell and observed the exact crash described in the issue: TypeError: sequence item 0: expected str instance, NoneType found, raised from the " ".join(...) call on context_chunks. Documented the reproduction with a comment at the bug site in rag/evaluator/faithfulness_checker.py.
+
+PLAN.md link: https://github.com/jasmitha-alle/pathreview/blob/fix/153-faithfulness-checker-none-text/PLAN.md
+
+Walkthrough video (recommended): [not recorded]
+
+Blockers or open questions: PR#162 is already open against this issue, need to check whether it already resolves the bug before finalizing my own fix approach.
+
