@@ -129,3 +129,29 @@ collection and DB session.
   by full `source_id`, so re-ingesting one repo must not touch another's chunks.
 - **Same repo name across different profiles** → `profile_id` is part of the id, so no
   cross-profile collision.
+
+## Implementation notes (Week 9 update)
+
+What shipped, and how the plan changed once I was in the code:
+
+- **Steps 1–5 implemented in `ingestion/pipeline.py`** across the resume, README, and
+  repo-metadata paths: stable `source_id`, separate `content_hash` in metadata,
+  `_delete_existing_chunks()` (delete-by-`where` on `source_id`) called before storing,
+  and `_check_skip` re-keyed on `content_hash`.
+- **Two Week-8 unknowns resolved.** (1) The app is async, but `IngestionPipeline` is
+  synchronous and **not wired into any route yet** — only tests construct it — so I kept
+  the skip/record logic synchronous to match the existing stub and the test's mock rather
+  than converting the pipeline to async (a much larger, out-of-scope refactor). (2)
+  `IngestedSource` has **no `source_id` column**, so `_record_ingested_source` cannot
+  durably persist the stable id; it records `content_hash` via structured logging, and a
+  schema column + real persistence is a documented follow-up.
+- **Scope kept to issue #27.** The fix targets the vector-store staleness. Fully wiring
+  DB-backed dedup (async session + `source_id` column + Alembic migration) and unifying
+  the pipeline's raw-collection writes with the `VectorStore` wrapper are deliberate
+  follow-ups, not part of this change.
+- **Collection-wiring risk retired.** The pipeline deletes on the same `self.vector_db`
+  collection its `BatchEmbeddingProcessor` writes to, so within the pipeline the delete
+  and add always target the same collection.
+- **Tests:** `tests/unit/test_ingestion_reingest.py` now covers all three paths plus
+  chunk-shrink, identical-content idempotency, and sibling-source isolation. Full suite:
+  53 failed / 381 passed — same pre-existing failures as baseline, no new ones.
