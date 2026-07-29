@@ -37,6 +37,19 @@ export interface ReviewListResponse {
   page_size: number
 }
 
+// Public, read-only view of a review served via a share token. Mirrors the
+// backend PublicReviewResponse (no owner-linking/internal fields).
+export interface PublicReview {
+  overall_score?: number
+  sections?: FeedbackSection[]
+  created_at: string
+}
+
+export interface ShareLinkResult {
+  url: string
+  expiresAt: string
+}
+
 export interface AuthResponse {
   access_token: string
   token_type: string
