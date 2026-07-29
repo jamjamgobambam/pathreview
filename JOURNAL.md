@@ -45,7 +45,7 @@
 
 **Reproduction summary:** I ran the existing snapshot test, changed `skills_feedback/v1` in an isolated Python process by appending `ACCIDENTAL SAME-VERSION EDIT`, and ran the assertion again. The test still passed while the template remained at version `v1`, confirming that the current MD5 type-and-length checks do not detect accidental prompt changes.
 
-**PLAN.md link:** https://github.com/neonforestmist/pathreview/blob/b7c4ac11a45e75b2fceb68244ceb3a3f565c8ded/PLAN.md
+**PLAN.md link:** https://github.com/neonforestmist/pathreview/blob/test/37-prompt-template-snapshots/PLAN.md
 
 **Walkthrough video (recommended):** Not recorded (optional and not graded)
 
