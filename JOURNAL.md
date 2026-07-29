@@ -28,3 +28,17 @@ I ran `pytest tests/unit/test_pii_scrubber.py -q` and confirmed that `(555) 123-
 **PLAN.md link:** [PLAN.md](PLAN.md)
 
 **Blockers or open questions:** Wondering if other formats can/should also be redacted by these functions. 
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the regex fix in `safety/pii_scrubber.py` so parenthesized US phone numbers are now redacted and detected, and I added a regression assertion in `tests/unit/test_pii_scrubber.py` to lock that behavior in. I also ran the focused pii scrubber tests to confirm the phone-related cases pass; the only remaining `make check` failures are unrelated pre-existing issues elsewhere in the repo.
+
+**Next steps:**
+I’m ready to open the PR, gather any review feedback, and update the journal with the final PR link once it is submitted.
+
+**Blockers:** None
+
+---
