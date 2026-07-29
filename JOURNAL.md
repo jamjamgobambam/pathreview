@@ -20,7 +20,7 @@ The test test_query_with_partial_overlap is meant to verify that the relevance s
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/nickventu/pathreview/commit/5c57afab565fec645c1998e0f971768d5885978d
 
 **Reproduction summary:**
 Ran `pytest tests/unit/test_relevance_scorer.py -q` and confirmed
@@ -31,5 +31,3 @@ full-coverage scoring of 1.0 is correct. The bug is in the test fixture,
 not the scorer.
 
 **PLAN.md link:** [link to PLAN.md in your fork]
-
-**Blockers or open questions:**
