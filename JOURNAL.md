@@ -80,7 +80,7 @@ confirm before finalizing.
 
 ### Check-in 2 (end of week)
 
-**PR link:** <!-- TODO: paste the ready-for-review PR URL after opening it on GitHub -->
+**PR link:** https://github.com/ascherj/pathreview/pull/372
 
 **Branch:** `fix/153-faithfulness-checker-none-text`
 
