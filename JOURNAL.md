@@ -17,3 +17,17 @@ When the agent processes a review, its progress lives only in memory: `agent/orc
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/krishan-g/pathreview/commit/e04cbe7
+
+**Reproduction summary:**
+I wrote `scripts/repro_issue47.py` / `scripts/repro_issue47_worker.py`, which run `Orchestrator.run()` directly against real local Redis over a fixed 3-tool plan, hard-killing the process (`os._exit`) partway through to simulate an API restart. I observed that after the crash Redis has nothing saved for the profile even though one tool had already completed, and that re-running afterward re-executes every tool from scratch instead of resuming.
+
+**PLAN.md link:** https://github.com/krishan-g/pathreview/blob/fix/47-agent-state-not-persisted-on-restart/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded yet.
+
+**Blockers or open questions:**
+`Orchestrator` currently has no callers anywhere in the live app — `core/services/review_service.py` uses a hardcoded placeholder instead of calling into `agent/orchestrator.py`. I'm not yet sure whether wiring `Orchestrator` into the real review pipeline is part of this issue's scope or a separate follow-up; I want to raise this with a mentor before Week 9.
