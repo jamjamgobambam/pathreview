@@ -45,6 +45,10 @@ jobs:
         env:
           LLM_PROVIDER: mock
 
+  # Reproduction note (issue #129): this job provisions a Postgres service but
+  # never runs `alembic upgrade head` against it, and tests/integration/ has no
+  # test files (`pytest tests/integration` currently collects 0 tests). A
+  # broken migration can merge to main with nothing here to catch it.
   test-integration:
     runs-on: ubuntu-latest
     services:
