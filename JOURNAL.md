@@ -45,3 +45,18 @@ I verified the issue by implementing a dedicated unit test at `tests/unit/test_f
 https://github.com/ascherj/pathreview/blob/d1fe6edf5d114cd80406a0602831f9b530b74903/PLAN.md
 
 **Blockers or open questions:**
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+- Re-created the missing shared test fixture file at `tests/fixtures/sample_profiles/basic_profile.json` with a realistic user portfolio (GitHub username `janedoe`, structured Markdown resume, and two repository metadata blocks with file structures and READMEs).
+- Implemented unit test suite `tests/unit/test_fixtures.py` to assert the file's presence, valid JSON structure, and schema key completeness.
+
+**Next steps:**
+- Run local unit tests (`pytest tests/unit/test_fixtures.py`) and static quality checks (`ruff`, `black`) to ensure compliance with codebase standards.
+- Prepare and submit the Pull Request against the upstream repository.
+
+**Blockers:**
+None.
