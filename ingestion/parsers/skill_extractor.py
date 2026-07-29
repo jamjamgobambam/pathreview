@@ -171,18 +171,28 @@ class SkillExtractor:
             )
 
         # JavaScript/TypeScript detection
+        # BUG(#148): JS/TS detection is almost entirely filename/keyword driven and
+        # misses real code. Reproduced by test_javascript_detection and
+        # test_text_with_typescript_files (see JOURNAL.md Week 8):
+        #   1. The import/require regex below requires whitespace after the keyword,
+        #      so a real call like `require('fs')` (paren, no space) never matches.
+        #   2. TypeScript is only ever labeled from a `.ts` filename — TS-only syntax
+        #      such as `interface` or typed declarations is never recognized from content.
+        #   3. There is no detection for `export`, `const`, arrow functions, or `async`
+        #      usage, so JS files without an import/require string go undetected.
         js_evidence = []
         if ".js" in str(filename or "").lower():
             js_evidence.append("JavaScript file extension (.js)")
         if ".ts" in str(filename or "").lower():
             js_evidence.append("TypeScript file extension (.ts)")
-        if re.search(r"\b(import|require)\s+", text):
+        if re.search(r"\b(import|require)\s+", text):  # BUG(#148): \s+ misses require('fs')
             js_evidence.append("CommonJS or ES6 imports")
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
         if js_evidence:
             confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
+            # BUG(#148): TS label depends solely on the filename ending in .ts
             lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
             skills_dict[lang] = SkillDetection(
                 name=lang,
@@ -262,6 +272,11 @@ class SkillExtractor:
 
     def _detect_tools(self, text: str, skills_dict: dict) -> None:
         """Detect tools and DevOps technologies."""
+        # BUG(#148): Tool detection is a plain substring match on the tool name, so
+        # Docker is only found when the literal string "docker" appears. Dockerfile
+        # content (FROM/RUN/EXPOSE) and docker-compose YAML (version/services/ports)
+        # never contain "docker", so they go undetected. Reproduced by
+        # test_devops_tool_detection and test_docker_compose_detection.
         text_lower = text.lower()
 
         for tool, confidence in self.TOOLS.items():
