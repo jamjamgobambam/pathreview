@@ -48,3 +48,27 @@ app configuration (`core/config.py`).
 - **Not too trivial to explain:** Unlike a pure typo, it requires deciding *how* the two
   should agree (derive host/port from `redis_url` vs. add explicit fields), which gives me
   something real to reason about and write up.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Rrahul0414/pathreview/commit/5f8666c26fd88868b79573ca986195534757149a
+
+**Reproduction summary:**
+I added `tests/unit/test_health.py` and ran it locally with pytest. With the DB and Redis
+both stubbed as reachable, `GET /health` still returned **HTTP 503** with `redis: "unhealthy"`,
+and the captured log showed `redis_health_check_failed error="'Settings' object has no
+attribute 'redis_host'"` — confirming the handler reads a `Settings` field that doesn't
+exist. A second test confirms `settings.redis_url` exists while `settings.redis_host` /
+`settings.redis_port` raise `AttributeError`. Result: `1 passed, 1 failed (expected)`.
+
+**PLAN.md link:** https://github.com/Rrahul0414/pathreview/blob/fix/155-health-check-redis-host/PLAN.md
+
+**Walkthrough video (recommended):** _(not recorded)_
+
+**Blockers or open questions:**
+Need to confirm `redis.Redis.from_url` on the pinned `redis>=5.0.0` accepts
+`decode_responses=True` and preserves the db index / credentials from the URL — I'll verify
+this while implementing the fix in Week 9. Docker isn't installed on my machine, so I
+reproduced the bug with a stubbed unit test rather than a live stack; the fix and its tests
+are fully verifiable this way, but I'll stand up Docker before opening the PR so I can smoke-test
+`GET /health` end to end.
