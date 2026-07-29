@@ -24,7 +24,7 @@ When users request AI reviews of multiple repositories, the process takes 30-90 
 
 ## Week 8 - Reproduction & solution planning
 
-**Reproduction commit link:** [https://github.com/hanielee/pathreview/commit/f2393ef](https://github.com/hanielee/pathreview/commit/f2393ef)
+**Reproduction commit link:** [https://github.com/hanielee/pathreview/commit/5f0148d](https://github.com/hanielee/pathreview/commit/5f0148d)
 
 **Reproduction summary:**
 Started the app locally (`docker compose up -d` for postgres/redis, `alembic upgrade head`, `uvicorn api.main:app`), registered a test user, created a profile, then created a review via `POST /reviews`. Confirmed the response returns immediately with `status="pending"` while `process_review` (`core/services/review_service.py:82-195`) runs as a FastAPI `BackgroundTask`. Polling `GET /reviews/{id}/status` (`api/routes/reviews.py:139-176`) was the only way to observe the review reach `status="complete"`; server logs confirm the status flip and a `review_processing_completed` log line at both the success commit (`review_service.py:169-174`) and failure commit (`review_service.py:198-202`), but no outbound HTTP call or notification of any kind fires at either point. This confirms issue #87's premise: there is currently no push mechanism, only polling.
