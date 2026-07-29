@@ -25,7 +25,7 @@ The estimated effort is 7–10 hours, which is realistic for me to complete duri
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** REPLACE_WITH_COMMIT_LINK
+**Reproduction commit link:** [(https://github.com/mehakgupta9/pathreview/commit/1f3234e7d6207635d53f53290ebc9ff4561bc04e)]
 
 **Reproduction summary:**
 Since this is a feature-gap issue, I reproduced it by confirming — through code inspection — that the re-ranking step does not exist and locating exactly where it would live. Running `grep -rin "rerank"` across `rag/`, `core/`, `api/`, and `agent/` returns no matches, and `rag/retriever/reranker.py` is absent. Reading `HybridRetriever.retrieve()` confirms the gap: at `rag/retriever/hybrid.py:94` the candidate chunks are sorted purely by the blended vector+keyword `score` and the top-k are handed straight to the generator (`rag/generator/review_generator.py:39`), with no LLM relevance step in between. This documents that the highest-scoring chunks are chosen by a lexical/embedding proxy rather than judged for relevance to the specific query.
