@@ -14,3 +14,18 @@ The `resume_parser.py` module assumes that every uploaded resume contains at lea
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Unheat/pathreview/commit/8076fd324d32933d61a6a23cf4a7aa170bf0313d
+
+**Reproduction summary:**
+Reproduced by executing unit tests against `ResumeParser` with a resume string lacking an `Experience` section. Verified that indexing `sections['experience'][0]` directly without checking key existence or bounds causes an unhandled `IndexError`.
+
+**PLAN.md link:** https://github.com/Unheat/pathreview/blob/fix/1-resume-parser-index-error/PLAN.md
+
+**Walkthrough video (recommended):** 
+
+**Blockers or open questions:**
+None at this time. Ready for implementation in Week 9.
+
