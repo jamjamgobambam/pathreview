@@ -30,9 +30,10 @@ Outputs:
 - Clear, reviewable snapshot output for each prompt template version so future edits are explicit.
 
 ### Risks & unknowns
-- Snapshot diffs can become noisy if whitespace or line breaks change, so the test format should be stable and easy to review.
-- The repository may not already use a snapshot plugin, so the implementation should prefer a lightweight approach that fits the current pytest setup.
-- If a prompt template is intentionally updated, the corresponding snapshot must be updated deliberately rather than silently.
+- **Whitespace noise in the template bodies.** The templates in [rag/generator/prompt_templates.py](rag/generator/prompt_templates.py) are triple-quoted strings with leading indentation and trailing newlines, so a raw exact-string snapshot could fail on invisible edits. Risk: brittle, hard-to-review diffs. Mitigation/investigation: decide up front whether to snapshot the templates verbatim or after a documented normalization (e.g. `textwrap.dedent` / `.strip()`), and lock that choice in the test.
+- **No snapshot plugin may be installed.** Investigation path: check [pyproject.toml](pyproject.toml) and any `pytest.ini`/`setup.cfg` for `syrupy` or `pytest-snapshot` before writing the tests. If absent, prefer a lightweight in-repo approach (assert against stored expected strings / a committed expected-hash constant) rather than adding a dependency.
+- **The existing `test_template_snapshot_content_hash` is a false-positive test.** In [tests/unit/test_prompt_templates.py](tests/unit/test_prompt_templates.py#L175-L188) it computes an MD5 but only asserts `len(...) == 32`, so it never locks content. Risk: changing it alters an existing test's contract; I must decide whether to fix it in place (compare against a committed expected hash) or replace it with per-template snapshots, and update the docstring accordingly.
+- **Intentional template edits must stay explicit.** When a template in `prompt_templates.py` is deliberately changed, the corresponding snapshot/expected value must be updated deliberately (with a documented update step), not silently — otherwise the guard erodes over time.
 
 ### Edge cases
 - Missing or renamed template versions should fail clearly.
