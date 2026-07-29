@@ -36,7 +36,7 @@ hours with a clear definition of done.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [fill in after committing — link to the commit adding `tests/unit/test_health_probe.py`]
+**Reproduction commit link:** https://github.com/nithila-sadheesh/pathreview/commit/758a825
 
 **Reproduction summary:**
 I reproduced the bug by running the app locally and hitting the health
@@ -50,7 +50,7 @@ then captured this in a unit test (`tests/unit/test_health_probe.py`): one test
 asserts the raw-string probe raises `ArgumentError`, and one asserts the
 `text("SELECT 1")` form succeeds against a live in-memory session.
 
-**PLAN.md link:** [link to PLAN.md in the repo root on this branch]
+**PLAN.md link:** https://github.com/nithila-sadheesh/pathreview/blob/fix/154-health-check-db-probe-text/PLAN.md
 
 **Walkthrough video (recommended):**
 
