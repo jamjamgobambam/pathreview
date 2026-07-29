@@ -116,4 +116,4 @@ assertion in `test_list_reviews_ordered_by_created_at`. The file now passes
 > (ruff/black/mypy) has documented pre-existing failures repo-wide; none are
 > introduced by this test-only change. Details in the PR description.
 
-**Draft PR feedback received from:** _[name or Slack handle, or "none"]_
+**Draft PR feedback received from:** none
