@@ -42,3 +42,30 @@ place. This affects the agent subsystem (`agent/tools/tech_detector.py`).
   `good first issue`; the logic is a filtering step, not a design change, so it
   fits a first pass through an unfamiliar codebase.
 - **Conclusion:** Good fit — realistic to finish and easy to explain.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction summary:**
+Ran the two vendored/build exclusion tests against the current code and both
+fail: `primary_language` comes back `"JavaScript"` instead of `"Python"`, and
+the tool log reports `languages_count=2` — confirming the vendored
+`node_modules/` and build-output `build/` JavaScript files are being counted
+instead of skipped. Root cause: the `/node_modules/` and `/build/` patterns in
+`_should_skip_file()` are slash-wrapped, so they only match mid-path and miss
+root-relative paths (no leading slash); those files survive the filter and are
+counted, and `sorted(languages)[0]` then picks `"JavaScript"` alphabetically.
+
+Reproduction command and observed output:
+
+```text
+$ .venv/Scripts/python -m pytest tests/unit/test_tech_detector.py \
+    -k "node_modules_excluded or build_directory_excluded" -v
+
+>       assert data["primary_language"] == "Python"
+E       AssertionError: assert 'JavaScript' == 'Python'
+[info] tech_detected  frameworks_count=0 languages_count=2 primary_lang=JavaScript
+
+FAILED tests/unit/test_tech_detector.py::TestTechDetector::test_node_modules_excluded
+FAILED tests/unit/test_tech_detector.py::TestTechDetector::test_build_directory_excluded
+2 failed, 1 passed, 24 deselected
+```
