@@ -40,11 +40,12 @@ test/88-post-review-endpoint
 
 **Reproduction commit link:** 
 <!-- [link to commit documenting the reproduced issue] -->
-5ebfd5ff98c39f15ca333412048be0f8d2b88700
+https://github.com/Kiniec/pathreview/commit/5ebfd5ff98c39f15ca333412048be0f8d2b88700
 
 **Reproduction summary:**
 <!-- 1–2 sentences: How did you reproduce the issue? What did you observe?-->
-The issue was reproduce by reviewing test methods in `/tests/unit`. Unit test currently has a test for `test_review_service.py` and not a test to test if a profile has no additional ingested any information.
+
+  Traced the request path for POST /reviews (api/routes/reviews.py → review_service.process_review) to check for a crash when a profile has no ingested source documents. No exception is raised: _run_agent_orchestration/_run_rag_retrieval_generation return hardcoded sections regardless of input, so the review completes successfully with fake content instead of signaling that there was nothing to review.
 
 **PLAN.md link:** 
 <!-- [link to PLAN.md in your fork] -->
