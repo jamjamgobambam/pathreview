@@ -129,15 +129,11 @@ class ResumeParser(BaseParser):
         text_lower = text.lower()
 
         for section in SECTION_HEADERS:
-            # Issue #147: patterns require headers at column 0 (^ or \n immediately before
-            # the name). PDF extracts and indented fixtures leave leading whitespace on lines
-            # like "    Experience:", so nothing matches and detected_sections stays empty.
-            # Repro: pytest tests/unit/test_resume_parser.py::TestResumeParser::test_detect_sections
             patterns = [
-                rf"^{re.escape(section)}\s*$",
-                rf"^{re.escape(section)}\s*[:|-]",
-                rf"\n{re.escape(section)}\s*$",
-                rf"\n{re.escape(section)}\s*[:|-]",
+                rf"^\s*{re.escape(section)}\s*$",
+                rf"^\s*{re.escape(section)}\s*[:|-]",
+                rf"\n\s*{re.escape(section)}\s*$",
+                rf"\n\s*{re.escape(section)}\s*[:|-]",
             ]
 
             for pattern in patterns:
