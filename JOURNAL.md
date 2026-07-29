@@ -27,3 +27,41 @@ the route/service layer.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+**Reproduction:**
+
+Confirmed both halves of the problem summary hands-on, no server/DB required.
+
+1. Coverage gap — `tests/unit/test_review_routes.py` does not exist:
+   ```
+   $ find tests -iname '*review_routes*'
+   (no output)
+   ```
+   `tests/unit/` only has `test_review_service.py`; `tests/integration/` is
+   empty aside from `__init__.py`. There is no route-level test for
+   `POST /reviews` at all, let alone the no-ingested-documents case.
+
+2. Behavior gap — ran `process_review()` directly against a `Profile` with
+   `github_username=None`, `portfolio_url=None`, `resume_text=None` (zero
+   ingested sources), using the same in-memory mock-session style already
+   used in `test_review_service.py`:
+   ```
+   ingestion_pipeline_completed   sources_count=0
+   ...
+   review_processing_completed    overall_score=0.81
+
+   Final review.status        = 'complete'
+   Final review.overall_score = 0.81
+   Number of feedback sections returned = 3
+   ```
+   Despite 0 ingested sources, the review still ends up `status="complete"`
+   with 3 fabricated feedback sections and a fake score. Root cause is in
+   `core/services/review_service.py`:
+   - `create_review` (line 15) never checks for ingested sources before
+     returning `status="pending"`.
+   - `_run_agent_orchestration` (line 282) and
+     `_run_rag_retrieval_generation` (line 307) return hardcoded placeholder
+     sections and ignore `ingestion_results` entirely, even when it's `[]`.
+   - `_run_safety_checks` (line 357) only validates structural shape
+     (non-empty strings, confidence in range), so the placeholder output
+     always passes.
