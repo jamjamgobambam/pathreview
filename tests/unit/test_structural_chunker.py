@@ -26,13 +26,57 @@ class TestStructuralChunker:
         assert result == []
 
     def test_document_with_no_headings(self, chunker):
-        """Test document with no headings returns single chunk."""
-        text = "This is plain text without any markdown headings. " * 20
+        """Test headingless documents fall back to semantic chunking."""
+        text = "This is plain text without any markdown headings."
+        metadata = {"source": "test", "filename": "plain-text.md"}
+        result = chunker.chunk(text, metadata)
+
+        assert metadata == {"source": "test", "filename": "plain-text.md"}
+        assert len(result) == 1
+        assert all(isinstance(c, Chunk) for c in result)
+        assert result[0].text == text
+        assert result[0].metadata["source"] == "test"
+        assert result[0].metadata["filename"] == "plain-text.md"
+        assert "heading_path" not in result[0].metadata
+        assert "heading_level" not in result[0].metadata
+
+    def test_large_document_with_no_headings_uses_semantic_chunks(self, chunker):
+        """Test large headingless documents produce multiple semantic chunks."""
+        sentence = "This sentence provides enough plain text for semantic chunking."
+        text = " ".join([sentence] * 100)
+        metadata = {"source": "test", "filename": "large-plain-text.md"}
+
+        result = chunker.chunk(text, metadata)
+
+        assert len(result) > 1
+        assert all(isinstance(chunk, Chunk) for chunk in result)
+        assert all(chunk.text.strip() for chunk in result)
+        assert all(chunk.metadata["source"] == "test" for chunk in result)
+        assert all(chunk.metadata["filename"] == "large-plain-text.md" for chunk in result)
+        assert all("heading_path" not in chunk.metadata for chunk in result)
+        assert all("heading_level" not in chunk.metadata for chunk in result)
+
+    def test_headingless_bullet_list_falls_back_to_semantic_chunking(self, chunker):
+        """Test headingless bullet lists are retained by the semantic fallback."""
+        text = "- First item\n* Second item\n\u2022 Third item\n\u25aa Fourth item"
         result = chunker.chunk(text, {"source": "test"})
 
-        assert len(result) >= 1
-        assert isinstance(result[0], Chunk)
-        assert all(isinstance(c, Chunk) for c in result)
+        assert len(result) == 1
+        assert result[0].text == text
+        assert result[0].metadata["source"] == "test"
+        assert "heading_path" not in result[0].metadata
+        assert "heading_level" not in result[0].metadata
+
+    def test_hashtag_without_space_is_not_treated_as_heading(self, chunker):
+        """Test a hashtag without a space falls back to semantic chunking."""
+        text = "#hashtag is ordinary content, not a Markdown heading."
+        result = chunker.chunk(text, {"source": "test"})
+
+        assert len(result) == 1
+        assert result[0].text == text
+        assert result[0].metadata["source"] == "test"
+        assert "heading_path" not in result[0].metadata
+        assert "heading_level" not in result[0].metadata
 
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
@@ -243,3 +287,4 @@ Content for 3
 
         # Should not crash on empty sections
         assert isinstance(result, list)
+        assert all(chunk.text.strip() for chunk in result)
