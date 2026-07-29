@@ -92,4 +92,20 @@ describe('ReviewPage', () => {
 
     expect(await axe(container)).toHaveNoViolations()
   })
+
+  it('has no accessibility violations with stacked error banners', async () => {
+    mockUseReviewStatus.mockReturnValue({
+      review: completeReview,
+      isPolling: false,
+      error: 'Lost connection while polling'
+    })
+    mockGetReview.mockRejectedValue(new Error('Failed to load review'))
+
+    const { container } = render(<ReviewPage />)
+
+    await screen.findByText('Failed to load review')
+    expect(screen.getByText('Lost connection while polling')).toBeInTheDocument()
+
+    expect(await axe(container)).toHaveNoViolations()
+  })
 })
