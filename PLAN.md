@@ -1,6 +1,6 @@
 ## Solution plan
 
-**Issue:** PII scrubber fails to redact parenthesized US phone numbers — https://github.com/ascherj/pathreview/issues/146
+**Issue:**  PII scrubber fails to redact parenthesized US phone numbers — https://github.com/ascherj/pathreview/issues/146
 
 ### Understand
 
