@@ -24,3 +24,31 @@ I reproduced the issue by comparing [docs/API.md](docs/API.md) with the actual e
 
 **Blockers or open questions:**
 None at this time. The reproduction is clear and the solution approach is straightforward - add detailed request body schemas to the API documentation based on the Pydantic models and route handler signatures.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I have completed the core implementation of the fix. Both POST endpoints now have comprehensive request body schemas in docs/API.md:
+
+✅ **Step 1 complete:** Added POST /profiles schema with multipart/form-data format, all three fields (github_username, portfolio_url, resume_file), validation rules, and example curl request
+✅ **Step 2 complete:** Added POST /reviews schema with JSON format, profile_id field (UUID), error responses, and example curl request
+✅ **Step 5 complete:** Verified all documentation against source code (api/routes/profiles.py, api/routes/reviews.py, and Pydantic schemas) - everything is accurate
+
+The documentation now includes:
+- Content-Type specifications
+- Field tables with types, requirements, and descriptions
+- Validation rules and constraints
+- Example curl requests with proper headers
+- Example response JSON
+- Error response documentation
+
+**Next steps:**
+- Review CONTRIBUTING.md for any documentation-specific conventions
+- Add Week 9 Check-in 2 after final review
+- Prepare and open draft PR for feedback
+- Update JOURNAL.md with PR link
+
+**Blockers:**
+None. The fix is complete and ready for review. Note: make check and make test-unit cannot run in this environment (no .venv setup), but this is a documentation-only change with no code modifications, so no tests are needed.
