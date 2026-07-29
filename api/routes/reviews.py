@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from datetime import UTC, datetime
 from typing import Annotated
 from uuid import UUID
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
-from api.schemas.share import ShareLinkResponse
+from api.schemas.share import ShareLinkResponse, PublicReviewResponse
 from api.middleware.auth import get_current_user
 from core.models.user import User
 from core.models.review import Review
@@ -14,6 +15,7 @@ from core.services.review_service import (
     create_review,
     create_share_link,
     get_review,
+    get_share_link,
     list_reviews,
     process_review,
 )
@@ -64,6 +66,61 @@ async def create_review_endpoint(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create review",
         )
+
+
+@router.get("/shared/{token}", response_model=PublicReviewResponse)
+async def get_shared_review_endpoint(
+    token: str,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> PublicReviewResponse:
+    """
+    Public, unauthenticated read-only view of a review via a share token.
+    Returns 404 if the token is unknown or malformed, 410 if it has expired.
+
+    Declared before GET /{review_id} so that /reviews/shared/... is not
+    captured by the {review_id} route.
+    """
+    # Reject malformed tokens up front so a non-UUID value returns 404 rather
+    # than triggering a database error on the UUID column.
+    try:
+        UUID(token)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Share link not found",
+        ) from None
+
+    try:
+        share_link = await get_share_link(db=db, token=token)
+
+        if share_link is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Share link not found",
+            )
+
+        # Normalize to an aware datetime so the comparison works whether the
+        # backing store returns naive (SQLite) or aware (Postgres) values.
+        expires_at = share_link.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=UTC)
+
+        if expires_at < datetime.now(UTC):
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail="Share link has expired",
+            )
+
+        return PublicReviewResponse.model_validate(share_link.review)
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        log.error("get_shared_review_error", error=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve shared review",
+        ) from exc
 
 
 @router.get("/{review_id}", response_model=ReviewResponse)
