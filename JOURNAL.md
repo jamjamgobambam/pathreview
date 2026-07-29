@@ -99,3 +99,35 @@ $ curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/docs
 - The `chromadb/chroma:0.4.22` container image crashes on boot (`AttributeError: np.float_
   was removed in the NumPy 2.0 release`). Neither issue blocks the app from loading at
   `localhost:5173`, and both are outside the scope of issue #38.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [to be filled in with this commit's URL after pushing]
+
+**Reproduction summary:**
+Issue #38 is a feature gap, not a crash, so "reproducing" it means confirming the gap is
+real. Ran `.venv/Scripts/python.exe -m pytest tests/integration -v -m integration` and
+got `no tests ran in 4.22s` (exit code 5, 0 items collected) — `tests/integration/`
+contains only `__init__.py`. A repo-wide grep for `HybridRetriever`, `ReviewGenerator`,
+and `parse_review_output` shows each class/function is referenced only inside its own
+defining file (`rag/retriever/hybrid.py`, `rag/generator/review_generator.py`,
+`rag/generator/output_parser.py`, plus `parse_review_output`'s own unit test) — nothing
+in the codebase currently exercises retrieval → generation → parsing together, exactly
+the seam-level coverage gap the issue describes.
+
+**PLAN.md link:** [PLAN.md](./PLAN.md)
+
+**Walkthrough video (recommended):** Not recorded — not part of the grade for this
+milestone, per the course guidance for Week 8.
+
+**Blockers or open questions:**
+While mapping the pipeline for `PLAN.md`, found two divergences from the issue text
+worth flagging for Week 9: (1) there is no reranking stage anywhere in `rag/` — the
+issue's "retrieval → reranking → generation → parsing" phrasing doesn't match the
+codebase, so the Week 9 test will cover retrieval → generation → parsing only; (2)
+there's no real mock **LLM** (chat) provider — `core/config.py`'s `llm_provider` setting
+is never branched on anywhere, and the only existing mock is `MockEmbeddingProvider`
+(embeddings only). `ReviewGenerator` hardcodes a live `openai.OpenAI` client with no
+injectable seam, so "mock LLM" will mean a test-side fake/monkeypatch of that client,
+not a new production mock-LLM class. Details and rationale are in `PLAN.md`'s
+Understand/Map/Risks sections.
