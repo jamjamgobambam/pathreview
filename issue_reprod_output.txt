@@ -1,0 +1,66 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0 -- /home/kacper/Projects/codepath/pathreview/.venv/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default'
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /home/kacper/Projects/codepath/pathreview
+configfile: pyproject.toml
+plugins: hypothesis-6.158.1, anyio-4.14.2, pytest_httpserver-1.1.5, cov-7.1.0, benchmark-5.2.3, asyncio-1.4.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 22 items / 21 deselected / 1 selected
+
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_none_context_chunk_text FAILED [100%]
+
+=================================== FAILURES ===================================
+_____________ TestFaithfulnessChecker.test_none_context_chunk_text _____________
+
+self = <tests.unit.test_faithfulness_checker.TestFaithfulnessChecker object at 0x7f92dea06670>
+checker = <rag.evaluator.faithfulness_checker.FaithfulnessChecker object at 0x7f92de9eb620>
+
+    def test_none_context_chunk_text(self, checker):
+        """Test handling of None in context chunk text."""
+        feedback = "Has Python skills"
+        context_chunks = [
+            {"text": None}
+        ]
+    
+>       score = checker.check(feedback, context_chunks)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_faithfulness_checker.py:238: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <rag.evaluator.faithfulness_checker.FaithfulnessChecker object at 0x7f92de9eb620>
+feedback = 'Has Python skills', context_chunks = [{'text': None}]
+
+    def check(self, feedback: str, context_chunks: list[dict]) -> float:
+        """Check faithfulness of feedback to context.
+    
+        Args:
+            feedback: Generated feedback text
+            context_chunks: Retrieved context chunks
+    
+        Returns:
+            Faithfulness score 0.0-1.0 (ratio of supported claims)
+        """
+        if not feedback or not context_chunks:
+            logger.info("faithfulness_empty_input", has_feedback=bool(feedback),
+                       has_chunks=bool(context_chunks))
+            return 0.0
+    
+        # Extract key claims from feedback (sentences)
+        claims = self._extract_claims(feedback)
+        if not claims:
+            logger.info("faithfulness_no_claims_extracted")
+            return 0.5  # Default to neutral if no extractable claims
+    
+        # Concatenate context text
+>       context_text = " ".join([
+            chunk.get("text", "") for chunk in context_chunks
+        ])
+E       TypeError: sequence item 0: expected str instance, NoneType found
+
+rag/evaluator/faithfulness_checker.py:34: TypeError
+=========================== short test summary info ============================
+FAILED tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_none_context_chunk_text
+======================= 1 failed, 21 deselected in 0.12s =======================
