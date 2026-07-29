@@ -13,3 +13,13 @@ This issue is isolated to a single route file (`api/routes/health.py`) and does 
 **Branch name:** fix/155-health-redis-settings
 **Setup confirmation:** [x] App runs locally at localhost:5173
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ascherj/pathreview/commit/77a3d8a200d8e49641a3b73d11f155c24fb3b62e
+
+**Reproduction summary:**
+Executed `curl http://localhost:8000/health` against the local application. Observed that the Redis health probe fails and reports `"redis": "unhealthy"` because `api/routes/health.py` attempts to access non-existent `settings.redis_host` attribute on `Settings`, raising an internal `AttributeError`.
+**PLAN.md link:** https://github.com/ssolvin/pathreview/blob/fix/155-health-redis-settings/PLAN.md
+
+**Blockers or open questions:** None
