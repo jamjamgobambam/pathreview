@@ -17,7 +17,7 @@ The architecture documentation says that hybrid retrieval combines vector and ke
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [add commit link after committing]
+**Reproduction commit link:** (https://github.com/ascherj/pathreview/commit/dfb3e54db650ace92c2b59103e4409572aad096a)
 
 **Reproduction summary:**
 I reviewed the hybrid retrieval section in `docs/ARCHITECTURE.md`. The section states that vector and keyword scores are blended, but it does not document the scoring formula, the default weights, or a worked scoring example.
