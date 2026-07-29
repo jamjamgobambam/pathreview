@@ -44,3 +44,28 @@ received "adequate"
 
 The README fixture contained only 251 words, while the scorer classifies
 README files with more than 500 words as comprehensive.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:**
+
+(To be added after committing.)
+
+**Reproduction summary:**
+
+I reproduced the issue by running the README scorer unit tests. The test
+expected the README fixture to be categorized as "comprehensive," but it only
+contained enough words to be classified as "adequate," causing the assertion
+to fail.
+
+**PLAN.md link:**
+
+(To be added after pushing.)
+
+**Walkthrough video (recommended):**
+
+Not recorded.
+
+**Blockers or open questions:**
+
+None at this time.
