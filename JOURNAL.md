@@ -20,12 +20,12 @@ This is a good fit for my current scope because the bug is well-bounded to a sin
 
 ## Week 8 - Reproduction & solution planning
 
-**Reproduction commit link:** TODO (update after pushing this Week 8 reproduction commit)
+**Reproduction commit link:** https://github.com/mackenziesimons/pathreview/commit/b3ed48f9322884b119087f51e8e267b6a8e42925
 
 **Reproduction summary:**
 I reproduced the issue by running `pytest tests/unit/test_review_service.py -q` in the project environment. The suite reports **13 failed, 6 passed**, with repeated `AttributeError` failures where `result.scalars()` is a coroutine and downstream `.first()` / `.all()` calls fail.
 
-**PLAN.md link:** https://github.com/ascherj/pathreview/blob/fix/158-review-service-async-mock-tests/PLAN.md
+**PLAN.md link:** https://github.com/mackenziesimons/pathreview/blob/fix/158-review-service-async-mock-tests/PLAN.md
 
 **Walkthrough video (recommended):**
 
