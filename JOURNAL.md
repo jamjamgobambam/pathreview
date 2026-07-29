@@ -65,14 +65,20 @@ None. I have a solid grasp on the issue and have a solution in mind.
 ### Check-in 1 (mid-week)
 
 **Current progress:**
-[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+I completed all the subtasks:
+
+1. Reproduced the issue by running the specific test file: `pytest tests/unit/test_relevance_scorer.py`.
+2. Ran all the tests via `make test-unit` and noted how many failures (53), passes (375), and warnings (5) there were.
+3. Read the entire test file to find out that various types of queries and chunks are tested against, some for scoring accuracy, others simply for ensuring graceful execution. Read `rag/evaluator/relevance_scorer.py` to see how those tests matched the code's behavior.
+4. Implemented a fix to the function `test_query_with_partial_overlap` in `tests/unit/test_relevance_scorer.py` by adding the word `"details"`, which was not in the chunk, to the query.
+5. Ran the test file to see every test in that file pass.
+6. Performed a repo-wide search on `test_relevance_scorer` to ensure that modifying the test doesn't change any core functionality. Ran all the unit tests using `make test-unit` again to confirm only one more test passed: 52 failed, 376 passed, 5 warnings.
 
 **Next steps:**
-[What are you working on for the rest of the week?]
+I will work on creating and finalizing the PR description and actually making the PR in the upstream repo. 
 
 **Blockers:**
-[Anything slowing you down? Or leave blank.]
-
+None - everything is clear.
 ---
 
 ### Check-in 2 (end of week)
