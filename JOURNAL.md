@@ -80,3 +80,17 @@ Are there any blockers or dependencies?
 I still need to install Docker Desktop and make to run the full backend. However, this does not block this issue because the fix is in ingestion/chunking/structural_chunker.py and can be tested using the existing unit test with pytest.
 
 ✅ I have identified the remaining setup steps, and they do not block this fix.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/samanth1111-1111/pathreview/commit/2f3cdd1b44ae6536a094612a7aa9f49af6e7d17c
+
+**Reproduction summary:**
+I created a local venv, installed the two dependencies needed (`tiktoken`, `pytest`), and ran the existing unit test `tests/unit/test_structural_chunker.py::test_document_with_no_headings`, which fails with `assert 0 >= 1`. I also confirmed it directly: `StructuralChunker().chunk("plain text ..." * 20, {})` returns `[]`. I traced the cause to two guards in `_extract_sections` that only collect/emit content when `heading_stack` is non-empty, so a heading-less document produces zero sections and is silently dropped from the RAG index; I marked both lines with inline `BUG (#149)` comments in the reproduction commit.
+
+**PLAN.md link:** https://github.com/samanth1111-1111/pathreview/blob/fix/149-structural-chunker-no-headings/PLAN.md
+
+**Walkthrough video (recommended):** _(not recorded)_
+
+**Blockers or open questions:**
+Need to confirm what the downstream ingestion/indexer expects in `Chunk.metadata` for a heading-less chunk (empty `heading_path` string vs. omitting the key). Also deciding whether to also capture pre-first-heading "preamble" content as part of this fix or defer it to keep the change tight.
