@@ -252,3 +252,26 @@ class TestPIIScrubber:
 
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
+
+    def test_repro_issue_146_parenthesized_phone(self, scrubber):
+        """Reproduction of issue #146: parenthesized US phone numbers are not redacted.
+
+        Bug: the `phone_us` regex in safety/pii_scrubber.py uses `[-.]?` as its
+        group separator, which only allows a dash or a dot. A common format like
+        "(555) 123-4567" has a SPACE after the ")" and so is never matched.
+
+        Observed behavior (before fix):
+            scrub("Call me at (555) 123-4567 or 555-123-4567")
+                -> "Call me at (555) 123-4567 or [REDACTED]"
+            The dashed number is redacted; the parenthesized one leaks through.
+
+        This test asserts the DESIRED behavior and therefore FAILS on the current
+        code. It should pass once the separator is widened to also accept spaces.
+        """
+        text = "Call me at (555) 123-4567 or 555-123-4567"
+        scrubbed = scrubber.scrub(text)
+
+        # The parenthesized phone number must be redacted, not left in the output.
+        assert "(555) 123-4567" not in scrubbed
+        detected = scrubber.detect("Phone: (555) 123-4567")
+        assert any("phone" in d["type"] for d in detected)
