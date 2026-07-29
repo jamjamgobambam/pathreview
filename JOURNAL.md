@@ -42,9 +42,21 @@ PathReview currently runs lint, typecheck, unit, integration, and frontend tests
 
 ---
 
-## Week 8 — Reproduction and planning
+## Week 8 — Reproduction & solution planning
 
-*(To be filled in next week.)*
+**Reproduction commit link:** https://github.com/speculaas/pathreview/commit/474ab43e5c8060948355504d054e8bee3aac25e5
+
+**Reproduction summary:**
+Issue #128 is a missing CI security gate rather than a runtime app bug. I reproduced it by inspecting `.github/workflows/ci.yml` on `main`: the workflow has lint, typecheck, unit, integration, and frontend jobs only — no `pip audit`, `npm audit`, or any vulnerability-scan step. Search for those terms returns no matches, which matches the issue’s claim that Python and JavaScript dependencies are not automatically audited. Full notes are in `docs/reproduction-128.md` on that commit.
+
+**PLAN.md link:** https://github.com/speculaas/pathreview/blob/chore/128-add-dependency-vulnerability-scans/PLAN.md
+
+**Walkthrough video (recommended):** *(optional — not recorded yet; not graded)*
+
+**Blockers or open questions:**
+- Will existing dependencies already fail `pip audit` / `npm audit --audit-level=high` on first enablement?
+- Should Python use plain `pip audit` (any finding fails) or a pinned tool with severity filtering to mirror npm’s high/critical policy?
+- Is documenting local `make audit` / SETUP commands in-scope for the PR, or should the first PR touch only `ci.yml`?
 
 ---
 
