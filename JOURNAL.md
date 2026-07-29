@@ -17,7 +17,7 @@ Prompt templates drive the wording and structure of generated review output, so 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/vrushtipatel1307/pathreview/commit/d63fde89409a93acd91281d9674814de49ac31ad
 
 **Reproduction summary:**
 I reproduced the gap by demonstration, not just inspection:
