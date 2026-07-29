@@ -29,3 +29,17 @@ Before the fix, the test fixture contains too few words to meet its own `word_co
 **Issue claimed:** [x] Claim comment added to GitHub issue
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ryandej/pathreview/commit/d74b9f2
+
+**Reproduction summary:**
+I reproduced the issue locally by running `python -m pytest tests/unit/test_readme_scorer.py -q`. The test failed at `TestReadmeScorer::test_readme_with_all_quality_signals` because the README fixture produced `word_count=51`, while the test asserts `data["word_count"] > 100` and expects the comprehensive README path.
+
+**PLAN.md link:** https://github.com/ryandej/pathreview/blob/test/156-readme-scorer-fixture/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded — recommended, not graded.
+
+**Blockers or open questions:**
+No major blockers. The main open question is whether maintainers prefer expanding the fixture to match the existing assertions or changing the assertion if the intended behavior is for the shorter README to remain minimal.
