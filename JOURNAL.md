@@ -27,14 +27,20 @@ Right now the review generator produces feedback sections with no check on how t
 
 *Part 4 — Scope and time.* Checked issue comments: I claimed it 2026-07-15; two other students (`Jordy-03`, `Shubham91999`) have also commented, one with a similar ToneChecker/LLM-as-judge plan. Per the cohort ledger, both are in other cohorts, so within my own cohort I'm not competing for coaching or peer review on this issue — claims are non-exclusive regardless, so I'm fine working alongside them either way. Confirmed via the GitHub API there are no open blockers or unresolved dependencies on this issue. Time estimate: Tier 2 issues run 8–12 hours; given my SRE job, coursework, and family schedule, this is tight but doable — I'll need dedicated deep-work blocks across weeks 8–9 rather than picking it up in scraps of spare time.
 
-## Week 8 — Reproduction
+## Week 8 — Reproduction & solution planning
 
-Traced actual callers of the issue's two named modules (`grep` across the whole repo) and confirmed neither `ReviewGenerator` nor `ContentFilter` is invoked anywhere outside their own files — the live API path (`POST /reviews` → `process_review()` in `core/services/review_service.py`) is entirely stubbed: `_run_rag_retrieval_generation()` returns hardcoded canned text, and `_run_safety_checks()` — whose own docstring says it should "validate feedback tone and constructiveness" — only checks structural completeness (non-empty fields, confidence in `[0,1]`), never tone. So triggering a review through the running app wouldn't exercise real generation at all today. Reproduced at the module level instead, matching the issue's own "relevant files" list.
+**Reproduction commit link:** https://github.com/linneacastro/pathreview/commit/9b6dc554684b9ba5855b473b436040a686464ca8
 
-**Reproduction steps:**
+**Reproduction summary:**
+Fed dismissive/discouraging (but not overtly harmful) feedback text directly into `ContentFilter.filter()` and into a mocked `ReviewGenerator.generate_section()` LLM response — both passed the text through completely unchanged, confirming neither module performs any tone classification. Captured as a failing test in `tests/unit/test_content_filter.py` that currently fails (`assert False is True`) because no tone check exists yet.
+
+**PLAN.md link:** https://github.com/linneacastro/pathreview/blob/feat/69-feedback-tone-check/PLAN.md
+
+**Walkthrough video (recommended):** not recorded (optional field)
+
+**Blockers or open questions:**
+Whether wiring the fix into the live pipeline is in scope for #69. Traced every caller of `ReviewGenerator`/`ContentFilter` (`grep` across the whole repo) and found neither is invoked anywhere outside their own files — the real API path (`POST /reviews` → `process_review()` in `core/services/review_service.py`) is entirely stubbed: `_run_rag_retrieval_generation()` returns hardcoded canned text, and `_run_safety_checks()` — whose own docstring says it should "validate feedback tone and constructiveness" — only checks structural completeness, never tone. So even a correct fix to the two files the issue names wouldn't be exercised by the running app today. Plan to confirm with a TA/on Slack before Week 9 whether that wiring is part of this issue or a separate one.
+
+**Reproduction steps (detail):**
 1. Fed a clearly dismissive/discouraging (but not "harmful") piece of feedback text directly into `ContentFilter.filter()`. Result: `was_filtered=False`, text returned byte-for-byte unchanged. It only regex-matches specific harmful patterns (self-harm, hate speech, illegal activity) — dismissive tone isn't one of them.
 2. Mocked the OpenAI client inside `ReviewGenerator` (no API key needed — confirmed `.env` has no `OPENROUTER_API_KEY` set) to return that same discouraging text as if it were real LLM output, then called `generate_section()`. Result: the returned `FeedbackSection.content` was identical to the raw mocked LLM output — `generate_section()` goes straight from LLM response to `parse_review_output()` with no classification step in between.
-
-Committed as a failing test: `tests/unit/test_content_filter.py::TestContentFilterToneCheck::test_discouraging_feedback_is_flagged` — asserts `ContentFilter.filter()` should flag discouraging feedback the same way it flags harmful content. Currently fails (`assert False is True`), confirming the gap; should flip to passing once tone classification is implemented.
-
-**Scope note for Week 9:** the wiring between `review_service.py` and `ReviewGenerator`/`ContentFilter` may not exist yet, or may be intentionally out of scope for #69 — worth confirming with a TA/on Slack before assuming the fix only touches the two named files.
