@@ -42,4 +42,4 @@ it still passed, proving no protection existed.
 
 **Walkthrough video (recommended):** [skipping — will do office hours if needed]
 
-**Blockers or open questions:** None. PR is already open (#[your PR number]) and passing tests locally.
+**Blockers or open questions:** None. PR #301 is already open and passing tests locally.
