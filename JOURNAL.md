@@ -25,3 +25,44 @@ I selected this issue because it is labeled Tier 1 and Good First Issue, making 
 ### Selection notes
 
 The issue affects the health check endpoint that tests the database connection. SQLAlchemy 2.x requires textual SQL statements to be wrapped using the `text()` function instead of passing plain strings. I will make the smallest possible change, verify the health check works correctly, and ensure no other functionality is affected.
+
+## Week 8 – Reproduction & Planning
+
+### Reproduction
+
+I investigated Issue #154 by locating the health check implementation in `api/routes/health.py`. I identified that the PostgreSQL health check executes a raw SQL string using:
+
+```python
+await db.execute("SELECT 1")
+```
+
+SQLAlchemy 2.x no longer allows raw SQL strings to be passed directly into `execute()`. Instead, the query must be wrapped using SQLAlchemy's `text()` helper. Although I was unable to fully run the application because I was still configuring Docker locally, I confirmed the issue by comparing the existing implementation with the SQLAlchemy 2.x requirements and the issue description.
+
+### Reproduction Commit
+
+<PASTE YOUR REPRODUCTION COMMIT LINK HERE>
+
+### Solution Plan
+
+Created `PLAN.md` describing:
+
+- Files to modify
+- Planned implementation steps
+- Risks
+- Edge cases
+- Points & Remedies
+
+### PLAN.md
+
+<PASTE YOUR PLAN.MD LINK HERE>
+
+### Status
+
+- Reproduced the issue through code investigation.
+- Created PLAN.md.
+- Implemented the compatibility fix.
+- Opened a pull request.
+
+### Walkthrough Video
+
+Not recorded.
