@@ -1,57 +1,5 @@
 # JOURNAL.md
 
-## Week 9 — Solution building & PR submission
-
-### Check-in 1 (Jul 28)
-
-**Current progress:**
-
-Steps 1–4 from PLAN.md are done: I reproduced the failures, fixed the
-`phone_us` regex by broadening its separators from `[-.]` to `[-. ]` (a literal
-space, not `\s`), and confirmed the 4 phone tests now pass with no regressions.
-For step 4, I chose to keep the pattern permissive rather than adding stricter
-validation — over-redaction is safer than missing a real phone number, since a
-false negative leaks PII.
-
-**Next steps:**
-
-Finish step 5 by documenting the root cause in JOURNAL.md (the missing
-whitespace separator, not the parentheses as first hypothesized). I'll also add
-1–2 new test cases that specifically target space-separated phone numbers,
-which should pass now that the fix is in place.
-
-After finishing these, I will open a PR and ask for reviews.
-
-**Blockers:** none
-
-## Week 8 — Reproduction & solution planning
-
-**Reproduction commit link:** [`8fa4eee - docs(safety): add planning framework for fixing issue`](https://github.com/ru1nw/pathreview/commit/8fa4eee5f6b1579ffdc0055453c7c5cb49fe297a)
-
-**Reproduction summary:**
-
-I reproduced the issue using the unit test file, since the scrubber isn't
-actually used in the project just yet.
-
-Calling `pytest tests/unit/test_pii_scrubber.py` revealed that 4 of the test
-cases related to scrubbing US phone numbers weren't passing, and the failing
-formats all included the parenthesized format.
-
-After using Claude Code to understand the issue more, the issue turned out to
-be caused by the regex pattern not matching spaces in phone numbers, which the
-parenthesized format used.
-
-**PLAN.md link:** [`PLAN.md` in fork](https://github.com/ru1nw/pathreview/blob/fix/146-pii-not-scrub-phone/PLAN.md)
-
-**Walkthrough video (recommended):** none
-
-**Blockers or open questions:**
-
-If there's more time, I might include more formats and test cases to cover more
-bases.
-
----
-
 ## Week 7 — Issue selection
 
 **Issue link:** [https://github.com/ascherj/pathreview/issues/146](https://github.com/ascherj/pathreview/issues/146)
@@ -111,3 +59,84 @@ fine with how many others are on this issue.
 before the Week 9 deadline.
 - [x] This issue has no open blockers or dependencies on other unresolved
 issues.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [`8fa4eee - docs(safety): add planning framework for fixing issue`](https://github.com/ru1nw/pathreview/commit/8fa4eee5f6b1579ffdc0055453c7c5cb49fe297a)
+
+**Reproduction summary:**
+
+I reproduced the issue using the unit test file, since the scrubber isn't
+actually used in the project just yet.
+
+Calling `pytest tests/unit/test_pii_scrubber.py` revealed that 4 of the test
+cases related to scrubbing US phone numbers weren't passing, and the failing
+formats all included the parenthesized format.
+
+After using Claude Code to understand the issue more, the issue turned out to
+be caused by the regex pattern not matching spaces in phone numbers, which the
+parenthesized format used.
+
+**PLAN.md link:** [`PLAN.md` in fork](https://github.com/ru1nw/pathreview/blob/fix/146-pii-not-scrub-phone/PLAN.md)
+
+**Walkthrough video (recommended):** none
+
+**Blockers or open questions:**
+
+If there's more time, I might include more formats and test cases to cover more
+bases.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (Jul 28)
+
+**Current progress:**
+
+Steps 1–4 from PLAN.md are done: I reproduced the failures, fixed the
+`phone_us` regex by broadening its separators from `[-.]` to `[-. ]` (a literal
+space, not `\s`), and confirmed the 4 phone tests now pass with no regressions.
+For step 4, I chose to keep the pattern permissive rather than adding stricter
+validation — over-redaction is safer than missing a real phone number, since a
+false negative leaks PII.
+
+**Next steps:**
+
+Finish step 5 by documenting the root cause in JOURNAL.md (the missing
+whitespace separator, not the parentheses as first hypothesized). I'll also add
+1–2 new test cases that specifically target space-separated phone numbers,
+which should pass now that the fix is in place.
+
+After finishing these, I will open a PR and ask for reviews.
+
+**Blockers:** none
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [Fix/146 pii not scrub phone - #392](https://github.com/ascherj/pathreview/pull/392)
+
+**Branch:** [ru1nw:fix/146-pii-not-scrub-phone](https://github.com/ru1nw/pathreview/tree/fix/146-pii-not-scrub-phone)
+
+**What you built:**
+A one-line fix to the `phone_us` regex in `safety/pii_scrubber.py` so US phone
+numbers that use spaces as separators (e.g. `(555) 123-4567` and
+`+1 555 123 4567`) are now redacted. It broadens the separator class from `[-.]`
+to `[-. ]` (a literal space) and moves the `\b` word boundary to after the
+optional `(` so the full number is matched without leaving a stray `(` or `+`
+behind.
+
+**Tests added or updated:**
+I added two tests to `tests/unit/test_pii_scrubber.py`:
+`test_space_separated_phone_formats_no_leak`, which scrubs the space/paren
+formats and asserts no digit fragments leak through, and
+`test_detect_space_separated_phone`, which checks `detect()` flags a
+space-separated number as `phone_us` and captures its full value.
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+
+**Draft PR feedback received from:** [Syoko3](https://github.com/ascherj/pathreview/pull/392#issuecomment-5135681148)
