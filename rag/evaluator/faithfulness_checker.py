@@ -56,11 +56,24 @@ class FaithfulnessChecker:
             text: Feedback text
 
         Returns:
-            List of claims (sentences)
+            List of claims (sentences or segments)
         """
         # Split by sentence (simple regex)
         sentences = re.split(r'[.!?]+', text)
-        claims = [s.strip() for s in sentences if s.strip() and len(s.strip()) > 10]
+        claims: list[str] = []
+
+        for sentence in sentences:
+            sentence = sentence.strip()
+            if not sentence:
+                continue
+
+            # Split compound claims into shorter segments by commas and conjunctions.
+            segments = re.split(r'\s*(?:,|and|or)\s*', sentence)
+            for segment in segments:
+                segment = segment.strip()
+                if segment and len(segment) > 3:
+                    claims.append(segment)
+
         return claims[:10]  # Limit to 10 claims for scoring
 
     @staticmethod
@@ -75,14 +88,33 @@ class FaithfulnessChecker:
             True if claim is supported
         """
         # Tokenize and check for keyword overlap
-        claim_tokens = set(claim.lower().split())
-        context_tokens = set(context.lower().split())
+        claim_tokens = set(re.findall(r"\b\w+\b", claim.lower()))
+        context_tokens = set(re.findall(r"\b\w+\b", context.lower()))
 
-        # Require at least some meaningful overlap
-        overlap = claim_tokens & context_tokens
-        # Filter out common stop words
-        stop_words = {'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been',
-                     'and', 'or', 'but', 'in', 'of', 'to', 'for', 'that'}
-        meaningful_overlap = overlap - stop_words
+        # Filter out common stop words and generic claim terms
+        stop_words = {
+            'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been',
+            'and', 'or', 'but', 'in', 'of', 'to', 'for', 'that'
+        }
+        generic_claim_terms = {
+            'developer', 'candidate', 'has', 'have', 'knows', 'know',
+            'experienced', 'experience', 'expert', 'expertise', 'skills',
+            'skill', 'knowledge', 'familiar', 'proficient', 'skilled',
+            'shows', 'demonstrated', 'demonstrates', 'with', 'working',
+            'works', 'background'
+        }
 
-        return len(meaningful_overlap) >= 2
+        claim_meaningful = claim_tokens - stop_words
+        context_meaningful = context_tokens - stop_words
+        overlap = claim_meaningful & context_meaningful
+        claim_core = claim_meaningful - generic_claim_terms
+
+        if not claim_meaningful:
+            return False
+
+        if len(claim_core) <= 1:
+            # Short or fact-focused claims may be supported by a single strong term.
+            return len(overlap) >= 1
+
+        # Longer claims should have at least two meaningful overlaps.
+        return len(overlap) >= 2
