@@ -1,24 +1,46 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
 
 async def create_review(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
     """
-    Create a new review with status="pending".
+    Create a review for a profile with status="pending".
+
+    Args:
+        db: Database session
+        profile_id: ID of the profile the review is for
+        user_id: ID of the user requesting the review. Accepted for symmetry
+            with the other functions in this module but currently unused:
+            this function performs no ownership check, so the caller is
+            responsible for confirming the profile belongs to the user.
+
+    Returns:
+        The created Review, refreshed after the commit so that id, created_at
+        and updated_at are populated. status is "pending", while sections and
+        overall_score stay None until process_review fills them in.
+
+    Raises:
+        sqlalchemy.exc.IntegrityError: If profile_id does not reference an
+            existing profile, since reviews.profile_id is a foreign key that
+            can't be null. The commit is not wrapped in a try/except, so this
+            and any other database error reach the caller with the session
+            left un-rolled-back.
     """
     review = Review(
         profile_id=profile_id,
@@ -33,29 +55,65 @@ async def create_review(
 
 
 async def get_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
     """
     Get a review by ID, checking that it belongs to the user's profile.
+
+    Ownership is enforced in the query itself: reviews is joined to profiles
+    and profiles.user_id must match, so another user's review is never
+    returned rather than being fetched and then rejected.
+
+    Args:
+        db: Database session
+        review_id: ID of the review to fetch
+        user_id: ID of the user who must own the profile the review belongs to
+
+    Returns:
+        The matching Review, or None if no review has this ID or the review
+        belongs to another user's profile. The caller cannot distinguish
+        those two cases, would need to tweak the return case but that is not the current scope.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    review: Review | None = result.scalars().first()
+    return review
 
 
 async def list_reviews(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     page: int = 1,
     page_size: int = 20,
 ) -> tuple[list[Review], int]:
     """
-    List reviews for a user with pagination.
-    Returns (reviews, total_count).
+    List a user's reviews, newest first, with pagination.
+
+    Ownership is enforced in the query: reviews is joined to profiles and
+    profiles.user_id must match, so only the user's own reviews are counted
+    and returned.
+
+    Args:
+        db: Database session
+        user_id: ID of the user whose reviews to list
+        page: 1-based page number
+        page_size: Maximum number of reviews to return on this page
+
+    Returns:
+        A (reviews, total) tuple. reviews holds at most page_size Reviews
+        ordered by created_at descending; total is the user's overall review
+        count, not the number on this page. A user with no reviews, or a page
+        past the last one, gives ([], total) rather than an error.
+
+    Raises:
+        sqlalchemy.exc.DBAPIError: If page is below 1, which yields a negative
+            SQL OFFSET that PostgreSQL rejects. This function validates
+            neither page nor page_size; the reviews route clamps both before
+            calling it.
     """
     offset = (page - 1) * page_size
 
@@ -76,16 +134,26 @@ async def list_reviews(
     result = await db.execute(stmt)
     reviews = result.scalars().all()
 
-    return reviews, total
+    return list(reviews), total
 
 
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
     """
-    Background task to process a review.
+    Run the full review pipeline for one review, in the background.
+
+    Registered with background_tasks.add_task in the create review route, so
+    nothing awaits the result and the request returns while this is still
+    running. Progress reaches the caller only through review.status, which
+    clients poll: "processing" once work starts, then "complete" or "failed".
+
+    The review and the profile are looked up independently and never checked
+    against each other, so a mismatched pair processes review_id using
+    profile_id's sources instead of failing.
+
     Steps:
     1. Set status="processing"
     2. Run ingestion pipeline on profile's sources
@@ -94,6 +162,27 @@ async def process_review(
     5. Run safety checks on output
     6. Set status="complete", store sections in review.sections
     7. On exception: set status="failed", log error
+
+    Args:
+        db: Database session. Committed at each status change rather than
+            once at the end, so partial progress is visible to other sessions
+            before the run finishes.
+        review_id: ID of the review to process
+        profile_id: ID of the profile whose sources are reviewed
+
+    Returns:
+        None. Everything observable is written to the Review row. Returns
+        early without changing anything if no review has this ID, and marks
+        the review "failed" and returns early if the profile is missing or
+        the safety checks reject the generated output.
+
+    Raises:
+        Nothing. Every exception is caught and turned into status="failed",
+        and the fallback write that records that status is itself wrapped, so
+        a database error during error handling is logged and swallowed too.
+        A review can therefore stay "processing" indefinitely if that second
+        write fails. No failure path populates reviews.error_message, so the
+        reason a review failed exists only in the logs.
     """
     try:
         # Get the review
@@ -194,12 +283,12 @@ async def process_review(
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
 
-async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
+async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[dict]:
     """
     Run ingestion pipeline to extract data from profile sources.
     Returns list of ingested source data.
     """
-    sources = []
+    sources: list[dict] = []
 
     # Ingest from GitHub if available
     if profile.github_username:

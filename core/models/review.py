@@ -31,7 +31,9 @@ class Review(Base):
     status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="pending"
     )  # "pending", "processing", "complete", "failed"
-    sections: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Structured review output
+    sections: Mapped[list[dict] | None] = mapped_column(
+        JSON, nullable=True
+    )  # Structured review output
     overall_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
