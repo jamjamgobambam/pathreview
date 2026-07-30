@@ -153,3 +153,84 @@ You can also observe that the unit test for this piece of code is failing.
 
 **PLAN.md link:** https://github.com/mardisworld/pathreview/blob/fix/149-structural-chunker-silently-drops-documents-with-no-headings/PLAN.md
 
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+#### Implementing the Plan
+
+**Important: I switched order of PLAN.md steps in order to implement Test Driven Development (TDD). 
+
+
+3. Strengthen test_document_with_no_headings() in test_structural_chunker.py to verify that:
+
+    - At least one Chunk is returned.
+    - The returned text contains the original document content.
+    - Incoming metadata is preserved.
+    - No heading_path or heading_level metadata is invented.
+    
+I also had AI write tests for all edge cases it had identified in PLAN.md first. They failed, of course, because the fix(es) had not yet been implemented.
+
+![alt text](images/failed_strucural_chunker_tests.png)
+
+1.  Reproduce the no-heading failure with the existing focused test:
+
+****Reproducing the Issue Locally:**
+
+```
+
+from ingestion.chunking.structural_chunker import StructuralChunker
+c = StructuralChunker()
+print(len(c.chunk('This is a plain document with no headings at all. ' * 20, {})))
+observed: 0  (a ~1000-char document produces no chunks)
+
+```
+![alt text](<images/reproduced error.png>)
+
+2. Update StructuralChunker.chunk() in structural_chunker.py to check whether _extract_sections(text) returned no sections. When the input is non-empty but contains no Markdown headings, delegate to the existing self.semantic_chunker.chunk(text, metadata) fallback.
+
+The fix worked for the intended headingless-text tests, but the full module still has three unrelated failures: exact newline preservation for semantic bullet-list chunks, heading-path assertion ordering, and an empty structural-section chunk.
+
+To fix these failing tests, I had to trace each failure to its owning behavior: semantic text normalization for the list, the misplaced test assertion, and structural extraction emitting an empty section. The failures have three local causes: the semantic splitter trims away newline delimiters, two heading-path tests assert too early inside their loops, and _extract_sections() saves whitespace-only content between consecutive headings. 
+
+The semantic tests impose no normalization contract, so preserving delimiters is compatible and fixes the list regression at the source. I retained split-boundary whitespace and concatenated semantic segments, skipped whitespace-only structural sections, and moved both heading-path assertions after their loops.
+
+I fixed all three reported failures:
+- Semantic chunks now preserve original whitespace and newlines, so headingless bullet lists retain their exact text.
+- Empty structural sections are skipped instead of producing empty chunks.
+- The heading-path test assertions now run after all chunks are inspected.
+
+4. Add a test for a long headingless document. Verify that semantic fallback returns non-empty chunks and that concatenated chunk content still represents the input, allowing for intentional overlap behavior.
+
+I strengthened the existing test test_large_document_with_no_headings_uses_semantic_chunks so that instead of having 100 identical sentences, it generated 100 unique sentences. 
+
+5. Run the focused structural-chunker test module and formatting/linting checks required by the repository:
+![alt text](<images/passing tests.png>)
+
+
+**Next steps:**
+I will work on Check-in 2 and submit it by Sunday. 
+
+**Blockers:**
+N/A
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
+

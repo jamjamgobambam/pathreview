@@ -37,6 +37,8 @@ class StructuralChunker(BaseChunker):
 
         # Extract sections with heading hierarchy
         sections = self._extract_sections(text)
+        if not sections:
+            return self.semantic_chunker.chunk(text, metadata)
 
         chunks = []
         for section in sections:
@@ -90,10 +92,11 @@ class StructuralChunker(BaseChunker):
             if heading_match:
                 # Save previous section if exists
                 if current_section_lines:
-                    if heading_stack:
+                    section_content = "\n".join(current_section_lines).strip()
+                    if heading_stack and section_content:
                         sections.append(
                             {
-                                "content": "\n".join(current_section_lines).strip(),
+                                "content": section_content,
                                 "path": [h[1] for h in heading_stack],
                                 "level": heading_stack[-1][0] if heading_stack else 0,
                             }
@@ -117,12 +120,14 @@ class StructuralChunker(BaseChunker):
 
         # Save final section
         if current_section_lines and heading_stack:
-            sections.append(
-                {
-                    "content": "\n".join(current_section_lines).strip(),
-                    "path": [h[1] for h in heading_stack],
-                    "level": heading_stack[-1][0] if heading_stack else 0,
-                }
-            )
+            section_content = "\n".join(current_section_lines).strip()
+            if section_content:
+                sections.append(
+                    {
+                        "content": section_content,
+                        "path": [h[1] for h in heading_stack],
+                        "level": heading_stack[-1][0] if heading_stack else 0,
+                    }
+                )
 
         return sections

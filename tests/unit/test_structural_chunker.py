@@ -42,8 +42,11 @@ class TestStructuralChunker:
 
     def test_large_document_with_no_headings_uses_semantic_chunks(self, chunker):
         """Test large headingless documents produce multiple semantic chunks."""
-        sentence = "This sentence provides enough plain text for semantic chunking."
-        text = " ".join([sentence] * 100)
+        sentences = [
+            f"Sentence {index} provides enough plain text for semantic chunking."
+            for index in range(100)
+        ]
+        text = " ".join(sentences)
         metadata = {"source": "test", "filename": "large-plain-text.md"}
 
         result = chunker.chunk(text, metadata)
@@ -55,6 +58,8 @@ class TestStructuralChunker:
         assert all(chunk.metadata["filename"] == "large-plain-text.md" for chunk in result)
         assert all("heading_path" not in chunk.metadata for chunk in result)
         assert all("heading_level" not in chunk.metadata for chunk in result)
+        combined_chunk_text = "".join(chunk.text for chunk in result)
+        assert all(sentence in combined_chunk_text for sentence in sentences)
 
     def test_headingless_bullet_list_falls_back_to_semantic_chunking(self, chunker):
         """Test headingless bullet lists are retained by the semantic fallback."""
@@ -126,7 +131,7 @@ Content under grandchild.
                     # Should have " > " as separator if it has parent
                     found_path = True
                     assert isinstance(path, str)
-            assert found_path
+        assert found_path
 
     def test_large_section_sub_chunked(self, chunker):
         """Test large section (> 800 tokens) gets sub-chunked."""

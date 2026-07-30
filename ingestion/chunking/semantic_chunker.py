@@ -50,7 +50,7 @@ class SemanticChunker(BaseChunker):
 
             # If adding this sentence would exceed our target, save current chunk
             if current_tokens + sentence_tokens > self.TARGET_CHUNK_TOKENS and current_chunk:
-                chunk_text = " ".join(current_chunk)
+                chunk_text = "".join(current_chunk)
                 chunk_metadata = metadata.copy()
                 chunk_metadata.update(
                     {
@@ -77,7 +77,7 @@ class SemanticChunker(BaseChunker):
 
         # Add final chunk if not empty
         if current_chunk:
-            chunk_text = " ".join(current_chunk)
+            chunk_text = "".join(current_chunk)
             chunk_metadata = metadata.copy()
             chunk_metadata.update(
                 {
@@ -105,13 +105,12 @@ class SemanticChunker(BaseChunker):
         text = re.sub(r"\n{2,}", "\n", text)
 
         # Split on sentence boundaries
-        sentence_pattern = r"(?<=[.!?])\s+(?=[A-Z])|(?<=\n)(?=[-•*])|(?<=\n)(?=[A-Z])"
+        sentence_pattern = r"(?<=[.!?])(?=\s+[A-Z])|(?<=\n)(?=[-•*])|(?<=\n)(?=[A-Z])"
         raw_sentences = re.split(sentence_pattern, text)
 
         sentences = []
         for sentence in raw_sentences:
-            sentence = sentence.strip()
-            if sentence:
+            if sentence.strip():
                 sentences.append(sentence)
 
         return sentences
