@@ -1,0 +1,2058 @@
+.venv/bin/pytest tests/unit -v -m unit
+============================= test session starts ==============================
+platform darwin -- Python 3.11.4, pytest-9.1.1, pluggy-1.6.0 -- /Users/mytruong/Desktop/ai201-pathreview/.venv/bin/python
+cachedir: .pytest_cache
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+hypothesis profile 'default'
+rootdir: /Users/mytruong/Desktop/ai201-pathreview
+configfile: pyproject.toml
+plugins: benchmark-5.2.3, cov-7.1.0, hypothesis-6.156.9, asyncio-1.4.0, anyio-4.14.2, pytest_httpserver-1.1.5
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 432 items
+
+tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty FAILED [  0%]
+tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_normal_chunks_list_processes PASSED [  0%]
+tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_batches_chunks_correctly PASSED [  0%]
+tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_returns_chunk_and_embedding_id_tuples PASSED [  0%]
+tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_embedding_provider_called_with_texts PASSED [  1%]
+tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_chunk_metadata_preserved PASSED [  1%]
+tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_batch_size_limit PASSED [  1%]
+tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_many_chunks PASSED [  1%]
+tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_embedding_provider_exception_propagates PASSED [  2%]
+tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_store_embedding_called_for_each_chunk PASSED [  2%]
+tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_chunk_text_extraction PASSED [  2%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_dismissive_bootcamp_language_detected FAILED [  2%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_bootcamp_lacks_rigor_detected FAILED [  3%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_bootcamp_inadequate_training_detected PASSED [  3%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_self_taught_comparison_detected PASSED [  3%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_positive_bootcamp_mention_not_flagged PASSED [  3%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_neutral_bootcamp_mention_not_flagged PASSED [  3%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_educational_background_positive_not_flagged PASSED [  4%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_demographic_assumption_age_detected FAILED [  4%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_demographic_assumption_old_detected PASSED [  4%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_demographic_assumption_background_detected PASSED [  4%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_immigrant_developer_assumption_detected PASSED [  5%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_international_developer_assumption_detected PASSED [  5%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_clean_feedback_not_flagged PASSED [  5%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_technical_feedback_not_flagged PASSED [  5%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_development_suggestion_not_flagged PASSED [  6%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_case_insensitive_detection PASSED [  6%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_return_value_structure PASSED [  6%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_unbiased_returns_empty_reason PASSED [  6%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_biased_returns_reason PASSED [  6%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_empty_text PASSED [  7%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_whitespace_only PASSED [  7%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_coding_bootcamp_variant FAILED [  7%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_online_course_bias_detected PASSED [  7%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_developer_vs_programmer_distinction FAILED [  8%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_multiple_bias_indicators FAILED [  8%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_negative_educational_claim FAILED [  8%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_working_class_assumption PASSED [  8%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_rich_poor_assumption FAILED [  9%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_foreign_developer_struggle_assumption PASSED [  9%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_skill_assessment_not_biased PASSED [  9%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_comparative_without_bias PASSED [  9%]
+tests/unit/test_bias_detector.py::TestBiasDetector::test_assumption_vs_observation FAILED [  9%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_feedback_fully_supported_by_context PASSED [ 10%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_feedback_with_no_support_in_context PASSED [ 10%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_partial_support_returns_middle_score FAILED [ 10%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_empty_feedback_returns_zero PASSED [ 10%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_empty_context_chunks_returns_zero PASSED [ 11%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_both_empty_returns_zero PASSED [ 11%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_multiple_context_chunks FAILED [ 11%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_extract_claims PASSED [ 11%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_extract_claims_with_punctuation PASSED [ 12%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_is_supported_with_keyword_overlap PASSED [ 12%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_is_supported_without_keywords PASSED [ 12%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_case_insensitive_support_check PASSED [ 12%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_score_never_returns_hardcoded_value PASSED [ 12%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_multiple_claims_varying_support FAILED [ 13%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_very_long_feedback PASSED [ 13%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_very_long_context PASSED [ 13%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_common_words_filtered_in_overlap PASSED [ 13%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_minimum_overlap_required PASSED [ 14%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_none_context_chunk_text FAILED [ 14%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_missing_text_key_in_chunk PASSED [ 14%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_score_consistency PASSED [ 14%]
+tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_specialized_technical_terms PASSED [ 15%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_results_sorted_by_score_descending PASSED [ 15%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_query_matching_no_documents PASSED [ 15%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_query_matching_multiple_documents PASSED [ 15%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_case_insensitive_matching PASSED [ 15%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_top_k_limit PASSED [ 16%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_top_k_larger_than_results PASSED [ 16%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_results_have_bm25_score PASSED [ 16%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_results_preserve_chunk_fields PASSED [ 16%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_empty_index FAILED [ 17%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_index_not_called_returns_empty PASSED [ 17%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_multi_word_query PASSED [ 17%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_tokenization PASSED [ 17%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_tokenization_case_handling PASSED [ 18%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_large_corpus PASSED [ 18%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_special_characters_in_query PASSED [ 18%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_exact_phrase_matching PASSED [ 18%]
+tests/unit/test_keyword_search.py::TestKeywordSearcher::test_single_word_chunks PASSED [ 18%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_returns_list_of_floats PASSED [ 19%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_openai_provider_would_return_floats PASSED [ 19%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_deterministic PASSED [ 19%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_embedding_dimension PASSED [ 19%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_providers_same_dimension PASSED [ 20%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_multiple_texts PASSED [ 20%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_empty_list PASSED [ 20%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_single_text PASSED [ 20%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_empty_string PASSED [ 21%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_different_inputs_different_outputs PASSED [ 21%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_embeddings_normalized PASSED [ 21%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_provider_interface_implements_embed PASSED [ 21%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_returns_floats_not_integers PASSED [ 21%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_multiple_providers_same_interface PASSED [ 22%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_consistency_across_calls PASSED [ 22%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_provider_embed_signature PASSED [ 22%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_with_very_long_text PASSED [ 22%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_with_special_characters PASSED [ 23%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_with_unicode PASSED [ 23%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_with_newlines PASSED [ 23%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_with_tabs PASSED [ 23%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_different_text_lengths_same_output_dimension PASSED [ 24%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_batch_processing PASSED [ 24%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_embedding_vector_values_in_valid_range PASSED [ 24%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_providers_inherit_from_abstract_base PASSED [ 24%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_abstract_base_class_has_embed_method PASSED [ 25%]
+tests/unit/test_llm_provider_contract.py::TestLLMProviderContract::test_mock_provider_embedding_stability PASSED [ 25%]
+tests/unit/test_orchestrator.py::TestOrchestratorFailureSurfacing::test_all_tools_succeed_no_errors_surfaced PASSED [ 25%]
+tests/unit/test_orchestrator.py::TestOrchestratorFailureSurfacing::test_one_tool_fails_is_surfaced PASSED [ 25%]
+tests/unit/test_orchestrator.py::TestOrchestratorFailureSurfacing::test_all_tools_fail_all_are_surfaced PASSED [ 25%]
+tests/unit/test_orchestrator.py::TestOrchestratorFailureSurfacing::test_empty_plan_has_no_errors PASSED [ 26%]
+tests/unit/test_output_parser.py::TestOutputParser::test_json_wrapped_in_code_fence PASSED [ 26%]
+tests/unit/test_output_parser.py::TestOutputParser::test_raw_json_without_fence PASSED [ 26%]
+tests/unit/test_output_parser.py::TestOutputParser::test_plain_text_fallback PASSED [ 26%]
+tests/unit/test_output_parser.py::TestOutputParser::test_malformed_json_fallback PASSED [ 27%]
+tests/unit/test_output_parser.py::TestOutputParser::test_feedback_section_has_required_fields PASSED [ 27%]
+tests/unit/test_output_parser.py::TestOutputParser::test_json_with_multiple_sections PASSED [ 27%]
+tests/unit/test_output_parser.py::TestOutputParser::test_confidence_scores_in_sections PASSED [ 27%]
+tests/unit/test_output_parser.py::TestOutputParser::test_empty_json_object PASSED [ 28%]
+tests/unit/test_output_parser.py::TestOutputParser::test_json_array_fallback FAILED [ 28%]
+tests/unit/test_output_parser.py::TestOutputParser::test_very_long_plain_text PASSED [ 28%]
+tests/unit/test_output_parser.py::TestOutputParser::test_html_in_feedback PASSED [ 28%]
+tests/unit/test_output_parser.py::TestOutputParser::test_code_in_feedback PASSED [ 28%]
+tests/unit/test_output_parser.py::TestOutputParser::test_section_suggestions_extraction PASSED [ 29%]
+tests/unit/test_output_parser.py::TestOutputParser::test_unicode_characters PASSED [ 29%]
+tests/unit/test_output_parser.py::TestOutputParser::test_nested_json_structure PASSED [ 29%]
+tests/unit/test_output_parser.py::TestOutputParser::test_mixed_content PASSED [ 29%]
+tests/unit/test_output_parser.py::TestOutputParser::test_plaintext_output_helper PASSED [ 30%]
+tests/unit/test_output_parser.py::TestOutputParser::test_multiple_code_fences PASSED [ 30%]
+tests/unit/test_output_parser.py::TestOutputParser::test_no_suggestions_key PASSED [ 30%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_email_redaction PASSED [ 30%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_multiple_emails_redacted PASSED [ 31%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_us_phone_number_redaction FAILED [ 31%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_us_phone_formats FAILED [ 31%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_international_phone_redaction PASSED [ 31%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_ssn_redaction PASSED [ 31%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_ssn_variations PASSED [ 32%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_street_address_redaction PASSED [ 32%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_text_with_no_pii PASSED [ 32%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_returns_list_of_pii PASSED [ 32%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_email_pii PASSED [ 33%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_phone_pii FAILED [ 33%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_ssn_pii PASSED [ 33%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_positions_accurate PASSED [ 33%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_multiple_pii_items PASSED [ 34%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_case_insensitive_email_matching PASSED [ 34%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_complex_email_addresses PASSED [ 34%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_phone_at_start_of_text FAILED [ 34%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_phone_at_end_of_text PASSED [ 34%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_address_variations PASSED [ 35%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_empty_text PASSED [ 35%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_whitespace_only PASSED [ 35%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_mixed_pii_and_text FAILED [ 35%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_scrub_idempotent PASSED [ 36%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_no_false_positives PASSED [ 36%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_newline_injection_detected PASSED [ 36%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_system_role_switching_detected PASSED [ 36%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_human_role_switching_detected PASSED [ 37%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_assistant_role_switching_detected PASSED [ 37%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_template_injection_detected PASSED [ 37%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_jinja_injection_detected PASSED [ 37%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_ignore_instruction_detected PASSED [ 37%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_forget_instruction_detected PASSED [ 38%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_disregard_instruction_detected PASSED [ 38%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_override_instruction_detected PASSED [ 38%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_code_execution_attempt_detected PASSED [ 38%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_run_function_attempt_detected PASSED [ 39%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_eval_function_attempt_detected PASSED [ 39%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_clean_input_not_flagged PASSED [ 39%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_normal_text_not_flagged PASSED [ 39%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_sanitize_removes_template_delimiters PASSED [ 40%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_sanitize_removes_angle_brackets PASSED [ 40%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_sanitize_preserves_legitimate_content PASSED [ 40%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_sanitize_multiple_template_delimiters PASSED [ 40%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_separator_line_detected PASSED [ 40%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_long_separator_detected PASSED [ 41%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_case_insensitive_detection PASSED [ 41%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_whitespace_variations_detected FAILED [ 41%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_multiple_injection_patterns PASSED [ 41%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_benign_mentions_not_flagged PASSED [ 42%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_empty_string PASSED [ 42%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_whitespace_only PASSED [ 42%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_sanitize_idempotent PASSED [ 42%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_complex_injection_attempt PASSED [ 43%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_legitimate_newlines_not_flagged PASSED [ 43%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_code_blocks_handled PASSED [ 43%]
+tests/unit/test_prompt_defense.py::TestPromptDefense::test_sanitize_with_mixed_delimiters PASSED [ 43%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_all_5_templates_exist PASSED [ 43%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_skills_feedback_template_exists PASSED [ 44%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_projects_feedback_template_exists PASSED [ 44%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_presentation_feedback_template_exists PASSED [ 44%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_gaps_feedback_template_exists PASSED [ 44%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_first_impression_template_exists PASSED [ 45%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_each_template_contains_context_placeholder PASSED [ 45%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_each_template_contains_github_username_placeholder PASSED [ 45%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_each_template_contains_project_count_placeholder PASSED [ 45%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_get_template_returns_correct_template PASSED [ 46%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_get_template_projects_feedback PASSED [ 46%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_get_template_presentation_feedback PASSED [ 46%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_get_template_gaps_feedback PASSED [ 46%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_get_template_first_impression PASSED [ 46%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_get_template_unknown_name_raises_error PASSED [ 47%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_get_template_unknown_version_raises_error PASSED [ 47%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_all_templates_have_v1 PASSED [ 47%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_templates_are_strings PASSED [ 47%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_templates_have_reasonable_length PASSED [ 48%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_skills_feedback_mentions_technical_skills PASSED [ 48%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_projects_feedback_mentions_code_quality PASSED [ 48%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_gaps_feedback_mentions_missing_skills PASSED [ 48%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_presentation_feedback_mentions_readme PASSED [ 49%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_first_impression_is_concise PASSED [ 49%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_get_template_default_version PASSED [ 49%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_template_snapshot_content_hash PASSED [ 49%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_skills_feedback_requests_json_format PASSED [ 50%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_projects_feedback_requests_json_format PASSED [ 50%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_presentation_feedback_requests_json_format PASSED [ 50%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_gaps_feedback_requests_json_format PASSED [ 50%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_first_impression_plain_text PASSED [ 50%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_templates_have_portfolio_context PASSED [ 51%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_template_get_logs_retrieval PASSED [ 51%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_each_template_name_is_valid_identifier PASSED [ 51%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_template_versions_are_strings PASSED [ 51%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_no_hardcoded_usernames_in_templates PASSED [ 52%]
+tests/unit/test_prompt_templates.py::TestPromptTemplates::test_templates_use_consistent_placeholders PASSED [ 52%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_first_request_allowed PASSED [ 52%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_requests_up_to_limit_allowed PASSED [ 52%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_request_at_limit_plus_one_denied PASSED [ 53%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_remaining_count_correct PASSED [ 53%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_rolling_window_removes_old_entries PASSED [ 53%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_different_identifiers_independent PASSED [ 53%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_key_format_correct PASSED [ 53%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_entry_added_to_redis PASSED [ 54%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_expiry_set_correctly PASSED [ 54%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_custom_window_size PASSED [ 54%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_redis_error_handling PASSED [ 54%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_zero_limit PASSED [ 55%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_negative_limit PASSED [ 55%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_large_limit PASSED [ 55%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_return_tuple_structure PASSED [ 55%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_multiple_requests_same_user PASSED [ 56%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_time_based_window_calculation PASSED [ 56%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_ip_address_as_identifier PASSED [ 56%]
+tests/unit/test_rate_limiter.py::TestRateLimiter::test_api_key_as_identifier PASSED [ 56%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_parse_standard_readme FAILED [ 56%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_parse_readme_longer_than_10000_chars PASSED [ 57%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_parse_readme_with_code_blocks PASSED [ 57%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_parse_readme_without_code_blocks PASSED [ 57%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_parse_empty_readme PASSED [ 57%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_parse_readme_with_only_whitespace PASSED [ 58%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_parse_readme_bytes_input PASSED [ 58%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_parse_readme_bytes_with_utf8 PASSED [ 58%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_parse_invalid_content_type PASSED [ 58%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_extract_heading_hierarchy FAILED [ 59%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_extract_heading_hierarchy_no_headings PASSED [ 59%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_parse_readme_with_badges PASSED [ 59%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_parse_readme_without_badges PASSED [ 59%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_metadata_structure PASSED [ 59%]
+tests/unit/test_readme_parser.py::TestReadmeParser::test_word_count_accuracy PASSED [ 60%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_readme_with_all_quality_signals FAILED [ 60%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_readme_with_no_content PASSED [ 60%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_readme_with_only_title PASSED [ 60%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_word_count_category_minimal PASSED [ 61%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_word_count_category_adequate PASSED [ 61%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_word_count_category_comprehensive PASSED [ 61%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_installation_section_detection PASSED [ 61%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_usage_section_detection PASSED [ 62%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_setup_keyword_counts_as_installation PASSED [ 62%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_quickstart_counts_as_usage PASSED [ 62%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_badge_detection PASSED [ 62%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_demo_link_detection PASSED [ 62%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_tech_stack_section_detection PASSED [ 63%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_technologies_keyword_counts PASSED [ 63%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_overall_score_calculation PASSED [ 63%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_missing_readme_content_key PASSED [ 63%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_result_has_all_required_fields PASSED [ 64%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_case_insensitive_section_detection PASSED [ 64%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_whitespace_only_readme PASSED [ 64%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_example_keyword_counts_as_usage PASSED [ 64%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_score_scales_with_word_count PASSED [ 65%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_try_it_as_demo_indicator PASSED [ 65%]
+tests/unit/test_readme_scorer.py::TestReadmeScorer::test_built_with_counts_as_tech_stack PASSED [ 65%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_query_with_perfect_keyword_match PASSED [ 65%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_query_with_zero_keyword_overlap PASSED [ 65%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_query_with_partial_overlap FAILED [ 66%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_empty_chunks_list_returns_zero PASSED [ 66%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_empty_query_returns_zero PASSED [ 66%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_multiple_chunks_aggregated PASSED [ 66%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_case_insensitive_matching PASSED [ 67%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_tokenization PASSED [ 67%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_empty_text_in_chunk PASSED [ 67%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_very_long_query PASSED [ 67%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_very_long_chunk PASSED [ 68%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_special_characters_ignored PASSED [ 68%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_multiple_keyword_matches PASSED [ 68%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_single_word_chunks PASSED [ 68%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_score_ranges_from_zero_to_one PASSED [ 68%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_common_words_not_preventing_scoring PASSED [ 69%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_chunk_without_text_key PASSED [ 69%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_whitespace_only_in_chunks PASSED [ 69%]
+tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_average_relevance_calculation PASSED [ 69%]
+tests/unit/test_resume_parser.py::TestResumeParser::test_parse_single_column_resume_text FAILED [ 70%]
+tests/unit/test_resume_parser.py::TestResumeParser::test_parse_resume_no_work_experience FAILED [ 70%]
+tests/unit/test_resume_parser.py::TestResumeParser::test_parse_multipage_pdf PASSED [ 70%]
+tests/unit/test_resume_parser.py::TestResumeParser::test_parse_markdown_resume FAILED [ 70%]
+tests/unit/test_resume_parser.py::TestResumeParser::test_parse_invalid_content_type PASSED [ 71%]
+tests/unit/test_resume_parser.py::TestResumeParser::test_parse_invalid_list_content PASSED [ 71%]
+tests/unit/test_resume_parser.py::TestResumeParser::test_detect_sections FAILED [ 71%]
+tests/unit/test_resume_parser.py::TestResumeParser::test_strip_markdown_syntax FAILED [ 71%]
+tests/unit/test_resume_parser.py::TestResumeParser::test_pdf_parsing_error_handling PASSED [ 71%]
+tests/unit/test_resume_parser.py::TestResumeParser::test_parse_preserves_text_content PASSED [ 72%]
+tests/unit/test_review_service.py::TestReviewService::test_create_review_returns_review_with_pending_status PASSED [ 72%]
+tests/unit/test_review_service.py::TestReviewService::test_get_review_returns_review_for_correct_owner FAILED [ 72%]
+tests/unit/test_review_service.py::TestReviewService::test_get_review_returns_none_for_wrong_user FAILED [ 72%]
+tests/unit/test_review_service.py::TestReviewService::test_list_reviews_returns_paginated_results FAILED [ 73%]
+tests/unit/test_review_service.py::TestReviewService::test_list_reviews_page_2_returns_correct_offset FAILED [ 73%]
+tests/unit/test_review_service.py::TestReviewService::test_list_reviews_returns_tuple FAILED [ 73%]
+tests/unit/test_review_service.py::TestReviewService::test_create_review_calls_db_add PASSED [ 73%]
+tests/unit/test_review_service.py::TestReviewService::test_create_review_calls_db_commit PASSED [ 74%]
+tests/unit/test_review_service.py::TestReviewService::test_create_review_calls_db_refresh PASSED [ 74%]
+tests/unit/test_review_service.py::TestReviewService::test_get_review_uses_select_and_join FAILED [ 74%]
+tests/unit/test_review_service.py::TestReviewService::test_list_reviews_default_pagination FAILED [ 74%]
+tests/unit/test_review_service.py::TestReviewService::test_list_reviews_custom_page_size FAILED [ 75%]
+tests/unit/test_review_service.py::TestReviewService::test_create_review_with_uuid_ids PASSED [ 75%]
+tests/unit/test_review_service.py::TestReviewService::test_get_review_verifies_ownership FAILED [ 75%]
+tests/unit/test_review_service.py::TestReviewService::test_list_reviews_counts_total FAILED [ 75%]
+tests/unit/test_review_service.py::TestReviewService::test_list_reviews_returns_reviews_list FAILED [ 75%]
+tests/unit/test_review_service.py::TestReviewService::test_review_sections_and_score_initially_none PASSED [ 76%]
+tests/unit/test_review_service.py::TestReviewService::test_get_review_with_valid_uuid FAILED [ 76%]
+tests/unit/test_review_service.py::TestReviewService::test_list_reviews_ordered_by_created_at FAILED [ 76%]
+tests/unit/test_security.py::TestSecurity::test_hash_password_returns_bcrypt_hash PASSED [ 76%]
+tests/unit/test_security.py::TestSecurity::test_verify_password_correct PASSED [ 77%]
+tests/unit/test_security.py::TestSecurity::test_verify_password_incorrect PASSED [ 77%]
+tests/unit/test_security.py::TestSecurity::test_verify_password_case_sensitive PASSED [ 77%]
+tests/unit/test_security.py::TestSecurity::test_hash_same_password_different_hash PASSED [ 77%]
+tests/unit/test_security.py::TestSecurity::test_create_access_token_returns_string PASSED [ 78%]
+tests/unit/test_security.py::TestSecurity::test_create_access_token_is_jwt PASSED [ 78%]
+tests/unit/test_security.py::TestSecurity::test_decode_access_token_valid PASSED [ 78%]
+tests/unit/test_security.py::TestSecurity::test_decode_access_token_invalid_token PASSED [ 78%]
+tests/unit/test_security.py::TestSecurity::test_decode_access_token_malformed PASSED [ 78%]
+tests/unit/test_security.py::TestSecurity::test_decode_access_token_empty_string PASSED [ 79%]
+tests/unit/test_security.py::TestSecurity::test_roundtrip_token_with_data PASSED [ 79%]
+tests/unit/test_security.py::TestSecurity::test_create_access_token_with_custom_expiry PASSED [ 79%]
+tests/unit/test_security.py::TestSecurity::test_access_token_includes_expiration PASSED [ 79%]
+tests/unit/test_security.py::TestSecurity::test_password_hash_different_for_different_passwords PASSED [ 80%]
+tests/unit/test_security.py::TestSecurity::test_verify_password_with_empty_strings PASSED [ 80%]
+tests/unit/test_security.py::TestSecurity::test_verify_password_with_special_characters PASSED [ 80%]
+tests/unit/test_security.py::TestSecurity::test_token_with_empty_data PASSED [ 80%]
+tests/unit/test_security.py::TestSecurity::test_token_with_special_characters_in_data PASSED [ 81%]
+tests/unit/test_security.py::TestSecurity::test_token_with_unicode_data PASSED [ 81%]
+tests/unit/test_security.py::TestSecurity::test_hash_password_long_input PASSED [ 81%]
+tests/unit/test_security.py::TestSecurity::test_verify_with_wrong_hash_format FAILED [ 81%]
+tests/unit/test_security.py::TestSecurity::test_token_tampering_detection PASSED [ 81%]
+tests/unit/test_security.py::TestSecurity::test_create_token_consistency PASSED [ 82%]
+tests/unit/test_security.py::TestSecurity::test_password_with_whitespace PASSED [ 82%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_empty_input_returns_empty_list PASSED [ 82%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_whitespace_only_input PASSED [ 82%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_short_text_returns_single_chunk PASSED [ 83%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_long_text_returns_multiple_chunks PASSED [ 83%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_chunk_metadata_includes_chunk_index PASSED [ 83%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_chunks_preserve_source_metadata PASSED [ 83%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_chunk_has_character_positions PASSED [ 84%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_bullet_points_not_split_mid_bullet PASSED [ 84%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_sentence_splitting PASSED [ 84%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_sentence_splitting_with_exclamation_marks PASSED [ 84%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_sentence_splitting_preserves_punctuation PASSED [ 84%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_overlap_between_chunks PASSED [ 85%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_chunks_have_non_zero_text PASSED [ 85%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_paragraph_boundaries_respected PASSED [ 85%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_metadata_copied_not_mutated PASSED [ 85%]
+tests/unit/test_semantic_chunker.py::TestSemanticChunker::test_chunk_indexing_is_sequential PASSED [ 86%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_text_with_python_imports PASSED [ 86%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_text_with_python_type_annotations PASSED [ 86%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_text_with_typescript_files FAILED [ 86%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_jupyter_ipynb_detection PASSED [ 87%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_mixed_language_text PASSED [ 87%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_frameworks_detected_with_high_confidence PASSED [ 87%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_react_detection PASSED [ 87%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_database_technology_detection FAILED [ 87%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_devops_tool_detection FAILED [ 88%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_skill_has_evidence_list PASSED [ 88%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_filename_based_detection PASSED [ 88%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_javascript_detection FAILED [ 88%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_docker_compose_detection FAILED [ 89%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_aws_gcp_azure_detection PASSED [ 89%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_empty_text PASSED [ 89%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_unrecognized_language PASSED [ 89%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_confidence_scores_are_floats PASSED [ 90%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_skill_detection_dataclass PASSED [ 90%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_empty_input_returns_empty_list PASSED [ 90%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_whitespace_only_input PASSED [ 90%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_document_with_no_headings FAILED [ 90%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_document_with_nested_headings PASSED [ 91%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_heading_path_format PASSED [ 91%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_large_section_sub_chunked PASSED [ 91%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_chunk_metadata_includes_heading_level PASSED [ 91%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_chunk_metadata_structure PASSED [ 92%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_preserve_source_metadata PASSED [ 92%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_multiple_h1_headings PASSED [ 92%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_heading_path_breadcrumb PASSED [ 92%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_chunks_have_text_content PASSED [ 93%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_section_extraction_with_multiple_levels PASSED [ 93%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_heading_not_in_middle_of_content PASSED [ 93%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_empty_sections_handled PASSED [ 93%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_single_language_repo PASSED [ 93%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_mixed_language_repo_python_primary PASSED [ 94%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_ipynb_counted_as_python_not_json PASSED [ 94%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_node_modules_excluded FAILED [ 94%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_vendor_files_excluded PASSED [ 94%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_build_directory_excluded FAILED [ 95%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_config_file_detection PASSED [ 95%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_dockerfile_detection PASSED [ 95%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_github_actions_detection PASSED [ 95%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_makefile_detection PASSED [ 96%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_typescript_detection PASSED [ 96%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_go_detection PASSED [ 96%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_rust_detection PASSED [ 96%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_java_detection PASSED [ 96%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_multiple_python_files PASSED [ 97%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_empty_file_list PASSED [ 97%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_no_files_key PASSED [ 97%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_result_structure PASSED [ 97%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_framework_detection PASSED [ 98%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_unknown_extensions PASSED [ 98%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_case_insensitive_extension_matching PASSED [ 98%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_multiple_extensions_same_file PASSED [ 98%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_all_languages_sorted PASSED [ 99%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_frameworks_sorted PASSED [ 99%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_ruby_detection PASSED [ 99%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_csharp_detection PASSED [ 99%]
+tests/unit/test_tech_detector.py::TestTechDetector::test_cpp_detection PASSED [100%]
+
+=================================== FAILURES ===================================
+_______ TestBatchEmbeddingProcessor.test_empty_chunks_list_returns_empty _______
+
+self = <tests.unit.test_batch_processor.TestBatchEmbeddingProcessor object at 0x105e86810>
+processor = <ingestion.embeddings.batch_processor.BatchEmbeddingProcessor object at 0x122e517d0>
+caplog = <_pytest.logging.LogCaptureFixture object at 0x122e519d0>
+
+    def test_empty_chunks_list_returns_empty(self, processor, caplog):
+        """Test that empty chunks list logs warning and returns empty list."""
+        result = processor.process([])
+    
+        assert result == []
+        # Should log a warning
+>       assert "Empty chunks list" in caplog.text or any(
+            "empty" in record.message.lower() for record in caplog.records
+        )
+E       AssertionError: assert ('Empty chunks list' in '' or False)
+E        +  where '' = <_pytest.logging.LogCaptureFixture object at 0x122e519d0>.text
+E        +  and   False = any(<generator object TestBatchEmbeddingProcessor.test_empty_chunks_list_returns_empty.<locals>.<genexpr> at 0x122e099a0>)
+
+tests/unit/test_batch_processor.py:42: AssertionError
+----------------------------- Captured stdout call -----------------------------
+2026-07-28 18:13:43 [warning  ] Empty chunks list provided to BatchEmbeddingProcessor
+_________ TestBiasDetector.test_dismissive_bootcamp_language_detected __________
+
+self = <tests.unit.test_bias_detector.TestBiasDetector object at 0x105e97810>
+
+    def test_dismissive_bootcamp_language_detected(self):
+        """Test dismissive bootcamp language is detected as biased."""
+        text = "bootcamp graduates can't write production code"
+    
+        is_biased, reason = BiasDetector.detect_bias(text)
+    
+>       assert is_biased is True
+E       assert False is True
+
+tests/unit/test_bias_detector.py:18: AssertionError
+_____________ TestBiasDetector.test_bootcamp_lacks_rigor_detected ______________
+
+self = <tests.unit.test_bias_detector.TestBiasDetector object at 0x105e97dd0>
+
+    def test_bootcamp_lacks_rigor_detected(self):
+        """Test 'bootcamp lacks rigor' language detected."""
+        text = "bootcamp education lacks fundamentals"
+    
+        is_biased, reason = BiasDetector.detect_bias(text)
+    
+>       assert is_biased is True
+E       assert False is True
+
+tests/unit/test_bias_detector.py:27: AssertionError
+__________ TestBiasDetector.test_demographic_assumption_age_detected ___________
+
+self = <tests.unit.test_bias_detector.TestBiasDetector object at 0x105ea60d0>
+
+    def test_demographic_assumption_age_detected(self):
+        """Test demographic assumption about age detected."""
+        text = "young developers can't handle complex systems"
+    
+        is_biased, reason = BiasDetector.detect_bias(text)
+    
+>       assert is_biased is True
+E       assert False is True
+
+tests/unit/test_bias_detector.py:75: AssertionError
+________________ TestBiasDetector.test_coding_bootcamp_variant _________________
+
+self = <tests.unit.test_bias_detector.TestBiasDetector object at 0x105eaddd0>
+
+    def test_coding_bootcamp_variant(self):
+        """Test 'coding bootcamp' variant is detected."""
+        text = "coding bootcamp graduates can't write enterprise code"
+    
+        is_biased, reason = BiasDetector.detect_bias(text)
+    
+>       assert is_biased is True
+E       assert False is True
+
+tests/unit/test_bias_detector.py:190: AssertionError
+__________ TestBiasDetector.test_developer_vs_programmer_distinction ___________
+
+self = <tests.unit.test_bias_detector.TestBiasDetector object at 0x105eaeb90>
+
+    def test_developer_vs_programmer_distinction(self):
+        """Test both developer and programmer terms detected."""
+        text_dev = "bootcamp developers can't handle production systems"
+        text_prog = "bootcamp programmers lack proper training"
+    
+        is_biased_dev, _ = BiasDetector.detect_bias(text_dev)
+        is_biased_prog, _ = BiasDetector.detect_bias(text_prog)
+    
+>       assert is_biased_dev is True
+E       assert False is True
+
+tests/unit/test_bias_detector.py:208: AssertionError
+________________ TestBiasDetector.test_multiple_bias_indicators ________________
+
+self = <tests.unit.test_bias_detector.TestBiasDetector object at 0x105eaf250>
+
+    def test_multiple_bias_indicators(self):
+        """Test text with multiple bias indicators."""
+        text = "young bootcamp graduates can't write code and immigrant developers lack fundamentals"
+    
+        is_biased, reason = BiasDetector.detect_bias(text)
+    
+>       assert is_biased is True
+E       assert False is True
+
+tests/unit/test_bias_detector.py:217: AssertionError
+_______________ TestBiasDetector.test_negative_educational_claim _______________
+
+self = <tests.unit.test_bias_detector.TestBiasDetector object at 0x105eaf910>
+
+    def test_negative_educational_claim(self):
+        """Test negative claims about education detected."""
+        text = "self-taught developers are not equal to university graduates"
+    
+        is_biased, reason = BiasDetector.detect_bias(text)
+    
+>       assert is_biased is True
+E       assert False is True
+
+tests/unit/test_bias_detector.py:225: AssertionError
+__________________ TestBiasDetector.test_rich_poor_assumption __________________
+
+self = <tests.unit.test_bias_detector.TestBiasDetector object at 0x105eafb50>
+
+    def test_rich_poor_assumption(self):
+        """Test rich/poor background assumption detected."""
+        text = "developers from poor backgrounds can't afford proper tools"
+    
+        is_biased, reason = BiasDetector.detect_bias(text)
+    
+>       assert is_biased is True
+E       assert False is True
+
+tests/unit/test_bias_detector.py:241: AssertionError
+_______________ TestBiasDetector.test_assumption_vs_observation ________________
+
+self = <tests.unit.test_bias_detector.TestBiasDetector object at 0x105eb0550>
+
+    def test_assumption_vs_observation(self):
+        """Test that observations are not flagged, assumptions are."""
+        observation = "your resume shows bootcamp attendance"  # Factual
+        assumption = "bootcamp attendance means inadequate training"  # Biased
+    
+        is_biased_obs, _ = BiasDetector.detect_bias(observation)
+        is_biased_ass, _ = BiasDetector.detect_bias(assumption)
+    
+        assert is_biased_obs is False  # Factual
+>       assert is_biased_ass is True  # Biased assumption
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert False is True
+
+tests/unit/test_bias_detector.py:276: AssertionError
+______ TestFaithfulnessChecker.test_partial_support_returns_middle_score _______
+
+self = <tests.unit.test_faithfulness_checker.TestFaithfulnessChecker object at 0x105eb3210>
+checker = <rag.evaluator.faithfulness_checker.FaithfulnessChecker object at 0x122f0aa50>
+
+    def test_partial_support_returns_middle_score(self, checker):
+        """Test partial support returns score between 0 and 1."""
+        feedback = "The developer shows Python expertise and Kubernetes knowledge."
+        context_chunks = [
+            {
+                "text": "Strong Python programming skills demonstrated in projects."
+            },
+        ]
+    
+        score = checker.check(feedback, context_chunks)
+    
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+        # Partial support should be middle range
+>       assert 0.2 < score < 0.8
+E       assert 0.2 < 0.0
+
+tests/unit/test_faithfulness_checker.py:61: AssertionError
+----------------------------- Captured stdout call -----------------------------
+2026-07-28 18:13:43 [info     ] faithfulness_checked           claims_count=1 score=0.0 supported_count=0
+_____________ TestFaithfulnessChecker.test_multiple_context_chunks _____________
+
+self = <tests.unit.test_faithfulness_checker.TestFaithfulnessChecker object at 0x105ec4ad0>
+checker = <rag.evaluator.faithfulness_checker.FaithfulnessChecker object at 0x122e259d0>
+
+    def test_multiple_context_chunks(self, checker):
+        """Test multiple context chunks contribute to score."""
+        feedback = "The developer has Python, JavaScript, and Docker experience."
+        context_chunks = [
+            {"text": "Python expertise shown in backend projects."},
+            {"text": "JavaScript skills demonstrated in frontend development."},
+            {"text": "Docker and containerization knowledge evident in CI/CD pipelines."},
+        ]
+    
+        score = checker.check(feedback, context_chunks)
+    
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+        # All three claims supported
+>       assert score > 0.5
+E       assert 0.0 > 0.5
+
+tests/unit/test_faithfulness_checker.py:106: AssertionError
+----------------------------- Captured stdout call -----------------------------
+2026-07-28 18:13:43 [info     ] faithfulness_checked           claims_count=1 score=0.0 supported_count=0
+_________ TestFaithfulnessChecker.test_multiple_claims_varying_support _________
+
+self = <tests.unit.test_faithfulness_checker.TestFaithfulnessChecker object at 0x105ec6590>
+checker = <rag.evaluator.faithfulness_checker.FaithfulnessChecker object at 0x122eba3d0>
+
+    def test_multiple_claims_varying_support(self, checker):
+        """Test scoring with multiple claims of varying support."""
+        feedback = "Python expert. Knows Rust. Skilled with Docker."
+        context_chunks = [
+            {"text": "Python and Docker expertise shown in projects."}
+        ]
+    
+        score = checker.check(feedback, context_chunks)
+    
+        # Two claims supported, one not
+        assert isinstance(score, float)
+>       assert 0.2 < score < 0.8
+E       assert 0.2 < 0.0
+
+tests/unit/test_faithfulness_checker.py:184: AssertionError
+----------------------------- Captured stdout call -----------------------------
+2026-07-28 18:13:43 [info     ] faithfulness_checked           claims_count=2 score=0.0 supported_count=0
+_____________ TestFaithfulnessChecker.test_none_context_chunk_text _____________
+
+self = <tests.unit.test_faithfulness_checker.TestFaithfulnessChecker object at 0x105ec7e50>
+checker = <rag.evaluator.faithfulness_checker.FaithfulnessChecker object at 0x122ed2410>
+
+    def test_none_context_chunk_text(self, checker):
+        """Test handling of None in context chunk text."""
+        feedback = "Has Python skills"
+        context_chunks = [
+            {"text": None}
+        ]
+    
+>       score = checker.check(feedback, context_chunks)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_faithfulness_checker.py:238: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <rag.evaluator.faithfulness_checker.FaithfulnessChecker object at 0x122ed2410>
+feedback = 'Has Python skills', context_chunks = [{'text': None}]
+
+    def check(self, feedback: str, context_chunks: list[dict]) -> float:
+        """Check faithfulness of feedback to context.
+    
+        Args:
+            feedback: Generated feedback text
+            context_chunks: Retrieved context chunks
+    
+        Returns:
+            Faithfulness score 0.0-1.0 (ratio of supported claims)
+        """
+        if not feedback or not context_chunks:
+            logger.info("faithfulness_empty_input", has_feedback=bool(feedback),
+                       has_chunks=bool(context_chunks))
+            return 0.0
+    
+        # Extract key claims from feedback (sentences)
+        claims = self._extract_claims(feedback)
+        if not claims:
+            logger.info("faithfulness_no_claims_extracted")
+            return 0.5  # Default to neutral if no extractable claims
+    
+        # Concatenate context text
+>       context_text = " ".join([
+            chunk.get("text", "") for chunk in context_chunks
+        ])
+E       TypeError: sequence item 0: expected str instance, NoneType found
+
+rag/evaluator/faithfulness_checker.py:34: TypeError
+_____________________ TestKeywordSearcher.test_empty_index _____________________
+
+self = <tests.unit.test_keyword_search.TestKeywordSearcher object at 0x105f09a90>
+searcher = <rag.retriever.keyword_search.KeywordSearcher object at 0x122e52fd0>
+
+    def test_empty_index(self, searcher):
+        """Test searching on empty index."""
+>       searcher.index([])
+
+tests/unit/test_keyword_search.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+rag/retriever/keyword_search.py:27: in index
+    self.bm25 = BM25Okapi(tokenized_corpus)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.11/site-packages/rank_bm25.py:83: in __init__
+    super().__init__(corpus, tokenizer)
+.venv/lib/python3.11/site-packages/rank_bm25.py:27: in __init__
+    nd = self._initialize(corpus)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <rank_bm25.BM25Okapi object at 0x122e52e50>, corpus = []
+
+    def _initialize(self, corpus):
+        nd = {}  # word -> number of documents with word
+        num_doc = 0
+        for document in corpus:
+            self.doc_len.append(len(document))
+            num_doc += len(document)
+    
+            frequencies = {}
+            for word in document:
+                if word not in frequencies:
+                    frequencies[word] = 0
+                frequencies[word] += 1
+            self.doc_freqs.append(frequencies)
+    
+            for word, freq in frequencies.items():
+                try:
+                    nd[word]+=1
+                except KeyError:
+                    nd[word] = 1
+    
+            self.corpus_size += 1
+    
+>       self.avgdl = num_doc / self.corpus_size
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ZeroDivisionError: division by zero
+
+.venv/lib/python3.11/site-packages/rank_bm25.py:52: ZeroDivisionError
+__________________ TestOutputParser.test_json_array_fallback ___________________
+
+self = <tests.unit.test_output_parser.TestOutputParser object at 0x107b6aed0>
+
+    def test_json_array_fallback(self):
+        """Test handling of JSON array (not dict)."""
+        raw_output = json.dumps([
+            "First feedback item",
+            "Second feedback item"
+        ])
+    
+>       result = parse_review_output(raw_output)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_output_parser.py:144: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+rag/generator/output_parser.py:44: in parse_review_output
+    return _parse_json_output(data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+data = ['First feedback item', 'Second feedback item']
+
+    def _parse_json_output(data: dict) -> list[FeedbackSection]:
+        """Parse structured JSON output.
+    
+        Args:
+            data: Parsed JSON dict
+    
+        Returns:
+            List of FeedbackSection objects
+        """
+        sections = []
+    
+        # Handle both single-level and nested structures
+>       for key, value in data.items():
+                          ^^^^^^^^^^
+E       AttributeError: 'list' object has no attribute 'items'
+
+rag/generator/output_parser.py:64: AttributeError
+________________ TestPIIScrubber.test_us_phone_number_redaction ________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x107b85110>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x122ec2a10>
+
+    def test_us_phone_number_redaction(self, scrubber):
+        """Test US phone number is redacted."""
+        text = "Call me at (555) 123-4567"
+        scrubbed = scrubber.scrub(text)
+    
+>       assert "[REDACTED]" in scrubbed
+E       AssertionError: assert '[REDACTED]' in 'Call me at (555) 123-4567'
+
+tests/unit/test_pii_scrubber.py:39: AssertionError
+____________________ TestPIIScrubber.test_us_phone_formats _____________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x107b854d0>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x105f0b7d0>
+
+    def test_us_phone_formats(self, scrubber):
+        """Test various US phone number formats."""
+        formats = [
+            "555-123-4567",
+            "(555) 123-4567",
+            "555.123.4567",
+            "+1 555 123 4567",
+        ]
+    
+        for phone in formats:
+            text = f"Contact: {phone}"
+            scrubbed = scrubber.scrub(text)
+>           assert "[REDACTED]" in scrubbed
+E           AssertionError: assert '[REDACTED]' in 'Contact: (555) 123-4567'
+
+tests/unit/test_pii_scrubber.py:54: AssertionError
+____________________ TestPIIScrubber.test_detect_phone_pii _____________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x107b8c190>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x122fa9fd0>
+
+    def test_detect_phone_pii(self, scrubber):
+        """Test detect() finds phone number PII."""
+        text = "Phone: (555) 123-4567"
+        detected = scrubber.detect(text)
+    
+        phone_detections = [d for d in detected if "phone" in d["type"]]
+>       assert len(phone_detections) > 0
+E       assert 0 > 0
+E        +  where 0 = len([])
+
+tests/unit/test_pii_scrubber.py:128: AssertionError
+----------------------------- Captured stdout call -----------------------------
+2026-07-28 18:13:45 [info     ] pii_detected                   count=0 types=0
+_________________ TestPIIScrubber.test_phone_at_start_of_text __________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x107b8c2d0>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x122f2ab90>
+
+    def test_phone_at_start_of_text(self, scrubber):
+        """Test phone number at start of text."""
+        text = "(555) 123-4567 is my phone number."
+        scrubbed = scrubber.scrub(text)
+    
+>       assert "[REDACTED]" in scrubbed
+E       AssertionError: assert '[REDACTED]' in '(555) 123-4567 is my phone number.'
+
+tests/unit/test_pii_scrubber.py:184: AssertionError
+___________________ TestPIIScrubber.test_mixed_pii_and_text ____________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x107b8ee10>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x122fc1590>
+
+    def test_mixed_pii_and_text(self, scrubber):
+        """Test text with mix of PII and regular content."""
+        text = """
+        Professional Background:
+        I worked at TechCorp for 5 years developing Python applications.
+        Email: john.smith@company.com
+        Phone: 555-123-4567
+        SSN: 123-45-6789
+        I'm skilled in AWS and Kubernetes deployment.
+        """
+        scrubbed = scrubber.scrub(text)
+    
+        assert "TechCorp" in scrubbed  # Regular text preserved
+>       assert "Python" in scrubbed
+E       assert 'Python' in "\n        Professional Background:\n        I worked at TechCorp for [REDACTED]ications.\n        Email: [REDACTED]\n        Phone: [REDACTED]\n        SSN: [REDACTED]\n        I'm skilled in AWS and Kubernetes deployment.\n        "
+
+tests/unit/test_pii_scrubber.py:234: AssertionError
+____________ TestPromptDefense.test_whitespace_variations_detected _____________
+
+self = <tests.unit.test_prompt_defense.TestPromptDefense object at 0x107ba8390>
+
+    def test_whitespace_variations_detected(self):
+        """Test detection with whitespace variations."""
+        malicious = "Content\n   System  :  ignore"
+    
+        is_injection = PromptDefense.is_injection_attempt(malicious)
+>       assert is_injection is True
+E       assert False is True
+
+tests/unit/test_prompt_defense.py:178: AssertionError
+_________________ TestReadmeParser.test_parse_standard_readme __________________
+
+self = <tests.unit.test_readme_parser.TestReadmeParser object at 0x107be70d0>
+parser = <ingestion.parsers.readme_parser.ReadmeParser object at 0x1233ab250>
+sample_readme_text = '\n    # Weather App\n    A weather forecasting application built with React and OpenWeatherMap API.\n\n    ## Feature...tion search\n\n    ## Tech Stack\n    - React 18\n    - TypeScript\n    - Tailwind CSS\n    - OpenWeatherMap API\n    '
+
+    def test_parse_standard_readme(self, parser, sample_readme_text):
+        """Test parsing a standard README."""
+        result = parser.parse(sample_readme_text)
+    
+        assert isinstance(result, ParseResult)
+        assert result.text == sample_readme_text
+        assert result.source_type == "readme"
+        assert result.metadata["source_type"] == "readme"
+        assert "heading_count" in result.metadata
+>       assert result.metadata["heading_count"] > 0
+E       assert 0 > 0
+
+tests/unit/test_readme_parser.py:27: AssertionError
+_______________ TestReadmeParser.test_extract_heading_hierarchy ________________
+
+self = <tests.unit.test_readme_parser.TestReadmeParser object at 0x107beded0>
+parser = <ingestion.parsers.readme_parser.ReadmeParser object at 0x123383cd0>
+
+    def test_extract_heading_hierarchy(self, parser):
+        """Test heading hierarchy extraction."""
+        markdown = """
+        # Main Title
+        Some content
+    
+        ## Subsection
+        More content
+    
+        ### Sub-subsection
+        Even more content
+    
+        ## Another Section
+        Final content
+        """
+        headings = parser._extract_heading_hierarchy(markdown)
+    
+        assert isinstance(headings, list)
+>       assert len(headings) > 0
+E       assert 0 > 0
+E        +  where 0 = len([])
+
+tests/unit/test_readme_parser.py:148: AssertionError
+____________ TestReadmeScorer.test_readme_with_all_quality_signals _____________
+
+self = <tests.unit.test_readme_scorer.TestReadmeScorer object at 0x107c09510>
+scorer = <agent.tools.readme_scorer.ReadmeScorer object at 0x123358d50>
+
+    def test_readme_with_all_quality_signals(self, scorer):
+        """Test README with all quality signals returns high score."""
+        readme = """
+        # Project Name
+        A comprehensive project description.
+    
+        ## Installation
+        ```bash
+        pip install package
+        ```
+    
+        ## Usage
+        ```python
+        import package
+        package.run()
+        ```
+    
+        ## Features
+        - Feature 1
+        - Feature 2
+        - Feature 3
+    
+        ## Tech Stack
+        - Python 3.9
+        - FastAPI
+        - PostgreSQL
+    
+        ![Build Status](https://example.com/badge.svg)
+        ![Coverage](https://example.com/coverage.svg)
+    
+        ## Live Demo
+        [Try it here](https://demo.example.com)
+        """
+    
+        result = scorer.execute({"readme_content": readme})
+    
+        assert result.success is True
+        data = result.data
+        assert data["has_readme"] is True
+>       assert data["word_count"] > 100
+E       assert 51 > 100
+
+tests/unit/test_readme_scorer.py:56: AssertionError
+----------------------------- Captured stdout call -----------------------------
+2026-07-28 18:13:45 [info     ] readme_scored                  category=minimal score=0.8717142857142858 word_count=51
+_____________ TestRelevanceScorer.test_query_with_partial_overlap ______________
+
+self = <tests.unit.test_relevance_scorer.TestRelevanceScorer object at 0x107c1e9d0>
+scorer = <rag.evaluator.relevance_scorer.RelevanceScorer object at 0x12336a010>
+
+    def test_query_with_partial_overlap(self, scorer):
+        """Test query with partial overlap returns score between 0 and 1."""
+        query = "Python Django web framework"
+        chunks = [
+            {
+                "text": "Django is a Python web framework for rapid development"
+            },
+        ]
+    
+        score = scorer.score(query, chunks)
+    
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+>       assert 0.3 < score < 0.9  # Partial overlap should be in middle range
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 1.0 < 0.9
+
+tests/unit/test_relevance_scorer.py:60: AssertionError
+----------------------------- Captured stdout call -----------------------------
+2026-07-28 18:13:45 [info     ] relevance_scored               avg_score=1.0 chunks_count=1 query_len=4
+____________ TestResumeParser.test_parse_single_column_resume_text _____________
+
+self = <tests.unit.test_resume_parser.TestResumeParser object at 0x1201a54d0>
+parser = <ingestion.parsers.resume_parser.ResumeParser object at 0x12334d8d0>
+sample_resume_text = '\n    Jane Doe\n    Software Engineer\n    jane.doe@example.com | github.com/janedoe\n\n    Experience:\n    - Softwa...   - B.S. Computer Science, State University (2022)\n\n    Skills: Python, JavaScript, React, PostgreSQL, Docker\n    '
+
+    def test_parse_single_column_resume_text(self, parser, sample_resume_text):
+        """Test parsing a standard single-column resume text."""
+        result = parser.parse(sample_resume_text)
+    
+        assert isinstance(result, ParseResult)
+        assert result.text
+        assert result.source_type == "resume"
+        assert result.metadata["source_type"] == "resume"
+        assert result.metadata["page_count"] == 1
+        assert "detected_sections" in result.metadata
+        # Should detect common sections like Experience, Skills, Education
+        detected_lower = [s.lower() for s in result.metadata["detected_sections"]]
+>       assert any("experience" in s for s in detected_lower) or any(
+            "skills" in s for s in detected_lower
+        )
+E       assert (False or False)
+E        +  where False = any(<generator object TestResumeParser.test_parse_single_column_resume_text.<locals>.<genexpr> at 0x1233372a0>)
+E        +  and   False = any(<generator object TestResumeParser.test_parse_single_column_resume_text.<locals>.<genexpr> at 0x123337370>)
+
+tests/unit/test_resume_parser.py:32: AssertionError
+____________ TestResumeParser.test_parse_resume_no_work_experience _____________
+
+self = <tests.unit.test_resume_parser.TestResumeParser object at 0x1201a5ad0>
+parser = <ingestion.parsers.resume_parser.ResumeParser object at 0x123358310>
+
+    def test_parse_resume_no_work_experience(self, parser):
+        """Test parsing a resume with no work experience section - handles gracefully."""
+        resume_no_work = """
+        John Smith
+        Software Developer
+        john@example.com
+    
+        Education:
+        - B.S. Computer Science, University (2023)
+    
+        Skills: Python, JavaScript, React
+        """
+        result = parser.parse(resume_no_work)
+    
+        assert isinstance(result, ParseResult)
+        assert result.text
+        # Should not crash even with missing Experience section
+        assert result.metadata["page_count"] == 1
+        detected_lower = [s.lower() for s in result.metadata["detected_sections"]]
+>       assert any("education" in s for s in detected_lower)
+E       assert False
+E        +  where False = any(<generator object TestResumeParser.test_parse_resume_no_work_experience.<locals>.<genexpr> at 0x1233420c0>)
+
+tests/unit/test_resume_parser.py:55: AssertionError
+_________________ TestResumeParser.test_parse_markdown_resume __________________
+
+self = <tests.unit.test_resume_parser.TestResumeParser object at 0x1201a6710>
+parser = <ingestion.parsers.resume_parser.ResumeParser object at 0x1233aabd0>
+
+    def test_parse_markdown_resume(self, parser):
+        """Test parsing a Markdown resume."""
+        markdown_resume = """
+        # Jane Doe
+        ## Contact
+        - Email: jane@example.com
+        - GitHub: github.com/janedoe
+    
+        ## Experience
+        - **Software Engineer** at TechCorp (2022-2024)
+          - Built REST APIs using Python and FastAPI
+    
+        ## Skills
+        - Python, JavaScript, React, PostgreSQL
+        """
+        result = parser.parse(markdown_resume)
+    
+        assert isinstance(result, ParseResult)
+        assert result.source_type == "resume"
+        assert result.metadata["page_count"] == 1
+        # Markdown syntax should be stripped
+>       assert "#" not in result.text or result.text.count("#") < markdown_resume.count("#")
+E       AssertionError: assert ('#' not in '# Jane Doe\..., PostgreSQL'
+E         
+E         '#' is contained here:
+E           # Jane Doe
+E         ? +
+E                   ## Contact
+E                   - Email: jane@example.com
+E                   - GitHub: github.com/janedoe...
+E         
+E         ...Full output truncated (7 lines hidden), use '-vv' to show or 7 < 7)
+E        +  where 7 = <built-in method count of str object at 0x122eff1b0>('#')
+E        +    where <built-in method count of str object at 0x122eff1b0> = '# Jane Doe\n        ## Contact\n        - Email: jane@example.com\n        - GitHub: github.com/janedoe\n\n        ## Experience\n        - Software Engineer at TechCorp (2022-2024)\n          - Built REST APIs using Python and FastAPI\n\n        ## Skills\n        - Python, JavaScript, React, PostgreSQL'.count
+E        +      where '# Jane Doe\n        ## Contact\n        - Email: jane@example.com\n        - GitHub: github.com/janedoe\n\n        ## Experience\n        - Software Engineer at TechCorp (2022-2024)\n          - Built REST APIs using Python and FastAPI\n\n        ## Skills\n        - Python, JavaScript, React, PostgreSQL' = ParseResult(text='# Jane Doe\n        ## Contact\n        - Email: jane@example.com\n        - GitHub: github.com/janedoe\n\n        ## Experience\n        - Software Engineer at TechCorp (2022-2024)\n          - Built REST APIs using Python and FastAPI\n\n        ## Skills\n        - Python, JavaScript, React, PostgreSQL', metadata={'source_type': 'resume', 'page_count': 1, 'detected_sections': []}, source_type='resume').text
+E        +  and   7 = <built-in method count of str object at 0x107b285f0>('#')
+E        +    where <built-in method count of str object at 0x107b285f0> = '\n        # Jane Doe\n        ## Contact\n        - Email: jane@example.com\n        - GitHub: github.com/janedoe\n\n        ## Experience\n        - **Software Engineer** at TechCorp (2022-2024)\n          - Built REST APIs using Python and FastAPI\n\n        ## Skills\n        - Python, JavaScript, React, PostgreSQL\n        '.count
+
+tests/unit/test_resume_parser.py:105: AssertionError
+____________________ TestResumeParser.test_detect_sections _____________________
+
+self = <tests.unit.test_resume_parser.TestResumeParser object at 0x1201a79d0>
+parser = <ingestion.parsers.resume_parser.ResumeParser object at 0x1233abf90>
+
+    def test_detect_sections(self, parser):
+        """Test section detection in resume text."""
+        text = """
+        Experience:
+        Senior Developer at TechCorp
+    
+        Education:
+        BS Computer Science
+    
+        Skills: Python, JavaScript
+        """
+        sections = parser._detect_sections(text)
+    
+        assert isinstance(sections, list)
+>       assert len(sections) > 0
+E       assert 0 > 0
+E        +  where 0 = len([])
+
+tests/unit/test_resume_parser.py:140: AssertionError
+_________________ TestResumeParser.test_strip_markdown_syntax __________________
+
+self = <tests.unit.test_resume_parser.TestResumeParser object at 0x1201ac050>
+parser = <ingestion.parsers.resume_parser.ResumeParser object at 0x123368750>
+
+    def test_strip_markdown_syntax(self, parser):
+        """Test markdown syntax stripping."""
+        markdown_text = """
+        # Header
+        **Bold text** and _italic text_
+        [Link](https://example.com)
+        ```python
+        print("code")
+        ```
+        `inline code`
+        """
+        stripped = parser._strip_markdown(markdown_text)
+    
+        # Headers should be removed
+>       assert not stripped.strip().startswith("#")
+E       AssertionError: assert not True
+E        +  where True = <built-in method startswith of str object at 0x122f43090>('#')
+E        +    where <built-in method startswith of str object at 0x122f43090> = '# Header\n        Bold text and italic text\n        Link\n        \n        inline code'.startswith
+E        +      where '# Header\n        Bold text and italic text\n        Link\n        \n        inline code' = <built-in method strip of str object at 0x122f43090>()
+E        +        where <built-in method strip of str object at 0x122f43090> = '# Header\n        Bold text and italic text\n        Link\n        \n        inline code'.strip
+
+tests/unit/test_resume_parser.py:160: AssertionError
+______ TestReviewService.test_get_review_returns_review_for_correct_owner ______
+
+self = <tests.unit.test_review_service.TestReviewService object at 0x122a72410>
+mock_db_session = <AsyncMock id='4885653392'>
+
+    @pytest.mark.asyncio
+    async def test_get_review_returns_review_for_correct_owner(self, mock_db_session):
+        """Test get_review returns review when user_id matches."""
+        review_id = uuid4()
+        user_id = uuid4()
+    
+        mock_review = Mock()
+        mock_review.id = review_id
+    
+        # Setup mock execute to return review
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.first.return_value = mock_review
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    
+>       result = await get_review(mock_db_session, review_id, user_id)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_review_service.py:85: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <AsyncMock id='4885653392'>
+review_id = UUID('7a72fcc6-266c-4a96-b3e9-c733bd10d129')
+user_id = UUID('086957f3-fbe3-4edd-9254-dd52aff32994')
+
+    async def get_review(
+        db,
+        review_id: UUID,
+        user_id: UUID,
+    ) -> Review | None:
+        """
+        Get a review by ID, checking that it belongs to the user's profile.
+        """
+        stmt = select(Review).join(Profile).where(
+            and_(Review.id == review_id, Profile.user_id == user_id)
+        )
+        result = await db.execute(stmt)
+>       return result.scalars().first()
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'coroutine' object has no attribute 'first'
+
+core/services/review_service.py:47: AttributeError
+________ TestReviewService.test_get_review_returns_none_for_wrong_user _________
+
+self = <tests.unit.test_review_service.TestReviewService object at 0x122a72b90>
+mock_db_session = <AsyncMock id='4425106384'>
+
+    @pytest.mark.asyncio
+    async def test_get_review_returns_none_for_wrong_user(self, mock_db_session):
+        """Test get_review returns None when user_id doesn't match."""
+        review_id = uuid4()
+        user_id = uuid4()
+        wrong_user_id = uuid4()
+    
+        # Setup mock to return None
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.first.return_value = None
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    
+>       result = await get_review(mock_db_session, review_id, wrong_user_id)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_review_service.py:102: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <AsyncMock id='4425106384'>
+review_id = UUID('135791d3-4e01-4a19-acb3-537d8cf7243e')
+user_id = UUID('d74e4d28-27e4-437e-a545-aba269f67575')
+
+    async def get_review(
+        db,
+        review_id: UUID,
+        user_id: UUID,
+    ) -> Review | None:
+        """
+        Get a review by ID, checking that it belongs to the user's profile.
+        """
+        stmt = select(Review).join(Profile).where(
+            and_(Review.id == review_id, Profile.user_id == user_id)
+        )
+        result = await db.execute(stmt)
+>       return result.scalars().first()
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'coroutine' object has no attribute 'first'
+
+core/services/review_service.py:47: AttributeError
+________ TestReviewService.test_list_reviews_returns_paginated_results _________
+
+self = <tests.unit.test_review_service.TestReviewService object at 0x122a73350>
+mock_db_session = <AsyncMock id='4886016592'>
+
+    @pytest.mark.asyncio
+    async def test_list_reviews_returns_paginated_results(self, mock_db_session):
+        """Test list_reviews returns paginated results."""
+        user_id = uuid4()
+    
+        # Create mock reviews
+        mock_reviews = [Mock() for _ in range(5)]
+    
+        # Setup execute mock to return reviews
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.all.return_value = mock_reviews
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    
+>       reviews, total = await list_reviews(mock_db_session, user_id, page=1, page_size=20)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_review_service.py:119: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <AsyncMock id='4886016592'>
+user_id = UUID('50fe96ea-b82a-426e-ae0a-51a10c79ad8d'), page = 1, page_size = 20
+
+    async def list_reviews(
+        db,
+        user_id: UUID,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Review], int]:
+        """
+        List reviews for a user with pagination.
+        Returns (reviews, total_count).
+        """
+        offset = (page - 1) * page_size
+    
+        # Get total count
+        count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
+        count_result = await db.execute(count_stmt)
+>       total = len(count_result.scalars().all())
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'coroutine' object has no attribute 'all'
+
+core/services/review_service.py:65: AttributeError
+______ TestReviewService.test_list_reviews_page_2_returns_correct_offset _______
+
+self = <tests.unit.test_review_service.TestReviewService object at 0x122a73ad0>
+mock_db_session = <AsyncMock id='4899032400'>
+
+    @pytest.mark.asyncio
+    async def test_list_reviews_page_2_returns_correct_offset(self, mock_db_session):
+        """Test list_reviews page 2 returns correct offset."""
+        user_id = uuid4()
+        page_size = 20
+    
+        # Setup mock
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.all.return_value = []
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    
+>       reviews, total = await list_reviews(
+            mock_db_session, user_id, page=2, page_size=page_size
+        )
+
+tests/unit/test_review_service.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <AsyncMock id='4899032400'>
+user_id = UUID('d652d2a1-b72a-45ba-9c45-055464456765'), page = 2, page_size = 20
+
+    async def list_reviews(
+        db,
+        user_id: UUID,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Review], int]:
+        """
+        List reviews for a user with pagination.
+        Returns (reviews, total_count).
+        """
+        offset = (page - 1) * page_size
+    
+        # Get total count
+        count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
+        count_result = await db.execute(count_stmt)
+>       total = len(count_result.scalars().all())
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'coroutine' object has no attribute 'all'
+
+core/services/review_service.py:65: AttributeError
+______________ TestReviewService.test_list_reviews_returns_tuple _______________
+
+self = <tests.unit.test_review_service.TestReviewService object at 0x122a78290>
+mock_db_session = <AsyncMock id='4899200848'>
+
+    @pytest.mark.asyncio
+    async def test_list_reviews_returns_tuple(self, mock_db_session):
+        """Test list_reviews returns (reviews, total) tuple."""
+        user_id = uuid4()
+    
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.all.return_value = []
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    
+>       result = await list_reviews(mock_db_session, user_id)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_review_service.py:154: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <AsyncMock id='4899200848'>
+user_id = UUID('a1898501-4d03-4740-9ca3-1a6d32d0d96b'), page = 1, page_size = 20
+
+    async def list_reviews(
+        db,
+        user_id: UUID,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Review], int]:
+        """
+        List reviews for a user with pagination.
+        Returns (reviews, total_count).
+        """
+        offset = (page - 1) * page_size
+    
+        # Get total count
+        count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
+        count_result = await db.execute(count_stmt)
+>       total = len(count_result.scalars().all())
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'coroutine' object has no attribute 'all'
+
+core/services/review_service.py:65: AttributeError
+____________ TestReviewService.test_get_review_uses_select_and_join ____________
+
+self = <tests.unit.test_review_service.TestReviewService object at 0x122a72ed0>
+mock_db_session = <AsyncMock id='4899512912'>
+
+    @pytest.mark.asyncio
+    async def test_get_review_uses_select_and_join(self, mock_db_session):
+        """Test get_review constructs proper SQL with join."""
+        review_id = uuid4()
+        user_id = uuid4()
+    
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.first.return_value = None
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    
+>       await get_review(mock_db_session, review_id, user_id)
+
+tests/unit/test_review_service.py:205: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <AsyncMock id='4899512912'>
+review_id = UUID('ced32d03-0621-4bd7-bfc7-35a73418c9d9')
+user_id = UUID('4c59113b-31a9-4428-b725-dbdac6fee563')
+
+    async def get_review(
+        db,
+        review_id: UUID,
+        user_id: UUID,
+    ) -> Review | None:
+        """
+        Get a review by ID, checking that it belongs to the user's profile.
+        """
+        stmt = select(Review).join(Profile).where(
+            and_(Review.id == review_id, Profile.user_id == user_id)
+        )
+        result = await db.execute(stmt)
+>       return result.scalars().first()
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'coroutine' object has no attribute 'first'
+
+core/services/review_service.py:47: AttributeError
+____________ TestReviewService.test_list_reviews_default_pagination ____________
+
+self = <tests.unit.test_review_service.TestReviewService object at 0x122a79ad0>
+mock_db_session = <AsyncMock id='4875988816'>
+
+    @pytest.mark.asyncio
+    async def test_list_reviews_default_pagination(self, mock_db_session):
+        """Test list_reviews uses default pagination."""
+        user_id = uuid4()
+    
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.all.return_value = []
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    
+>       reviews, total = await list_reviews(mock_db_session, user_id)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_review_service.py:219: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <AsyncMock id='4875988816'>
+user_id = UUID('a8342057-fb72-4699-b9f3-d5e7dcf84b07'), page = 1, page_size = 20
+
+    async def list_reviews(
+        db,
+        user_id: UUID,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Review], int]:
+        """
+        List reviews for a user with pagination.
+        Returns (reviews, total_count).
+        """
+        offset = (page - 1) * page_size
+    
+        # Get total count
+        count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
+        count_result = await db.execute(count_stmt)
+>       total = len(count_result.scalars().all())
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'coroutine' object has no attribute 'all'
+
+core/services/review_service.py:65: AttributeError
+_____________ TestReviewService.test_list_reviews_custom_page_size _____________
+
+self = <tests.unit.test_review_service.TestReviewService object at 0x122a781d0>
+mock_db_session = <AsyncMock id='4394564688'>
+
+    @pytest.mark.asyncio
+    async def test_list_reviews_custom_page_size(self, mock_db_session):
+        """Test list_reviews with custom page size."""
+        user_id = uuid4()
+        custom_page_size = 50
+    
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.all.return_value = []
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    
+>       reviews, total = await list_reviews(
+            mock_db_session, user_id, page=1, page_size=custom_page_size
+        )
+
+tests/unit/test_review_service.py:235: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <AsyncMock id='4394564688'>
+user_id = UUID('9c5bcdc6-5cee-423a-899e-48533b2b5930'), page = 1, page_size = 50
+
+    async def list_reviews(
+        db,
+        user_id: UUID,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Review], int]:
+        """
+        List reviews for a user with pagination.
+        Returns (reviews, total_count).
+        """
+        offset = (page - 1) * page_size
+    
+        # Get total count
+        count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
+        count_result = await db.execute(count_stmt)
+>       total = len(count_result.scalars().all())
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'coroutine' object has no attribute 'all'
+
+core/services/review_service.py:65: AttributeError
+_____________ TestReviewService.test_get_review_verifies_ownership _____________
+
+self = <tests.unit.test_review_service.TestReviewService object at 0x122a7a850>
+mock_db_session = <AsyncMock id='4886499280'>
+
+    @pytest.mark.asyncio
+    async def test_get_review_verifies_ownership(self, mock_db_session):
+        """Test get_review checks Profile.user_id matches."""
+        review_id = uuid4()
+        user_id = uuid4()
+    
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.first.return_value = None
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    
+>       await get_review(mock_db_session, review_id, user_id)
+
+tests/unit/test_review_service.py:265: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <AsyncMock id='4886499280'>
+review_id = UUID('923bb69d-782f-40ce-8cbc-de54d11f9d88')
+user_id = UUID('8ce7e451-ced4-4cb0-b519-3732175d225c')
+
+    async def get_review(
+        db,
+        review_id: UUID,
+        user_id: UUID,
+    ) -> Review | None:
+        """
+        Get a review by ID, checking that it belongs to the user's profile.
+        """
+        stmt = select(Review).join(Profile).where(
+            and_(Review.id == review_id, Profile.user_id == user_id)
+        )
+        result = await db.execute(stmt)
+>       return result.scalars().first()
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'coroutine' object has no attribute 'first'
+
+core/services/review_service.py:47: AttributeError
+_______________ TestReviewService.test_list_reviews_counts_total _______________
+
+self = <tests.unit.test_review_service.TestReviewService object at 0x122a7ac90>
+mock_db_session = <AsyncMock id='4899053648'>
+
+    @pytest.mark.asyncio
+    async def test_list_reviews_counts_total(self, mock_db_session):
+        """Test list_reviews calculates total count."""
+        user_id = uuid4()
+    
+        mock_reviews = [Mock() for _ in range(5)]
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.all.return_value = mock_reviews
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    
+>       reviews, total = await list_reviews(mock_db_session, user_id)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_review_service.py:280: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <AsyncMock id='4899053648'>
+user_id = UUID('59b12c93-4f80-4e63-8b28-31263f993147'), page = 1, page_size = 20
+
+    async def list_reviews(
+        db,
+        user_id: UUID,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Review], int]:
+        """
+        List reviews for a user with pagination.
+        Returns (reviews, total_count).
+        """
+        offset = (page - 1) * page_size
+    
+        # Get total count
+        count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
+        count_result = await db.execute(count_stmt)
+>       total = len(count_result.scalars().all())
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'coroutine' object has no attribute 'all'
+
+core/services/review_service.py:65: AttributeError
+___________ TestReviewService.test_list_reviews_returns_reviews_list ___________
+
+self = <tests.unit.test_review_service.TestReviewService object at 0x122a7b2d0>
+mock_db_session = <AsyncMock id='4886109904'>
+
+    @pytest.mark.asyncio
+    async def test_list_reviews_returns_reviews_list(self, mock_db_session):
+        """Test list_reviews returns list of Review objects."""
+        user_id = uuid4()
+    
+        mock_reviews = [Mock(spec=['id', 'status']) for _ in range(3)]
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.all.return_value = mock_reviews
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    
+>       reviews, total = await list_reviews(mock_db_session, user_id)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_review_service.py:295: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <AsyncMock id='4886109904'>
+user_id = UUID('29f757e4-c986-4b05-8752-05d34d564411'), page = 1, page_size = 20
+
+    async def list_reviews(
+        db,
+        user_id: UUID,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Review], int]:
+        """
+        List reviews for a user with pagination.
+        Returns (reviews, total_count).
+        """
+        offset = (page - 1) * page_size
+    
+        # Get total count
+        count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
+        count_result = await db.execute(count_stmt)
+>       total = len(count_result.scalars().all())
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'coroutine' object has no attribute 'all'
+
+core/services/review_service.py:65: AttributeError
+______________ TestReviewService.test_get_review_with_valid_uuid _______________
+
+self = <tests.unit.test_review_service.TestReviewService object at 0x122a7c210>
+mock_db_session = <AsyncMock id='4885654352'>
+
+    @pytest.mark.asyncio
+    async def test_get_review_with_valid_uuid(self, mock_db_session):
+        """Test get_review handles valid UUID parameters."""
+        review_id = uuid4()
+        user_id = uuid4()
+    
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.first.return_value = None
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    
+        # Should not raise
+>       result = await get_review(mock_db_session, review_id, user_id)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_review_service.py:324: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <AsyncMock id='4885654352'>
+review_id = UUID('1ee185e9-49a7-4784-9295-075b282a1a62')
+user_id = UUID('34a289a1-fe8f-420d-b7f6-0f9b5da2f564')
+
+    async def get_review(
+        db,
+        review_id: UUID,
+        user_id: UUID,
+    ) -> Review | None:
+        """
+        Get a review by ID, checking that it belongs to the user's profile.
+        """
+        stmt = select(Review).join(Profile).where(
+            and_(Review.id == review_id, Profile.user_id == user_id)
+        )
+        result = await db.execute(stmt)
+>       return result.scalars().first()
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'coroutine' object has no attribute 'first'
+
+core/services/review_service.py:47: AttributeError
+__________ TestReviewService.test_list_reviews_ordered_by_created_at ___________
+
+self = <tests.unit.test_review_service.TestReviewService object at 0x122a7cad0>
+mock_db_session = <AsyncMock id='4880984848'>
+
+    @pytest.mark.asyncio
+    async def test_list_reviews_ordered_by_created_at(self, mock_db_session):
+        """Test list_reviews returns results ordered by created_at desc."""
+        user_id = uuid4()
+    
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.all.return_value = []
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    
+>       reviews, total = await list_reviews(mock_db_session, user_id)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_review_service.py:337: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <AsyncMock id='4880984848'>
+user_id = UUID('dd4c1567-1dfe-4669-9938-7270318fb4d1'), page = 1, page_size = 20
+
+    async def list_reviews(
+        db,
+        user_id: UUID,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Review], int]:
+        """
+        List reviews for a user with pagination.
+        Returns (reviews, total_count).
+        """
+        offset = (page - 1) * page_size
+    
+        # Get total count
+        count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
+        count_result = await db.execute(count_stmt)
+>       total = len(count_result.scalars().all())
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'coroutine' object has no attribute 'all'
+
+core/services/review_service.py:65: AttributeError
+_______________ TestSecurity.test_verify_with_wrong_hash_format ________________
+
+self = <tests.unit.test_security.TestSecurity object at 0x122dbfe50>
+
+    def test_verify_with_wrong_hash_format(self):
+        """Test verify_password with non-bcrypt hash."""
+        wrong_hash = "not_a_valid_bcrypt_hash"
+    
+        # Should handle gracefully, return False
+>       result = verify_password("password", wrong_hash)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/test_security.py:230: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+core/security.py:37: in verify_password
+    return bool(pwd_context.verify(plain_password, hashed_password))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.11/site-packages/passlib/context.py:2343: in verify
+    record = self._get_or_identify_record(hash, scheme, category)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.11/site-packages/passlib/context.py:2031: in _get_or_identify_record
+    return self._identify_record(hash, category)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <passlib.context._CryptConfig object at 0x122a7e410>
+hash = 'not_a_valid_bcrypt_hash', category = None, required = True
+
+    def identify_record(self, hash, category, required=True):
+        """internal helper to identify appropriate custom handler for hash"""
+        # NOTE: this is part of the critical path shared by
+        #       all of CryptContext's PasswordHash methods,
+        #       hence all the caching and error checking.
+        # FIXME: if multiple hashes could match (e.g. lmhash vs nthash)
+        #        this will only return first match. might want to do something
+        #        about this in future, but for now only hashes with
+        #        unique identifiers will work properly in a CryptContext.
+        # XXX: if all handlers have a unique prefix (e.g. all are MCF / LDAP),
+        #      could use dict-lookup to speed up this search.
+        if not isinstance(hash, unicode_or_bytes_types):
+            raise ExpectedStringError(hash, "hash")
+        # type check of category - handled by _get_record_list()
+        for record in self._get_record_list(category):
+            if record.identify(hash):
+                return record
+        if not required:
+            return None
+        elif not self.schemes:
+            raise KeyError("no crypt algorithms supported")
+        else:
+>           raise exc.UnknownHashError("hash could not be identified")
+E           passlib.exc.UnknownHashError: hash could not be identified
+
+.venv/lib/python3.11/site-packages/passlib/context.py:1132: UnknownHashError
+______________ TestSkillExtractor.test_text_with_typescript_files ______________
+
+self = <tests.unit.test_skill_extractor.TestSkillExtractor object at 0x122dfb190>
+extractor = <ingestion.parsers.skill_extractor.SkillExtractor object at 0x12472eb50>
+
+    def test_text_with_typescript_files(self, extractor):
+        """Test TypeScript detection."""
+        text = """
+        export interface User {
+            id: string;
+            name: string;
+        }
+    
+        export class UserService {
+            async getUser(id: string): Promise<User> {}
+        }
+        """
+        result = extractor.extract_skills(text)
+    
+        skill_names = [s.name for s in result]
+        # Should detect TypeScript
+>       assert any("typescript" in s.lower() for s in skill_names)
+E       assert False
+E        +  where False = any(<generator object TestSkillExtractor.test_text_with_typescript_files.<locals>.<genexpr> at 0x12336cc80>)
+
+tests/unit/test_skill_extractor.py:62: AssertionError
+____________ TestSkillExtractor.test_database_technology_detection _____________
+
+self = <tests.unit.test_skill_extractor.TestSkillExtractor object at 0x122e049d0>
+extractor = <ingestion.parsers.skill_extractor.SkillExtractor object at 0x1242dc890>
+
+    def test_database_technology_detection(self, extractor):
+        """Test database technology detection."""
+        text = """
+        import psycopg2
+        conn = psycopg2.connect("dbname=mydb")
+        """
+        result = extractor.extract_skills(text)
+    
+>       skill_names = [s.name for s in skill_names]
+                                       ^^^^^^^^^^^
+E       UnboundLocalError: cannot access local variable 'skill_names' where it is not associated with a value
+
+tests/unit/test_skill_extractor.py:138: UnboundLocalError
+________________ TestSkillExtractor.test_devops_tool_detection _________________
+
+self = <tests.unit.test_skill_extractor.TestSkillExtractor object at 0x122e04fd0>
+extractor = <ingestion.parsers.skill_extractor.SkillExtractor object at 0x12472e010>
+
+    def test_devops_tool_detection(self, extractor):
+        """Test DevOps tool detection."""
+        text = """
+        FROM python:3.9
+        RUN pip install requirements.txt
+        EXPOSE 8000
+        """
+        result = extractor.extract_skills(text)
+    
+        skill_names = [s.name for s in result]
+        # Should detect Docker
+>       assert any("docker" in s.lower() for s in skill_names)
+E       assert False
+E        +  where False = any(<generator object TestSkillExtractor.test_devops_tool_detection.<locals>.<genexpr> at 0x12336ece0>)
+
+tests/unit/test_skill_extractor.py:153: AssertionError
+_________________ TestSkillExtractor.test_javascript_detection _________________
+
+self = <tests.unit.test_skill_extractor.TestSkillExtractor object at 0x122e06510>
+extractor = <ingestion.parsers.skill_extractor.SkillExtractor object at 0x12421f610>
+
+    def test_javascript_detection(self, extractor):
+        """Test JavaScript detection."""
+        text = """
+        const fs = require('fs');
+        const data = fs.readFileSync('file.txt');
+        console.log(data);
+        """
+        result = extractor.extract_skills(text)
+    
+        skill_names = [s.name for s in result]
+>       assert any("javascript" in s.lower() or "js" in s.lower() for s in skill_names)
+E       assert False
+E        +  where False = any(<generator object TestSkillExtractor.test_javascript_detection.<locals>.<genexpr> at 0x12336f3e0>)
+
+tests/unit/test_skill_extractor.py:183: AssertionError
+_______________ TestSkillExtractor.test_docker_compose_detection _______________
+
+self = <tests.unit.test_skill_extractor.TestSkillExtractor object at 0x122e06c50>
+extractor = <ingestion.parsers.skill_extractor.SkillExtractor object at 0x1242ddbd0>
+
+    def test_docker_compose_detection(self, extractor):
+        """Test Docker and Docker Compose detection."""
+        text = """
+        version: '3.8'
+        services:
+          web:
+            build: .
+            ports:
+              - "8000:8000"
+        """
+        result = extractor.extract_skills(text)
+    
+        skill_names = [s.name for s in result]
+>       assert any("docker" in s.lower() for s in skill_names)
+E       assert False
+E        +  where False = any(<generator object TestSkillExtractor.test_docker_compose_detection.<locals>.<genexpr> at 0x12336fe60>)
+
+tests/unit/test_skill_extractor.py:198: AssertionError
+_____________ TestStructuralChunker.test_document_with_no_headings _____________
+
+self = <tests.unit.test_structural_chunker.TestStructuralChunker object at 0x122e19b50>
+chunker = <ingestion.chunking.structural_chunker.StructuralChunker object at 0x124289250>
+
+    def test_document_with_no_headings(self, chunker):
+        """Test document with no headings returns single chunk."""
+        text = "This is plain text without any markdown headings. " * 20
+        result = chunker.chunk(text, {"source": "test"})
+    
+>       assert len(result) >= 1
+E       assert 0 >= 1
+E        +  where 0 = len([])
+
+tests/unit/test_structural_chunker.py:33: AssertionError
+_________________ TestTechDetector.test_node_modules_excluded __________________
+
+self = <tests.unit.test_tech_detector.TestTechDetector object at 0x122e35710>
+detector = <agent.tools.tech_detector.TechDetector object at 0x1242d7810>
+
+    def test_node_modules_excluded(self, detector):
+        """Test node_modules/ directory is excluded from counts."""
+        files = [
+            "src/main.py",
+            "node_modules/package1/index.js",
+            "node_modules/package2/lib.js",
+            "utils.py",
+        ]
+    
+        result = detector.execute({"files": files})
+    
+        data = result.data
+>       assert data["primary_language"] == "Python"
+E       AssertionError: assert 'JavaScript' == 'Python'
+E         
+E         - Python
+E         + JavaScript
+
+tests/unit/test_tech_detector.py:78: AssertionError
+----------------------------- Captured stdout call -----------------------------
+2026-07-28 18:13:50 [info     ] tech_detected                  frameworks_count=0 languages_count=2 primary_lang=JavaScript
+________________ TestTechDetector.test_build_directory_excluded ________________
+
+self = <tests.unit.test_tech_detector.TestTechDetector object at 0x122e36390>
+detector = <agent.tools.tech_detector.TechDetector object at 0x1242bd650>
+
+    def test_build_directory_excluded(self, detector):
+        """Test build directory is excluded."""
+        files = [
+            "src/main.py",
+            "build/generated.js",
+            "build/bundle.js",
+        ]
+    
+        result = detector.execute({"files": files})
+    
+        data = result.data
+>       assert data["primary_language"] == "Python"
+E       AssertionError: assert 'JavaScript' == 'Python'
+E         
+E         - Python
+E         + JavaScript
+
+tests/unit/test_tech_detector.py:105: AssertionError
+----------------------------- Captured stdout call -----------------------------
+2026-07-28 18:13:50 [info     ] tech_detected                  frameworks_count=0 languages_count=2 primary_lang=JavaScript
+=============================== warnings summary ===============================
+core/config.py:7
+  /Users/mytruong/Desktop/ai201-pathreview/core/config.py:7: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class Settings(BaseSettings):
+
+.venv/lib/python3.11/site-packages/passlib/utils/__init__.py:854
+  /Users/mytruong/Desktop/ai201-pathreview/.venv/lib/python3.11/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+tests/unit/test_review_service.py::TestReviewService::test_get_review_verifies_ownership
+  /Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/inspect.py:2226: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    class RewriteSymbolics(ast.NodeTransformer):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty
+FAILED tests/unit/test_bias_detector.py::TestBiasDetector::test_dismissive_bootcamp_language_detected
+FAILED tests/unit/test_bias_detector.py::TestBiasDetector::test_bootcamp_lacks_rigor_detected
+FAILED tests/unit/test_bias_detector.py::TestBiasDetector::test_demographic_assumption_age_detected
+FAILED tests/unit/test_bias_detector.py::TestBiasDetector::test_coding_bootcamp_variant
+/Users/mytruong/Desktop/ai201-pathreview/.venv/lib/python3.11/site-packages/_pytest/unraisableexception.py:33: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  gc.collect()
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+FAILED tests/unit/test_bias_detector.py::TestBiasDetector::test_developer_vs_programmer_distinction
+FAILED tests/unit/test_bias_detector.py::TestBiasDetector::test_multiple_bias_indicators
+FAILED tests/unit/test_bias_detector.py::TestBiasDetector::test_negative_educational_claim
+FAILED tests/unit/test_bias_detector.py::TestBiasDetector::test_rich_poor_assumption
+FAILED tests/unit/test_bias_detector.py::TestBiasDetector::test_assumption_vs_observation
+FAILED tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_partial_support_returns_middle_score
+FAILED tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_multiple_context_chunks
+FAILED tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_multiple_claims_varying_support
+FAILED tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_none_context_chunk_text
+FAILED tests/unit/test_keyword_search.py::TestKeywordSearcher::test_empty_index
+FAILED tests/unit/test_output_parser.py::TestOutputParser::test_json_array_fallback
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_us_phone_number_redaction
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_us_phone_formats
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_phone_pii
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_phone_at_start_of_text
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_mixed_pii_and_text
+FAILED tests/unit/test_prompt_defense.py::TestPromptDefense::test_whitespace_variations_detected
+FAILED tests/unit/test_readme_parser.py::TestReadmeParser::test_parse_standard_readme
+FAILED tests/unit/test_readme_parser.py::TestReadmeParser::test_extract_heading_hierarchy
+FAILED tests/unit/test_readme_scorer.py::TestReadmeScorer::test_readme_with_all_quality_signals
+FAILED tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_query_with_partial_overlap
+FAILED tests/unit/test_resume_parser.py::TestResumeParser::test_parse_single_column_resume_text
+FAILED tests/unit/test_resume_parser.py::TestResumeParser::test_parse_resume_no_work_experience
+FAILED tests/unit/test_resume_parser.py::TestResumeParser::test_parse_markdown_resume
+FAILED tests/unit/test_resume_parser.py::TestResumeParser::test_detect_sections
+FAILED tests/unit/test_resume_parser.py::TestResumeParser::test_strip_markdown_syntax
+FAILED tests/unit/test_review_service.py::TestReviewService::test_get_review_returns_review_for_correct_owner
+FAILED tests/unit/test_review_service.py::TestReviewService::test_get_review_returns_none_for_wrong_user
+FAILED tests/unit/test_review_service.py::TestReviewService::test_list_reviews_returns_paginated_results
+FAILED tests/unit/test_review_service.py::TestReviewService::test_list_reviews_page_2_returns_correct_offset
+FAILED tests/unit/test_review_service.py::TestReviewService::test_list_reviews_returns_tuple
+FAILED tests/unit/test_review_service.py::TestReviewService::test_get_review_uses_select_and_join
+FAILED tests/unit/test_review_service.py::TestReviewService::test_list_reviews_default_pagination
+FAILED tests/unit/test_review_service.py::TestReviewService::test_list_reviews_custom_page_size
+FAILED tests/unit/test_review_service.py::TestReviewService::test_get_review_verifies_ownership
+FAILED tests/unit/test_review_service.py::TestReviewService::test_list_reviews_counts_total
+FAILED tests/unit/test_review_service.py::TestReviewService::test_list_reviews_returns_reviews_list
+FAILED tests/unit/test_review_service.py::TestReviewService::test_get_review_with_valid_uuid
+FAILED tests/unit/test_review_service.py::TestReviewService::test_list_reviews_ordered_by_created_at
+FAILED tests/unit/test_security.py::TestSecurity::test_verify_with_wrong_hash_format
+FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_text_with_typescript_files
+FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_database_technology_detection
+FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_devops_tool_detection
+FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_javascript_detection
+FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_docker_compose_detection
+FAILED tests/unit/test_structural_chunker.py::TestStructuralChunker::test_document_with_no_headings
+FAILED tests/unit/test_tech_detector.py::TestTechDetector::test_node_modules_excluded
+FAILED tests/unit/test_tech_detector.py::TestTechDetector::test_build_directory_excluded
+================== 53 failed, 379 passed, 3 warnings in 7.08s ==================
+make: *** [test-unit] Error 1

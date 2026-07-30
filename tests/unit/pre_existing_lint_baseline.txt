@@ -1,0 +1,2270 @@
+.venv/bin/ruff check .
+I001 [*] Import block is un-sorted or un-formatted
+ --> agent/error_handling.py:3:1
+  |
+1 |   """Retry logic with exponential backoff."""
+2 |
+3 | / import time
+4 | | import functools
+5 | | import structlog
+  | |________________^
+6 |
+7 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+W292 [*] No newline at end of file
+  --> agent/error_handling.py:97:43
+   |
+95 |         logger.error("retry_context_exhausted", attempt=self.attempt,
+96 |                    max_retries=self.max_retries, error=str(exc_val))
+97 |         return False  # Re-raise exception
+   |                                           ^
+   |
+help: Add trailing newline
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> agent/memory/context_manager.py:3:1
+  |
+1 |   """In-session context manager for memoization."""
+2 |
+3 | / import hashlib
+4 | | import json
+5 | | import structlog
+  | |________________^
+6 |
+7 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> agent/memory/session_store.py:3:1
+  |
+1 |   """Redis-backed session store."""
+2 |
+3 | / import redis
+4 | | import json
+5 | | import structlog
+6 | | from typing import Optional
+  | |___________________________^
+7 |
+8 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+UP045 [*] Use `X | None` for type annotations
+  --> agent/memory/session_store.py:22:39
+   |
+20 |         self.redis = redis_client
+21 |
+22 |     def get(self, session_id: str) -> Optional[dict]:
+   |                                       ^^^^^^^^^^^^^^
+23 |         """Get session data.
+   |
+help: Convert to `X | None`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> agent/orchestrator.py:3:1
+   |
+ 1 |   """Plan-execute orchestrator for agent tools."""
+ 2 |
+ 3 | / import time
+ 4 | | import structlog
+ 5 | | from typing import Optional
+ 6 | |
+ 7 | | from .memory.session_store import SessionStore
+ 8 | | from .memory.context_manager import ContextManager
+ 9 | | from .error_handling import retry_with_backoff
+   | |______________________________________________^
+10 |
+11 |   logger = structlog.get_logger()
+   |
+help: Organize imports
+
+UP045 [*] Use `X | None` for type annotations
+  --> agent/orchestrator.py:17:52
+   |
+15 |     """Orchestrate tool execution with planning and memoization."""
+16 |
+17 |     def __init__(self, tools: dict, session_store: Optional[SessionStore] = None,
+   |                                                    ^^^^^^^^^^^^^^^^^^^^^^
+18 |                  tool_timeout: float = 30.0):
+19 |         """Initialize orchestrator.
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> agent/orchestrator.py:179:70
+    |
+177 |             raise
+178 |
+179 |     def _execute_with_timeout(self, tool, tool_input: dict, timeout: Optional[float] = None):
+    |                                                                      ^^^^^^^^^^^^^^^
+180 |         """Execute tool with timeout.
+    |
+help: Convert to `X | None`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> agent/tools/base.py:3:1
+  |
+1 |   """Base tool interface."""
+2 |
+3 | / from dataclasses import dataclass
+4 | | from abc import ABC, abstractmethod
+  | |___________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> agent/tools/github_tool.py:3:1
+  |
+1 |   """GitHub repository metadata tool."""
+2 |
+3 | / import httpx
+4 | | import structlog
+5 | | from .base import BaseTool, ToolResult
+  | |______________________________________^
+6 |
+7 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> agent/tools/market_analyzer.py:3:1
+  |
+1 |   """Job market comparison tool."""
+2 |
+3 | / import redis
+4 | | import json
+5 | | import structlog
+6 | | from .base import BaseTool, ToolResult
+  | |______________________________________^
+7 |
+8 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+B007 Loop control variable `category` not used within loop body
+  --> agent/tools/market_analyzer.py:94:13
+   |
+92 |         # Flatten detected skills
+93 |         all_detected = set()
+94 |         for category, skills_list in detected_skills.items():
+   |             ^^^^^^^^
+95 |             all_detected.update(skills_list)
+   |
+help: Rename unused `category` to `_category`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> agent/tools/readme_scorer.py:3:1
+  |
+1 |   """README quality scorer tool."""
+2 |
+3 | / import re
+4 | | import structlog
+5 | | from .base import BaseTool, ToolResult
+  | |______________________________________^
+6 |
+7 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> agent/tools/skill_extractor.py:3:1
+  |
+1 |   """Skill extraction tool."""
+2 |
+3 | / import re
+4 | | import structlog
+5 | | from .base import BaseTool, ToolResult
+  | |______________________________________^
+6 |
+7 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+F601 Dictionary key literal `"Git"` repeated
+  --> agent/tools/skill_extractor.py:47:13
+   |
+45 |             "Docker": r"\bdocker\b",
+46 |             "Kubernetes": r"\bkubernetes|k8s\b",
+47 |             "Git": r"\bgit\b",
+   |             ^^^^^
+48 |             "GraphQL": r"\bgraphql\b",
+49 |             "REST": r"\brest|restful\b",
+   |
+help: Remove repeated key literal `"Git"`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> agent/tools/tech_detector.py:3:1
+  |
+1 |   """Technology stack detector tool."""
+2 |
+3 | / import structlog
+4 | | from .base import BaseTool, ToolResult
+  | |______________________________________^
+5 |
+6 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> alembic/env.py:3:1
+   |
+ 1 |   """Alembic environment configuration for async SQLAlchemy migrations."""
+ 2 |
+ 3 | / import asyncio
+ 4 | | from logging.config import fileConfig
+ 5 | |
+ 6 | | from sqlalchemy import engine_from_config
+ 7 | | from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+ 8 | | from sqlalchemy.pool import NullPool
+ 9 | |
+10 | | from alembic import context
+11 | |
+12 | | # Import models for auto-generation
+13 | | from core.models import Base
+14 | | from core.config import settings
+   | |________________________________^
+15 |
+16 |   # this is the Alembic Config object, which provides the values of the [alembic] section of the alembic.ini file
+   |
+help: Organize imports
+
+F401 [*] `sqlalchemy.engine_from_config` imported but unused
+ --> alembic/env.py:6:24
+  |
+4 | from logging.config import fileConfig
+5 |
+6 | from sqlalchemy import engine_from_config
+  |                        ^^^^^^^^^^^^^^^^^^
+7 | from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+8 | from sqlalchemy.pool import NullPool
+  |
+help: Remove unused import: `sqlalchemy.engine_from_config`
+
+F401 [*] `sqlalchemy.ext.asyncio.AsyncEngine` imported but unused
+ --> alembic/env.py:7:36
+  |
+6 | from sqlalchemy import engine_from_config
+7 | from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+  |                                    ^^^^^^^^^^^
+8 | from sqlalchemy.pool import NullPool
+  |
+help: Remove unused import: `sqlalchemy.ext.asyncio.AsyncEngine`
+
+E501 Line too long (111 > 100)
+  --> alembic/env.py:16:101
+   |
+14 | from core.config import settings
+15 |
+16 | # this is the Alembic Config object, which provides the values of the [alembic] section of the alembic.ini file
+   |                                                                                                     ^^^^^^^^^^^
+17 | config = context.config
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> api/main.py:1:1
+   |
+ 1 | / from fastapi import FastAPI, Request
+ 2 | | from fastapi.middleware.cors import CORSMiddleware
+ 3 | | from fastapi.responses import JSONResponse
+ 4 | | from fastapi.openapi.utils import get_openapi
+ 5 | | import structlog
+ 6 | |
+ 7 | | from api.middleware.request_id import RequestIDMiddleware
+ 8 | | from api.routes import auth, profiles, reviews, health
+ 9 | | from core.database import init_db
+   | |_________________________________^
+10 |
+11 |   log = structlog.get_logger()
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> api/middleware/request_id.py:1:1
+  |
+1 | / from fastapi import Request
+2 | | from starlette.middleware.base import BaseHTTPMiddleware
+3 | | from starlette.responses import Response
+4 | | import uuid
+5 | | import structlog
+  | |________________^
+6 |
+7 |   log = structlog.get_logger()
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> api/routes/health.py:1:1
+  |
+1 | / from fastapi import APIRouter, HTTPException, status, Depends
+2 | | import structlog
+3 | | from datetime import datetime, timedelta
+4 | |
+5 | | from core.database import get_db
+  | |________________________________^
+6 |
+7 |   log = structlog.get_logger()
+  |
+help: Organize imports
+
+F401 [*] `datetime.timedelta` imported but unused
+ --> api/routes/health.py:3:32
+  |
+1 | from fastapi import APIRouter, HTTPException, status, Depends
+2 | import structlog
+3 | from datetime import datetime, timedelta
+  |                                ^^^^^^^^^
+4 |
+5 | from core.database import get_db
+  |
+help: Remove unused import: `datetime.timedelta`
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> api/routes/health.py:13:27
+   |
+12 | @router.get("")
+13 | async def health_check(db=Depends(get_db)):
+   |                           ^^^^^^^^^^^^^^^
+14 |     """
+15 |     Check health of PostgreSQL, Redis, and Vector DB.
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> api/routes/health.py:41:9
+   |
+39 |       try:
+40 |           # Check Redis (if available)
+41 | /         import redis
+42 | |         from core.config import settings
+   | |________________________________________^
+43 |
+44 |           r = redis.Redis(
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> api/routes/profiles.py:1:1
+   |
+ 1 | / from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+ 2 | | from uuid import UUID
+ 3 | | import structlog
+ 4 | | import mimetypes
+ 5 | |
+ 6 | | from api.schemas.profile import ProfileCreate, ProfileResponse, ProfileUpdate
+ 7 | | from api.middleware.auth import get_current_user
+ 8 | | from core.models.user import User
+ 9 | | from core.models.profile import Profile
+10 | | from core.database import get_db
+11 | | from core.services.profile_service import (
+12 | |     create_profile,
+13 | |     get_profile,
+14 | |     update_profile,
+15 | |     delete_profile,
+16 | | )
+   | |_^
+17 |
+18 |   log = structlog.get_logger()
+   |
+help: Organize imports
+
+F401 [*] `core.models.profile.Profile` imported but unused
+  --> api/routes/profiles.py:9:33
+   |
+ 7 | from api.middleware.auth import get_current_user
+ 8 | from core.models.user import User
+ 9 | from core.models.profile import Profile
+   |                                 ^^^^^^^
+10 | from core.database import get_db
+11 | from core.services.profile_service import (
+   |
+help: Remove unused import: `core.models.profile.Profile`
+
+B008 Do not perform function call `File` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> api/routes/profiles.py:27:31
+   |
+25 |     github_username: str = Form(default=None),
+26 |     portfolio_url: str = Form(default=None),
+27 |     resume_file: UploadFile = File(default=None),
+   |                               ^^^^^^^^^^^^^^^^^^
+28 |     current_user: User = Depends(get_current_user),
+29 |     db=Depends(get_db),
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> api/routes/profiles.py:28:26
+   |
+26 |     portfolio_url: str = Form(default=None),
+27 |     resume_file: UploadFile = File(default=None),
+28 |     current_user: User = Depends(get_current_user),
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+29 |     db=Depends(get_db),
+30 | ):
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> api/routes/profiles.py:29:8
+   |
+27 |     resume_file: UploadFile = File(default=None),
+28 |     current_user: User = Depends(get_current_user),
+29 |     db=Depends(get_db),
+   |        ^^^^^^^^^^^^^^^
+30 | ):
+31 |     """
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> api/routes/profiles.py:68:21
+   |
+66 |                   except Exception as exc:
+67 |                       log.error("pdf_parsing_failed", error=str(exc))
+68 | /                     raise HTTPException(
+69 | |                         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+70 | |                         detail="Failed to parse PDF resume",
+71 | |                     )
+   | |_____________________^
+72 |               else:
+73 |                   # Markdown or plain text
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> api/routes/profiles.py:105:9
+    |
+103 |           log.error("profile_creation_error", error=str(exc))
+104 |           await db.rollback()
+105 | /         raise HTTPException(
+106 | |             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+107 | |             detail="Failed to create profile",
+108 | |         )
+    | |_________^
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/routes/profiles.py:114:26
+    |
+112 | async def get_profile_endpoint(
+113 |     profile_id: UUID,
+114 |     current_user: User = Depends(get_current_user),
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+115 |     db=Depends(get_db),
+116 | ):
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/routes/profiles.py:115:8
+    |
+113 |     profile_id: UUID,
+114 |     current_user: User = Depends(get_current_user),
+115 |     db=Depends(get_db),
+    |        ^^^^^^^^^^^^^^^
+116 | ):
+117 |     """
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> api/routes/profiles.py:141:9
+    |
+139 |       except Exception as exc:
+140 |           log.error("get_profile_error", error=str(exc))
+141 | /         raise HTTPException(
+142 | |             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+143 | |             detail="Failed to retrieve profile",
+144 | |         )
+    | |_________^
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/routes/profiles.py:151:26
+    |
+149 |     profile_id: UUID,
+150 |     data: ProfileUpdate,
+151 |     current_user: User = Depends(get_current_user),
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+152 |     db=Depends(get_db),
+153 | ):
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/routes/profiles.py:152:8
+    |
+150 |     data: ProfileUpdate,
+151 |     current_user: User = Depends(get_current_user),
+152 |     db=Depends(get_db),
+    |        ^^^^^^^^^^^^^^^
+153 | ):
+154 |     """
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> api/routes/profiles.py:190:9
+    |
+188 |           log.error("profile_update_error", error=str(exc))
+189 |           await db.rollback()
+190 | /         raise HTTPException(
+191 | |             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+192 | |             detail="Failed to update profile",
+193 | |         )
+    | |_________^
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/routes/profiles.py:199:26
+    |
+197 | async def delete_profile_endpoint(
+198 |     profile_id: UUID,
+199 |     current_user: User = Depends(get_current_user),
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+200 |     db=Depends(get_db),
+201 | ):
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/routes/profiles.py:200:8
+    |
+198 |     profile_id: UUID,
+199 |     current_user: User = Depends(get_current_user),
+200 |     db=Depends(get_db),
+    |        ^^^^^^^^^^^^^^^
+201 | ):
+202 |     """
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> api/routes/profiles.py:235:9
+    |
+233 |           log.error("profile_deletion_error", error=str(exc))
+234 |           await db.rollback()
+235 | /         raise HTTPException(
+236 | |             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+237 | |             detail="Failed to delete profile",
+238 | |         )
+    | |_________^
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> api/routes/reviews.py:1:1
+   |
+ 1 | / from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+ 2 | | from uuid import UUID
+ 3 | | import structlog
+ 4 | |
+ 5 | | from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+ 6 | | from api.middleware.auth import get_current_user
+ 7 | | from core.models.user import User
+ 8 | | from core.models.review import Review
+ 9 | | from core.database import get_db
+10 | | from core.services.review_service import (
+11 | |     create_review,
+12 | |     get_review,
+13 | |     list_reviews,
+14 | |     process_review,
+15 | | )
+   | |_^
+16 |
+17 |   log = structlog.get_logger()
+   |
+help: Organize imports
+
+F401 [*] `core.models.review.Review` imported but unused
+  --> api/routes/reviews.py:8:32
+   |
+ 6 | from api.middleware.auth import get_current_user
+ 7 | from core.models.user import User
+ 8 | from core.models.review import Review
+   |                                ^^^^^^
+ 9 | from core.database import get_db
+10 | from core.services.review_service import (
+   |
+help: Remove unused import: `core.models.review.Review`
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> api/routes/reviews.py:26:26
+   |
+24 |     data: ReviewCreate,
+25 |     background_tasks: BackgroundTasks,
+26 |     current_user: User = Depends(get_current_user),
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+27 |     db=Depends(get_db),
+28 | ):
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> api/routes/reviews.py:27:8
+   |
+25 |     background_tasks: BackgroundTasks,
+26 |     current_user: User = Depends(get_current_user),
+27 |     db=Depends(get_db),
+   |        ^^^^^^^^^^^^^^^
+28 | ):
+29 |     """
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> api/routes/reviews.py:59:9
+   |
+57 |           log.error("review_creation_error", error=str(exc))
+58 |           await db.rollback()
+59 | /         raise HTTPException(
+60 | |             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+61 | |             detail="Failed to create review",
+62 | |         )
+   | |_________^
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> api/routes/reviews.py:68:26
+   |
+66 | async def get_review_endpoint(
+67 |     review_id: UUID,
+68 |     current_user: User = Depends(get_current_user),
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+69 |     db=Depends(get_db),
+70 | ):
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> api/routes/reviews.py:69:8
+   |
+67 |     review_id: UUID,
+68 |     current_user: User = Depends(get_current_user),
+69 |     db=Depends(get_db),
+   |        ^^^^^^^^^^^^^^^
+70 | ):
+71 |     """
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> api/routes/reviews.py:95:9
+   |
+93 |       except Exception as exc:
+94 |           log.error("get_review_error", error=str(exc))
+95 | /         raise HTTPException(
+96 | |             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+97 | |             detail="Failed to retrieve review",
+98 | |         )
+   | |_________^
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/routes/reviews.py:105:26
+    |
+103 |     page: int = 1,
+104 |     page_size: int = 20,
+105 |     current_user: User = Depends(get_current_user),
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+106 |     db=Depends(get_db),
+107 | ):
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/routes/reviews.py:106:8
+    |
+104 |     page_size: int = 20,
+105 |     current_user: User = Depends(get_current_user),
+106 |     db=Depends(get_db),
+    |        ^^^^^^^^^^^^^^^
+107 | ):
+108 |     """
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> api/routes/reviews.py:133:9
+    |
+131 |       except Exception as exc:
+132 |           log.error("list_reviews_error", error=str(exc))
+133 | /         raise HTTPException(
+134 | |             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+135 | |             detail="Failed to list reviews",
+136 | |         )
+    | |_________^
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/routes/reviews.py:142:26
+    |
+140 | async def get_review_status(
+141 |     review_id: UUID,
+142 |     current_user: User = Depends(get_current_user),
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+143 |     db=Depends(get_db),
+144 | ):
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/routes/reviews.py:143:8
+    |
+141 |     review_id: UUID,
+142 |     current_user: User = Depends(get_current_user),
+143 |     db=Depends(get_db),
+    |        ^^^^^^^^^^^^^^^
+144 | ):
+145 |     """
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> api/routes/reviews.py:173:9
+    |
+171 |       except Exception as exc:
+172 |           log.error("get_review_status_error", error=str(exc))
+173 | /         raise HTTPException(
+174 | |             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+175 | |             detail="Failed to retrieve review status",
+176 | |         )
+    | |_________^
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> api/schemas/profile.py:1:1
+  |
+1 | / from pydantic import BaseModel, Field
+2 | | from datetime import datetime
+3 | | from uuid import UUID
+4 | | from typing import Optional
+  | |___________________________^
+  |
+help: Organize imports
+
+UP045 [*] Use `X | None` for type annotations
+ --> api/schemas/profile.py:8:22
+  |
+7 | class ProfileCreate(BaseModel):
+8 |     github_username: Optional[str] = Field(default=None, max_length=255)
+  |                      ^^^^^^^^^^^^^
+9 |     portfolio_url: Optional[str] = Field(default=None, max_length=500)
+  |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+ --> api/schemas/profile.py:9:20
+  |
+7 | class ProfileCreate(BaseModel):
+8 |     github_username: Optional[str] = Field(default=None, max_length=255)
+9 |     portfolio_url: Optional[str] = Field(default=None, max_length=500)
+  |                    ^^^^^^^^^^^^^
+  |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> api/schemas/profile.py:13:22
+   |
+12 | class ProfileUpdate(BaseModel):
+13 |     github_username: Optional[str] = Field(default=None, max_length=255)
+   |                      ^^^^^^^^^^^^^
+14 |     portfolio_url: Optional[str] = Field(default=None, max_length=500)
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> api/schemas/profile.py:14:20
+   |
+12 | class ProfileUpdate(BaseModel):
+13 |     github_username: Optional[str] = Field(default=None, max_length=255)
+14 |     portfolio_url: Optional[str] = Field(default=None, max_length=500)
+   |                    ^^^^^^^^^^^^^
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> api/schemas/profile.py:20:22
+   |
+18 |     id: UUID
+19 |     user_id: UUID
+20 |     github_username: Optional[str]
+   |                      ^^^^^^^^^^^^^
+21 |     portfolio_url: Optional[str]
+22 |     created_at: datetime
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> api/schemas/profile.py:21:20
+   |
+19 |     user_id: UUID
+20 |     github_username: Optional[str]
+21 |     portfolio_url: Optional[str]
+   |                    ^^^^^^^^^^^^^
+22 |     created_at: datetime
+23 |     resume_filename: Optional[str]
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> api/schemas/profile.py:23:22
+   |
+21 |     portfolio_url: Optional[str]
+22 |     created_at: datetime
+23 |     resume_filename: Optional[str]
+   |                      ^^^^^^^^^^^^^
+24 |
+25 |     model_config = {"from_attributes": True}
+   |
+help: Convert to `X | None`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> api/schemas/user.py:1:1
+  |
+1 | / from pydantic import BaseModel, EmailStr, Field
+2 | | from datetime import datetime
+3 | | from uuid import UUID
+  | |_____________________^
+  |
+help: Organize imports
+
+UP035 [*] Import from `collections.abc` instead: `AsyncGenerator`
+ --> core/database.py:3:1
+  |
+1 | """Database configuration and session management for async SQLAlchemy."""
+2 |
+3 | from typing import AsyncGenerator
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+  |
+help: Import from `collections.abc`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> core/database.py:3:1
+   |
+ 1 |   """Database configuration and session management for async SQLAlchemy."""
+ 2 |
+ 3 | / from typing import AsyncGenerator
+ 4 | |
+ 5 | | from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+ 6 | | from sqlalchemy.orm import declarative_base
+ 7 | |
+ 8 | | from core.config import settings
+   | |________________________________^
+ 9 |
+10 |   # Create async engine
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> core/models/__init__.py:3:1
+  |
+1 |   """Database models package."""
+2 |
+3 | / from core.database import Base
+4 | | from core.models.user import User
+5 | | from core.models.profile import Profile
+6 | | from core.models.ingested_source import IngestedSource
+7 | | from core.models.review import Review
+  | |_____________________________________^
+8 |
+9 |   __all__ = ["Base", "User", "Profile", "IngestedSource", "Review"]
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> core/services/profile_service.py:1:1
+   |
+ 1 | / from uuid import UUID
+ 2 | | import structlog
+ 3 | | from sqlalchemy import select
+ 4 | |
+ 5 | | from core.models.profile import Profile
+ 6 | | from core.models.review import Review
+ 7 | | from core.models.ingested_source import IngestedSource
+ 8 | | from api.schemas.profile import ProfileCreate, ProfileUpdate
+   | |____________________________________________________________^
+ 9 |
+10 |   log = structlog.get_logger()
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> core/services/review_service.py:1:1
+   |
+ 1 | / from uuid import UUID
+ 2 | | import structlog
+ 3 | | import json
+ 4 | | from datetime import datetime
+ 5 | | from sqlalchemy import select, and_
+ 6 | |
+ 7 | | from core.models.review import Review
+ 8 | | from core.models.profile import Profile
+ 9 | | from core.models.ingested_source import IngestedSource
+10 | | from api.schemas.review import FeedbackSection
+   | |______________________________________________^
+11 |
+12 |   log = structlog.get_logger()
+   |
+help: Organize imports
+
+B007 Loop control variable `i` not used within loop body
+  --> ingestion/chunking/semantic_chunker.py:48:13
+   |
+46 |         char_start = 0
+47 |
+48 |         for i, sentence in enumerate(sentences):
+   |             ^
+49 |             sentence_tokens = len(self.encoder.encode(sentence))
+   |
+help: Rename unused `i` to `_i`
+
+SIM116 Use a dictionary instead of consecutive `if` statements
+  --> ingestion/chunking/strategy_selector.py:24:9
+   |
+22 |               Appropriate BaseChunker instance
+23 |           """
+24 | /         if source_type == "resume":
+25 | |             return self.semantic_chunker
+26 | |         elif source_type == "readme":
+27 | |             return self.structural_chunker
+28 | |         elif source_type == "repo":
+29 | |             return self.semantic_chunker
+30 | |         else:
+31 | |             # Default to semantic chunking
+32 | |             return self.semantic_chunker
+   | |________________________________________^
+33 |
+34 |       def chunk(self, text: str, metadata: dict) -> list[Chunk]:
+   |
+
+F841 Local variable `current_level` is assigned to but never used
+   --> ingestion/chunking/structural_chunker.py:107:17
+    |
+106 |                 heading_stack.append((heading_level, heading_text))
+107 |                 current_level = heading_level
+    |                 ^^^^^^^^^^^^^
+108 |
+109 |             else:
+    |
+help: Remove assignment to unused variable `current_level`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> ingestion/embeddings/batch_processor.py:1:1
+  |
+1 | / import structlog
+2 | |
+3 | | from ..chunking.base import Chunk
+4 | | from .provider import EmbeddingProvider
+  | |_______________________________________^
+  |
+help: Organize imports
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> ingestion/embeddings/batch_processor.py:70:41
+   |
+69 |                 # Store in vector DB
+70 |                 for chunk, embedding in zip(batch, embeddings):
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^
+71 |                     try:
+72 |                         embedding_id = self._store_embedding(chunk, embedding)
+   |
+help: Add explicit value for parameter `strict=`
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> ingestion/embeddings/provider.py:78:13
+   |
+76 |             self.client = OpenAI()
+77 |         except ImportError:
+78 |             raise ImportError("openai package is required for OpenAIEmbeddingProvider")
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+79 |
+80 |     def embed(self, texts: list[str]) -> list[list[float]]:
+   |
+
+F401 [*] `datetime.datetime` imported but unused
+ --> ingestion/parsers/repo_analyzer.py:1:22
+  |
+1 | from datetime import datetime
+  |                      ^^^^^^^^
+2 |
+3 | from .base import BaseParser, ParseResult
+  |
+help: Remove unused import: `datetime.datetime`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> ingestion/parsers/resume_parser.py:1:1
+  |
+1 | / import re
+2 | | from io import BytesIO
+3 | |
+4 | | from pypdf import PdfReader
+5 | |
+6 | | from .base import BaseParser, ParseResult
+  | |_________________________________________^
+  |
+help: Organize imports
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> ingestion/parsers/resume_parser.py:78:13
+   |
+76 |             )
+77 |         except Exception as e:
+78 |             raise ValueError(f"Failed to parse PDF: {str(e)}")
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+79 |
+80 |     def _parse_markdown(self, content: str) -> ParseResult:
+   |
+
+UP045 [*] Use `X | None` for type annotations
+   --> ingestion/parsers/skill_extractor.py:108:51
+    |
+106 |     }
+107 |
+108 |     def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    |                                                   ^^^^^^^^^^^^^
+109 |         """
+110 |         Extract skills from source code or documentation text.
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> ingestion/parsers/skill_extractor.py:146:19
+    |
+144 |         self,
+145 |         text: str,
+146 |         filename: Optional[str],
+    |                   ^^^^^^^^^^^^^
+147 |         skills_dict: dict,
+148 |     ) -> None:
+    |
+help: Convert to `X | None`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> ingestion/pipeline.py:1:1
+   |
+ 1 | / import hashlib
+ 2 | | from dataclasses import dataclass
+ 3 | | from typing import Optional
+ 4 | |
+ 5 | | import structlog
+ 6 | |
+ 7 | | from .chunking.strategy_selector import StrategySelector
+ 8 | | from .embeddings.batch_processor import BatchEmbeddingProcessor
+ 9 | | from .embeddings.provider import EmbeddingProvider
+10 | | from .parsers.readme_parser import ReadmeParser
+11 | | from .parsers.repo_analyzer import RepoAnalyzer
+12 | | from .parsers.resume_parser import ResumeParser
+   | |_______________________________________________^
+   |
+help: Organize imports
+
+UP045 [*] Use `X | None` for type annotations
+  --> ingestion/pipeline.py:24:18
+   |
+22 |     chunk_count: int
+23 |     skipped: bool
+24 |     skip_reason: Optional[str] = None
+   |                  ^^^^^^^^^^^^^
+   |
+help: Convert to `X | None`
+
+E501 Line too long (110 > 100)
+  --> ingestion/pipeline.py:89:101
+   |
+87 |             # Parse resume
+88 |             parse_result = self.resume_parser.parse(content)
+89 |             logger.info("Resume parsed successfully", sections=parse_result.metadata.get("detected_sections"))
+   |                                                                                                     ^^^^^^^^^^
+90 |
+91 |             # Prepare metadata
+   |
+
+UP045 [*] Use `X | None` for type annotations
+   --> ingestion/pipeline.py:280:64
+    |
+278 |         return hashlib.sha256(content).hexdigest()[:16]
+279 |
+280 |     def _check_skip(self, source_id: str, source_type: str) -> Optional[IngestResult]:
+    |                                                                ^^^^^^^^^^^^^^^^^^^^^^
+281 |         """
+282 |         Check if source has already been ingested.
+    |
+help: Convert to `X | None`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> rag/evaluator/eval_suite.py:3:1
+  |
+1 |   """Evaluation suite for RAG system."""
+2 |
+3 | / from dataclasses import dataclass
+4 | | import structlog
+5 | |
+6 | | from .relevance_scorer import RelevanceScorer
+7 | | from .faithfulness_checker import FaithfulnessChecker
+  | |_____________________________________________________^
+8 |
+9 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> rag/evaluator/faithfulness_checker.py:3:1
+  |
+1 |   """Check if generated feedback is supported by retrieved context."""
+2 |
+3 | / import re
+4 | | import structlog
+  | |________________^
+5 |
+6 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> rag/generator/output_parser.py:3:1
+  |
+1 |   """Parse LLM output into structured feedback."""
+2 |
+3 | / from dataclasses import dataclass
+4 | | import json
+5 | | import re
+6 | | import structlog
+  | |________________^
+7 |
+8 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+F841 Local variable `sections` is assigned to but never used
+  --> rag/generator/output_parser.py:29:5
+   |
+27 |         List of FeedbackSection objects
+28 |     """
+29 |     sections = []
+   |     ^^^^^^^^
+30 |
+31 |     # Try JSON in code fence first
+   |
+help: Remove assignment to unused variable `sections`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> rag/generator/review_generator.py:3:1
+   |
+ 1 |   """LLM-based review generation."""
+ 2 |
+ 3 | / from dataclasses import dataclass
+ 4 | | from typing import Optional
+ 5 | | import openai
+ 6 | | import structlog
+ 7 | |
+ 8 | | from .prompt_templates import get_template
+ 9 | | from .output_parser import parse_review_output, FeedbackSection
+   | |_______________________________________________________________^
+10 |
+11 |   logger = structlog.get_logger()
+   |
+help: Organize imports
+
+F401 [*] `typing.Optional` imported but unused
+ --> rag/generator/review_generator.py:4:20
+  |
+3 | from dataclasses import dataclass
+4 | from typing import Optional
+  |                    ^^^^^^^^
+5 | import openai
+6 | import structlog
+  |
+help: Remove unused import: `typing.Optional`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> rag/retriever/hybrid.py:3:1
+  |
+1 |   """Hybrid retriever combining vector and keyword search."""
+2 |
+3 | / import structlog
+4 | | from .vector_store import VectorStore
+5 | | from .keyword_search import KeywordSearcher
+  | |___________________________________________^
+6 |
+7 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+F841 Local variable `all_chunks` is assigned to but never used
+  --> rag/retriever/hybrid.py:50:9
+   |
+49 |         # Keyword search - need to fetch all chunks first
+50 |         all_chunks = self._get_all_chunks(collection_name)
+   |         ^^^^^^^^^^
+51 |         keyword_results = self.keyword_searcher.search(query, top_k=max_chunks * 2)
+   |
+help: Remove assignment to unused variable `all_chunks`
+
+E501 Line too long (114 > 100)
+  --> rag/retriever/hybrid.py:70:101
+   |
+69 |             if chunk_id in vector_map:
+70 |                 vector_score = (vector_map[chunk_id]["score"] / vector_scores_max) if vector_scores_max > 0 else 0
+   |                                                                                                     ^^^^^^^^^^^^^^
+71 |                 base_chunk = vector_map[chunk_id]
+72 |             else:
+   |
+
+E501 Line too long (130 > 100)
+  --> rag/retriever/hybrid.py:76:101
+   |
+75 |             if chunk_id in keyword_map:
+76 |                 keyword_score = (keyword_map[chunk_id].get("bm25_score", 0) / keyword_scores_max) if keyword_scores_max > 0 else 0
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+77 |
+78 |             blended_score = (
+   |
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> rag/retriever/hybrid.py:119:39
+    |
+118 |           chunks = []
+119 |           for doc_id, text, metadata in zip(
+    |  _______________________________________^
+120 | |             all_docs["ids"],
+121 | |             all_docs["documents"],
+122 | |             all_docs["metadatas"]
+123 | |         ):
+    | |_________^
+124 |               chunks.append({
+125 |                   "id": doc_id,
+    |
+help: Add explicit value for parameter `strict=`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> rag/retriever/keyword_search.py:3:1
+  |
+1 |   """BM25-based keyword search retriever."""
+2 |
+3 | / from rank_bm25 import BM25Okapi
+4 | | import structlog
+  | |________________^
+5 |
+6 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> rag/retriever/vector_store.py:3:1
+  |
+1 |   """ChromaDB-backed vector store for semantic retrieval."""
+2 |
+3 | / import chromadb
+4 | | from chromadb.config import Settings
+5 | | import structlog
+  | |________________^
+6 |
+7 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+F401 [*] `chromadb.config.Settings` imported but unused
+ --> rag/retriever/vector_store.py:4:29
+  |
+3 | import chromadb
+4 | from chromadb.config import Settings
+  |                             ^^^^^^^^
+5 | import structlog
+  |
+help: Remove unused import: `chromadb.config.Settings`
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> rag/retriever/vector_store.py:96:54
+    |
+ 94 |           retrieved = []
+ 95 |           if results["documents"] and len(results["documents"]) > 0:
+ 96 |               for doc, metadata, distance, chunk_id in zip(
+    |  ______________________________________________________^
+ 97 | |                 results["documents"][0],
+ 98 | |                 results["metadatas"][0],
+ 99 | |                 results["distances"][0],
+100 | |                 results["ids"][0]
+101 | |             ):
+    | |_____________^
+102 |                   # ChromaDB distances are euclidean by default; convert to similarity score
+103 |                   similarity = 1 / (1 + distance)
+    |
+help: Add explicit value for parameter `strict=`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> safety/bias_detector.py:3:1
+  |
+1 |   """Bias detection in generated feedback."""
+2 |
+3 | / import re
+4 | | import structlog
+  | |________________^
+5 |
+6 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> safety/content_filter.py:3:1
+  |
+1 |   """Content filter for generated feedback."""
+2 |
+3 | / import re
+4 | | import structlog
+  | |________________^
+5 |
+6 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+E501 Line too long (104 > 100)
+  --> safety/content_filter.py:40:101
+   |
+38 |                 was_filtered = True
+39 |                 # Replace harmful phrases with neutral text
+40 |                 filtered_text = re.sub(pattern, "[CONTENT REMOVED]", filtered_text, flags=re.IGNORECASE)
+   |                                                                                                     ^^^^
+41 |
+42 |         return filtered_text, was_filtered
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> safety/monitoring.py:3:1
+  |
+1 |   """Safety event monitoring."""
+2 |
+3 | / import redis
+4 | | import structlog
+5 | | from datetime import datetime, timedelta
+  | |________________________________________^
+6 |
+7 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+F401 [*] `datetime.timedelta` imported but unused
+ --> safety/monitoring.py:5:32
+  |
+3 | import redis
+4 | import structlog
+5 | from datetime import datetime, timedelta
+  |                                ^^^^^^^^^
+6 |
+7 | logger = structlog.get_logger()
+  |
+help: Remove unused import: `datetime.timedelta`
+
+F841 Local variable `timestamp` is assigned to but never used
+  --> safety/monitoring.py:41:9
+   |
+39 |             return
+40 |
+41 |         timestamp = datetime.utcnow().isoformat()
+   |         ^^^^^^^^^
+42 |
+43 |         try:
+   |
+help: Remove assignment to unused variable `timestamp`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> safety/pii_scrubber.py:3:1
+  |
+1 |   """PII detection and scrubbing."""
+2 |
+3 | / import re
+4 | | import structlog
+  | |________________^
+5 |
+6 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+E501 Line too long (283 > 100)
+  --> safety/pii_scrubber.py:18:101
+   |
+16 | …
+17 | …
+18 | …rive|Dr|Lane|Ln|Court|Ct|Circle|Cir|Park|Pl|Plaza|Place|Drive|Dr|Way|Parkway|Pkwy|Point|Pt|Pike|Run|Summit|Summit|Terrace|Ter|Trail|Trl|Tunnel|Turnpike|View|Vista|Vlg|Village|Vly|Valley)",
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+19 | …
+   |
+
+B007 Loop control variable `pii_type` not used within loop body
+  --> safety/pii_scrubber.py:32:13
+   |
+30 |         scrubbed = text
+31 |
+32 |         for pii_type, pattern in self.PII_PATTERNS.items():
+   |             ^^^^^^^^
+33 |             scrubbed = re.sub(pattern, "[REDACTED]", scrubbed, flags=re.IGNORECASE)
+   |
+help: Rename unused `pii_type` to `_pii_type`
+
+E501 Line too long (101 > 100)
+  --> safety/pii_scrubber.py:57:101
+   |
+55 |                 })
+56 |
+57 |         logger.info("pii_detected", count=len(detected), types=len(set(d["type"] for d in detected)))
+   |                                                                                                     ^
+58 |
+59 |         return detected
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> safety/prompt_defense.py:3:1
+  |
+1 |   """Prompt injection detection and defense."""
+2 |
+3 | / import re
+4 | | import structlog
+  | |________________^
+5 |
+6 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> safety/rate_limiter.py:3:1
+  |
+1 |   """Rate limiting with rolling window."""
+2 |
+3 | / import redis
+4 | | import time
+5 | | import structlog
+  | |________________^
+6 |
+7 |   logger = structlog.get_logger()
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/unit/test_batch_processor.py:3:1
+  |
+1 |   """Tests for batch_processor.py"""
+2 |
+3 | / import pytest
+4 | | from unittest.mock import Mock, MagicMock, patch
+5 | |
+6 | | from ingestion.chunking.base import Chunk
+7 | | from ingestion.embeddings.batch_processor import BatchEmbeddingProcessor
+  | |________________________________________________________________________^
+  |
+help: Organize imports
+
+F401 [*] `unittest.mock.MagicMock` imported but unused
+ --> tests/unit/test_batch_processor.py:4:33
+  |
+3 | import pytest
+4 | from unittest.mock import Mock, MagicMock, patch
+  |                                 ^^^^^^^^^
+5 |
+6 | from ingestion.chunking.base import Chunk
+  |
+help: Remove unused import: `unittest.mock.MagicMock`
+
+F841 Local variable `result` is assigned to but never used
+   --> tests/unit/test_batch_processor.py:108:9
+    |
+106 |         processor._store_embedding = Mock(side_effect=["id1", "id2"])
+107 |
+108 |         result = processor.process(chunks)
+    |         ^^^^^^
+109 |
+110 |         # Check that embed was called with the texts
+    |
+help: Remove assignment to unused variable `result`
+
+E501 Line too long (116 > 100)
+   --> tests/unit/test_bias_detector.py:112:101
+    |
+110 |     def test_clean_feedback_not_flagged(self):
+111 |         """Test clean, objective feedback is not flagged."""
+112 |         text = "You have demonstrated strong Python skills. Your code is well-organized and follows best practices."
+    |                                                                                                     ^^^^^^^^^^^^^^^^
+113 |
+114 |         is_biased, reason = BiasDetector.detect_bias(text)
+    |
+
+E501 Line too long (101 > 100)
+   --> tests/unit/test_bias_detector.py:120:101
+    |
+118 |     def test_technical_feedback_not_flagged(self):
+119 |         """Test pure technical feedback not flagged."""
+120 |         text = "Consider adding error handling to your API endpoints and documenting the parameters."
+    |                                                                                                     ^
+121 |
+122 |         is_biased, reason = BiasDetector.detect_bias(text)
+    |
+
+E501 Line too long (101 > 100)
+   --> tests/unit/test_bias_detector.py:213:101
+    |
+211 |     def test_multiple_bias_indicators(self):
+212 |         """Test text with multiple bias indicators."""
+213 |         text = "young bootcamp graduates can't write code and immigrant developers lack fundamentals"
+    |                                                                                                     ^
+214 |
+215 |         is_biased, reason = BiasDetector.detect_bias(text)
+    |
+
+E501 Line too long (114 > 100)
+   --> tests/unit/test_bias_detector.py:253:101
+    |
+251 |     def test_skill_assessment_not_biased(self):
+252 |         """Test skill assessment without bias language."""
+253 |         text = "Your JavaScript skills are at an intermediate level. Practice would help advance to senior level."
+    |                                                                                                     ^^^^^^^^^^^^^^
+254 |
+255 |         is_biased, reason = BiasDetector.detect_bias(text)
+    |
+
+E501 Line too long (120 > 100)
+   --> tests/unit/test_bias_detector.py:261:101
+    |
+259 |     def test_comparative_without_bias(self):
+260 |         """Test comparison without biased assumptions."""
+261 |         text = "Your bootcamp education covers practical skills. University education provides theory. Both have value."
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^
+262 |
+263 |         is_biased, reason = BiasDetector.detect_bias(text)
+    |
+
+F841 Local variable `supported` is assigned to but never used
+   --> tests/unit/test_faithfulness_checker.py:216:9
+    |
+214 |         context = "The project is poorly documented"  # Opposite meaning but same stop words
+215 |
+216 |         supported = checker._is_supported(claim, context)
+    |         ^^^^^^^^^
+217 |
+218 |         # Despite word overlap, should look for meaningful overlap (not stop words)
+    |
+help: Remove assignment to unused variable `supported`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/unit/test_keyword_search.py:3:1
+  |
+1 |   """Tests for keyword_search.py"""
+2 |
+3 | / import pytest
+4 | | from unittest.mock import Mock, patch
+5 | |
+6 | | from rag.retriever.keyword_search import KeywordSearcher
+  | |________________________________________________________^
+  |
+help: Organize imports
+
+F401 [*] `unittest.mock.Mock` imported but unused
+ --> tests/unit/test_keyword_search.py:4:27
+  |
+3 | import pytest
+4 | from unittest.mock import Mock, patch
+  |                           ^^^^
+5 |
+6 | from rag.retriever.keyword_search import KeywordSearcher
+  |
+help: Remove unused import
+
+F401 [*] `unittest.mock.patch` imported but unused
+ --> tests/unit/test_keyword_search.py:4:33
+  |
+3 | import pytest
+4 | from unittest.mock import Mock, patch
+  |                                 ^^^^^
+5 |
+6 | from rag.retriever.keyword_search import KeywordSearcher
+  |
+help: Remove unused import
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/unit/test_llm_provider_contract.py:3:1
+  |
+1 |   """Contract tests for LLM providers"""
+2 |
+3 | / import pytest
+4 | | import numpy as np
+5 | |
+6 | | from ingestion.embeddings.provider import MockEmbeddingProvider, EmbeddingProvider
+  | |__________________________________________________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/unit/test_output_parser.py:3:1
+  |
+1 |   """Tests for output_parser.py"""
+2 |
+3 | / import pytest
+4 | | import json
+5 | |
+6 | | from rag.generator.output_parser import parse_review_output, FeedbackSection, _parse_plaintext_output
+  | |_____________________________________________________________________________________________________^
+  |
+help: Organize imports
+
+E501 Line too long (101 > 100)
+ --> tests/unit/test_output_parser.py:6:101
+  |
+4 | import json
+5 |
+6 | from rag.generator.output_parser import parse_review_output, FeedbackSection, _parse_plaintext_output
+  |                                                                                                     ^
+  |
+
+E501 Line too long (105 > 100)
+  --> tests/unit/test_output_parser.py:48:101
+   |
+46 |     def test_plain_text_fallback(self):
+47 |         """Test that plain text returns FeedbackSection without crash."""
+48 |         raw_output = "This is plain text feedback about the portfolio. No JSON here. Great work overall!"
+   |                                                                                                     ^^^^^
+49 |
+50 |         result = parse_review_output(raw_output)
+   |
+
+F841 Local variable `scrubbed` is assigned to but never used
+   --> tests/unit/test_pii_scrubber.py:203:13
+    |
+201 |         for addr in addresses:
+202 |             text = f"Address: {addr}"
+203 |             scrubbed = scrubber.scrub(text)
+    |             ^^^^^^^^
+204 |             # Should attempt to redact addresses
+    |
+help: Remove assignment to unused variable `scrubbed`
+
+F841 Local variable `detected` is assigned to but never used
+   --> tests/unit/test_pii_scrubber.py:251:9
+    |
+249 |         """Test that detect doesn't flag legitimate text as PII."""
+250 |         text = "The project uses version 1.2.3. It's available at https://example.com"
+251 |         detected = scrubber.detect(text)
+    |         ^^^^^^^^
+252 |
+253 |         # Should be minimal or no detections
+    |
+help: Remove assignment to unused variable `detected`
+
+F841 Local variable `is_injection` is assigned to but never used
+   --> tests/unit/test_prompt_defense.py:245:9
+    |
+243 | ```
+244 | """
+245 |         is_injection = PromptDefense.is_injection_attempt(code)
+    |         ^^^^^^^^^^^^
+246 |         # Code blocks contain execute/eval but in legitimate context
+247 |         # May or may not flag depending on design choice
+    |
+help: Remove assignment to unused variable `is_injection`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/unit/test_prompt_templates.py:3:1
+  |
+1 |   """Tests for prompt_templates.py - Snapshot tests"""
+2 |
+3 | / import pytest
+4 | | import hashlib
+5 | |
+6 | | from rag.generator.prompt_templates import PROMPT_TEMPLATES, get_template
+  | |_________________________________________________________________________^
+  |
+help: Organize imports
+
+E501 Line too long (102 > 100)
+  --> tests/unit/test_prompt_templates.py:55:101
+   |
+53 |         for template_name, versions in PROMPT_TEMPLATES.items():
+54 |             for version, template_text in versions.items():
+55 |                 assert "{context}" in template_text, f"{template_name} v{version} missing {{context}}"
+   |                                                                                                     ^^
+56 |
+57 |     def test_each_template_contains_github_username_placeholder(self):
+   |
+
+SIM118 Use `key in dict` instead of `key in dict.keys()`
+   --> tests/unit/test_prompt_templates.py:121:13
+    |
+119 |     def test_all_templates_have_v1(self):
+120 |         """Test all templates have v1 version."""
+121 |         for template_name in PROMPT_TEMPLATES.keys():
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+122 |             assert "v1" in PROMPT_TEMPLATES[template_name]
+    |
+help: Remove `.keys()`
+
+B007 Loop control variable `template_name` not used within loop body
+   --> tests/unit/test_prompt_templates.py:126:13
+    |
+124 |     def test_templates_are_strings(self):
+125 |         """Test all templates are strings."""
+126 |         for template_name, versions in PROMPT_TEMPLATES.items():
+    |             ^^^^^^^^^^^^^
+127 |             for version, template_text in versions.items():
+128 |                 assert isinstance(template_text, str)
+    |
+help: Rename unused `template_name` to `_template_name`
+
+B007 Loop control variable `version` not used within loop body
+   --> tests/unit/test_prompt_templates.py:127:17
+    |
+125 |         """Test all templates are strings."""
+126 |         for template_name, versions in PROMPT_TEMPLATES.items():
+127 |             for version, template_text in versions.items():
+    |                 ^^^^^^^
+128 |                 assert isinstance(template_text, str)
+129 |                 assert len(template_text) > 0
+    |
+help: Rename unused `version` to `_version`
+
+E501 Line too long (105 > 100)
+   --> tests/unit/test_prompt_templates.py:154:101
+    |
+152 |         template = PROMPT_TEMPLATES["gaps_feedback"]["v1"]
+153 |
+154 |         assert "gap" in template.lower() or "missing" in template.lower() or "demand" in template.lower()
+    |                                                                                                     ^^^^^
+155 |
+156 |     def test_presentation_feedback_mentions_readme(self):
+    |
+
+E501 Line too long (119 > 100)
+   --> tests/unit/test_prompt_templates.py:160:101
+    |
+158 |         template = PROMPT_TEMPLATES["presentation_feedback"]["v1"]
+159 |
+160 |         assert "readme" in template.lower() or "presentation" in template.lower() or "organization" in template.lower()
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^
+161 |
+162 |     def test_first_impression_is_concise(self):
+    |
+
+E501 Line too long (116 > 100)
+   --> tests/unit/test_prompt_templates.py:166:101
+    |
+164 |         template = PROMPT_TEMPLATES["first_impression"]["v1"]
+165 |
+166 |         assert "2" in template or "3" in template or "sentence" in template.lower() or "summary" in template.lower()
+    |                                                                                                     ^^^^^^^^^^^^^^^^
+167 |
+168 |     def test_get_template_default_version(self):
+    |
+
+E501 Line too long (104 > 100)
+   --> tests/unit/test_prompt_templates.py:219:101
+    |
+218 |         # Should specify format (JSON or plain text)
+219 |         assert "json" in template.lower() or "text" in template.lower() or "summary" in template.lower()
+    |                                                                                                     ^^^^
+220 |
+221 |     def test_templates_have_portfolio_context(self):
+    |
+
+SIM118 Use `key in dict` instead of `key in dict.keys()`
+   --> tests/unit/test_prompt_templates.py:223:13
+    |
+221 |     def test_templates_have_portfolio_context(self):
+222 |         """Test templates mention portfolio or context."""
+223 |         for name in PROMPT_TEMPLATES.keys():
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+224 |             template = PROMPT_TEMPLATES[name]["v1"]
+225 |             # All should have context mention or portfolio mention
+    |
+help: Remove `.keys()`
+
+F841 Local variable `mp` is assigned to but never used
+   --> tests/unit/test_prompt_templates.py:231:46
+    |
+229 |         """Test that get_template logs retrieval."""
+230 |         # Import logger to verify it's used
+231 |         with pytest.MonkeyPatch.context() as mp:
+    |                                              ^^
+232 |             from unittest.mock import patch
+233 |             with patch('rag.generator.prompt_templates.logger') as mock_logger:
+    |
+help: Remove assignment to unused variable `mp`
+
+F841 Local variable `mock_logger` is assigned to but never used
+   --> tests/unit/test_prompt_templates.py:233:68
+    |
+231 |         with pytest.MonkeyPatch.context() as mp:
+232 |             from unittest.mock import patch
+233 |             with patch('rag.generator.prompt_templates.logger') as mock_logger:
+    |                                                                    ^^^^^^^^^^^
+234 |                 get_template("skills_feedback")
+235 |                 # Should log template retrieval
+    |
+help: Remove assignment to unused variable `mock_logger`
+
+SIM118 Use `key in dict` instead of `key in dict.keys()`
+   --> tests/unit/test_prompt_templates.py:239:13
+    |
+237 |     def test_each_template_name_is_valid_identifier(self):
+238 |         """Test template names are valid Python identifiers."""
+239 |         for name in PROMPT_TEMPLATES.keys():
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+240 |             assert name.isidentifier()
+241 |             assert "_" in name  # Should use snake_case
+    |
+help: Remove `.keys()`
+
+B007 Loop control variable `template_name` not used within loop body
+   --> tests/unit/test_prompt_templates.py:245:13
+    |
+243 |     def test_template_versions_are_strings(self):
+244 |         """Test template version keys are strings."""
+245 |         for template_name, versions in PROMPT_TEMPLATES.items():
+    |             ^^^^^^^^^^^^^
+246 |             assert isinstance(versions, dict)
+247 |             for version_key in versions.keys():
+    |
+help: Rename unused `template_name` to `_template_name`
+
+SIM118 Use `key in dict` instead of `key in dict.keys()`
+   --> tests/unit/test_prompt_templates.py:247:17
+    |
+245 |         for template_name, versions in PROMPT_TEMPLATES.items():
+246 |             assert isinstance(versions, dict)
+247 |             for version_key in versions.keys():
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+248 |                 assert isinstance(version_key, str)
+249 |                 assert version_key.startswith("v")
+    |
+help: Remove `.keys()`
+
+B007 Loop control variable `name` not used within loop body
+   --> tests/unit/test_prompt_templates.py:255:13
+    |
+253 |         forbidden = ["john", "jane", "test", "demo"]
+254 |
+255 |         for name, versions in PROMPT_TEMPLATES.items():
+    |             ^^^^
+256 |             for version, template_text in versions.items():
+257 |                 for forbidden_word in forbidden:
+    |
+help: Rename unused `name` to `_name`
+
+B007 Loop control variable `version` not used within loop body
+   --> tests/unit/test_prompt_templates.py:256:17
+    |
+255 |         for name, versions in PROMPT_TEMPLATES.items():
+256 |             for version, template_text in versions.items():
+    |                 ^^^^^^^
+257 |                 for forbidden_word in forbidden:
+258 |                     # Should use {github_username} placeholder instead
+    |
+help: Rename unused `version` to `_version`
+
+B007 Loop control variable `name` not used within loop body
+   --> tests/unit/test_prompt_templates.py:266:13
+    |
+264 |     def test_templates_use_consistent_placeholders(self):
+265 |         """Test all templates use consistent placeholder syntax."""
+266 |         for name, versions in PROMPT_TEMPLATES.items():
+    |             ^^^^
+267 |             for version, template_text in versions.items():
+268 |                 # All placeholders should use {name} syntax
+    |
+help: Rename unused `name` to `_name`
+
+B007 Loop control variable `version` not used within loop body
+   --> tests/unit/test_prompt_templates.py:267:17
+    |
+265 |         """Test all templates use consistent placeholder syntax."""
+266 |         for name, versions in PROMPT_TEMPLATES.items():
+267 |             for version, template_text in versions.items():
+    |                 ^^^^^^^
+268 |                 # All placeholders should use {name} syntax
+269 |                 import re
+    |
+help: Rename unused `version` to `_version`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/unit/test_rate_limiter.py:3:1
+  |
+1 |   """Tests for rate_limiter.py"""
+2 |
+3 | / import pytest
+4 | | from unittest.mock import Mock, MagicMock, patch
+5 | | import time
+6 | |
+7 | | from safety.rate_limiter import RateLimiter
+  | |___________________________________________^
+  |
+help: Organize imports
+
+F401 [*] `unittest.mock.MagicMock` imported but unused
+ --> tests/unit/test_rate_limiter.py:4:33
+  |
+3 | import pytest
+4 | from unittest.mock import Mock, MagicMock, patch
+  |                                 ^^^^^^^^^
+5 | import time
+  |
+help: Remove unused import: `unittest.mock.MagicMock`
+
+F401 [*] `time` imported but unused
+ --> tests/unit/test_rate_limiter.py:5:8
+  |
+3 | import pytest
+4 | from unittest.mock import Mock, MagicMock, patch
+5 | import time
+  |        ^^^^
+6 |
+7 | from safety.rate_limiter import RateLimiter
+  |
+help: Remove unused import: `time`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/unit/test_readme_parser.py:3:1
+  |
+1 |   """Tests for readme_parser.py"""
+2 |
+3 | / import pytest
+4 | |
+5 | | from ingestion.parsers.readme_parser import ReadmeParser
+6 | | from ingestion.parsers.base import ParseResult
+  | |______________________________________________^
+  |
+help: Organize imports
+
+UP012 [*] Unnecessary UTF-8 `encoding` argument to `encode`
+   --> tests/unit/test_readme_parser.py:117:24
+    |
+115 |     def test_parse_readme_bytes_with_utf8(self, parser):
+116 |         """Test parsing README bytes with UTF-8 characters."""
+117 |         readme_bytes = "# Café README\nThis has émojis 🎉".encode("utf-8")
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+118 |         result = parser.parse(readme_bytes)
+    |
+help: Remove unnecessary `encoding` argument
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/unit/test_resume_parser.py:3:1
+  |
+1 |   """Tests for resume_parser.py"""
+2 |
+3 | / import pytest
+4 | | from unittest.mock import Mock, patch, MagicMock
+5 | | from io import BytesIO
+6 | |
+7 | | from ingestion.parsers.resume_parser import ResumeParser
+8 | | from ingestion.parsers.base import ParseResult
+  | |______________________________________________^
+  |
+help: Organize imports
+
+F401 [*] `unittest.mock.MagicMock` imported but unused
+ --> tests/unit/test_resume_parser.py:4:40
+  |
+3 | import pytest
+4 | from unittest.mock import Mock, patch, MagicMock
+  |                                        ^^^^^^^^^
+5 | from io import BytesIO
+  |
+help: Remove unused import: `unittest.mock.MagicMock`
+
+F401 [*] `io.BytesIO` imported but unused
+ --> tests/unit/test_resume_parser.py:5:16
+  |
+3 | import pytest
+4 | from unittest.mock import Mock, patch, MagicMock
+5 | from io import BytesIO
+  |                ^^^^^^^
+6 |
+7 | from ingestion.parsers.resume_parser import ResumeParser
+  |
+help: Remove unused import: `io.BytesIO`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/unit/test_review_service.py:3:1
+   |
+ 1 |   """Tests for review_service.py"""
+ 2 |
+ 3 | / import pytest
+ 4 | | from uuid import uuid4
+ 5 | | from unittest.mock import AsyncMock, Mock, patch
+ 6 | | import asyncio
+ 7 | |
+ 8 | | from core.services.review_service import (
+ 9 | |     create_review,
+10 | |     get_review,
+11 | |     list_reviews,
+12 | | )
+   | |_^
+   |
+help: Organize imports
+
+F401 [*] `asyncio` imported but unused
+ --> tests/unit/test_review_service.py:6:8
+  |
+4 | from uuid import uuid4
+5 | from unittest.mock import AsyncMock, Mock, patch
+6 | import asyncio
+  |        ^^^^^^^
+7 |
+8 | from core.services.review_service import (
+  |
+help: Remove unused import: `asyncio`
+
+E501 Line too long (104 > 100)
+  --> tests/unit/test_review_service.py:48:101
+   |
+47 |     @pytest.mark.asyncio
+48 |     async def test_create_review_returns_review_with_pending_status(self, mock_db_session, mock_review):
+   |                                                                                                     ^^^^
+49 |         """Test create_review returns Review with status='pending'."""
+50 |         profile_id = uuid4()
+   |
+
+N806 Variable `MockReview` in function should be lowercase
+  --> tests/unit/test_review_service.py:58:62
+   |
+56 |         mock_db_session.refresh = AsyncMock()
+57 |
+58 |         with patch('core.services.review_service.Review') as MockReview:
+   |                                                              ^^^^^^^^^^
+59 |             mock_instance = MockReview.return_value
+60 |             mock_instance.status = "pending"
+   |
+
+F841 Local variable `result` is assigned to but never used
+  --> tests/unit/test_review_service.py:64:13
+   |
+62 |             mock_instance.overall_score = None
+63 |
+64 |             result = await create_review(mock_db_session, profile_id, user_id)
+   |             ^^^^^^
+65 |
+66 |             # Check that Review was instantiated
+   |
+help: Remove assignment to unused variable `result`
+
+F841 Local variable `user_id` is assigned to but never used
+  --> tests/unit/test_review_service.py:94:9
+   |
+92 |         """Test get_review returns None when user_id doesn't match."""
+93 |         review_id = uuid4()
+94 |         user_id = uuid4()
+   |         ^^^^^^^
+95 |         wrong_user_id = uuid4()
+   |
+help: Remove assignment to unused variable `user_id`
+
+N806 Variable `MockReview` in function should be lowercase
+   --> tests/unit/test_review_service.py:247:62
+    |
+245 |         user_id = uuid4()
+246 |
+247 |         with patch('core.services.review_service.Review') as MockReview:
+    |                                                              ^^^^^^^^^^
+248 |             MockReview.return_value = Mock()
+249 |             await create_review(mock_db_session, profile_id, user_id)
+    |
+
+N806 Variable `MockReview` in function should be lowercase
+   --> tests/unit/test_review_service.py:305:62
+    |
+303 |         user_id = uuid4()
+304 |
+305 |         with patch('core.services.review_service.Review') as MockReview:
+    |                                                              ^^^^^^^^^^
+306 |             MockReview.return_value = Mock()
+307 |             await create_review(mock_db_session, profile_id, user_id)
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/unit/test_security.py:3:1
+   |
+ 1 |   """Tests for security.py"""
+ 2 |
+ 3 | / import pytest
+ 4 | | from datetime import timedelta
+ 5 | | from unittest.mock import patch
+ 6 | |
+ 7 | | from core.security import (
+ 8 | |     hash_password,
+ 9 | |     verify_password,
+10 | |     create_access_token,
+11 | |     decode_access_token,
+12 | | )
+   | |_^
+   |
+help: Organize imports
+
+F401 [*] `unittest.mock.patch` imported but unused
+ --> tests/unit/test_security.py:5:27
+  |
+3 | import pytest
+4 | from datetime import timedelta
+5 | from unittest.mock import patch
+  |                           ^^^^^
+6 |
+7 | from core.security import (
+  |
+help: Remove unused import: `unittest.mock.patch`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/unit/test_semantic_chunker.py:3:1
+  |
+1 |   """Tests for semantic_chunker.py"""
+2 |
+3 | / import pytest
+4 | |
+5 | | from ingestion.chunking.semantic_chunker import SemanticChunker
+6 | | from ingestion.chunking.base import Chunk
+  | |_________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/unit/test_skill_extractor.py:3:1
+  |
+1 |   """Tests for skill_extractor.py (parser version)"""
+2 |
+3 | / import pytest
+4 | |
+5 | | from ingestion.parsers.skill_extractor import SkillExtractor, SkillDetection
+  | |____________________________________________________________________________^
+  |
+help: Organize imports
+
+F841 Local variable `result` is assigned to but never used
+   --> tests/unit/test_skill_extractor.py:136:9
+    |
+134 |         conn = psycopg2.connect("dbname=mydb")
+135 |         """
+136 |         result = extractor.extract_skills(text)
+    |         ^^^^^^
+137 |
+138 |         skill_names = [s.name for s in skill_names]
+    |
+help: Remove assignment to unused variable `result`
+
+F821 Undefined name `skill_names`
+   --> tests/unit/test_skill_extractor.py:138:40
+    |
+136 |         result = extractor.extract_skills(text)
+137 |
+138 |         skill_names = [s.name for s in skill_names]
+    |                                        ^^^^^^^^^^^
+139 |         # Should detect PostgreSQL
+140 |         assert any("postgres" in s.lower() or "sql" in s.lower() for s in skill_names)
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/unit/test_structural_chunker.py:3:1
+  |
+1 |   """Tests for structural_chunker.py"""
+2 |
+3 | / import pytest
+4 | |
+5 | | from ingestion.chunking.structural_chunker import StructuralChunker
+6 | | from ingestion.chunking.base import Chunk
+  | |_________________________________________^
+  |
+help: Organize imports
+
+F841 Local variable `found_path` is assigned to but never used
+  --> tests/unit/test_structural_chunker.py:83:21
+   |
+81 |                 if "Child" in path:
+82 |                     # Should have " > " as separator if it has parent
+83 |                     found_path = True
+   |                     ^^^^^^^^^^
+84 |                     assert isinstance(path, str)
+   |
+help: Remove assignment to unused variable `found_path`
+
+F841 Local variable `found_full_path` is assigned to but never used
+   --> tests/unit/test_structural_chunker.py:174:21
+    |
+172 |                 # Should contain the hierarchy
+173 |                 if "Installation" in path or "Prerequisites" in path:
+174 |                     found_full_path = True
+    |                     ^^^^^^^^^^^^^^^
+175 |
+176 |     def test_chunks_have_text_content(self, chunker):
+    |
+help: Remove assignment to unused variable `found_full_path`
+
+F841 Local variable `detected_lower` is assigned to but never used
+  --> tests/unit/test_tech_detector.py:63:9
+   |
+61 |         assert "Python" in data["all_languages"]
+62 |         # Should not include JSON or data-only language
+63 |         detected_lower = [lang.lower() for lang in data["all_languages"]]
+   |         ^^^^^^^^^^^^^^
+64 |         # .ipynb should be treated as Python, not JSON
+   |
+help: Remove assignment to unused variable `detected_lower`
+
+F841 Local variable `result` is assigned to but never used
+  --> tests/unit/test_tech_detector.py:90:9
+   |
+88 |         ]
+89 |
+90 |         result = detector.execute({"files": files})
+   |         ^^^^^^
+91 |
+92 |         # Python should be primary despite vendor files
+   |
+help: Remove assignment to unused variable `result`
+
+F841 Local variable `result` is assigned to but never used
+   --> tests/unit/test_tech_detector.py:128:9
+    |
+126 |         ]
+127 |
+128 |         result = detector.execute({"files": files})
+    |         ^^^^^^
+129 |
+130 |         # Should detect Python as primary language
+    |
+help: Remove assignment to unused variable `result`
+
+F841 Local variable `data` is assigned to but never used
+   --> tests/unit/test_tech_detector.py:141:9
+    |
+139 |         result = detector.execute({"files": files})
+140 |
+141 |         data = result.data
+    |         ^^^^
+142 |         # Should detect both Python and CI/CD
+    |
+help: Remove assignment to unused variable `data`
+
+F841 Local variable `result` is assigned to but never used
+   --> tests/unit/test_tech_detector.py:151:9
+    |
+149 |         ]
+150 |
+151 |         result = detector.execute({"files": files})
+    |         ^^^^^^
+152 |
+153 |         # Should detect Makefile as build tool
+    |
+help: Remove assignment to unused variable `result`
+
+F841 Local variable `result` is assigned to but never used
+   --> tests/unit/test_tech_detector.py:256:9
+    |
+254 |         ]
+255 |
+256 |         result = detector.execute({"files": files})
+    |         ^^^^^^
+257 |
+258 |         # Should detect frameworks
+    |
+help: Remove assignment to unused variable `result`
+
+F841 Local variable `data` is assigned to but never used
+   --> tests/unit/test_tech_detector.py:285:9
+    |
+283 |         result = detector.execute({"files": files})
+284 |
+285 |         data = result.data
+    |         ^^^^
+286 |         # Should still detect languages despite case
+    |
+help: Remove assignment to unused variable `data`
+
+F841 Local variable `data` is assigned to but never used
+   --> tests/unit/test_tech_detector.py:364:9
+    |
+362 |         result = detector.execute({"files": files})
+363 |
+364 |         data = result.data
+    |         ^^^^
+365 |         # Should detect C++ (from .cpp files)
+    |
+help: Remove assignment to unused variable `data`
+
+Found 183 errors.
+[*] 87 fixable with the `--fix` option (42 hidden fixes can be enabled with the `--unsafe-fixes` option).
+make: *** [lint] Error 1
