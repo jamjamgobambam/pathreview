@@ -1,19 +1,24 @@
-from uuid import UUID
-import structlog
+import asyncio
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.callback import Callback
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
+from core.services.webhook_service import notify_callback_on_review_completed
 
 log = structlog.get_logger()
 
 
 async def create_review(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
@@ -33,22 +38,23 @@ async def create_review(
 
 
 async def get_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    review: Review | None = result.scalars().first()
+    return review
 
 
 async def list_reviews(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     page: int = 1,
     page_size: int = 20,
@@ -74,13 +80,13 @@ async def list_reviews(
         .limit(page_size)
     )
     result = await db.execute(stmt)
-    reviews = result.scalars().all()
+    reviews = list(result.scalars().all())
 
     return reviews, total
 
 
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
@@ -179,6 +185,28 @@ async def process_review(
             overall_score=review.overall_score,
         )
 
+        # Notify a registered callback, if any, that this review is ready.
+        callback_stmt = select(Callback).where(Callback.profile_id == str(profile_id))
+        callback_result = await db.execute(callback_stmt)
+        callback = callback_result.scalars().first()
+
+        if callback is None:
+            log.info(
+                "no_callback_registered_for_profile",
+                review_id=str(review_id),
+                profile_id=str(profile_id),
+            )
+        else:
+            asyncio.create_task(
+                notify_callback_on_review_completed(
+                    user_id=profile.user_id,
+                    profile_id=str(profile_id),
+                    review_id=str(review_id),
+                    callback_id=callback.id,
+                    callback_url=callback.url,
+                )
+            )
+
     except Exception as exc:
         log.error("review_processing_failed", review_id=str(review_id), error=str(exc))
         try:
@@ -194,12 +222,12 @@ async def process_review(
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
 
-async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
+async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[dict]:
     """
     Run ingestion pipeline to extract data from profile sources.
     Returns list of ingested source data.
     """
-    sources = []
+    sources: list[dict] = []
 
     # Ingest from GitHub if available
     if profile.github_username:
