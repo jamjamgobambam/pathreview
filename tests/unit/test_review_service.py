@@ -2,339 +2,340 @@
 
 import pytest
 from uuid import uuid4
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import asyncio
 
 from core.services.review_service import (
-    create_review,
-    get_review,
-    list_reviews,
+  create_review,
+  get_review,
+  list_reviews,
 )
 
 
 @pytest.mark.unit
 class TestReviewService:
-    """Test suite for review_service module."""
-
-    @pytest.fixture
-    def mock_db_session(self):
-        """Create a mock async database session."""
-        session = AsyncMock()
-        session.add = Mock()
-        session.commit = AsyncMock()
-        session.refresh = AsyncMock()
-        session.execute = AsyncMock()
-        return session
-
-    @pytest.fixture
-    def mock_review(self):
-        """Create a mock Review object."""
-        review = Mock()
-        review.id = uuid4()
-        review.status = "pending"
-        review.sections = None
-        review.overall_score = None
-        return review
-
-    @pytest.fixture
-    def mock_profile(self):
-        """Create a mock Profile object."""
-        profile = Mock()
-        profile.id = uuid4()
-        profile.user_id = uuid4()
-        return profile
-
-    @pytest.mark.asyncio
-    async def test_create_review_returns_review_with_pending_status(self, mock_db_session, mock_review):
-        """Test create_review returns Review with status='pending'."""
-        profile_id = uuid4()
-        user_id = uuid4()
-
-        # Setup mock
-        mock_db_session.add = Mock()
-        mock_db_session.commit = AsyncMock()
-        mock_db_session.refresh = AsyncMock()
-
-        with patch('core.services.review_service.Review') as MockReview:
-            mock_instance = MockReview.return_value
-            mock_instance.status = "pending"
-            mock_instance.sections = None
-            mock_instance.overall_score = None
-
-            result = await create_review(mock_db_session, profile_id, user_id)
-
-            # Check that Review was instantiated
-            MockReview.assert_called()
-            call_kwargs = MockReview.call_args[1]
-            assert call_kwargs['status'] == "pending"
-
-    @pytest.mark.asyncio
-    async def test_get_review_returns_review_for_correct_owner(self, mock_db_session):
-        """Test get_review returns review when user_id matches."""
-        review_id = uuid4()
-        user_id = uuid4()
-
-        mock_review = Mock()
-        mock_review.id = review_id
-
-        # Setup mock execute to return review
-        mock_result = AsyncMock()
-        mock_result.scalars.return_value.first.return_value = mock_review
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
-
-        result = await get_review(mock_db_session, review_id, user_id)
-
-        assert result == mock_review
-        mock_db_session.execute.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_get_review_returns_none_for_wrong_user(self, mock_db_session):
-        """Test get_review returns None when user_id doesn't match."""
-        review_id = uuid4()
-        user_id = uuid4()
-        wrong_user_id = uuid4()
-
-        # Setup mock to return None
-        mock_result = AsyncMock()
-        mock_result.scalars.return_value.first.return_value = None
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
-
-        result = await get_review(mock_db_session, review_id, wrong_user_id)
-
-        assert result is None
-
-    @pytest.mark.asyncio
-    async def test_list_reviews_returns_paginated_results(self, mock_db_session):
-        """Test list_reviews returns paginated results."""
-        user_id = uuid4()
-
-        # Create mock reviews
-        mock_reviews = [Mock() for _ in range(5)]
-
-        # Setup execute mock to return reviews
-        mock_result = AsyncMock()
-        mock_result.scalars.return_value.all.return_value = mock_reviews
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
-
-        reviews, total = await list_reviews(mock_db_session, user_id, page=1, page_size=20)
+  """Test suite for review_service module."""
+
+  @pytest.fixture
+  def mockDbSession(self):
+    """Create a mock async database session."""
+    session = AsyncMock()
+    session.add = Mock()
+    session.commit = AsyncMock()
+    session.refresh = AsyncMock()
+    session.execute = AsyncMock()
+
+    return session
+
+  @pytest.fixture
+  def mockReview(self):
+    """Create a mock Review object."""
+    review = Mock()
+    review.id = uuid4()
+    review.status = "pending"
+    review.sections = None
+    review.overall_score = None
+
+    return review
+
+  @pytest.fixture
+  def mockProfile(self):
+    """Create a mock Profile object."""
+    profile = Mock()
+    profile.id = uuid4()
+    profile.userId = uuid4()
+
+    return profile
+
+  @pytest.mark.asyncio
+  async def test_createReviewReturnsReviewWithPendingStatus(self, mockDbSession, mockReview):
+    """Test create_review returns Review with status='pending'."""
+    profileId = uuid4()
+    userId = uuid4()
+
+    # Setup mock
+    mockDbSession.add = Mock()
+    mockDbSession.commit = AsyncMock()
+    mockDbSession.refresh = AsyncMock()
+
+    with patch('core.services.review_service.Review') as MockReview:
+      mockInstance = MockReview.return_value
+      mockInstance.status = "pending"
+      mockInstance.sections = None
+      mockInstance.overall_score = None
+
+      result = await create_review(mockDbSession, profileId, userId)
+
+      # Check that Review was instantiated
+      MockReview.assert_called()
+      call_kwargs = MockReview.call_args[1]
+      assert call_kwargs['status'] == "pending"
+
+  @pytest.mark.asyncio
+  async def test_getReviewReturnsReviewForCorrectOwner(self, mockDbSession):
+    """Test get_review returns review when userId matches."""
+    reviewId = uuid4()
+    userId = uuid4()
+
+    mockReview = Mock()
+    mockReview.id = reviewId
+
+    # Setup mock execute to return review
+    mockResult = MagicMock()
+    mockResult.scalars.return_value.first.return_value = mockReview
+    mockDbSession.execute = AsyncMock(return_value=mockResult)
+
+    result = await get_review(mockDbSession, reviewId, userId)
+
+    assert result == mockReview
+    mockDbSession.execute.assert_called_once()
+
+  @pytest.mark.asyncio
+  async def test_getReviewReturnsNoneForWrongUser(self, mockDbSession):
+    """Test get_review returns None when userId doesn't match."""
+    reviewId = uuid4()
+    # userId = uuid4()
+    wrong_userId = uuid4()
+
+    # Setup mock to return None
+    mockResult = MagicMock()
+    mockResult.scalars.return_value.first.return_value = None
+    mockDbSession.execute = AsyncMock(return_value=mockResult)
+
+    result = await get_review(mockDbSession, reviewId, wrong_userId)
+
+    assert result is None
+
+  @pytest.mark.asyncio
+  async def test_listReviewsReturnsPaginatedResults(self, mockDbSession):
+    """Test list_reviews returns paginated results."""
+    userId = uuid4()
+
+    # Create mock reviews
+    mockReviews = [Mock() for _ in range(5)]
+
+    # Setup execute mock to return reviews
+    mockResult = MagicMock()
+    mockResult.scalars.return_value.all.return_value = mockReviews
+    mockDbSession.execute = AsyncMock(return_value=mockResult)
+
+    reviews, total = await list_reviews(mockDbSession, userId, page=1, page_size=20)
+
+    assert len(reviews) > 0 or len(reviews) == 0  # May be empty
+    assert isinstance(total, int)
+    assert total >= 0
+
+  @pytest.mark.asyncio
+  async def test_listReviewsPage2ReturnsCorrectOffset(self, mockDbSession):
+    """Test list_reviews page 2 returns correct offset."""
+    userId = uuid4()
+    page_size = 20
+
+    # Setup mock
+    mockResult = MagicMock()
+    mockResult.scalars.return_value.all.return_value = []
+    mockDbSession.execute = AsyncMock(return_value=mockResult)
+
+    reviews, total = await list_reviews(
+        mockDbSession, userId, page=2, page_size=page_size
+    )
 
-        assert len(reviews) > 0 or len(reviews) == 0  # May be empty
-        assert isinstance(total, int)
-        assert total >= 0
+    # Second call should pass offset for page 2
+    calls = mockDbSession.execute.call_args_list
+    # Should have at least one call
+    assert len(calls) > 0
+
+  @pytest.mark.asyncio
+  async def test_listReviewsReturnsTuple(self, mockDbSession):
+    """Test list_reviews returns (reviews, total) tuple."""
+    userId = uuid4()
 
-    @pytest.mark.asyncio
-    async def test_list_reviews_page_2_returns_correct_offset(self, mock_db_session):
-        """Test list_reviews page 2 returns correct offset."""
-        user_id = uuid4()
-        page_size = 20
-
-        # Setup mock
-        mock_result = AsyncMock()
-        mock_result.scalars.return_value.all.return_value = []
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    mockResult = MagicMock()
+    mockResult.scalars.return_value.all.return_value = []
+    mockDbSession.execute = AsyncMock(return_value=mockResult)
 
-        reviews, total = await list_reviews(
-            mock_db_session, user_id, page=2, page_size=page_size
-        )
+    result = await list_reviews(mockDbSession, userId)
+
+    assert isinstance(result, tuple)
+    assert len(result) == 2
+    reviews, total = result
+    assert isinstance(reviews, list)
+    assert isinstance(total, int)
+
+  @pytest.mark.asyncio
+  async def test_createReviewCallsDbAdd(self, mockDbSession):
+    """Test create_review calls db.add()."""
+    profileId = uuid4()
+    userId = uuid4()
+
+    with patch('core.services.review_service.Review'):
+      await create_review(mockDbSession, profileId, userId)
 
-        # Second call should pass offset for page 2
-        calls = mock_db_session.execute.call_args_list
-        # Should have at least one call
-        assert len(calls) > 0
+      mockDbSession.add.assert_called_once()
+
+  @pytest.mark.asyncio
+  async def test_createReviewCallsDbCommit(self, mockDbSession):
+    """Test create_review calls db.commit()."""
+    profileId = uuid4()
+    userId = uuid4()
 
-    @pytest.mark.asyncio
-    async def test_list_reviews_returns_tuple(self, mock_db_session):
-        """Test list_reviews returns (reviews, total) tuple."""
-        user_id = uuid4()
+    with patch('core.services.review_service.Review'):
+      await create_review(mockDbSession, profileId, userId)
 
-        mock_result = AsyncMock()
-        mock_result.scalars.return_value.all.return_value = []
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
+      mockDbSession.commit.assert_called_once()
 
-        result = await list_reviews(mock_db_session, user_id)
+  @pytest.mark.asyncio
+  async def test_createReviewCallsDbRefresh(self, mockDbSession):
+    """Test create_review calls db.refresh()."""
+    profileId = uuid4()
+    userId = uuid4()
 
-        assert isinstance(result, tuple)
-        assert len(result) == 2
-        reviews, total = result
-        assert isinstance(reviews, list)
-        assert isinstance(total, int)
+    with patch('core.services.review_service.Review'):
+      await create_review(mockDbSession, profileId, userId)
+
+      mockDbSession.refresh.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_create_review_calls_db_add(self, mock_db_session):
-        """Test create_review calls db.add()."""
-        profile_id = uuid4()
-        user_id = uuid4()
+  @pytest.mark.asyncio
+  async def test_getReviewUsesSelectAndJoin(self, mockDbSession):
+    """Test get_review constructs proper SQL with join."""
+    reviewId = uuid4()
+    userId = uuid4()
 
-        with patch('core.services.review_service.Review'):
-            await create_review(mock_db_session, profile_id, user_id)
+    mockResult = MagicMock()
+    mockResult.scalars.return_value.first.return_value = None
+    mockDbSession.execute = AsyncMock(return_value=mockResult)
 
-            mock_db_session.add.assert_called_once()
+    await get_review(mockDbSession, reviewId, userId)
 
-    @pytest.mark.asyncio
-    async def test_create_review_calls_db_commit(self, mock_db_session):
-        """Test create_review calls db.commit()."""
-        profile_id = uuid4()
-        user_id = uuid4()
-
-        with patch('core.services.review_service.Review'):
-            await create_review(mock_db_session, profile_id, user_id)
+    # Should call execute with a statement
+    mockDbSession.execute.assert_called_once()
 
-            mock_db_session.commit.assert_called_once()
+  @pytest.mark.asyncio
+  async def test_listReviewsDefaultPagination(self, mockDbSession):
+    """Test list_reviews uses default pagination."""
+    userId = uuid4()
 
-    @pytest.mark.asyncio
-    async def test_create_review_calls_db_refresh(self, mock_db_session):
-        """Test create_review calls db.refresh()."""
-        profile_id = uuid4()
-        user_id = uuid4()
+    mockResult = MagicMock()
+    mockResult.scalars.return_value.all.return_value = []
+    mockDbSession.execute = AsyncMock(return_value=mockResult)
 
-        with patch('core.services.review_service.Review'):
-            await create_review(mock_db_session, profile_id, user_id)
+    reviews, total = await list_reviews(mockDbSession, userId)
+
+    # Should use default page=1, page_size=20
+    assert isinstance(reviews, list)
+    assert isinstance(total, int)
 
-            mock_db_session.refresh.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_get_review_uses_select_and_join(self, mock_db_session):
-        """Test get_review constructs proper SQL with join."""
-        review_id = uuid4()
-        user_id = uuid4()
+  @pytest.mark.asyncio
+  async def test_listReviewsCustomPageSize(self, mockDbSession):
+    """Test list_reviews with custom page size."""
+    userId = uuid4()
+    custom_page_size = 50
 
-        mock_result = AsyncMock()
-        mock_result.scalars.return_value.first.return_value = None
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    mockResult = MagicMock()
+    mockResult.scalars.return_value.all.return_value = []
+    mockDbSession.execute = AsyncMock(return_value=mockResult)
 
-        await get_review(mock_db_session, review_id, user_id)
+    reviews, total = await list_reviews(mockDbSession, userId, page=1, page_size=custom_page_size)
 
-        # Should call execute with a statement
-        mock_db_session.execute.assert_called_once()
+    assert isinstance(reviews, list)
 
-    @pytest.mark.asyncio
-    async def test_list_reviews_default_pagination(self, mock_db_session):
-        """Test list_reviews uses default pagination."""
-        user_id = uuid4()
+  @pytest.mark.asyncio
+  async def test_createReviewWithUuidIds(self, mockDbSession):
+    """Test create_review handles UUID objects correctly."""
+    profileId = uuid4()
+    userId = uuid4()
 
-        mock_result = AsyncMock()
-        mock_result.scalars.return_value.all.return_value = []
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
-
-        reviews, total = await list_reviews(mock_db_session, user_id)
+    with patch('core.services.review_service.Review') as MockReview:
+      MockReview.return_value = Mock()
+      await create_review(mockDbSession, profileId, userId)
 
-        # Should use default page=1, page_size=20
-        assert isinstance(reviews, list)
-        assert isinstance(total, int)
+      call_kwargs = MockReview.call_args[1]
+      assert 'profile_id' in call_kwargs
+      assert 'status' in call_kwargs
 
-    @pytest.mark.asyncio
-    async def test_list_reviews_custom_page_size(self, mock_db_session):
-        """Test list_reviews with custom page size."""
-        user_id = uuid4()
-        custom_page_size = 50
+  @pytest.mark.asyncio
+  async def test_getReviewVerifiesOwnership(self, mockDbSession):
+    """Test get_review checks Profile.userId matches."""
+    reviewId = uuid4()
+    userId = uuid4()
 
-        mock_result = AsyncMock()
-        mock_result.scalars.return_value.all.return_value = []
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    mockResult = MagicMock()
+    mockResult.scalars.return_value.first.return_value = None
+    mockDbSession.execute = AsyncMock(return_value=mockResult)
 
-        reviews, total = await list_reviews(
-            mock_db_session, user_id, page=1, page_size=custom_page_size
-        )
+    await get_review(mockDbSession, reviewId, userId)
 
-        assert isinstance(reviews, list)
+    # Should construct query with userId filter
+    mockDbSession.execute.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_create_review_with_uuid_ids(self, mock_db_session):
-        """Test create_review handles UUID objects correctly."""
-        profile_id = uuid4()
-        user_id = uuid4()
+  @pytest.mark.asyncio
+  async def test_listReviewsCountsTotal(self, mockDbSession):
+    """Test list_reviews calculates total count."""
+    userId = uuid4()
 
-        with patch('core.services.review_service.Review') as MockReview:
-            MockReview.return_value = Mock()
-            await create_review(mock_db_session, profile_id, user_id)
+    mockReviews = [Mock() for _ in range(5)]
+    mockResult = MagicMock()
+    mockResult.scalars.return_value.all.return_value = mockReviews
+    mockDbSession.execute = AsyncMock(return_value=mockResult)
 
-            call_kwargs = MockReview.call_args[1]
-            assert 'profile_id' in call_kwargs
-            assert 'status' in call_kwargs
+    reviews, total = await list_reviews(mockDbSession, userId)
 
-    @pytest.mark.asyncio
-    async def test_get_review_verifies_ownership(self, mock_db_session):
-        """Test get_review checks Profile.user_id matches."""
-        review_id = uuid4()
-        user_id = uuid4()
+    # Total should be counted
+    assert isinstance(total, int)
 
-        mock_result = AsyncMock()
-        mock_result.scalars.return_value.first.return_value = None
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
+  @pytest.mark.asyncio
+  async def test_listReviewsReturnsReviewsList(self, mockDbSession):
+    """Test list_reviews returns list of Review objects."""
+    userId = uuid4()
 
-        await get_review(mock_db_session, review_id, user_id)
+    mockReviews = [Mock(spec=['id', 'status']) for _ in range(3)]
+    mockResult = MagicMock()
+    mockResult.scalars.return_value.all.return_value = mockReviews
+    mockDbSession.execute = AsyncMock(return_value=mockResult)
 
-        # Should construct query with user_id filter
-        mock_db_session.execute.assert_called_once()
+    reviews, total = await list_reviews(mockDbSession, userId)
 
-    @pytest.mark.asyncio
-    async def test_list_reviews_counts_total(self, mock_db_session):
-        """Test list_reviews calculates total count."""
-        user_id = uuid4()
+    assert isinstance(reviews, list)
 
-        mock_reviews = [Mock() for _ in range(5)]
-        mock_result = AsyncMock()
-        mock_result.scalars.return_value.all.return_value = mock_reviews
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
+  @pytest.mark.asyncio
+  async def test_reviewSectionsAndScoreInitiallyNone(self, mockDbSession):
+    """Test review has None for sections and overall_score initially."""
+    profileId = uuid4()
+    userId = uuid4()
 
-        reviews, total = await list_reviews(mock_db_session, user_id)
+    with patch('core.services.review_service.Review') as MockReview:
+      MockReview.return_value = Mock()
+      await create_review(mockDbSession, profileId, userId)
 
-        # Total should be counted
-        assert isinstance(total, int)
+      call_kwargs = MockReview.call_args[1]
+      assert call_kwargs['sections'] is None
+      assert call_kwargs['overall_score'] is None
 
-    @pytest.mark.asyncio
-    async def test_list_reviews_returns_reviews_list(self, mock_db_session):
-        """Test list_reviews returns list of Review objects."""
-        user_id = uuid4()
+  @pytest.mark.asyncio
+  async def test_getReviewWithValidUuid(self, mockDbSession):
+    """Test get_review handles valid UUID parameters."""
+    reviewId = uuid4()
+    userId = uuid4()
 
-        mock_reviews = [Mock(spec=['id', 'status']) for _ in range(3)]
-        mock_result = AsyncMock()
-        mock_result.scalars.return_value.all.return_value = mock_reviews
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
+    mockResult = MagicMock()
+    mockResult.scalars.return_value.first.return_value = None
+    mockDbSession.execute = AsyncMock(return_value=mockResult)
 
-        reviews, total = await list_reviews(mock_db_session, user_id)
+    # Should not raise
+    result = await get_review(mockDbSession, reviewId, userId)
 
-        assert isinstance(reviews, list)
+    assert result is None or result is not None  # Just verify no exception
 
-    @pytest.mark.asyncio
-    async def test_review_sections_and_score_initially_none(self, mock_db_session):
-        """Test review has None for sections and overall_score initially."""
-        profile_id = uuid4()
-        user_id = uuid4()
+  @pytest.mark.asyncio
+  async def test_listReviewsOrderedByCreatedAt(self, mockDbSession):
+    """Test list_reviews returns results ordered by created_at desc."""
+    userId = uuid4()
 
-        with patch('core.services.review_service.Review') as MockReview:
-            MockReview.return_value = Mock()
-            await create_review(mock_db_session, profile_id, user_id)
+    mockResult = MagicMock()
+    mockResult.scalars.return_value.all.return_value = []
+    mockDbSession.execute = AsyncMock(return_value=mockResult)
 
-            call_kwargs = MockReview.call_args[1]
-            assert call_kwargs['sections'] is None
-            assert call_kwargs['overall_score'] is None
+    reviews, total = await list_reviews(mockDbSession, userId)
 
-    @pytest.mark.asyncio
-    async def test_get_review_with_valid_uuid(self, mock_db_session):
-        """Test get_review handles valid UUID parameters."""
-        review_id = uuid4()
-        user_id = uuid4()
-
-        mock_result = AsyncMock()
-        mock_result.scalars.return_value.first.return_value = None
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
-
-        # Should not raise
-        result = await get_review(mock_db_session, review_id, user_id)
-
-        assert result is None or result is not None  # Just verify no exception
-
-    @pytest.mark.asyncio
-    async def test_list_reviews_ordered_by_created_at(self, mock_db_session):
-        """Test list_reviews returns results ordered by created_at desc."""
-        user_id = uuid4()
-
-        mock_result = AsyncMock()
-        mock_result.scalars.return_value.all.return_value = []
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
-
-        reviews, total = await list_reviews(mock_db_session, user_id)
-
-        # Should order by created_at descending
-        mock_db_session.execute.assert_called_once()
+    # Should order by created_at descending (count query + paginated query)
+    assert mockDbSession.execute.call_count == 2
