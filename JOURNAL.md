@@ -145,3 +145,35 @@ Response (HTTP 200, ~2 seconds later):
 **PLAN.md Link:** https://github.com/tam-justin/pathreview/blob/test/88-reviews-endpoint-missing-documents/PLAN.md
 
 **Blockers or Open Questions:**
+
+## Week 9 - Solution Building & PR Submission
+
+### Check-In 1 (Mid-Week)
+
+**Current Progress:**
+I've currently done the following sub-tasks from `PLAN.md`:
+- ***Step 1***: I ran `make test-unit` to get a baseline before I touch any of the code. It had 53 failed tests, 375 passed, and 2 warnings. 
+- ***Step 2***: I wrote the test specs in `tests/unit/test_review_routes.py`. I wrote a total of six test cases. They cover the following cases: empty profile, profile not found, all fields are empty strings, descriptive error message, ensure empty profiles don't create a review, and a happy path.
+
+**Next Steps:**
+For the rest of the week, I'll be working on steps 3, 4, and 5. Steps 3 & 4 add the logic to make sure empty profiles get rejected, a descriptive error message is generated, and the newly added tests pass. Step 5 is to run the linter and formatter to check for clean code.
+
+**Blockers:** N/A
+
+---
+
+### Check-In 2 (End of Week)
+
+**PR Link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What You Built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests Added or Updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-Review Confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR Feedback Received From:** [name or Slack handle, or "none"]
