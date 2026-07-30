@@ -32,3 +32,20 @@ I reproduced the feature gap by adding a unit test that checks whether the `agen
 
 **Blockers or open questions:**
 The main open question is how the tool should obtain the contents of dependency manifest files. The existing GitHub tool retrieves repository metadata but does not download `requirements.txt`, `package.json`, or `pyproject.toml`, so the implementation may need to use the GitHub Contents API while keeping the work within issue #53’s Tier 2 scope.
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+I implemented the new `DependencyAuditTool` using the existing `BaseTool` and `ToolResult` structure. The tool supports `requirements.txt`, `package.json`, and `pyproject.toml`, retrieves root-level dependency manifests from GitHub when repository details are provided, checks current versions through PyPI and npm, and flags packages that are more than one major version behind. I also updated the orchestrator to schedule the dependency audit for the first submitted GitHub project and added six unit tests covering the supported formats, version comparison behavior, missing input, empty manifests, and orchestrator integration.
+
+**Next steps:**
+
+I will open a draft pull request, request peer or mentor feedback, review the implementation and PR description against `CONTRIBUTING.md`, and address any feedback that improves the solution. Before marking the PR ready for review, I will rerun the targeted tests and quality checks, document the repository’s pre-existing full-suite failures, and complete Check-in 2 with the final PR link.
+
+**Blockers:**
+
+The repository-wide checks have pre-existing failures. Before implementation, the unit suite had 53 unrelated failures and 375 passing tests when the reproduction test was excluded. After implementation, the same 53 tests fail and 381 pass, confirming that the six new tests pass without introducing new failures. Repository-wide Ruff also reports existing errors, while Ruff, Black, and Mypy pass when run against the issue-related files.
