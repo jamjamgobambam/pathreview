@@ -71,7 +71,7 @@ No production code was changed during reproduction.
 
 I reproduced Issue #151 by running `python -m pytest tests/unit/test_bias_detector.py -q`. Nine tests failed because the current regular expressions returned `(False, "")` for common phrasings of dismissive educational-background language and demographic assumptions.
 
-**PLAN.md link:** `https://github.com/zero3119/pathreview/blob/fix/151-bias-detector-patterns/PLAN`
+**PLAN.md link:** `https://github.com/zero3119/pathreview/blob/fix/151-bias-detector-patterns/PLAN.md`
 
 **Blockers or open questions:**
 
