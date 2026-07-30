@@ -79,21 +79,30 @@ class StructuralChunker(BaseChunker):
         sections = []
         heading_stack = []  # Stack of (level, heading_text)
         current_section_lines = []
-        current_level = 0
+
+        def flush_section():
+            """Emit the accumulated lines as a section, if any content exists.
+
+            Content collected before the first heading (or in a document with no
+            headings at all) is emitted as a level-0 section with an empty path,
+            so heading-less documents are chunked rather than silently dropped
+            (#149).
+            """
+            content = "\n".join(current_section_lines).strip()
+            if content:
+                sections.append({
+                    "content": content,
+                    "path": [h[1] for h in heading_stack],
+                    "level": heading_stack[-1][0] if heading_stack else 0,
+                })
 
         for line in lines:
             heading_match = re.match(r"^(#{1,6})\s+(.+)$", line)
 
             if heading_match:
-                # Save previous section if exists
-                if current_section_lines:
-                    if heading_stack:
-                        sections.append({
-                            "content": "\n".join(current_section_lines).strip(),
-                            "path": [h[1] for h in heading_stack],
-                            "level": heading_stack[-1][0] if heading_stack else 0,
-                        })
-                    current_section_lines = []
+                # Save previous section (preamble or prior heading's content).
+                flush_section()
+                current_section_lines = []
 
                 # Process new heading
                 heading_level = len(heading_match.group(1))
@@ -104,28 +113,14 @@ class StructuralChunker(BaseChunker):
                     heading_stack.pop()
 
                 heading_stack.append((heading_level, heading_text))
-                current_level = heading_level
 
             else:
-                # Regular content line
-                # BUG (#149): content is only collected once a heading has been
-                # seen (heading_stack is non-empty). For a document with NO
-                # headings, this branch never appends anything, so
-                # current_section_lines stays empty and no section is produced.
-                if heading_stack or current_section_lines:  # Only collect if we have a heading
-                    current_section_lines.append(line)
+                # Regular content line. Collect unconditionally so that content
+                # in a heading-less document (or before the first heading) is
+                # retained instead of being discarded (#149).
+                current_section_lines.append(line)
 
-        # Save final section
-        # BUG (#149): the final-section guard also requires heading_stack to be
-        # non-empty, so even accumulated content is discarded when the document
-        # has no headings -> chunk() returns [] and the document is dropped from
-        # the RAG index. Reproduced by tests/unit/test_structural_chunker.py::
-        # test_document_with_no_headings.
-        if current_section_lines and heading_stack:
-            sections.append({
-                "content": "\n".join(current_section_lines).strip(),
-                "path": [h[1] for h in heading_stack],
-                "level": heading_stack[-1][0] if heading_stack else 0,
-            })
+        # Save final section.
+        flush_section()
 
         return sections
