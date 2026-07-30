@@ -15,4 +15,7 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: [types-redis]
-        args: [--ignore-missing-imports]
+        # Match `make typecheck`: skip tests, and don't fail on pre-existing
+        # errors in unstaged modules pulled in via imports.
+        exclude: ^tests/
+        args: [--ignore-missing-imports, --follow-imports=silent]
