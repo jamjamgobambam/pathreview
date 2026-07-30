@@ -94,3 +94,43 @@ Issue #148 spans 4 failing tests (JavaScript, TypeScript, DevOps/Docker, Docker 
 - **Keyword false positives:** relying on generic JS keywords (`const`, `let`, `function`) risks matching non-code prose — need to tune confidence so a single keyword doesn't over-trigger.
 - **Docker Compose classification:** report as a separate "Docker Compose" skill or fold into "Docker"? Currently planning to fold into "Docker".
 - **Dockerfile keyword safety:** matching `FROM`/`RUN`/`EXPOSE` could false-positive on unrelated prose — considering requiring 2+ keywords or line-start anchoring to keep confidence honest.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented separate JavaScript and TypeScript detection paths in
+`SkillExtractor`. JavaScript detection now recognizes CommonJS/ES module syntax,
+while TypeScript detection recognizes interfaces, type aliases, enums, generic
+`Promise` types, and TypeScript type annotations. Added Docker detection based on
+multiple line-anchored Dockerfile instructions and Docker Compose structure. The
+four tests named in issue #148 now pass.
+
+**Next steps:**
+Remove temporary debugging output, review the diff for unrelated changes, run the
+affected test file and project quality checks, and submit a draft PR for feedback.
+
+**Blockers:**
+The full unit suite still contains failures outside issue #148. I also fixed
+`test_database_technology_detection` while investigating; reviewer input is
+needed on whether that unrelated database fix should be removed from this PR and
+submitted separately.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
