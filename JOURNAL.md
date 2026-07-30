@@ -70,3 +70,35 @@ Only `tests/unit/test_review_service.py`. Updated the mock construction in all 1
 **Self-review confirmation:** [x] make test-unit passes (for `test_review_service.py`: 19/19) [x] make check passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Nothing was particularly surprising.
+
+**What did you learn about working in a large codebase?**
+I learned that it can be overwhelming stepping inside someone else's code, especially with a relatively large base.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was useful in knowing the layout and flow of the logic and code.
+However, I had to go through it myself to ensure.
+
+**What would you do differently if you started over?**
+None.
+
+**What are you most proud of from this module?**
+I am proud of making my first pull request.
