@@ -48,3 +48,21 @@ Sub-task 3: define the scoring prompt template (mostly done, lives in reranker.p
 
 **Blockers:**
 None right now. Went with batched scoring (all chunks in one prompt) which resolved the earlier open question.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [TO BE FILLED AFTER PR IS OPENED]
+
+**Branch:** `feat/34-setup-&-short-description`
+
+**What you built:**
+Implemented an optional LLM-based re-ranking step for the RAG retriever. The `ChunkReranker` class takes candidate chunks from the hybrid retriever, sends them to a smaller LLM in batches to score relevance (0-10), filters by a configurable threshold, and returns only the truly relevant chunks to the generator. It integrates into `HybridRetriever` as an opt-in parameter and falls back gracefully on API errors.
+
+**Tests added or updated:**
+`tests/unit/test_reranker.py` — 9 tests covering: module importability, HybridRetriever integration (with and without reranker), reranking by LLM score, top-k enforcement, API error fallback, and malformed JSON handling.
+
+**Self-review confirmation:** [x] make check passes (no new errors; 162 pre-existing ruff errors in other files)  [x] make test-unit passes (no new failures; 53 pre-existing failures in other test files)
+
+**Draft PR feedback received from:** [TO BE FILLED]
