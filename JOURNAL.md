@@ -77,3 +77,19 @@ I reproduced Issue #151 by running `python -m pytest tests/unit/test_bias_detect
 
 The main open question is how much flexibility to add between related regex terms without causing false positives for the positive, factual, and neutral examples in `tests/unit/test_bias_detector.py`.
 
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I completed the local reproduction and solution-planning work for Issue #151. I confirmed that the focused bias-detector test suite produces 9 failing tests and 23 passing tests because `BiasDetector.detect_bias()` does not recognize several common forms of dismissive educational-background language and demographic assumptions. I have also identified `safety/bias_detector.py` and `tests/unit/test_bias_detector.py` as the primary files involved.
+
+**Next steps:**
+I will compare each failing test with the existing bias patterns, update the relevant patterns incrementally, and run the focused unit tests after each change. I will also add or verify negative test cases for neutral statements, run `make check` and `make test-unit`, open a draft pull request, and request peer or mentor feedback.
+
+**Blockers:**
+The main risk is expanding the patterns too broadly and causing neutral statements to be incorrectly flagged. I also need to verify whether overlapping matches are expected to return a particular bias explanation.
+
+---
+
