@@ -1,0 +1,14 @@
+{
+  "github_username": "janedoe",
+  "resume_text": "# Jane Doe\n\n## Skills\nPython, FastAPI, React, PostgreSQL\n\n## Experience\nSoftware Engineer at Example Corp (2022–2024)\nBuilt REST APIs and internal developer tooling.\n\n## Projects\nSee the linked repositories below.",
+  "repositories": [
+    {
+      "name": "portfolio-api",
+      "url": "https://github.com/janedoe/portfolio-api"
+    },
+    {
+      "name": "task-dashboard",
+      "url": "https://github.com/janedoe/task-dashboard"
+    }
+  ]
+}
