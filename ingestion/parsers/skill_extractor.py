@@ -90,10 +90,6 @@ class SkillExtractor:
         "oracle": 0.85,
     }
 
-    DATABASE_ALIASES = {
-        "psycopg2": ("PostgreSQL", 0.95),
-    }
-
     TOOLS = {
         "docker": 0.95,
         "kubernetes": 0.95,
@@ -283,15 +279,6 @@ class SkillExtractor:
                         confidence=confidence,
                         evidence=[f"Found '{db}' reference in content"],
                     )
-
-        for indicator, (database, confidence) in self.DATABASE_ALIASES.items():
-            if re.search(rf"\b{re.escape(indicator)}\b", text_lower):
-                skills_dict[database] = SkillDetection(
-                    name=database,
-                    category="Database",
-                    confidence=confidence,
-                    evidence=[f"Found '{indicator}' database driver"],
-                )
 
     def _detect_tools(self, text: str, skills_dict: dict) -> None:
         """Detect tools and DevOps technologies."""
