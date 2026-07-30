@@ -90,6 +90,10 @@ class SkillExtractor:
         "oracle": 0.85,
     }
 
+    DATABASE_ALIASES = {
+        "psycopg2": ("PostgreSQL", 0.95),
+    }
+
     TOOLS = {
         "docker": 0.95,
         "kubernetes": 0.95,
@@ -171,23 +175,21 @@ class SkillExtractor:
             )
 
         # JavaScript/TypeScript detection
+        # JavaScript detection
         js_evidence = []
+
         if ".js" in str(filename or "").lower():
             js_evidence.append("JavaScript file extension (.js)")
-        if ".ts" in str(filename or "").lower():
-            js_evidence.append("TypeScript file extension (.ts)")
         if re.search(r"\bimport\s+|\brequire\s*\(", text):
             js_evidence.append("CommonJS or ES6 imports")
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
         if js_evidence:
-            confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
-            skills_dict[lang] = SkillDetection(
-                name=lang,
+            skills_dict["JavaScript"] = SkillDetection(
+                name="JavaScript",
                 category="Language",
-                confidence=confidence,
+                confidence=min(0.95, 0.6 + len(js_evidence) * 0.1),
                 evidence=js_evidence,
             )
 
@@ -282,9 +284,48 @@ class SkillExtractor:
                         evidence=[f"Found '{db}' reference in content"],
                     )
 
+        for indicator, (database, confidence) in self.DATABASE_ALIASES.items():
+            if re.search(rf"\b{re.escape(indicator)}\b", text_lower):
+                skills_dict[database] = SkillDetection(
+                    name=database,
+                    category="Database",
+                    confidence=confidence,
+                    evidence=[f"Found '{indicator}' database driver"],
+                )
+
     def _detect_tools(self, text: str, skills_dict: dict) -> None:
         """Detect tools and DevOps technologies."""
         text_lower = text.lower()
+        docker_evidence = []
+
+        dockerfile_matches = set(
+            re.findall(
+                r"(?im)^\s*(FROM|RUN|COPY|ADD|EXPOSE|CMD|ENTRYPOINT|WORKDIR)\b",
+                text,
+            )
+        )
+
+        if len(dockerfile_matches) >= 2:
+            docker_evidence.append(
+                f"Dockerfile instructions: {', '.join(sorted(dockerfile_matches))}"
+            )
+
+        has_services = re.search(r"(?im)^\s*services\s*:", text)
+        compose_markers = re.findall(
+            r"(?im)^\s*(version|build|image|ports|container_name)\s*:",
+            text,
+        )
+
+        if has_services and compose_markers:
+            docker_evidence.append("Docker Compose configuration")
+
+        if docker_evidence:
+            skills_dict["Docker"] = SkillDetection(
+                name="Docker",
+                category="Tool",
+                confidence=0.95,
+                evidence=docker_evidence,
+            )
 
         for tool, confidence in self.TOOLS.items():
             if tool in text_lower:
