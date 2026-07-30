@@ -64,3 +64,34 @@ Created `tests/unit/test_orchestrator.py` (no tests existed for this file before
 *(Note: the codebase has documented pre-existing failures — 53 in `make test-unit`, 183 in `make check` — recorded in `tests/unit/pre_existing_failures_baseline.txt` and `tests/unit/pre_existing_lint_baseline.txt`. Per course guidance, "passes" here means my changes introduce no new failures on top of that baseline, which I confirmed by comparing before/after runs.)*
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. Per the course note, reviewer feedback isn't a feature this term (Summer 2026), so this was expected.
+
+**How you responded:**
+N/A, no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Environment setup, honestly. Getting Docker running was fine, but the ChromaDB container kept crashing on startup because its architecture-detection script rebuilt `chroma-hnswlib` on Apple Silicon and pulled in NumPy 2.x, which broke ChromaDB 0.4.22's own code (`np.float_` was removed in NumPy 2.0). I had to override the container's entrypoint in `docker-compose.yml` and pin NumPy to 1.26.4 before I could even get to the actual Week 7 task. Didn't expect to be debugging a Docker/NumPy version conflict before writing a single line of the real fix.
+
+**What did you learn about working in a large codebase?**
+The issue title isn't always the bug. Issue #44 was titled "Orchestrator catches all exceptions from tool calls and continues without logging the failure," but when I actually read `agent/orchestrator.py`, it did call `logger.error(...)` on every failure. The real bug was narrower: the top-level dict returned by `run()` had no field showing anything had failed at all, so a caller had to manually dig through `tool_results` for a `"success": False` key. I only caught this by writing a reproduction script and actually running it instead of trusting the issue description at face value. I also learned to check for contention before claiming an issue. #80 already had a linked PR basically solving it, and #157 had four people saying "I'd like to work on this," so I picked #44 instead, which had no linked PR and way less noise.
+
+**How did AI tools help, and where did they fall short?**
+AI was most useful for pattern matching against the existing codebase, like modeling my new `tests/unit/test_orchestrator.py` after the style of `test_tech_detector.py` so it matched project conventions instead of me inventing my own structure. It also helped me quickly diagnose the ChromaDB/NumPy crash by cross-referencing the traceback against known compatibility issues instead of guessing. Where it fell short: it couldn't tell me whether #80 or #157 were still safe to claim. I had to actually open each issue and read the live comment thread myself to see the linked PR and the duplicate claims, since that info only exists on GitHub in real time.
+
+**What would you do differently if you started over?**
+I'd check for a linked PR and read the actual issue body before getting attached to an issue, instead of picking one first and finding out about the contention after (which is what happened with both #80 and #157). I'd also budget more time upfront for environment setup. I assumed `docker compose up -d` would just work, and the ChromaDB bug ate a chunk of Week 7 I hadn't planned for.
+
+**What are you most proud of from this module?**
+Catching that the issue title didn't match the actual bug. It would've been easy to just slap a `logger.error()` call somewhere and call it done since that's literally what the title said, but writing the reproduction script first showed me the real gap was about surfacing failures at the top level, not logging at all. That's the moment this stopped feeling like "follow the instructions" and started feeling like actual debugging.
