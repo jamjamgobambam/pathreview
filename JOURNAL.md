@@ -35,3 +35,16 @@ Two-part reproduction. First, a structural test confirms the reranker module doe
 
 **Blockers or open questions:**
 Need to decide which LLM to use for reranking (GPT-3.5-turbo is cheap and fast, but a local model would avoid API costs in tests). Also need to confirm whether batching all chunks in one prompt or scoring them individually gives more reliable results.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed sub-tasks 1 and 2 from PLAN.md. Created `rag/retriever/reranker.py` with the `ChunkReranker` class that scores chunks in batches using an LLM, handles fallbacks on API errors or malformed responses, and filters by a configurable relevance threshold. Integrated it into `hybrid.py` as an optional `reranker` parameter so existing behavior is unchanged when no reranker is passed. Updated `rag/retriever/__init__.py` to export the new classes. Rewrote the test file with 9 unit tests covering normal reranking, top-k limits, API failures, malformed JSON, and the integration with HybridRetriever both with and without a reranker.
+
+**Next steps:**
+Sub-task 3: define the scoring prompt template (mostly done, lives in reranker.py already but may refine wording). Sub-task 5: add environment variable config to enable/disable reranking and set the model. Then open the PR and fill in Check-in 2.
+
+**Blockers:**
+None right now. Went with batched scoring (all chunks in one prompt) which resolved the earlier open question.
