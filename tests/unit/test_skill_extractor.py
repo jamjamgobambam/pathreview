@@ -61,6 +61,14 @@ class TestSkillExtractor:
         # Should detect TypeScript
         assert any("typescript" in s.lower() for s in skill_names)
 
+    def test_typescript_detection_from_issue_example(self, extractor: SkillExtractor) -> None:
+        """Test TypeScript detection from the issue's prose example."""
+        text = "Built app.tsx and types.ts with strict TypeScript interfaces"
+
+        result = extractor.extract_skills(text)
+
+        assert any(skill.name == "TypeScript" for skill in result)
+
     def test_jupyter_ipynb_detection(self, extractor: SkillExtractor) -> None:
         """Test Python/Jupyter detection from .ipynb reference."""
         text = """

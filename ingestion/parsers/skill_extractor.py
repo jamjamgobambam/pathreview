@@ -202,6 +202,12 @@ class SkillExtractor:
 
         ts_evidence = [pattern for pattern in typescript_patterns if re.search(pattern, text)]
 
+        if re.search(r"\b[\w.-]+\.tsx?\b", text_lower):
+            ts_evidence.append("TypeScript filename found in content")
+
+        if re.search(r"\btypescript\b", text_lower):
+            ts_evidence.append("TypeScript mentioned in content")
+
         if ".ts" in str(filename or "").lower():
             ts_evidence.append("TypeScript file extension (.ts)")
 
