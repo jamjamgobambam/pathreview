@@ -69,6 +69,24 @@ class TestReviewService:
             assert call_kwargs['status'] == "pending"
 
     @pytest.mark.asyncio
+    async def test_create_review_rejects_profile_not_owned_by_user(self, mock_db_session):
+        """Reproduce #163: review creation must reject an unowned profile."""
+        profile_id = uuid4()
+        user_id = uuid4()
+
+        # An ownership-scoped profile lookup should return no match.
+        query_result = Mock()
+        query_result.scalars.return_value.first.return_value = None
+        mock_db_session.execute.return_value = query_result
+
+        result = await create_review(mock_db_session, profile_id, user_id)
+
+        mock_db_session.execute.assert_awaited_once()
+        mock_db_session.add.assert_not_called()
+        mock_db_session.commit.assert_not_awaited()
+        assert result is None
+
+    @pytest.mark.asyncio
     async def test_get_review_returns_review_for_correct_owner(self, mock_db_session):
         """Test get_review returns review when user_id matches."""
         review_id = uuid4()
