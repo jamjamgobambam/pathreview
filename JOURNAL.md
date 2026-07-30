@@ -36,3 +36,39 @@ N/A
 
 **Blockers or open questions:**
 The repository has existing lint and type-check issues in `api/routes/health.py` that are unrelated to this issue and prevented the pre-commit hooks from passing locally.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the Redis health check fix by replacing the nonexistent settings.redis_host and settings.redis_port configuration with the existing settings.redis_url. Opened a pull request, marked it ready for review, and verified the endpoint no longer raises an AttributeError.
+
+**Next steps:**
+Run the required project checks, document any pre-existing failures, and finalize the PR.
+
+**Blockers:**
+The repository contains pre-existing unit test failures unrelated to this issue.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:**
+https://github.com/ascherj/pathreview/pull/322
+
+**Branch:**
+`fix-health-check-redis-host`
+
+**What you built:**
+Updated the health check endpoint to initialize the Redis client using the existing `settings.redis_url` configuration instead of the nonexistent `settings.redis_host` and `settings.redis_port` settings. This allows the health endpoint to complete without raising an AttributeError.
+
+**Tests added or updated:**
+No tests were modified because this change only updates the Redis client initialization to use the existing configuration value. I ran `make test-unit` and confirmed that the repository still has the same unrelated pre-existing test failures and that my change did not introduce any new failures.
+
+**Self-review confirmation:**
+- `make check`: Repository has pre-existing lint/style failures unrelated to this issue; my changes did not introduce additional failures.
+- `make test-unit`: Repository has pre-existing failing tests unrelated to this issue (53 failures); my changes did not introduce additional failures.
+
+**Draft PR feedback received from:**
+None
