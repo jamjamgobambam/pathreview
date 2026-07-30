@@ -1,11 +1,11 @@
 """Tests for resume_parser.py"""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
+from unittest.mock import Mock, patch
 
-from ingestion.parsers.resume_parser import ResumeParser
+import pytest
+
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.resume_parser import ResumeParser
 
 
 @pytest.mark.unit
@@ -181,3 +181,22 @@ class TestResumeParser:
         assert "John Doe" in result.text
         assert "Software Engineer" in result.text
         assert "Python" in result.text
+
+def test_parse_indented_section_headers():
+    """
+    Test that section headers with leading whitespace are correctly identified.
+    Prevents regression of Issue #147.
+    """
+    # Arrange — Set up a mock resume string with spaces before the headers
+    parser = ResumeParser()
+    content = "John Doe\n\n  Education:\nB.S. Computer Science\n\n   Skills:\nPython, Git"
+
+    # Act — Run the string through your updated parser
+    result = parser.parse(content)
+
+    # Assert — Verify the parser successfully stripped the whitespace and found the sections
+    # (Adjust 'detected_sections' if your parser stores section keys differently!)
+    sections = result.metadata.get("detected_sections", [])
+    
+    assert "Education" in sections
+    assert "Skills" in sections
