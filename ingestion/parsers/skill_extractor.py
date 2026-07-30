@@ -191,6 +191,28 @@ class SkillExtractor:
                 evidence=js_evidence,
             )
 
+        # TypeScript detection
+        typescript_patterns = (
+            r"\binterface\s+\w+",
+            r"\btype\s+\w+\s*=",
+            r"\benum\s+\w+",
+            r"\bPromise\s*<",
+            r":\s*(?:string|number|boolean|unknown|never|any)\b",
+        )
+
+        ts_evidence = [pattern for pattern in typescript_patterns if re.search(pattern, text)]
+
+        if ".ts" in str(filename or "").lower():
+            ts_evidence.append("TypeScript file extension (.ts)")
+
+        if ts_evidence:
+            skills_dict["TypeScript"] = SkillDetection(
+                name="TypeScript",
+                category="Language",
+                confidence=min(0.95, 0.6 + len(ts_evidence) * 0.1),
+                evidence=ts_evidence,
+            )
+
         # Other languages by extension
         extension_langs = {
             ".java": ("Java", 0.95),
