@@ -47,3 +47,23 @@ unauthorized profiles, and preserve normal review creation for the owner.
 - **Claim check:** I commented on issue #163 from GitHub account `mikemaeda` on
   July 20, 2026. Multiple people have also expressed interest, so I will confirm
   availability in the cohort ledger and coordinate there before opening a PR.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [3b794c3 — failing ownership regression test](https://github.com/mikemaeda/pathreview/commit/3b794c3)
+
+**Reproduction summary:**
+I reproduced issue #163 with a focused unit test that treats an
+ownership-scoped profile lookup as having no match. The test fails because
+`create_review()` never executes that lookup and instead adds and commits a
+pending review for the supplied profile ID.
+
+**PLAN.md link:** [Solution plan](https://github.com/mikemaeda/pathreview/blob/fix/163-review-profile-ownership/PLAN.md)
+
+**Walkthrough video (recommended):** Not recorded (recommended, not graded).
+
+**Blockers or open questions:**
+Confirm whether the upstream maintainers prefer the service to return `None` or
+raise a domain-specific exception. The current plan follows the existing
+`profile_service.get_profile()` convention and maps `None` to a generic 404 at
+the route.
