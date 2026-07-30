@@ -14,3 +14,14 @@ Detection logic needs to be added to check for the presence of test coverage in 
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+Ran in the project venv: `python -c "from agent.tools.github_tool import GitHubTool; d = GitHubTool().execute({'github_username':'octocat','repo_name':'Hello-World'}).data; print(sorted(d)); print('has_tests present?', 'has_tests' in d)"`; the returned keys were ['description', 'fork_count', 'has_readme', 'homepage', 'last_commit_date', 'name', 'open_issues_count', 'primary_language', 'star_count', 'topics'] — confirming no has_tests key exists. The gap is in _fetch_repo_metadata() at agent/tools/github_tool.py:100, which builds the metadata dict but has no has_tests entry and the class has no _detect_tests() method (only _has_readme()).
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Blockers or open questions:**
