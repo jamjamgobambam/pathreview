@@ -176,6 +176,8 @@ class SkillExtractor:
 
         if ".js" in str(filename or "").lower():
             js_evidence.append("JavaScript file extension (.js)")
+        if re.search(r"\b[\w.-]+\.jsx?\b", text_lower):
+            js_evidence.append("JavaScript filename found in content")
         if re.search(r"\bimport\s+|\brequire\s*\(", text):
             js_evidence.append("CommonJS or ES6 imports")
         if "package.json" in text_lower:
@@ -285,14 +287,24 @@ class SkillExtractor:
         text_lower = text.lower()
         docker_evidence = []
 
-        dockerfile_matches = set(
-            re.findall(
+        dockerfile_matches = {
+            match.upper()
+            for match in re.findall(
                 r"(?im)^\s*(FROM|RUN|COPY|ADD|EXPOSE|CMD|ENTRYPOINT|WORKDIR)\b",
                 text,
             )
-        )
+        }
 
-        if len(dockerfile_matches) >= 2:
+        strong_dockerfile_instructions = {
+            "COPY",
+            "ADD",
+            "EXPOSE",
+            "CMD",
+            "ENTRYPOINT",
+            "WORKDIR",
+        }
+
+        if len(dockerfile_matches) >= 2 and dockerfile_matches & strong_dockerfile_instructions:
             docker_evidence.append(
                 f"Dockerfile instructions: {', '.join(sorted(dockerfile_matches))}"
             )
