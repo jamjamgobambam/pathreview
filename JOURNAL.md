@@ -22,7 +22,7 @@ To fix that, I would need to make sure the orchestrator will use the new session
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** [link to commit documenting the reproduced issue](https://github.com/Dani-risingBW/pathreview/commit/097b846a6f9928107e49848e8693a38695bca6a9)
 
 **Reproduction summary:**
 Ran a curl command to call POST/ reviews twice with the same profile_id. The second review reuses the same old state unless that state is cleared first. It returns the same message and response.
