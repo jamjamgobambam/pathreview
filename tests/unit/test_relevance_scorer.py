@@ -49,7 +49,9 @@ class TestRelevanceScorer:
         query = "Python Django web framework"
         chunks = [
             {
-                "text": "Django is a Python web framework for rapid development"
+                # Only "python" and "web" overlap with the query; "django" and
+                # "framework" are absent, so this is a genuine partial match.
+                "text": "Python is a popular language for many web applications"
             },
         ]
 
