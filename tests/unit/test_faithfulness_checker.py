@@ -237,6 +237,31 @@ class TestFaithfulnessChecker:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
+    def test_mixed_none_and_valid_context_chunks(self, checker):
+        """Test handling of a mix of None and valid text in context chunks."""
+        feedback = "Has Python skills"
+        context_chunks = [
+            {"text": None},
+            {"text": "Strong Python programming experience"},
+        ]
+
+        score = checker.check(feedback, context_chunks)
+
+        # Should handle gracefully and still use the valid chunk's text
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+
+    def test_whitespace_only_context_chunk_text(self, checker):
+        """Test handling of whitespace-only text in a context chunk."""
+        feedback = "Has Python skills"
+        context_chunks = [{"text": "   "}]
+
+        score = checker.check(feedback, context_chunks)
+
+        # Should handle gracefully, treated as effectively empty context
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+
     def test_score_consistency(self, checker):
         """Test that same input produces same score."""
         feedback = "The developer has strong Python skills."
