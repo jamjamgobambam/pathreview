@@ -64,3 +64,37 @@ This issue is a new feature rather than a bug so skipping this section.
 **Blockers or open questions:**
 <NA>
 
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All implementation is completed, including testing and documentation.
+
+**Next steps:**
+Setting up the PR, its documentation before submission. 
+Also submit the PR for review once done.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/405
+
+**Branch:** `Enhancement/87 webhook that notifies users when review is ready`
+
+**What you built:**
+A webhook notification system for completed reviews: clients register a callback URL per profile via `POST /webhooks/callbacks`, and once a review finishes processing, PathReview POSTs a `review.completed` notification (with a deterministic `notification_id` and up to 3 retries) to that URL.
+
+**Tests added or updated:**
+Added`tests/unit/test_webhook_service.py` and `tests/unit/test_callback.py` (20 tests total).
+Updated `tests/unit/test_review_service.py`(2 tests total).
+Covers callback registration/deletion (success, already-registered `409`, profile-not-owned `404`), notification creation and dedup by `notification_id`, and `send_notification`'s success/retry/max-attempts/timeout paths — asserting the exact POST payload and retry counts, not just end state, notification delivery when callback exists, no delivery when callback doesn't exist.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
+
