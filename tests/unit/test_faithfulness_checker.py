@@ -132,6 +132,25 @@ class TestFaithfulnessChecker:
         assert isinstance(supported, bool)
         assert supported is True
 
+    def test_short_factual_claim_is_supported(self, checker):
+        """Test that a short factual claim is supported by a matching context."""
+        claim = "The candidate knows Python."
+        context = "Python experience with Flask."
+
+        supported = checker._is_supported(claim, context)
+
+        assert isinstance(supported, bool)
+        assert supported is True
+
+    def test_short_factual_feedback_is_supported(self, checker):
+        """Test that a short factual feedback sentence scores as supported."""
+        feedback = "The candidate knows Python."
+        context_chunks = [{"text": "Python experience with Flask."}]
+
+        score = checker.check(feedback, context_chunks)
+
+        assert score == 1.0
+
     def test_is_supported_without_keywords(self, checker):
         """Test that claim is unsupported without keyword overlap."""
         claim = "Expert in Rust systems programming"
