@@ -55,8 +55,20 @@ https://github.com/ascherj/pathreview/blob/d1fe6edf5d114cd80406a0602831f9b530b74
 - Implemented unit test suite `tests/unit/test_fixtures.py` to assert the file's presence, valid JSON structure, and schema key completeness.
 
 **Next steps:**
-- Run local unit tests (`pytest tests/unit/test_fixtures.py`) and static quality checks (`ruff`, `black`) to ensure compliance with codebase standards.
-- Prepare and submit the Pull Request against the upstream repository.
+- Prepare and submit the Pull Request for Check-in 2
 
-**Blockers:**
-None.
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/396
+
+**Branch:** `fix/106-restore-fixture`
+
+**What you built:**
+Restored the missing shared test fixture `tests/fixtures/sample_profiles/basic_profile.json` containing a realistic user profile portfolio. Added a dedicated unit test `tests/unit/test_fixtures.py` that validates the existence, JSON parsing, and schema fields of the fixture.
+
+**Tests added or updated:**
+Added `tests/unit/test_fixtures.py`, which covers fixture file existence, JSON syntax validation, required profile keys (`github_username`, `resume`, `repositories`), and repository item attributes (`name`, `description`, `language`, `readme_content`, `file_structure`).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
