@@ -39,3 +39,34 @@ Ran `pytest tests/unit/test_review_service.py -q`, which reproduced the exact nu
 **Walkthrough video (recommended):** null
 
 **Blockers or open questions:** null
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the PLAN.md fix in `tests/unit/test_review_service.py`: all 13 mis-mocked tests now build the `Result` mock with `MagicMock()` (renamed to `mockResult`) instead of `AsyncMock()`, while `mock_db_session.execute` stays an `AsyncMock` returning it. Also updated the `test_list_reviews_orders_by_created_at_desc` assertion from `assert_called_once()` to `call_count == 2` to match the count + paginated query calls. `pytest tests/unit/test_review_service.py -q` now shows 19 passed, 0 failed (up from 13 failed / 6 passed).
+
+**Next steps:**
+Commit the test changes, push the branch, and open the PR against `ascherj/pathreview` referencing issue #158.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/408
+
+**Branch:** `fix/158-failing-async-tests`
+
+**What you built:**
+Fixed the async mock setup in `tests/unit/test_review_service.py` so the mocked SQLAlchemy `Result` object is a `MagicMock` (sync `.scalars()`/`.first()`/`.all()`) while `db.execute` remains an `AsyncMock`, matching the real async API. No changes were needed in `core/services/review_service.py`.
+
+**Tests added or updated:**
+Only `tests/unit/test_review_service.py`. Updated the mock construction in all 13 previously-failing `get_review`/`list_reviews` tests, and adjusted one assertion (`call_count == 2`) to reflect the count and paginated query calls.
+
+**Self-review confirmation:** [x] make test-unit passes (for `test_review_service.py`: 19/19) [x] make check passes
+
+**Draft PR feedback received from:** none
