@@ -52,3 +52,64 @@ itself is small (one conditional or a safer `.get()` pattern), so I'm
 confident I can implement, test, and PR it well within the Weeks 8–9
 window. There are no "blocked by" references or unresolved dependencies
 noted on the issue.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/lakshanakolur/pathreview/commit/3739f91
+
+**Reproduction summary:**
+Ran `FaithfulnessChecker().check('Knows Python.', [{'text': None}])` locally and
+confirmed it raises `TypeError: sequence item 0: expected str instance, NoneType found`,
+matching the issue report. Traced it to `chunk.get("text", "")` in `check()`, which only
+falls back to `""` when the key is missing — not when the value is explicitly `None`.
+Also confirmed the existing test `test_none_context_chunk_text` in
+`tests/unit/test_faithfulness_checker.py` fails the same way, and added a docstring
+to it documenting the reproduction.
+
+**PLAN.md link:** https://github.com/lakshanakolur/pathreview/blob/fix/153-faithfulness-checker-none-text/PLAN.md
+
+**Walkthrough video (recommended):** N/A — not recorded this week
+
+**Blockers or open questions:**
+Found the same `chunk.get("text", "")` pattern in three other files
+(`rag/evaluator/relevance_scorer.py`, `rag/retriever/hybrid.py`,
+`rag/generator/review_generator.py`) — same latent bug likely exists there too,
+but it's out of scope for #153. Considering whether to flag this as a follow-up
+issue after this PR is merged.
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix for #153: changed `chunk.get("text", "")` to `chunk.get("text") or ""`
+in `rag/evaluator/faithfulness_checker.py`, so both a missing `text` key and an explicit
+`None` value fall back to an empty string. Completed sub-tasks 1–4 from PLAN.md: located
+the exact line, applied the fix, confirmed the target test (`test_none_context_chunk_text`)
+and its sibling (`test_missing_text_key_in_chunk`) now pass, and added two additional
+edge-case tests (`test_mixed_none_and_valid_context_chunks`,
+`test_whitespace_only_context_chunk_text`) to cover scenarios from PLAN.md's edge cases
+section. All 4 relevant tests pass.
+
+Ran `make test-unit` and `make check` project-wide to check for regressions. Confirmed
+my change introduces zero new test failures and zero new lint errors — the 49 unrelated
+test failures and 180 lint errors that show up are pre-existing on `main`, in modules I
+never touched (bias_detector, pii_scrubber, review_service, resume_parser, tech_detector,
+etc.). The 3 pre-existing failures within `test_faithfulness_checker.py` itself
+(`test_partial_support_returns_middle_score`, `test_multiple_context_chunks`,
+`test_multiple_claims_varying_support`) also confirmed to fail identically with or
+without my fix — unrelated to the None-handling bug.
+
+**Next steps:**
+- Run `make check` locally to confirm formatting/lint on my specific files, and clean up
+  anything within scope
+- Open a draft PR and request peer/mentor review in Slack
+- Address any review feedback
+- Write PR description documenting pre-existing failures (drafted, ready to include)
+- Finalize and submit PR by Sunday
+
+**Blockers:**
+None currently. Note: found the identical `chunk.get("text", "")` pattern in three other
+files (`relevance_scorer.py`, `hybrid.py`, `review_generator.py`) — same latent bug likely
+exists there, but staying in scope for #153 and considering a follow-up issue instead.
