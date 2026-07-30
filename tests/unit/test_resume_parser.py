@@ -1,11 +1,11 @@
 """Tests for resume_parser.py"""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
+from unittest.mock import Mock, patch
 
-from ingestion.parsers.resume_parser import ResumeParser
+import pytest
+
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.resume_parser import ResumeParser
 
 
 @pytest.mark.unit
@@ -142,6 +142,49 @@ class TestResumeParser:
         assert any("experience" in s for s in sections_lower)
         assert any("education" in s for s in sections_lower)
         assert any("skills" in s for s in sections_lower)
+
+    def test_detect_sections_with_tab_indentation(self, parser):
+        """Section headers indented with tabs should still be detected (#147)."""
+        text = "\tEducation:\n\tBS Computer Science\n\n\tSkills: Python\n"
+        sections = parser._detect_sections(text)
+
+        sections_lower = [s.lower() for s in sections]
+        assert any("education" in s for s in sections_lower)
+        assert any("skills" in s for s in sections_lower)
+
+    def test_detect_sections_with_mixed_whitespace_indentation(self, parser):
+        """Section headers indented with a mix of spaces and tabs should be detected (#147)."""
+        text = "  \tEducation:\n  \tBS Computer Science\n"
+        sections = parser._detect_sections(text)
+
+        sections_lower = [s.lower() for s in sections]
+        assert any("education" in s for s in sections_lower)
+
+    def test_detect_sections_with_leading_and_trailing_whitespace(self, parser):
+        """Leading whitespace before the header and trailing whitespace before
+        the colon should both be tolerated (#147)."""
+        text = "   Education   :\n   BS Computer Science\n"
+        sections = parser._detect_sections(text)
+
+        sections_lower = [s.lower() for s in sections]
+        assert any("education" in s for s in sections_lower)
+
+    def test_detect_sections_ignores_indented_body_text(self, parser):
+        """An indented body/bullet line that merely mentions a section
+        keyword (not as a header) should not be misdetected (#147)."""
+        text = "    - discussed skills with the team\n    - no other headers here\n"
+        sections = parser._detect_sections(text)
+
+        assert "Skills" not in sections
+
+    def test_detect_sections_with_no_headers_returns_empty_list(self, parser):
+        """Text with no recognizable section headers should return an empty
+        list without raising, even with the widened whitespace-tolerant
+        pattern."""
+        text = "    Just some indented body text with no headers at all.\n"
+        sections = parser._detect_sections(text)
+
+        assert sections == []
 
     def test_strip_markdown_syntax(self, parser):
         """Test markdown syntax stripping."""
