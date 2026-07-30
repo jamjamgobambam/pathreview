@@ -37,3 +37,18 @@ Not recorded.
 
 **Blockers or open questions:**
 None at this time.
+
+## Week 9
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+I implemented the fix for Issue #152, which addresses the faithfulness checker incorrectly marking short supported claims as unsupported. I updated the matching logic to better handle short factual claims and added handling for `None` values in context chunks to prevent runtime errors. I verified the changes by running the unit tests and confirmed that the previously failing tests now pass.
+
+**Next steps:**
+
+I will run the full project validation commands (`make check` and `make test-unit`), review the implementation for code quality, push the latest changes to my GitHub branch, and open a pull request for review. After that, I will complete the Week 9 Check-in 2 section with the PR link.
+
+**Blockers:**
+
+None at this time.
