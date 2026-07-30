@@ -52,7 +52,7 @@ so the empty-document contract is entirely unpinned. Reproduction steps:
    with that empty result → 3 sections, score 0.81, safety passes.
 5. Conclusion: the empty-input path is untested and silently produces feedback from zero data.
 
-**PLAN.md link:** https://github.com/BPATHAK10/pathreview/blob/test/88-reviews-no-ingested-docs/PLAN.md
+**PLAN.md link:** [plan.md](https://github.com/BPATHAK10/pathreview/blob/test/88-reviews-no-ingested-docs/PLAN.md)
 
 **Blockers or open questions:**
 The main open question is the intended contract for an empty profile: should the review still
@@ -88,15 +88,26 @@ No any major blockers
 
 ### Check-in 2 (end of week)
 
-**PR link:** 
+**PR link:** [draft pr](https://github.com/ascherj/pathreview/pull/364)
 
 **Branch:** `test/88-reviews-no-ingested-docs`
 
 **What you built:**
-
+Focused unit tests that pin the "no ingested documents" (empty-profile) review path for
+`POST /reviews`, closing the coverage gap in issue #88. The tests assert that ingestion yields
+zero sources for an empty profile and that `process_review` handles that empty result without
+erroring — deterministic assertions that don't codify the placeholder's fabricated-feedback
+behavior. No product code was changed (Tier 1, test-only).
 
 **Tests added or updated:**
+`tests/unit/test_review_service.py` — added an `empty_profile` fixture and three tests
+(`test_ingestion_pipeline_returns_empty_for_profile_with_no_sources`,
+`test_ingestion_pipeline_returns_sources_when_github_present`,
+`test_process_review_handles_empty_ingestion_without_error`).
 
-**Self-review confirmation:** 
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** 
+Note on "passes": this codebase has documented pre-existing failures. `make test-unit` was 53 failed / 375 passed before my change and 53 failed / 378 passed after (+3 new passing tests, no new failures). My change adds no new `make check` or `make test-unit` failures.
+
+**Draft PR feedback received from:** none
+
