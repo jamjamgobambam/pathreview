@@ -45,4 +45,8 @@ attempted a different (conftest.py Python fixture) approach that never created
 the JSON path the issue names and stalled unmerged; this branch delivers the
 literal JSON fixture instead. The repo also has 53 pre-existing unit-test
 failures unrelated to this change (all in `tests/unit/`); the 3 new integration
-tests pass and the full suite is 378 passed / 53 failed.
+tests pass and the full suite is 378 passed / 53 failed. `make check` is
+likewise pre-existing red (182 ruff, 52 black, 5 mypy findings), all in
+unchanged code — this branch modifies zero existing files and its new files
+contribute nothing to those counts (verified). See the PR description for the
+per-issue breakdown of the baseline.
