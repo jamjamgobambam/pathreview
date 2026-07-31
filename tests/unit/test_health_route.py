@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from api.routes import health
-from safety.monitoring import SafetyMonitor
 
 
 @pytest.mark.unit
@@ -14,20 +13,14 @@ class TestHealthRoute:
     """Test suite for the /health endpoint."""
 
     @pytest.mark.asyncio
-    async def test_health_reports_real_safety_event_count(self):
-        """Test /health surfaces real safety event counts from monitoring."""
-        # Reproduces issue #68: safety_events_last_hour is hardcoded to 0 and
-        # never reads from safety/monitoring.py, so the endpoint reports 0 even
-        # when the safety monitor has recorded events.
+    async def test_health_reports_safety_event_count_from_monitor(self):
+        """Test /health surfaces the total safety event count from the monitor."""
+        # Issue #68: the endpoint must report real safety metrics, not a hardcoded 0.
+        # The monitor is injected via Depends, so we hand in a fake reporting 7 events.
+        monitor = Mock()
+        monitor.get_total_event_count.return_value = 7
 
-        # A safety monitor that has recorded 7 events this hour.
-        monitor_redis = Mock()
-        monitor_redis.get.return_value = "7"  # Redis returns strings
-        monitor = SafetyMonitor(monitor_redis)
-        recorded = monitor.get_event_count("pii_detected")
-        assert recorded == 7
-
-        # Make the health check's own dependency probes pass.
+        # Make the health check's own dependency probes pass so it returns 200.
         db = Mock()
         db.execute = AsyncMock()
 
@@ -44,7 +37,6 @@ class TestHealthRoute:
             patch("redis.Redis", return_value=fake_health_redis),
             patch("core.config.settings", fake_settings),
         ):
-            result = await health.health_check(db)
+            result = await health.health_check(db=db, monitor=monitor)
 
-        # Currently FAILS (0 != 7): health.py hardcodes safety_events_last_hour.
-        assert result["safety_events_last_hour"] == recorded
+        assert result["safety_events_last_hour"] == 7
