@@ -1,25 +1,42 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
 
 async def create_review(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
-    user_id: UUID,
-) -> Review:
+    user_id: UUID | str,
+) -> Review | None:
+    """Create a pending review for a profile owned by the user.
+
+    Args:
+        db: Active asynchronous database session.
+        profile_id: Profile to review.
+        user_id: Authenticated user requesting the review.
+
+    Returns:
+        The new pending review, or ``None`` when the profile is not owned by
+        the authenticated user.
     """
-    Create a new review with status="pending".
-    """
+    stmt = select(Profile).where(and_(Profile.id == profile_id, Profile.user_id == user_id))
+    result = await db.execute(stmt)
+    profile = result.scalars().first()
+
+    if profile is None:
+        return None
+
     review = Review(
         profile_id=profile_id,
         status="pending",
@@ -40,8 +57,8 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
     return result.scalars().first()

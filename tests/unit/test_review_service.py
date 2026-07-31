@@ -23,7 +23,10 @@ class TestReviewService:
         session.add = Mock()
         session.commit = AsyncMock()
         session.refresh = AsyncMock()
-        session.execute = AsyncMock()
+
+        owned_profile_result = Mock()
+        owned_profile_result.scalars.return_value.first.return_value = Mock()
+        session.execute = AsyncMock(return_value=owned_profile_result)
         return session
 
     @pytest.fixture
