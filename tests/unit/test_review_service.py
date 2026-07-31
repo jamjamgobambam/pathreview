@@ -343,7 +343,9 @@ class TestReviewService:
         mock_db_session.execute.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_process_review_stops_early_when_review_is_not_found(self, mock_db_session):
+    async def test_process_review_stops_early_when_review_is_not_found(
+        self, mock_db_session: Mock
+    ) -> None:
         """Test process_review stops early when review is not found"""
         review_id = uuid4()
         profile_id = uuid4()
@@ -364,7 +366,9 @@ class TestReviewService:
         mock_db_session.commit.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_process_review_stops_early_when_profile_is_not_found(self, mock_db_session):
+    async def test_process_review_stops_early_when_profile_is_not_found(
+        self, mock_db_session: Mock
+    ) -> None:
         """Test process_review stops early when profile is not found"""
         review_id = uuid4()
         profile_id = uuid4()
@@ -395,7 +399,7 @@ class TestReviewService:
     @pytest.mark.asyncio
     async def test_run_ingestion_pipeline_adds_nothing_and_returns_empty_list_if_profile_is_empty(
         self,
-    ):
+    ) -> None:
         """Test _run_ingestion_pipeline adds nothing and returns empty list if profile is empty"""
         fake_profile = Mock()
         fake_profile.github_username = None
@@ -413,7 +417,7 @@ class TestReviewService:
         assert sources == []
 
     @pytest.mark.asyncio
-    async def test_run_ingestion_pipeline_adds_only_github_username_and_commits(self):
+    async def test_run_ingestion_pipeline_adds_only_github_username_and_commits(self) -> None:
         """Test _run_ingestion_pipeline adds only github username and commits"""
         fake_profile = Mock()
         fake_profile.github_username = "test_github_username"
@@ -440,7 +444,7 @@ class TestReviewService:
             mock_db.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_run_ingestion_pipeline_adds_only_portfolio_url_and_commits(self):
+    async def test_run_ingestion_pipeline_adds_only_portfolio_url_and_commits(self) -> None:
         """Test _run_ingestion_pipeline adds only portfolio url and commits"""
         fake_profile = Mock()
         fake_profile.github_username = None
@@ -467,7 +471,7 @@ class TestReviewService:
             mock_db.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_run_ingestion_pipeline_adds_only_resume_text_and_commits(self):
+    async def test_run_ingestion_pipeline_adds_only_resume_text_and_commits(self) -> None:
         """Test _run_ingestion_pipeline adds only resume text and commits"""
         fake_profile = Mock()
         fake_profile.github_username = None
@@ -495,7 +499,7 @@ class TestReviewService:
             mock_db.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_run_ingestion_pipeline_adds_all_sources_when_all_fields_set(self):
+    async def test_run_ingestion_pipeline_adds_all_sources_when_all_fields_set(self) -> None:
         """Test _run_ingestion_pipeline adds github, portfolio, and resume sources when all profile fields are set"""
         fake_profile = Mock()
         fake_profile.github_username = "test_github_username"
@@ -519,7 +523,7 @@ class TestReviewService:
         mock_db.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_run_ingestion_pipeline_continues_after_github_ingestion_error(self):
+    async def test_run_ingestion_pipeline_continues_after_github_ingestion_error(self) -> None:
         """Test _run_ingestion_pipeline logs and continues past a failed github ingestion, still adding portfolio and resume sources"""
         fake_profile = Mock()
         fake_profile.github_username = "test_github_username"
