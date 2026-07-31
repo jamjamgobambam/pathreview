@@ -1,35 +1,44 @@
-# Solution Plan
-
-**Issue:** https://github.com/ascherj/pathreview/issues/146
+Solution Plan: Fix Structlog Capture in Pytest
+Issue: https://github.com/ascherj/pathreview/issues/159
 
 ## Understand
-The PII scrubber is failing to redact parenthesized U.S. phone number formats (e.g., `(123) 456-7890`). This leaves sensitive user information exposed because the current regular expression patterns in `PII_PATTERNS` do not account for optional or required parenthesis wrappers around the area code, occasionally misinterpreting them or missing them entirely.
+The pytest test test_empty_chunks_list_returns_empty in tests/unit/test_batch_processor.py is failing because of a logging integration mismatch:
+
+The Root Cause: Pytest's built-in caplog fixture captures standard Python logging library records. However, the code under test (ingested/embeddings/batch_processor.py) utilizes structlog.
+
+The Disconnect: Standard caplog cannot natively inspect structlog output unless structlog is explicitly configured to processor-chain into the standard library logging framework.
 
 ## Map
-- **Module/File:** `pii_scrubber.py`
-- **Specific Components:** 
-  - The `PII_PATTERNS` dictionary containing the regular expression definitions.
-  - The `PIIScrubber().scrub()` method which iterates through patterns to sanitize text.
-- **Test File:** `tests/test_pii_scrubber.py` for adding regression tests.
+Modules/Files Affected:
+
+ingested/embeddings/batch_processor.py (Target implementation)
+
+tests/unit/test_batch_processor.py (Test file)
+
+tests/unit/conftest.py (Optional: Test configuration/fixtures)
+
+Specific Components:
+
+The caplog fixture parameter in test_empty_chunks_list_returns_empty.
+
+structlog configuration settings within the test environment.
 
 ## Plan
-1. Update the U.S. phone number regex pattern inside the `PII_PATTERNS` dictionary in `pii_scrubber.py` to correctly capture parenthesized area code formats. Also updating other regex patterns if needed.
+Configure Structlog for Testing: Update the test configuration (conftest.py or directly inside the test setup) to ensure structlog outputs via standard library logging handlers so caplog can intercept them.
 
-2. Implement new unit test functions inside `tests/test_pii_scrubber.py` targeting parenthesized phone numbers alongside standard formats.
+Refactor the Test: Adjust test_empty_chunks_list_returns_empty in tests/unit/test_batch_processor.py to properly assert against the captured structured log output.
 
-3. Run `pytest` locally to verify that the new test cases pass successfully and that no regressions are introduced in existing PII tests.
+Verify Locally: Run pytest tests/unit/test_batch_processor.py to confirm the test passes and no regressions are introduced elsewhere in the suite.
 
-## Inputs & outputs
+## Inputs & Outputs
+Input: An empty chunks list passed to the batch processor function.
 
-- **Input:** Raw text strings containing sensitive data with parenthesized U.S. phone numbers (e.g., `User can be reached at (555) 123-4567`).
+Output: A structured log message indicating an empty list was processed, successfully intercepted and validated by the test framework.
 
-- **Output:** Sanitized text string with parenthesized phone numbers replaced by the standard redaction token (e.g., `User can be reached at [REDACTED]`).
+## Risks & Unknowns
+Risk: Modifying global structlog configurations during tests might leak state and affect subsequent test cases.
 
-## Risks & unknowns
-- **Risk:** Modifying the regex pattern inside `PII_PATTERNS` in `pii_scrubber.py` might introduce false positives, accidentally matching non-phone parenthesized content (such as legal references or shorthand formatting). This will need to be checked against existing test cases.
+Mitigation: Use local fixtures with cleanup/teardown logic (e.g., reset_defaults) to isolate structlog configuration changes to the specific test module.
 
-## Edge cases
-
-1. **Empty or Null Strings:** Empty string input must be handled gracefully with an early return for performance without slowing the program or throwing unexpected errors.
-
-2. **Compact Parenthesized Numbers:** Phone numbers formatted with parentheses but missing the standard space after the closing parenthesis (e.g., `(555)123-4567`) must still be scrubbed correctly.
+## Edge Cases
+Differences in log formatting between structured key-value dictionaries and standard string messages during assertion matching.
