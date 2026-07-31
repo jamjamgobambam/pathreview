@@ -28,3 +28,34 @@ I confirmed `SafetyMonitor`'s Redis counter works correctly in isolation (loggin
 
 **Blockers or open questions:**
 Wiring `log_event()` into the three detector modules is needed for the count to ever be nonzero, but that's more than the issue's stated 2-4hr scope implies — planning to confirm with a mentor whether that belongs in this PR or a follow-up issue.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the core fix from `PLAN.md`: fixed the `settings.redis_host`/`redis_port` bug in `health.py` by parsing from `redis_url` instead, and replaced the hardcoded `safety_events_last_hour: 0` with a real `SafetyMonitor.get_event_count()` aggregation across all event types. Updated `tests/unit/test_health.py` — the old failing reproduction test now passes, plus added tests for zero-events, multi-type aggregation, and Redis-down degradation (5 tests total, all passing). Ran a baseline `make check`/`make test-unit` (via `git stash`) and confirmed my changes introduce no new test failures and only one new lint finding that matches an existing, unfixed pattern already in the same file.
+
+**Next steps:**
+Open a draft PR and request peer/mentor review in Slack, manually verify the fix against a running Postgres/Redis locally, then finalize and submit the PR by Sunday.
+
+**Blockers:**
+Resolved the open question above myself rather than waiting on a mentor: descoped wiring `log_event()` into the three detector modules, since none of them (`BiasDetector`, `PIIScrubber`, `PromptDefense`) are called anywhere outside their own tests — the safety pipeline isn't wired into review submission at all yet, which is a separate, larger issue than #68's stated scope. Documented this decision in `PLAN.md`.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** fix/68-safety-events-health-check
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
