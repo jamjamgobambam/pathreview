@@ -98,8 +98,8 @@ async def list_reviews(
 
 async def process_review(
     db,
-    review_id: UUID,
-    profile_id: UUID,
+    review_id: UUID | str,
+    profile_id: UUID | str,
 ) -> None:
     """
     Background task to process a review.
