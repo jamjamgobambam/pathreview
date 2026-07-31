@@ -16,7 +16,7 @@ class StrategySelector:
         Select appropriate chunker based on document type.
 
         Args:
-            source_type: One of "resume", "readme", "repo", or default
+            source_type: One of "resume", "readme", "repo", "web", or default
 
         Returns:
             Appropriate BaseChunker instance
@@ -25,9 +25,7 @@ class StrategySelector:
             return self.semantic_chunker
         elif source_type == "readme":
             return self.structural_chunker
-        elif source_type == "repo":
-            return self.semantic_chunker
-        elif source_type == "web":
+        elif source_type in ("repo", "web"):
             return self.semantic_chunker
         else:
             # Default to semantic chunking
