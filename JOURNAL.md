@@ -27,3 +27,34 @@ I added a failing unit test (`tests/unit/test_health_route.py`) that stands up a
 
 **PLAN.md link:** [PLAN.md](PLAN.md)
 
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All four PLAN.md sub-tasks are done. Added `SafetyMonitor.get_total_event_count()` and a `get_safety_monitor()` dependency provider in `safety/monitoring.py`, injected the monitor into `/health` via `Depends`, and replaced the hardcoded `0` with the real count. The reproduction test now passes. Verified no new failures: `make test-unit` shows 53 pre-existing failures (all in unrelated files), and mypy shows 11 pre-existing errors in `health.py` — the same counts before and after my change.
+
+**Next steps:**
+Open a draft PR, request peer feedback in Slack, then mark it ready and fill in Check-in 2.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [to be added]
+
+**Branch:** `feat/68-health-safety-metrics`
+
+**What you built:**
+The `/health` endpoint now reports a real `safety_events_last_hour` count, read from `SafetyMonitor` (injected as a FastAPI dependency) instead of a hardcoded `0`.
+
+**Tests added or updated:**
+`tests/unit/test_health_route.py` — verifies `/health` surfaces the total event count from an injected monitor.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [to be added]
+
