@@ -96,7 +96,7 @@ None.
 The fix adds the missing node_modules/ & build/ from the should skip filter.
 
 **Tests added or updated:**
-No test needed to be updated. All existing test passed. Test referenced in `tech_detector_test.py`.
+No test needed to be updated. Test referenced in `tech_detector_test.py`. Previously, failing test now pass as well.
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
