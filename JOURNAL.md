@@ -39,3 +39,33 @@ Reproduced the issue by running `FaithfulnessChecker().check('Knows Python.', [{
 
 **Blockers or open questions:**
 Need to grep for other `.get("text", "")` occurrences in the codebase to check if the same pattern exists elsewhere.
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix: changed `chunk.get("text", "")` to `chunk.get("text") or ""` in `faithfulness_checker.py`. Confirmed `test_none_context_chunk_text` now passes. Verified no new test failures introduced (52 pre-existing failures, down from 53).
+
+**Next steps:**
+Open draft PR on ascherj/pathreview and request peer review via Slack.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/435
+
+**Branch:** fix/153-faithfulness-checker-none-text
+
+**What you built:**
+Changed `chunk.get("text", "")` to `chunk.get("text") or ""` in the `context_text` list comprehension inside `FaithfulnessChecker.check()`. This ensures chunks with explicit `"text": None` are treated as empty strings instead of crashing `" ".join()` with a `TypeError`.
+
+**Tests added or updated:**
+`tests/unit/test_faithfulness_checker.py` — pre-existing test `test_none_context_chunk_text` now passes; no new failures introduced.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes (52 pre-existing failures unchanged; fix resolves 1)
+
+**Draft PR feedback received from:** [add name after you get Slack review]
