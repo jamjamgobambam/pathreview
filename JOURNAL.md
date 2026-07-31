@@ -70,3 +70,29 @@ to issue #155. These pre-existing failures will be compared with the
 post-change results and documented in the PR description.
 
 ---
+
+### Check-in 2 (end of week)
+
+**PR link:** [Add the submitted pull request URL]
+
+**Branch:** `fix/155-health-check-redis-settings`
+
+**What you built:**
+
+I updated the Redis health check to create its client from the existing
+`settings.redis_url` configuration. This removes references to the undefined
+`redis_host` and `redis_port` settings while preserving URL components such as
+the host, port, database, authentication, and TLS scheme.
+
+**Tests added or updated:**
+
+I added `tests/unit/test_health.py` with tests for a successful Redis ping and a
+failed Redis connection. The two new tests pass, and the full unit test run has
+the same 53 pre-existing failures observed before the change.
+
+**Self-review confirmation:** [x] make check introduces no new failures  [x] make test-unit introduces no new failures
+
+**Draft PR feedback received from:** Eddie (Oregon State University)
+
+Eddie reviewed the draft PR and said that it looked good and that everything
+was organized. Based on this feedback, no additional changes were required.
