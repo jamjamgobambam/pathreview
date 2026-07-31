@@ -89,7 +89,7 @@ document them in the PR.
 
 ### Check-in 2 (end of week)
 
-**PR link:** <!-- TODO: paste the PR URL here after opening it on ascherj/pathreview -->
+**PR link:** https://github.com/ascherj/pathreview/pull/448
 
 **Branch:** `test/37-prompt-template-snapshot-tests`
 
