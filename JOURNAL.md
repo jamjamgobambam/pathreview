@@ -21,3 +21,23 @@ I selected this issue because it is labeled Tier 1 and is estimated to take appr
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** *(add after committing)*
+
+**Reproduction summary:**
+
+I reproduced Issue #68 by reviewing the implementation immediately before my fix and confirming that the `/health` endpoint always returned a placeholder value of `0` for `safety_events_last_hour`.
+
+While investigating, I found that `SafetyMonitor` only stored cumulative Redis counters using `INCR`. Although `get_event_count()` accepted a `window_hours` parameter, the value was never enforced because events were not stored with timestamps. As a result, the application could not accurately report the number of safety events that occurred during the previous hour.
+
+**PLAN.md link:** *(add after creating PLAN.md)*
+
+**Walkthrough video (recommended):**
+
+Not recorded.
+
+**Blockers or open questions:**
+
+I wanted to determine the best Redis data structure for supporting rolling time-window queries while also automatically removing expired events.
