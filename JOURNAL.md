@@ -35,3 +35,35 @@ I reproduced my issue using unit tests. Since, this is a feature I cannot direct
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
 No blockers here :)
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I have currently implemented the solution for issue #13 and have implemented a conditional check to see if the readme has already been uploaded to a users' repo by using a content based hash. I just commited all the test cases for the project as well. 
+
+**Next steps:**
+The next step is to properly verify that my change is ready to be submitted for a pr. Running all unit tests again and making sure my changes didn't affect any other code. Then I will open and write a pull request draft.
+
+**Blockers:**
+I little unfamilliar with creating test cases in Python but using AI and other test files to help me.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
