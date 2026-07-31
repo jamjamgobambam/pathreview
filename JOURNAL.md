@@ -49,3 +49,37 @@ I was able to reproduce the issue by having Claude create three tests: current s
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+I haven't implemented any of the sub-tasks yet. That is what I plan to do today and tomorrow. I'll begin by feeding `market_analyzer` real detected skills. Then, I will scope the cache to a single review. I will update the tests to ensure that the one that tests the correct code passes. Lastly, I will run `make test-unit` and `make check` before committing. 
+
+**Next steps:**
+[What are you working on for the rest of the week?]
+I'll begin by feeding `market_analyzer` real detected skills. Then, I will scope the cache to a single review. I will update the tests to ensure that the one that tests the correct code passes. Lastly, I will run `make test-unit` and `make check` before committing. 
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+Nothing currently blocking but that may change as I write the corrected code. 
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
