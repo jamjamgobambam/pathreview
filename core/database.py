@@ -2,8 +2,9 @@
 
 from typing import AsyncGenerator
 
+from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 from core.config import settings
 
@@ -25,6 +26,13 @@ AsyncSessionLocal = async_sessionmaker(
     autocommit=False,
     autoflush=False,
 )
+
+# Sync engine/session, for code (like the ingestion pipeline) that isn't async-native
+sync_engine = create_engine(
+    settings.database_url.replace("+asyncpg", "+psycopg2"),
+    pool_pre_ping=True,
+)
+SyncSessionLocal = sessionmaker(bind=sync_engine, autocommit=False, autoflush=False)
 
 # Declarative base for models
 Base = declarative_base()

@@ -4,12 +4,15 @@ from typing import Optional
 
 import structlog
 
+from core.models.ingested_source import IngestedSource
+
 from .chunking.strategy_selector import StrategySelector
 from .embeddings.batch_processor import BatchEmbeddingProcessor
 from .embeddings.provider import EmbeddingProvider
 from .parsers.readme_parser import ReadmeParser
 from .parsers.repo_analyzer import RepoAnalyzer
 from .parsers.resume_parser import ResumeParser
+from .parsers.web_parser import WebParser
 
 
 logger = structlog.get_logger()
@@ -51,6 +54,7 @@ class IngestionPipeline:
         self.resume_parser = ResumeParser()
         self.readme_parser = ReadmeParser()
         self.repo_analyzer = RepoAnalyzer()
+        self.web_parser = WebParser()
 
     def ingest_resume(
         self,
@@ -69,7 +73,8 @@ class IngestionPipeline:
         Returns:
             IngestResult with ingestion status
         """
-        source_id = f"resume_{profile_id}_{self._hash_content(content)}"
+        content_hash = self._hash_content(content)
+        source_id = f"resume_{profile_id}_{content_hash}"
 
         logger.info(
             "Starting resume ingestion",
@@ -79,7 +84,7 @@ class IngestionPipeline:
         )
 
         # Check if already ingested
-        skip_result = self._check_skip(source_id, "resume")
+        skip_result = self._check_skip(profile_id, "resume", content_hash)
         if skip_result:
             return skip_result
 
@@ -106,7 +111,9 @@ class IngestionPipeline:
             logger.info("Resume embeddings stored", chunk_count=len(chunks))
 
             # Record in database
-            self._record_ingested_source(source_id, "resume", profile_id, len(chunks))
+            self._record_ingested_source(
+                profile_id, "resume", content_hash, len(chunks), filename=filename
+            )
 
             return IngestResult(
                 source_id=source_id,
@@ -140,7 +147,8 @@ class IngestionPipeline:
         Returns:
             IngestResult with ingestion status
         """
-        source_id = f"readme_{profile_id}_{repo_name}_{self._hash_content(content)}"
+        content_hash = self._hash_content(content)
+        source_id = f"readme_{profile_id}_{repo_name}_{content_hash}"
 
         logger.info(
             "Starting README ingestion",
@@ -150,7 +158,7 @@ class IngestionPipeline:
         )
 
         # Check if already ingested
-        skip_result = self._check_skip(source_id, "readme")
+        skip_result = self._check_skip(profile_id, "readme", content_hash)
         if skip_result:
             return skip_result
 
@@ -181,7 +189,9 @@ class IngestionPipeline:
             logger.info("README embeddings stored", chunk_count=len(chunks))
 
             # Record in database
-            self._record_ingested_source(source_id, "readme", profile_id, len(chunks))
+            self._record_ingested_source(
+                profile_id, "readme", content_hash, len(chunks), filename=repo_name
+            )
 
             return IngestResult(
                 source_id=source_id,
@@ -214,7 +224,8 @@ class IngestionPipeline:
             IngestResult with ingestion status
         """
         repo_name = repo_data.get("name", "unknown")
-        source_id = f"repo_{profile_id}_{repo_name}_{self._hash_content(str(repo_data))}"
+        content_hash = self._hash_content(str(repo_data))
+        source_id = f"repo_{profile_id}_{repo_name}_{content_hash}"
 
         logger.info(
             "Starting repo metadata ingestion",
@@ -224,7 +235,7 @@ class IngestionPipeline:
         )
 
         # Check if already ingested
-        skip_result = self._check_skip(source_id, "repo")
+        skip_result = self._check_skip(profile_id, "repo", content_hash)
         if skip_result:
             return skip_result
 
@@ -254,7 +265,13 @@ class IngestionPipeline:
             logger.info("Repository embeddings stored", chunk_count=len(chunks))
 
             # Record in database
-            self._record_ingested_source(source_id, "repo", profile_id, len(chunks))
+            self._record_ingested_source(
+                profile_id,
+                "repo",
+                content_hash,
+                len(chunks),
+                source_url=repo_data.get("html_url"),
+            )
 
             return IngestResult(
                 source_id=source_id,
@@ -271,37 +288,125 @@ class IngestionPipeline:
             )
             raise
 
+    def ingest_portfolio(
+        self,
+        profile_id: str,
+        url: str,
+    ) -> IngestResult:
+        """
+        Ingest a portfolio website.
+
+        Args:
+            profile_id: ID of the profile owner
+            url: Portfolio URL to fetch and ingest
+
+        Returns:
+            IngestResult with ingestion status
+        """
+        logger.info("Starting portfolio ingestion", profile_id=profile_id, url=url)
+
+        try:
+            # Fetch the page
+            html = self.web_parser.fetch(url)
+
+            content_hash = self._hash_content(html)
+            source_id = f"web_{profile_id}_{content_hash}"
+
+            # Check if already ingested
+            skip_result = self._check_skip(profile_id, "web", content_hash)
+            if skip_result:
+                return skip_result
+
+            # Parse portfolio page
+            parse_result = self.web_parser.parse(html)
+            logger.info(
+                "Portfolio parsed successfully",
+                word_count=parse_result.metadata.get("word_count"),
+            )
+
+            # Prepare metadata
+            metadata = parse_result.metadata.copy()
+            metadata.update({
+                "source_id": source_id,
+                "profile_id": profile_id,
+                "source_url": url,
+                "source_type": "web",
+            })
+
+            # Chunk the content
+            chunks = self.strategy_selector.chunk(parse_result.text, metadata)
+            logger.info("Portfolio chunked successfully", chunk_count=len(chunks))
+
+            # Generate embeddings and store
+            self.batch_processor.process(chunks)
+            logger.info("Portfolio embeddings stored", chunk_count=len(chunks))
+
+            # Record in database
+            self._record_ingested_source(
+                profile_id, "web", content_hash, len(chunks), source_url=url
+            )
+
+            return IngestResult(
+                source_id=source_id,
+                chunk_count=len(chunks),
+                skipped=False,
+            )
+
+        except Exception as e:
+            logger.error(
+                "Portfolio ingestion failed",
+                profile_id=profile_id,
+                url=url,
+                error=str(e),
+            )
+            raise
+
     def _hash_content(self, content: str | bytes) -> str:
         """Generate a hash of content for deduplication."""
         if isinstance(content, str):
             content = content.encode()
         return hashlib.sha256(content).hexdigest()[:16]
 
-    def _check_skip(self, source_id: str, source_type: str) -> Optional[IngestResult]:
+    def _check_skip(
+        self,
+        profile_id: str,
+        source_type: str,
+        content_hash: str,
+    ) -> Optional[IngestResult]:
         """
-        Check if source has already been ingested.
+        Check if this exact content was already ingested for this profile.
 
         Returns IngestResult if should skip, None if should proceed.
         """
         try:
-            # Query database for existing source
-            # This assumes a table/model named IngestedSource
-            existing = self.db_session.query(
-                "IngestedSource"  # Placeholder - actual query depends on ORM
-            ).filter_by(source_id=source_id).first()
+            existing = (
+                self.db_session.query(IngestedSource)
+                .filter_by(
+                    profile_id=profile_id,
+                    source_type=source_type,
+                    content_hash=content_hash,
+                )
+                .first()
+            )
 
             if existing:
-                logger.info("Source already ingested, skipping", source_id=source_id)
+                logger.info(
+                    "Source already ingested, skipping",
+                    profile_id=profile_id,
+                    source_type=source_type,
+                    content_hash=content_hash,
+                )
                 return IngestResult(
-                    source_id=source_id,
-                    chunk_count=0,
+                    source_id=str(existing.id),
+                    chunk_count=existing.chunk_count,
                     skipped=True,
                     skip_reason="Source already ingested",
                 )
         except Exception as e:
             logger.warning(
                 "Could not check if source already ingested",
-                source_id=source_id,
+                profile_id=profile_id,
+                source_type=source_type,
                 error=str(e),
             )
 
@@ -309,33 +414,46 @@ class IngestionPipeline:
 
     def _record_ingested_source(
         self,
-        source_id: str,
-        source_type: str,
         profile_id: str,
+        source_type: str,
+        content_hash: str,
         chunk_count: int,
+        filename: Optional[str] = None,
+        source_url: Optional[str] = None,
     ) -> None:
         """
-        Record that a source has been ingested.
+        Persist a record of an ingested source so future ingestion can dedup against it.
 
         Args:
-            source_id: Unique ID for the source
-            source_type: Type of source (resume, readme, repo)
             profile_id: ID of profile owner
+            source_type: Type of source (resume, readme, repo, web)
+            content_hash: SHA256 hash of the ingested content
             chunk_count: Number of chunks created
+            filename: Original filename, if applicable (e.g. resume)
+            source_url: Source URL, if applicable (e.g. repo, web)
         """
         try:
-            # This is a placeholder for actual database recording
-            # In a real implementation, would create IngestedSource record
-            logger.info(
-                "Recording ingested source",
-                source_id=source_id,
-                source_type=source_type,
+            record = IngestedSource(
                 profile_id=profile_id,
+                source_type=source_type,
+                source_url=source_url,
+                filename=filename,
+                content_hash=content_hash,
+                chunk_count=chunk_count,
+            )
+            self.db_session.add(record)
+            self.db_session.commit()
+            logger.info(
+                "Recorded ingested source",
+                profile_id=profile_id,
+                source_type=source_type,
                 chunk_count=chunk_count,
             )
         except Exception as e:
             logger.error(
                 "Failed to record ingested source",
-                source_id=source_id,
+                profile_id=profile_id,
+                source_type=source_type,
                 error=str(e),
             )
+            self.db_session.rollback()

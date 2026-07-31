@@ -27,6 +27,8 @@ class StrategySelector:
             return self.structural_chunker
         elif source_type == "repo":
             return self.semantic_chunker
+        elif source_type == "web":
+            return self.semantic_chunker
         else:
             # Default to semantic chunking
             return self.semantic_chunker
