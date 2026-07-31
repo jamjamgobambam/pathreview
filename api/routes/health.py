@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from datetime import datetime
+
 import structlog
-from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from core.database import get_db
+from safety.monitoring import SafetyMonitor
 
 log = structlog.get_logger()
 
@@ -39,14 +41,10 @@ async def health_check(db=Depends(get_db)):
     try:
         # Check Redis (if available)
         import redis
+
         from core.config import settings
 
-        r = redis.Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            db=0,
-            decode_responses=True,
-        )
+        r = redis.Redis.from_url(settings.redis_url, decode_responses=True)
         r.ping()
         health_status["dependencies"]["redis"] = "healthy"
         log.debug("redis_health_check_passed")
@@ -72,10 +70,19 @@ async def health_check(db=Depends(get_db)):
         health_status["dependencies"]["vector_db"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
-    # Count safety events in last hour (placeholder)
+    # Count safety events (PII detections, injection attempts, bias flags,
+    # rate limiting, etc.) tracked via SafetyMonitor/Redis. Falls back to the
+    # default of 0 above if Redis is unreachable.
     try:
-        # This would be populated by actual safety event logging
-        health_status["safety_events_last_hour"] = 0
+        import redis
+
+        from core.config import settings
+
+        safety_redis = redis.Redis.from_url(settings.redis_url, decode_responses=True)
+        monitor = SafetyMonitor(safety_redis)
+        health_status["safety_events_last_hour"] = sum(
+            monitor.get_event_count(event_type) for event_type in SafetyMonitor.VALID_EVENT_TYPES
+        )
     except Exception as exc:
         log.error("safety_events_check_failed", error=str(exc))
 
