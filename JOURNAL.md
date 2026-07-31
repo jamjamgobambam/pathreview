@@ -53,7 +53,7 @@ This is a good Tier 1 issue because it is important but tightly scoped. The bug 
 
 ### Check-in 2 (end of week)
 
-**PR link:** Pending live PR URL. Open it from this compare page, then replace this line with the created PR link: https://github.com/ascherj/pathreview/compare/main...somtizle:pathreview:fix/146-pii-parenthesized-phone?expand=1
+**PR link:** https://github.com/ascherj/pathreview/pull/442
 
 **Branch:** `fix/146-pii-parenthesized-phone`
 
