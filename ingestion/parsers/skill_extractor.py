@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -105,7 +105,7 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -116,7 +116,7 @@ class SkillExtractor:
         Returns:
             List of detected skills with confidence scores
         """
-        detected_skills = {}
+        detected_skills: dict[str, SkillDetection] = {}
 
         # Detect languages first
         self._detect_languages(text, filename, detected_skills)
@@ -143,7 +143,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -172,20 +172,42 @@ class SkillExtractor:
 
         # JavaScript/TypeScript detection
         js_evidence = []
+        ts_evidence = []
+
         if ".js" in str(filename or "").lower():
             js_evidence.append("JavaScript file extension (.js)")
         if ".ts" in str(filename or "").lower():
-            js_evidence.append("TypeScript file extension (.ts)")
-        if re.search(r"\b(import|require)\s+", text):
+            ts_evidence.append("TypeScript file extension (.ts)")
+        if re.search(r"\b(import|require)\b", text):
             js_evidence.append("CommonJS or ES6 imports")
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
-        if js_evidence:
+        # JS/TS-exclusive keywords (not shared with PYTHON_KEYWORDS) — safe to
+        # use as standalone evidence without false-positiving on Python code
+        js_exclusive_keywords = {"export", "const", "let", "var", "function", "require"}
+        for keyword in js_exclusive_keywords:
+            if re.search(rf"\b{keyword}\b", text):
+                js_evidence.append(f"JavaScript/TypeScript keyword: {keyword}")
+
+        # TypeScript-specific syntax indicators
+        ts_indicators = {"interface ", ": string", ": number", ": boolean", "promise<", ": void"}
+        for indicator in ts_indicators:
+            if indicator in text_lower:
+                ts_evidence.append(f"TypeScript syntax: {indicator.strip()}")
+
+        if ts_evidence:
+            confidence = min(0.95, 0.6 + (len(js_evidence) + len(ts_evidence)) * 0.1)
+            skills_dict["TypeScript"] = SkillDetection(
+                name="TypeScript",
+                category="Language",
+                confidence=confidence,
+                evidence=js_evidence + ts_evidence,
+            )
+        elif js_evidence:
             confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
-            skills_dict[lang] = SkillDetection(
-                name=lang,
+            skills_dict["JavaScript"] = SkillDetection(
+                name="JavaScript",
                 category="Language",
                 confidence=confidence,
                 evidence=js_evidence,
@@ -274,3 +296,31 @@ class SkillExtractor:
                         confidence=confidence,
                         evidence=[f"Found '{tool}' reference in content"],
                     )
+
+        # Dockerfile syntax detection — catches Dockerfiles that never
+        # contain the literal word "docker"
+        if "Docker" not in skills_dict:
+            dockerfile_match = re.search(
+                r"^\s*(FROM|RUN|EXPOSE|COPY|WORKDIR|CMD)\s+\S+",
+                text,
+                re.MULTILINE | re.IGNORECASE,
+            )
+            if dockerfile_match:
+                skills_dict["Docker"] = SkillDetection(
+                    name="Docker",
+                    category="Tool",
+                    confidence=self.TOOLS["docker"],
+                    evidence=["Dockerfile syntax detected (FROM/RUN/EXPOSE/COPY)"],
+                )
+
+        # docker-compose syntax detection — same idea, for compose YAML files
+        if "Docker" not in skills_dict:
+            has_services = re.search(r"^\s*services:\s*$", text, re.MULTILINE)
+            has_compose_keys = re.search(r"^\s*(ports|build):\s*", text, re.MULTILINE)
+            if has_services and has_compose_keys:
+                skills_dict["Docker"] = SkillDetection(
+                    name="Docker",
+                    category="Tool",
+                    confidence=self.TOOLS["docker"],
+                    evidence=["docker-compose.yml syntax detected (services/ports/build)"],
+                )
