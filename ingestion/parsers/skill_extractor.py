@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -105,7 +105,7 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -116,7 +116,7 @@ class SkillExtractor:
         Returns:
             List of detected skills with confidence scores
         """
-        detected_skills = {}
+        detected_skills: dict[str, SkillDetection] = {}
 
         # Detect languages first
         self._detect_languages(text, filename, detected_skills)
@@ -143,7 +143,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -171,6 +171,11 @@ class SkillExtractor:
             )
 
         # JavaScript/TypeScript detection
+        # BUG (#148): this regex requires whitespace right after import/require, so it
+        # misses `require('fs')` and never checks export/interface/class, so content-only
+        # TS/JS (no filename) is invisible. JS_TS_KEYWORDS above is never used here.
+        # Reproduced by tests/unit/test_skill_extractor.py::test_javascript_detection and
+        # ::test_text_with_typescript_files.
         js_evidence = []
         if ".js" in str(filename or "").lower():
             js_evidence.append("JavaScript file extension (.js)")
