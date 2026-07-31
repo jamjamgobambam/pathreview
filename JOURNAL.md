@@ -87,3 +87,41 @@ The repository contains pre-existing unrelated test, lint, and type-check failur
 **Draft PR feedback received from:**
 
 None.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+
+No reviewer feedback arrived by the submission deadline. This is expected for the Summer 2026 offering of AI201.
+
+**How you responded:**
+
+N/A.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+I expected writing the code to be the hardest part, but it actually wasn't. The biggest challenge was figuring out where the bug was coming from in a codebase I'd never worked in before. Once I took the time to understand how `resume_parser.py` handled section detection, the actual fix for Issue #147 ended up being much smaller than I originally expected.
+
+**What did you learn about working in a large codebase?**
+
+This project taught me that understanding the existing code is usually more important than writing new code. Instead of immediately trying to change things, I learned to follow the existing patterns, keep my implementation focused, and only modify what was necessary to solve the issue. That approach made it much easier to reason about my changes and explain them in my pull request.
+
+**How did AI tools help — and where did they fall short?**
+
+AI saved me a lot of time when I was trying to understand parts of the project that were unfamiliar, and it was especially helpful for talking through different approaches and reviewing my work before I committed it. At the same time, I learned that I couldn't rely on the first solution it suggested. Sometimes it wanted to jump into implementation before we had fully confirmed the root cause, so I still had to slow down, investigate the code myself, and make sure the change actually addressed the problem.
+
+**What would you do differently if you started over?**
+
+If I started over, I'd spend more time investigating before thinking about solutions. Looking back, the more I understood how the existing code worked, the easier every later step became, from writing the fix to testing it and explaining it in the PR. I'd also feel much more comfortable navigating an unfamiliar codebase now than I did at the beginning of the module.
+
+**What are you most proud of from this module?**
+
+I'm most proud of making my first contribution to a real open-source project. Before this module, contributing to someone else's codebase felt intimidating, but now I understand the entire workflow—from investigating an issue and making a focused change to creating a professional pull request. It gave me confidence that I can contribute to real projects outside of class.
