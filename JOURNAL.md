@@ -15,24 +15,35 @@ No Feedback
 ### Reflection
 
 **What was harder than you expected?**
-[Be specific — what part of the process, codebase, or workflow
-surprised you?]
+- Finding the regex patterns that could catch a wide net of potential biased outputs but not too flexible
+- Determining the scope of coverage. Even though I was tempted to try to cover as many cases as possible, for time and simplicity sake, I limited to ensuring that the regex pattern could cover the test cases as well as the original intent of the previous regex patterns.
 
 **What did you learn about working in a large codebase?**
-[What's different about contributing to someone else's production code
-vs. building your own project?]
+- I learned about git conventions that ensured for every update to the remote branch, the type of changes made will be understood
+- Also learned about how some codebases may require linter check to ensure that code formatting follows as is
+- I learned about how issues are made and how to create a PR
 
 **How did AI tools help — and where did they fall short?**
-[Where was AI assistance most useful this module? Where did you need
-to go beyond what AI could give you?]
+- During brainstorming my approach, AI was helpful in reviewing and giving feedback on my approaches including the tradeoffs. For instance, event though regex patterns were limited, they are much simpler to implement and run rather than having another model which  may be more computation heavy and expensive. 
+- AI was helpful in terms of troubleshooting when I was struggling to push my updates to my remote working branch, it gave me a git line to run that bypasses the linter (only used it temporarily before fixing the issue)
+- Also, AI helped simplify my new regex pattern for detecting dismissive outputs (e.g. The person is too old / young to code etc). I modeled it for the regex pattern detecting biased demographic based output. 
+
+
 
 **What would you do differently if you started over?**
 [Issue selection, planning, implementation, or process — anything
 you'd change?]
 
-**What are you most proud of from this module?**
-[One thing — it doesn't have to be the PR itself.]
+I would change the implementation to try a more advance bias catcher method by using Huggyface to make the bias detector smarter and less rigid. 
 
+Others that stayed the same: 
+- The issue was scoped perfectly based on my experience and commitment ability
+- Planning w/ AI (Claude) feedback went well together.
+- Process of understanding the issue, brainstorming, and designing the solution went well.
+
+
+**What are you most proud of from this module?**
+- Being able to learn more regex pattern to help the program improve it's output quality
 
 ## Week 9 — Solution building & PR submission
 
