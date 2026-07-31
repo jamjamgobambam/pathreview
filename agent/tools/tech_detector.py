@@ -160,5 +160,18 @@ class TechDetector(BaseTool):
             "/.venv/",
             "/venv/",
         ]
+        skip_dirs = {
+            "node_modules",
+            "vendor",
+            "dist",
+            "build",
+            ".git",
+            "__pycache__",
+            ".venv",
+            "venv",
+        }
+
+        segments = filepath.split("/")
+        return any(segment in skip_dirs for segment in segments)
 
         return any(pattern in filepath for pattern in skip_patterns)
