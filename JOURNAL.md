@@ -41,3 +41,19 @@ https://github.com/pmad06/pathreview/blob/fix/155-health-check-redis-host/PLAN.m
 
 **Blockers or open questions:**
 A separate error also appeared when reproducting this error, a SQLAlchemny textual SQL warning. 
+
+## Week 9 - Solution Building & PR submission 
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+So far, I have implemented the fix for #155 by updating 'api/routes/health.py' to use 'settings.redis_url' via 'redis.from_url()' instead of from the 'redis_host'/'redis_port' fields. After making this fix, I was able to verify locally that using the /health endpoint did not raise an 'AttributeError.' Along with the fix, I also added new tests in 'tests/unit/test_health.py' convering the healthy and unhealthy path, and a regression test for the original issue. All 4 tests ended up passing which helped confirm that my changes worked and resolved the issue. 
+
+**Next steps:**
+
+After making this fix, my next steps are to open the PR as a draft and request feedback from a peer or a mentor and then mark the PR as ready for review and submit. 
+
+**Blockers:**
+
+I had some issues with Docker Desktop not running and using the wrong port but after some debugging, I was able to resolve those issues. 
