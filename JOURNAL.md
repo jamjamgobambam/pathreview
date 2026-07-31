@@ -43,3 +43,40 @@ Ran the existing (failing) test `tests/unit/test_faithfulness_checker.py::test_n
 
 **Blockers or open questions:**
 The same `chunk.get("text", "")` pattern also exists in `review_generator.py`, `relevance_scorer.py`, and `hybrid.py` and likely has the same latent bug, but issue #153 only scopes the fix to `faithfulness_checker.py`. Also, 3 tests in `test_faithfulness_checker.py` fail today for reasons unrelated to this issue (claim-extraction/overlap-scoring logic) — need to confirm with a mentor whether that's separately tracked before I touch it in Week 9.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md step 1: `faithfulness_checker.py` now builds
+`context_text` with `chunk.get("text") or ""` instead of
+`chunk.get("text", "")`, so a chunk with `"text": None` is treated the same as
+a missing/empty one instead of crashing. `test_none_context_chunk_text` now
+passes. Added `test_mixed_none_missing_and_valid_text_chunks` to cover a
+`context_chunks` list with `None` text, a missing key, and valid text in the
+same call (PLAN.md's "mixed" edge case) — it passes too.
+
+Before changing anything I captured a baseline: `pytest tests/unit -m unit`
+had 53 pre-existing failures unrelated to #153 (bias detector, PII scrubber,
+resume parser, review service, etc. — none touch faithfulness/context
+handling). After the fix, the suite has 52 failures — the exact same set
+minus `test_none_context_chunk_text`, confirmed via diff. `ruff check` and
+`black --check` on the two touched files show only pre-existing issues I
+didn't introduce (an unsorted-import warning already in
+`faithfulness_checker.py`, and an unused-variable warning in an untouched
+test method) — my own added/changed lines are clean. `mypy` on
+`faithfulness_checker.py` alone passes; a full-tree `mypy` run fails in this
+environment due to missing third-party type stubs (`PyPDF2`, `jose`,
+`passlib`, `rank_bm25`) and a numpy stub/Python-version mismatch, all
+pre-existing and unrelated to this change.
+
+**Next steps:**
+Open a draft PR referencing #153, share it in Slack for early feedback, then
+finalize once reviewed.
+
+**Blockers:**
+No `make` binary available in this Windows/Git Bash environment, so I ran the
+underlying `pytest`/`ruff`/`black`/`mypy` commands directly from a local
+`.venv` instead of `make check`/`make test-unit` — same commands the
+Makefile wraps, just invoked without `make`.
