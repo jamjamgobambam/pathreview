@@ -70,3 +70,34 @@ def test_node_modules_excluded(self, detector):
 ```
 
 **PLAN.md link:** http://github.com/Dennis-1am/pathreview/blob/tree/fix/150-tech-detector-fails-to-detect-config-files-and-mislabels-repo/PLAN.md
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I have implemented the fix for this issue using claude to help identify and put up a initial fix then iterate on it.
+
+**Next steps:**
+Document the fix and open the PR up for this and confirm that existing test still pass and failing test now passes.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
