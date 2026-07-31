@@ -73,7 +73,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/ascherj/pathreview/pull/PENDING
+**PR link:** https://github.com/ascherj/pathreview/pull/418
 
 **Branch:** `fix/150-exclude-vendored-build-files`
 
