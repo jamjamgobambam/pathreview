@@ -93,3 +93,56 @@ confirming the test pins the real defect.
 _AI assistance: I used an AI tool to help set up the local environment, write the
 reproduction test, and draft this plan. I verified each reproduction path myself
 (ran the failing test, ran mypy, and confirmed the fix flips the test green)._
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix. The `/health` Redis probe now builds its client with
+`redis.Redis.from_url(settings.redis_url, decode_responses=True)` instead of the
+nonexistent `settings.redis_host` / `settings.redis_port`
+([api/routes/health.py](api/routes/health.py)). PLAN.md sub-tasks done: (1) rewrite
+the probe, (2) keep the failure path intact, (3) flip the reproduction test into a
+passing regression test, (4) add a negative-path test. Verified end to end against
+live services: the Redis probe went from `unhealthy` (`'Settings' object has no
+attribute 'redis_host'`) to `healthy`. Both unit tests in
+[tests/unit/test_health_route.py](tests/unit/test_health_route.py) pass.
+
+**Next steps:**
+Open a draft PR early for peer/mentor feedback, fill in the PR template, and add
+Check-in 2 with the PR link on Sunday.
+
+**Blockers:**
+None for #155. Noted: a live `/health` call still returns 503 because of a
+*separate, pre-existing* bug in the Postgres probe (`db.execute("SELECT 1")` needs
+`text("SELECT 1")` under SQLAlchemy 2.0). It is unrelated to #155, present before
+my change, and out of scope — I'll document it in the PR.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _pending — will add once the PR is opened_
+
+**Branch:** `fix/155-health-check-redis-host-setting`
+
+**What you built:**
+The `/health` endpoint's Redis probe now reads the Redis connection from the
+`redis_url` setting that actually exists (via `redis.Redis.from_url(...)`), so it
+reports Redis's true state instead of always crashing on a missing attribute and
+reporting `unhealthy`.
+
+**Tests added or updated:**
+`tests/unit/test_health_route.py` — a happy-path test (reachable Redis → `healthy`
+→ 200) and a failure-path test (unreachable Redis → `unhealthy` → 503).
+
+**Self-review confirmation:** [ ] make check passes [ ] make test-unit passes
+_(Codebase has documented pre-existing failures — see PR description. "Passes"
+here means my change introduces no new failures: unit failures unchanged at 53,
+ruff errors reduced 182 → 179, and two `redis_host`/`redis_port` mypy errors
+removed.)_
+
+**Draft PR feedback received from:** _pending_
