@@ -57,3 +57,22 @@ After making this fix, my next steps are to open the PR as a draft and request f
 **Blockers:**
 
 I had some issues with Docker Desktop not running and using the wrong port but after some debugging, I was able to resolve those issues. 
+
+### Check-in 2
+
+**PR link:**
+
+**Branch:** fix/155-health-check-redis-host
+
+**What you built:**
+Updated the health check to use 'redis_url' correctly via 'redis.from_url()' because originally the '/health' endpoint's Redis check referenced 'settings.redis_host' and 'setting.redis_port,' which did not exist on the 'Settings' class. Because of this, an 'AttributeError' was raised that caused the Redis dependency check to fail. 
+
+**Tests added or updates:**
+- 'api/routes/health.py': replaced the manual construction that referenced nonexistent 'redis_host'\'redis_port' fields with 'redis.from_url,' using the connection string that is defined on 'Settings' class
+- 'tests/unit/test_health.py': added new tests to verify my changes for the Redis health check (healthy path, unhealthy path) and a regression test to confirm no 'AttributeError' occurred
+
+**Self-review confirmation:** 
+- [X] Unit tests pass (`make test-unit`)
+- [X] make check pass
+
+**Draft PR feedback recieved from:** none
