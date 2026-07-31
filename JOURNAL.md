@@ -29,3 +29,33 @@ As this issue is a feat, not a fix, in order to reproduce the issue I read throu
 **PLAN.md link:** (https://github.com/ddingi09/pathreview/blob/feat/86-add-rate-limit-header/PLAN.md)
 
 **Blockers or open questions:**
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I have read through the relevant files listed in PLAN.md. Specifically, - `safety/rate_limiter.py` and `api/middleware/auth.py`. Reading these files gave me context on how the rate limiting function is called and how a response with headers is formatted, respectively. Based on this understanding, I created `api/middleware/rate_limit.py`. This file contains all of the requirements listed in PLAN.md: a `RateLimitMiddleware(BaseHTTPMiddleware)` class and a dispatch method that calls the rate limiting function and based on the answer (True or False) returns either a response or 429 error with headers in each case. This is a slight update to PLAN.md as the original diagram showed that the error response would not return headers. However, I believe it is appropriate for responses and errors to show headers for more context. Additionally, based on further codebase review, instead of creating a new integration test, I will write new tests in `tests/unit/test_rate_limiter.py` that assert the headers work as intended and build upon the existing tests. This will better follow the conventions of the repo and make for a more cohesive test suite.
+
+**Next steps:**
+Next steps are to register the RateLimitMiddleware in api/main.py following the existing conventions. Once this is done, I will create the integration tests to assert that hitting the route returns a response with headers in both the True and False case. This test will follow the structure outlined in PLAN.md.
+
+**Blockers:**
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]

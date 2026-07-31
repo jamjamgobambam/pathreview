@@ -23,8 +23,8 @@ Files I expect to touch:
 - `api/main.py` — register the new middleware with `app.add_middleware(...)` next to the
   existing `app.add_middleware(RequestIDMiddleware)` (line 54), and add the import at the top
   (line 7).
-- `tests/integration/test_rate_limit_header.py` — **new file.** Integration test asserting the
-  headers appear on an allowed response and that a 429 is returned once the limit is exceeded.
+- `tests/unit/test_rate_limit_header.py` — Unit test asserting the headers appear on an allowed 
+  response and that a 429 is returned once the limit is exceeded.
 
 Files I need to read but likely won't change:
 - `safety/rate_limiter.py` — `check_rate_limit()` is the function being called.
@@ -58,6 +58,8 @@ def test_exceeding_limit_returns_429(client):
     # send more than `limit` requests within the window
     ...
     assert response.status_code == 429
+    assert "X-RateLimit-Limit" in response.headers
+    assert "X-RateLimit-Remaining" in response.headers
 ```
 
 ### Risks & unknowns
