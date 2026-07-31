@@ -3,7 +3,6 @@ import structlog
 from ..chunking.base import Chunk
 from .provider import EmbeddingProvider
 
-
 logger = structlog.get_logger()
 
 
@@ -67,7 +66,7 @@ class BatchEmbeddingProcessor:
                 logger.info("Generated embeddings for batch", embedding_count=len(embeddings))
 
                 # Store in vector DB
-                for chunk, embedding in zip(batch, embeddings):
+                for chunk, embedding in zip(batch, embeddings, strict=False):
                     try:
                         embedding_id = self._store_embedding(chunk, embedding)
                         results.append((chunk, embedding_id))
@@ -107,8 +106,9 @@ class BatchEmbeddingProcessor:
         chunk_index = chunk.metadata.get("chunk_index", 0)
         embedding_id = f"{source_id}_chunk_{chunk_index}"
 
-        # Store in ChromaDB
-        self.vector_db.add(
+        # Store in ChromaDB (upsert so re-ingesting identical content overwrites
+        # in place rather than raising on duplicate ids).
+        self.vector_db.upsert(
             ids=[embedding_id],
             embeddings=[embedding],
             metadatas=[chunk.metadata],
