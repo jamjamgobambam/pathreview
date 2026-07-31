@@ -2,7 +2,6 @@
 
 import redis
 import structlog
-from datetime import datetime, timedelta
 
 logger = structlog.get_logger()
 
@@ -16,7 +15,7 @@ class SafetyMonitor:
         "injection_attempt",
         "content_filtered",
         "bias_detected",
-        "rate_limited"
+        "rate_limited",
     }
 
     def __init__(self, redis_client: redis.Redis):
@@ -38,7 +37,7 @@ class SafetyMonitor:
             logger.warning("unknown_event_type", event_type=event_type)
             return
 
-        timestamp = datetime.utcnow().isoformat()
+        # timestamp = datetime.utcnow().isoformat()
 
         try:
             # Log to structlog
@@ -71,4 +70,20 @@ class SafetyMonitor:
 
         except Exception as e:
             logger.error("event_count_error", event_type=event_type, error=str(e))
+            return 0
+
+    def get_total_event_count(self) -> int:
+        """Get total count of all safety events using a single batch Redis query.
+
+        Returns:
+            Total aggregated event count across all categories.
+        """
+        keys = [f"safety:events:{event_type}" for event_type in self.VALID_EVENT_TYPES]
+
+        try:
+            counts = self.redis.mget(keys)
+            # Filter out None values for non-existent keys and sum integers
+            return sum(int(c) for c in counts if c is not None)
+        except Exception as e:
+            logger.error("total_event_count_error", error=str(e))
             return 0
