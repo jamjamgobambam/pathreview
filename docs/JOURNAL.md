@@ -24,3 +24,34 @@
 **PLAN.md link:** https://github.com/trihiennguye-ux/pathreview/blob/feat/68-safety-event-count-health-check/docs/PLAN.md
 
 **Blockers or open questions:**
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I updated the monitoring file so that safety events are stored in a way that supports a true rolling one-hour count. I also updated the health endpoint to call the new monitoring helper and return the real count in the response payload.
+
+**Next steps:**
+I will write tests for both the monitoring logic and the health endpoint to verify the rolling-window count and confirm the endpoint field is populated correctly.
+
+**Blockers:**
+I ran into formatting errors when committing new changes and didn't fully understand the pre-commit requirements at first.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
