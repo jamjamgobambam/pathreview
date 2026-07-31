@@ -43,3 +43,21 @@ Commit and push the fix on branch `fix/147-Resume-section-detection-fails-on-tex
 **Blockers:**
 
 Two pre-existing failures in `test_resume_parser.py` (`test_parse_markdown_resume`, `test_strip_markdown_syntax`) are unrelated to this fix — `_strip_markdown` does not strip `#` headers when lines are indented. They may cause `make test-unit` to report failures beyond the scope of #147; otherwise none.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/345
+
+**Branch:** fix147-Resume-section-detection-fails-on-text-with-leading-whitespace 
+
+**What you built:**
+Updated `_detect_sections` in `ingestion/parsers/resume_parser.py` so all four section-header regex patterns allow optional leading whitespace (`\s*`) after each line-start anchor (`^` or `\n`). Indented headers common in PDF extracts and pasted text (e.g., `    Experience:`) now match the same way flush-left headers do, so `metadata["detected_sections"]` correctly lists Experience, Education, Skills, and other recognized sections instead of staying empty.
+
+**Tests added or updated:**
+No test files were changed. The existing `test_detect_sections` in `tests/unit/test_resume_parser.py` already uses an indented fixture and was used to confirm the fix; flush-left cases remain covered by `test_parse_single_column_resume_text` and `test_parse_resume_no_work_experience`.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** None
