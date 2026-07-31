@@ -1,6 +1,7 @@
 """Check if generated feedback is supported by retrieved context."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -8,6 +9,46 @@ logger = structlog.get_logger()
 
 class FaithfulnessChecker:
     """Verify that feedback claims are supported by context."""
+
+    STOP_WORDS = {
+        "a",
+        "an",
+        "the",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "and",
+        "or",
+        "but",
+        "in",
+        "of",
+        "to",
+        "for",
+        "that",
+        "this",
+        "with",
+        "has",
+        "have",
+        "had",
+        "developer",
+        "candidate",
+        "project",
+        "projects",
+        "skill",
+        "skills",
+        "experience",
+        "experienced",
+        "expert",
+        "expertise",
+        "skilled",
+        "shows",
+        "knows",
+        "knowledge",
+        "strong",
+    }
 
     def check(self, feedback: str, context_chunks: list[dict]) -> float:
         """Check faithfulness of feedback to context.
@@ -20,8 +61,11 @@ class FaithfulnessChecker:
             Faithfulness score 0.0-1.0 (ratio of supported claims)
         """
         if not feedback or not context_chunks:
-            logger.info("faithfulness_empty_input", has_feedback=bool(feedback),
-                       has_chunks=bool(context_chunks))
+            logger.info(
+                "faithfulness_empty_input",
+                has_feedback=bool(feedback),
+                has_chunks=bool(context_chunks),
+            )
             return 0.0
 
         # Extract key claims from feedback (sentences)
@@ -31,9 +75,7 @@ class FaithfulnessChecker:
             return 0.5  # Default to neutral if no extractable claims
 
         # Concatenate context text
-        context_text = " ".join([
-            chunk.get("text", "") for chunk in context_chunks
-        ])
+        context_text = " ".join([chunk.get("text", "") for chunk in context_chunks])
 
         # Check each claim for support
         supported = 0
@@ -43,8 +85,9 @@ class FaithfulnessChecker:
 
         score = supported / len(claims) if claims else 0.0
 
-        logger.info("faithfulness_checked", claims_count=len(claims),
-                   supported_count=supported, score=score)
+        logger.info(
+            "faithfulness_checked", claims_count=len(claims), supported_count=supported, score=score
+        )
 
         return score
 
@@ -56,33 +99,59 @@ class FaithfulnessChecker:
             text: Feedback text
 
         Returns:
-            List of claims (sentences)
+            List of claims (sentences or coordinated phrases)
         """
-        # Split by sentence (simple regex)
-        sentences = re.split(r'[.!?]+', text)
-        claims = [s.strip() for s in sentences if s.strip() and len(s.strip()) > 10]
-        return claims[:10]  # Limit to 10 claims for scoring
+        sentences = re.split(r"[.!?]+", text)
+        claims: list[str] = []
+
+        for sentence in sentences:
+            sentence = sentence.strip()
+            if not sentence:
+                continue
+
+            parts = re.split(r"\s*(?:,\s*|\band\b)\s*", sentence)
+            claims.extend(part.strip() for part in parts if part.strip())
+
+        return claims[:10]
 
     @staticmethod
-    def _is_supported(claim: str, context: str) -> bool:
-        """Check if a claim is supported by context.
+    def _tokenize(text: str) -> set[str]:
+        """Normalize text into lowercase searchable tokens.
 
         Args:
-            claim: Claim text
-            context: Context text
+            text: Text to tokenize.
 
         Returns:
-            True if claim is supported
+            A set of normalized tokens.
         """
-        # Tokenize and check for keyword overlap
-        claim_tokens = set(claim.lower().split())
-        context_tokens = set(context.lower().split())
+        return set(
+            re.findall(
+                r"[a-z0-9][a-z0-9+#./-]*",
+                text.lower(),
+            )
+        )
 
-        # Require at least some meaningful overlap
-        overlap = claim_tokens & context_tokens
-        # Filter out common stop words
-        stop_words = {'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been',
-                     'and', 'or', 'but', 'in', 'of', 'to', 'for', 'that'}
-        meaningful_overlap = overlap - stop_words
+    @classmethod
+    def _is_supported(cls, claim: str, context: str) -> bool:
+        """Check whether a claim has meaningful support in the context.
 
-        return len(meaningful_overlap) >= 2
+        Args:
+            claim: Claim text.
+            context: Context text.
+
+        Returns:
+            True if the claim has sufficient meaningful overlap with context.
+        """
+        claim_tokens = cls._tokenize(claim) - cls.STOP_WORDS
+        context_tokens = cls._tokenize(context) - cls.STOP_WORDS
+
+        if not claim_tokens:
+            return False
+
+        meaningful_overlap = claim_tokens & context_tokens
+
+        # A claim containing only one meaningful token can be supported by
+        # that token. Longer claims still require at least two matches.
+        required_overlap = 1 if len(claim_tokens) == 1 else 2
+
+        return len(meaningful_overlap) >= required_overlap
