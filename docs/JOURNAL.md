@@ -42,16 +42,18 @@ I ran into formatting errors when committing new changes and didn't fully unders
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/trihiennguye-ux/pathreview/pull/1
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** feat/68-safety-event-count-health-check
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+I rewrote the SafetyMonitor class so that it stores safety events in Redis sorted sets rather than a simple counter, which enables an accurate rolling one-hour count via ZCOUNT and includes automatic trimming of entries older than a 24-hour retention window. The health route now builds a SafetyMonitor from the existing Redis client and populates safety_events_last_hour with the real aggregate count across all event types, falling back to 0 if Redis is unavailable so the endpoint remains resilient. Unit tests were added covering both the healthy zero-event case and a case with a non-zero rolling count, using a lightweight in-memory Redis stub to avoid network dependencies.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+I created a new test file: tests/unit/test_health_route.py with a FakeRedis stub (sorted-set backed) covering:
+- Healthy status response with zero safety events
+- Correct propagation of a non-zero rolling-window event count into safety_events_last_hour
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
