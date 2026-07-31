@@ -30,14 +30,10 @@ class FaithfulnessChecker:
             logger.info("faithfulness_no_claims_extracted")
             return 0.5  # Default to neutral if no extractable claims
 
-        # Concatenate context text
-        # BUG (#153): .get("text", "") only substitutes the default when the
-        # key is missing. A chunk with an explicit "text": None still returns
-        # None here, and " ".join(...) then raises TypeError. Reproduced via
-        # tests/unit/test_faithfulness_checker.py::test_none_context_chunk_text.
-        context_text = " ".join([
-            chunk.get("text", "") for chunk in context_chunks
-        ])
+        # Concatenate context text. `or ""` guards against chunks with an
+        # explicit "text": None, not just a missing key (#153) — .get()'s
+        # default only applies when the key itself is absent.
+        context_text = " ".join([chunk.get("text") or "" for chunk in context_chunks])
 
         # Check each claim for support
         supported = 0

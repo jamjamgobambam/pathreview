@@ -241,6 +241,20 @@ class TestFaithfulnessChecker:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
+    def test_mixed_none_missing_and_valid_text_chunks(self, checker):
+        """Test handling a mix of None text, missing key, and valid text chunks."""
+        feedback = "Has Python skills"
+        context_chunks = [
+            {"text": None},
+            {"content": "wrong key"},
+            {"text": "Has Python skills demonstrated"},
+        ]
+
+        score = checker.check(feedback, context_chunks)
+
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+
     def test_missing_text_key_in_chunk(self, checker):
         """Test handling of missing 'text' key in context chunk."""
         feedback = "Has Python skills"
