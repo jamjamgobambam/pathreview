@@ -49,3 +49,43 @@ skipped by both `scrub()` and `detect()`, while the dashed format
 Need to decide the exact replacement for the leading `\b` (negative lookbehind
 vs. restructuring the optional group) and confirm it doesn't change match
 priority against the `phone_intl` pattern for inputs like `+1 555 123 4567`.
+
+## Week 9 — Implementation
+
+**Fix commit:** 09e9cd9
+
+**What changed:**
+`safety/pii_scrubber.py` — replaced the leading `\b` in the `phone_us`
+pattern with a negative lookbehind `(?<![\w)])`, and widened the
+`[-.]?` separators to `[-.\s]?`. The lookbehind fix alone wasn't
+enough: the original separator also never allowed for the space after
+a closing paren (`(555) 123-4567`), so `(555) 123-4567` still didn't
+match even once the `\b` boundary issue was fixed. Verified against
+all formats in the test file plus a few extra ones by hand
+(`(555)123-4567`, `555 123 4567`, `Phone:(555) 123-4567`) and
+confirmed `phone_intl` still claims `+44 20 7946 0958` untouched by
+`phone_us`.
+
+**Tests:** All four originally-failing tests
+(`test_us_phone_number_redaction`, `test_us_phone_formats`,
+`test_detect_phone_pii`, `test_phone_at_start_of_text`) now pass.
+
+**Pre-existing failures observed (not introduced by this change):**
+- `tests/unit/test_pii_scrubber.py::test_mixed_pii_and_text` fails on
+  `main` before this fix too: the unrelated `street_address` pattern
+  has no trailing `\b`/anchor, so its `[A-Za-z\s]+` capture backtracks
+  onto the literal substring `"pl"` inside "applications" and
+  over-redacts. Confirmed via `git stash` that this test already fails
+  on the pre-fix tree.
+- `make test-unit` has 53 pre-existing failures across the suite on
+  `main` (49 after this fix, since it resolves 4 of them). Confirmed
+  via `git stash` diff of failure counts before/after.
+- `make check` (ruff, black, mypy) has pre-existing findings
+  throughout the repo unrelated to this issue — e.g. `black` was not
+  clean on `safety/pii_scrubber.py` before this change, and the repo's
+  test files broadly lack type annotations that `mypy`'s
+  `disallow_untyped_defs` config would otherwise require. This PR
+  fixed the specific ruff findings (`E501`, `B007`) already present in
+  `safety/pii_scrubber.py` (the file I was editing) so the pre-commit
+  hooks could run, but did not attempt to annotate or reformat
+  unrelated files/tests — that's out of scope for a phone-regex fix.
