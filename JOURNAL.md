@@ -40,27 +40,38 @@ When I tried replicating the issue through the UI, I couldn't see any ingested s
 
 **Current progress:**
 [What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+I have implemented a Webparser part: 1. Write `WebParser` — fetch the URL, strip boilerplate, pull out the readable text
 
 **Next steps:**
 [What are you working on for the rest of the week?]
+I am looking to get steps done:
+2. Add `ingest_portfolio` to the pipeline, following the same shape as `ingest_resume`
+3. Hook it into `profile_service.py` so saving a profile with a portfolio URL kicks off ingestion
+4. Make `_record_ingested_source` actually write to the DB instead of just logging, so dedup works
+5. Turn the reproduction stubs in `test_web_parser.py` into real tests
 
 **Blockers:**
 [Anything slowing you down? Or leave blank.]
+I need to figure out all files I need to update and add URL ingestion
 
 ---
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/450
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** feat/11-portfolio-url-ingestion
+
 
 **What you built:**
 [1–3 sentences summarizing what your fix does and how it works]
+I build a portfolio URL ingestion: a new WebParse that fetches porfolio page and extracts text and an ingest_portfolio method that runs tesx through the same chenk and embed flow. I wired this into profile_service.py so saving a profile with a portfolio_url automatically triggers ingestion in the background, failing quietly if the site is down or unparseable. You also fixed _record_ingested_source/_check_skip to actually read and write the IngestedSource table.
 
 **Tests added or updated:**
 [Which test files did you touch? What do they cover?]
+14 tests were added
+WebParser.parse() is tested for extracting readable text from portfolio HTML, stripping script/style/nav boilerplate, capturing title and word-count metadata, handling bytes input, and rejecting invalid content types. WebParser.fetch() is tested for a successful fetch, an HTTP/connection error, and a non-HTML content type, all raising ValueError appropriately. IngestionPipeline.ingest_portfolio() is tested end-to-end (fetch → parse → chunk → embed → DB record), for skipping re-ingestion of unchanged content (dedup), and for propagating exceptions when a fetch fails.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [ x] make check passes  [x ] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:**  "none"
