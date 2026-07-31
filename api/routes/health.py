@@ -3,8 +3,10 @@ from typing import Any
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import text
 
 from core.database import get_db
+from safety.monitoring import SafetyMonitor
 
 log = structlog.get_logger()
 
@@ -30,7 +32,7 @@ async def health_check(db: Any = Depends(get_db)) -> dict[str, Any]:  # noqa: B0
 
     try:
         # Check PostgreSQL
-        await db.execute("SELECT 1")
+        await db.execute(text("SELECT 1"))
         health_status["dependencies"]["postgres"] = "healthy"
         log.debug("postgres_health_check_passed")
     except Exception as exc:
@@ -38,19 +40,16 @@ async def health_check(db: Any = Depends(get_db)) -> dict[str, Any]:  # noqa: B0
         health_status["dependencies"]["postgres"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
+    redis_client = None
     try:
         # Check Redis (if available)
         import redis
 
         from core.config import settings
 
-        r = redis.Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            db=0,
-            decode_responses=True,
-        )
+        r = redis.from_url(settings.redis_url, decode_responses=True)
         r.ping()
+        redis_client = r
         health_status["dependencies"]["redis"] = "healthy"
         log.debug("redis_health_check_passed")
     except Exception as exc:
@@ -75,12 +74,16 @@ async def health_check(db: Any = Depends(get_db)) -> dict[str, Any]:  # noqa: B0
         health_status["dependencies"]["vector_db"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
-    # Count safety events in last hour (placeholder)
+    # Count safety events using the same Redis connection checked above
     try:
-        # This would be populated by actual safety event logging
-        health_status["safety_events_last_hour"] = 0
+        if redis_client and health_status["dependencies"]["redis"] == "healthy":
+            monitor = SafetyMonitor(redis_client)
+            health_status["safety_events_last_hour"] = monitor.get_total_event_count()
+        else:
+            health_status["safety_events_last_hour"] = 0
     except Exception as exc:
         log.error("safety_events_check_failed", error=str(exc))
+        health_status["safety_events_last_hour"] = 0
 
     # Return 503 if any critical dependency is down
     if health_status["status"] == "unhealthy":
