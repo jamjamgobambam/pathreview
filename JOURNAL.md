@@ -17,3 +17,26 @@ issue — `extract_skills()` returned `[]` for JavaScript text and `['React']`
 Need to decide exactly how many distinct JS/TS keyword matches should be
 required before flagging a language, to avoid false positives on
 Python-only text that happens to use `class`/`async`.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the full fix in `ingestion/parsers/skill_extractor.py` per PLAN.md:
+JS/TS keyword-based detection using the previously-unused JS_TS_KEYWORDS set,
+TypeScript-specific syntax indicators for correct labeling, and Dockerfile/
+docker-compose syntax detection in `_detect_tools()`. All 4 target tests
+(`test_javascript_detection`, `test_text_with_typescript_files`,
+`test_devops_tool_detection`, `test_docker_compose_detection`) now pass.
+
+**Next steps:**
+Run `make check` and `make test-unit` for a final confirmation, write the PR
+description, and open the pull request against `ascherj/pathreview`.
+
+**Blockers:**
+None. Note: `make check` surfaced ~180 pre-existing lint errors and
+`make test-unit` surfaced 49 pre-existing test failures across unrelated
+files (other students' curated issues) — confirmed my changed file
+(`skill_extractor.py`) is clean on all three checks (ruff/black/mypy) and
+introduces no new test failures.
