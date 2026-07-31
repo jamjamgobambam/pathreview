@@ -139,3 +139,83 @@ reachable, instead of catching the error and returning a false 503.
 
 **Draft PR feedback received from:** none yet _(PR #177 is open and available for
 peer review — will share in the cohort Slack channel)_
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback came in. As of this entry, PR #177 has 0
+comments and 0 reviews (also consistent with the Summer 2026 note that reviewer
+feedback isn't a feature this term). The PR is open and marked ready for review.
+
+**How you responded:**
+N/A — no feedback to respond to. The PR is in a ready-to-review state with a
+fully filled-in template and a documented before/after check of pre-existing
+failures, so it's ready if a review arrives later.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The one-line code fix was the easy part; everything *around* it was harder. Two
+things stand out. First, getting the app running on Windows: `make setup`
+reported a failure and aborted before `npm install`, but the real story was
+subtle — the database had actually seeded fine, and the script only crashed at
+the very end trying to print a `✓` character that the Windows cp1252 console
+can't encode (`UnicodeEncodeError`). Reading the traceback carefully to see
+"Database seeding completed successfully" *above* the crash was the difference
+between "setup is broken" and "setup worked, one cosmetic print failed." Second,
+the pre-commit/CI hooks fail on pre-existing code, so even a tiny, correct
+change to `health.py` gets blocked by `mypy`/`ruff` errors that were already
+there — I had to learn to reason about "my delta" instead of "is CI green."
+
+**What did you learn about working in a large codebase?**
+Scope discipline is everything. `api/routes/health.py` actually contains *two*
+separate bugs — the SQLAlchemy `text()` issue I picked (#154) and a broken
+`settings.redis_host` reference (#155) that belongs to another contributor.
+Fixing "just mine" and deliberately leaving the redis bug alone — even though it
+was five lines away and I could see it — felt unnatural but is exactly right in
+a shared codebase: overreaching would create merge conflicts and step on
+someone else's issue. I also learned to match existing patterns instead of my
+own preferences (Conventional Commits with the repo's scopes; copying the
+`@pytest.mark.unit` + `AsyncMock` style from `test_review_service.py`), and to
+prove non-regression by measuring failures before vs. after rather than assuming
+a green suite. Contributing to production code is less "build the thing" and
+more "change one thing without disturbing the other thousand."
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest at fast navigation of unfamiliar code: locating the exact
+buggy line, explaining *why* SQLAlchemy 2.x rejects a raw string, and mirroring
+the repo's test conventions so my new file didn't look out of place. It was also
+good at the rigor — designing the before/after baseline comparison to isolate my
+change's impact. Where it fell short was judgment and environment reality: the
+cp1252 crash needed someone to read actual runtime output and diagnose it, not
+generate code; and the genuinely contestable calls — whether to also fix #155,
+whether bypassing a hook that fails on pre-existing debt is acceptable, how to
+keep the diff honest — were decisions to *make and own*, not answers to look up.
+
+**What would you do differently if you started over?**
+I'd run `make check` and `make test-unit` on a clean `main` *first*, before
+writing any code, and record the baseline of pre-existing failures. I did this
+eventually, but doing it up front would have saved confusion about which
+failures were "mine." I'd also set up tooling correctly at the start —
+configuring the GitHub token scopes (`read:org`) so `gh` PR commands work, and
+knowing the Windows `PYTHONUTF8=1` workaround before hitting the seed crash.
+On issue selection, #154 was a good tier-1 choice, but I'd have looked one level
+deeper sooner to notice #155 living in the same file, which shaped the whole
+scope conversation.
+
+**What are you most proud of?**
+Turning a trivial-looking one-line fix into a genuinely trustworthy
+contribution: a regression test that fails on the old code and passes on the
+new, an end-to-end verification showing `/health` flip from `unhealthy` to
+`healthy` against a real database, and a documented before/after proof that my
+change introduces zero new test/lint/type failures. The fix is one line; the
+confidence that it's *correct and doesn't make anything worse* is the part I
+actually earned.
