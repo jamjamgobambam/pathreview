@@ -76,22 +76,29 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _TODO_
+**PR link:** https://github.com/ascherj/pathreview/pull/467
 
 **Branch:** fix/106-restore-sample-profile-fixture
 
 **What I built:**
-_TODO_
+Restored the sample profile fixture (tests/fixtures/sample_profiles/basic_profile.json)
+requested in #106 and added an integration test (tests/integration/test_profile_fixture_loading.py)
+that constructs real Profile + IngestedSource ORM objects from it and verifies the relationship
+graph is wired correctly.
 
-**Tests added:**
-_TODO_
+**Tests added or updated:**
+tests/integration/test_profile_fixture_loading.py — 3 new tests
+(test_fixture_file_exists, test_profile_fields_populated, test_repos_map_to_two_ingested_sources),
+all passing.
 
-**Self-review checklist (against docs/CONTRIBUTING.md):**
-- [ ] Code follows the project's style/formatting conventions
-- [ ] Tests added and passing for the change
-- [ ] PR description documents the pre-existing baseline
-- [ ] No unrelated files modified
-- [ ] Commit messages are clear and scoped
+**Self-review confirmation:**
+- [ ] make check passes
+- [ ] make test-unit passes
 
-**Draft PR feedback:**
-_TODO_
+make check/make test-unit do not pass cleanly due to 182 pre-existing ruff
+errors, 52 black reformats, 5 mypy errors, and 53 pre-existing unit test
+failures — none introduced by this branch (0 contribution, verified via
+git diff --stat). See PR for full breakdown.
+
+**Draft PR feedback received from:**
+None yet — PR just opened as draft.
