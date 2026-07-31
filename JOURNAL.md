@@ -53,3 +53,52 @@ and `test_build_directory_excluded` currently fail for this exact reason.
 **Blockers or open questions:**
 None currently — root cause is isolated and the fix path is clear (segment-based path
 matching instead of slash-wrapped substring matching).
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented segment-based path matching in `_should_skip_file()`
+(`agent/tools/tech_detector.py`), replacing the broken slash-wrapped substring check that
+required a leading `/` and therefore missed repo-root-relative vendor/build paths. All 28
+tests in `tests/unit/test_tech_detector.py` pass, including the two named in the issue
+(`test_node_modules_excluded`, `test_build_directory_excluded`) plus a new test I added
+(`test_filename_containing_skip_word_not_excluded`) guarding against false-positive substring
+matches (e.g. `vendor_utils.py` incorrectly being treated as vendored). Confirmed via
+`git stash` comparison that the `make check` (182 errors) and `make test-unit` (51 failures)
+issues are pre-existing on `main` and unrelated to this change — none touch
+`tech_detector.py` or `test_tech_detector.py`.
+
+**Next steps:**
+Open a draft PR, request peer/mentor review in Slack, address feedback, then finalize and
+submit for review.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [ADD AFTER OPENING PR]
+
+**Branch:** fix/150-vendored-build-output-detection
+
+**What you built:**
+Fixed `TechDetector._should_skip_file()` in `agent/tools/tech_detector.py` so vendor/build
+directories (`node_modules/`, `build/`, `vendor/`, etc.) are excluded from language detection
+even when they appear at the repo root. The fix splits each file path into `/`-separated
+segments and checks for an exact segment match against a set of skip-directory names, instead
+of the old approach of checking for a fixed `/name/`-wrapped substring, which silently failed
+for root-relative paths.
+
+**Tests added or updated:**
+`tests/unit/test_tech_detector.py` — confirmed the two existing tests named in the issue
+(`test_node_modules_excluded`, `test_build_directory_excluded`) now pass, and added
+`test_filename_containing_skip_word_not_excluded` to guard against false-positive substring
+matches (e.g. `vendor_utils.py`).
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [ADD AFTER REVIEW]
