@@ -9,6 +9,7 @@ from .embeddings.provider import EmbeddingProvider
 from .parsers.readme_parser import ReadmeParser
 from .parsers.repo_analyzer import RepoAnalyzer
 from .parsers.resume_parser import ResumeParser
+from core.models.ingested_source import IngestedSource
 
 logger = structlog.get_logger()
 
@@ -296,13 +297,15 @@ class IngestionPipeline:
         try:
             # Query database for existing source
             # This assumes a table/model named IngestedSource
-            existing = (
-                self.db_session.query("IngestedSource")  # Placeholder - actual query depends on ORM
-                .filter_by(source_id=source_id)
-                .first()
-            )
+            existing = None
+            if(source_type == "readme"):
+                existing = (
+                    self.db_session.query(IngestedSource)  # Placeholder - actual query depends on ORM
+                    .filter_by(content_hash=source_id)
+                    .first()
+                )
 
-            if existing:
+            if existing is not None and existing:
                 logger.info("Source already ingested, skipping", source_id=source_id)
                 return IngestResult(
                     source_id=source_id,
@@ -338,6 +341,10 @@ class IngestionPipeline:
         try:
             # This is a placeholder for actual database recording
             # In a real implementation, would create IngestedSource record
+            if(source_type == "readme"): #Create IngestedSource record for readme and add/commit to database
+               entry = IngestedSource(content_hash=source_id, source_type=source_type, profile_id=profile_id, chunk_count=chunk_count  )
+               self.db_session.add(entry)
+               self.db_session.commit()
             logger.info(
                 "Recording ingested source",
                 source_id=source_id,

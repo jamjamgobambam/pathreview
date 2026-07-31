@@ -7,11 +7,6 @@ than calling `_check_skip` directly), so they describe the real round-trip contr
     ingest the SAME README again  ->  it is skipped, NOT re-embedded
     ingest a CHANGED README  ->  it is embedded again
 
-RED / TDD STATE: `_check_skip` and `_record_ingested_source` are currently placeholder
-stubs, so the skip round-trip tests below are EXPECTED TO FAIL. They define the behavior
-issue #13 must implement (persist an ingested README, then skip re-embedding when the
-content hash is unchanged). Implementing that feature turns them green.
-
 The DB is a small in-memory fake that stores whatever the pipeline `.add()`s and returns
 it on lookup, so the tests assert observable behavior rather than a specific ORM/field.
 """
@@ -121,6 +116,16 @@ class TestReadmeIngestSkip:
         pipeline.ingest_readme("p1", "my-repo", "# V1\nfirst version")
 
         second = pipeline.ingest_readme("p1", "my-repo", "# V2\nsecond, changed version")
+
+        assert second.skipped is False
+        assert second.chunk_count == 2
+        assert pipeline.batch_processor.process.call_count == 2
+
+    def test_different_repo_with_same_content_is_not_skipped(self, pipeline):
+        """Same content in a different repo is a different source and must be embedded."""
+        pipeline.ingest_readme("p1", "repo1", self.CONTENT)
+
+        second = pipeline.ingest_readme("p1", "repo2", self.CONTENT)
 
         assert second.skipped is False
         assert second.chunk_count == 2
