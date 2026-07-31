@@ -18,34 +18,199 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+        ![Build Status](https://example.com/badge.svg)
+        ![Coverage](https://example.com/coverage.svg)
+        ![License](https://example.com/license-badge.svg)
+        ![Version](https://example.com/version-badge.svg)
 
-        ## Installation
+        A comprehensive project description. This project exists to solve a specific problem
+        that other tools in this space either ignore or handle poorly. It focuses on being
+        fast, lightweight, and easy to integrate into existing pipelines without forcing you
+        to rewrite your entire stack around it. Whether you're a solo developer prototyping
+        an idea or a team maintaining a production system, this project aims to get out of
+        your way and let you focus on what matters.
+
+        ## Table of Contents
+        - [Features](#features)
+        - [Tech Stack](#tech-stack)
+        - [Demo](#demo)
+        - [Prerequisites](#prerequisites)
+        - [Installation](#installation-or-quick-start)
+        - [Configuration](#configuration)
+        - [Usage](#usage)
+        - [Architecture](#architecture)
+        - [Testing](#testing)
+        - [Roadmap](#roadmap)
+        - [Contributing](#contributing)
+        - [FAQ / Troubleshooting](#faq--troubleshooting)
+        - [License](#license)
+        - [Acknowledgments](#acknowledgments)
+        - [Contact](#contact)
+
+        ## Features
+        - **Feature 1** — Handles the core workflow end to end, with sensible defaults so you
+        can get started without extensive configuration.
+        - **Feature 2** — Extensible plugin system that lets you swap out components without
+        touching the core codebase.
+        - **Feature 3** — Built-in monitoring and logging so you can observe what's happening
+        in production without bolting on third-party tools.
+        - **Feature 4** — Async-first design for high-throughput workloads.
+        - **Feature 5** — Comprehensive type hints and validation to catch errors early.
+
+        ## Tech Stack
+        - **Language:** Python 3.9+
+        - **Framework:** FastAPI for the API layer
+        - **Database:** PostgreSQL for persistent storage
+        - **Caching:** Redis for session and query caching
+        - **Task Queue:** Celery for background job processing
+        - **Containerization:** Docker and Docker Compose for local development and deployment
+
+        ## Live Demo
+        [Try it here](https://demo.example.com)
+
+        A hosted sandbox environment is available so you can explore the core features
+        without installing anything locally. Note that the demo environment resets every
+        24 hours and shouldn't be used for storing real data.
+
+        <!-- Add a screenshot or GIF here if the project has a UI -->
+        <!-- ![Screenshot](path/to/screenshot.png) -->
+
+        ## Prerequisites
+        Before installing, make sure you have the following set up:
+        - Python 3.9 or higher
+        - PostgreSQL 14 or higher, running locally or accessible remotely
+        - Redis (optional, only required if you enable caching)
+        - An API key from [Provider Name], if you plan to use the integration features
+        - `pip` and `virtualenv` (or `poetry`/`pipenv` if you prefer)
+
+        ## Installation or Quick Start
+        Clone the repository and install dependencies:
+        ```bash
+        git clone https://github.com/user/repo.git
+        cd repo
+        pip install -r requirements.txt
+        ```
+
+        Or install directly from PyPI:
         ```bash
         pip install package
         ```
 
-        ## Usage
-        ```python
-        import package
-        package.run()
+        For a full local development setup including the database and cache, use Docker
+        Compose:
+        ```bash
+        docker-compose up -d
         ```
 
-        ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+        ## Configuration
+        Copy `.env.example` to `.env` and update the values to match your environment:
+        ```bash
+        cp .env.example .env
+        ```
 
-        ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
+        Key environment variables:
+        ```bash
+        DATABASE_URL=postgresql://user:pass@localhost/dbname
+        REDIS_URL=redis://localhost:6379/0
+        API_KEY=your_api_key_here
+        DEBUG=False
+        LOG_LEVEL=INFO
+        ```
 
-        ![Build Status](https://example.com/badge.svg)
-        ![Coverage](https://example.com/coverage.svg)
+        Refer to `config/settings.py` for the full list of configurable options and their
+        defaults.
 
-        ## Live Demo
-        [Try it here](https://demo.example.com)
+        ## Usage
+        Basic usage:
+        ```python
+        import package
+
+        client = package.Client(api_key="your_key")
+        result = client.run()
+        print(result)
+        ```
+
+        ### Running as a service
+        ```bash
+        uvicorn app.main:app --host 0.0.0.0 --port 8000
+        ```
+
+        ### Common workflows
+        - Batch processing multiple inputs at once via `client.run_batch(inputs)`
+        - Streaming results with `client.stream()` for large datasets
+        - Scheduling recurring jobs through the built-in task scheduler
+
+        ## Architecture
+        The project follows a layered architecture separating concerns between the API
+        layer, business logic, and data access. Requests come in through FastAPI routes,
+        get validated and processed by service classes, and persist through a repository
+        pattern that abstracts away the underlying database. This separation makes it
+        straightforward to swap out PostgreSQL for another datastore later without
+        touching the API or business logic. Background jobs are handled asynchronously
+        through Celery to keep request/response times fast, and Redis is used both as a
+        cache and as the Celery broker.
+
+        ## Testing
+        Run the full test suite with:
+        ```bash
+        pytest
+        ```
+
+        Run with coverage reporting:
+        ```bash
+        pytest --cov=package --cov-report=html
+        ```
+
+        Integration tests require a running PostgreSQL instance; see `tests/README.md`
+        for setup instructions.
+
+        ## Roadmap
+        - [ ] Add support for multi-tenant deployments
+        - [ ] Improve batch processing throughput
+        - [ ] Add GraphQL API alongside REST
+        - [ ] Expand plugin ecosystem
+        - [ ] Publish official Helm chart for Kubernetes deployments
+
+        ## Contributing
+        Contributions are welcome and appreciated. To contribute:
+        1. Fork the repository
+        2. Create a feature branch (`git checkout -b feature/my-feature`)
+        3. Make your changes and add tests
+        4. Ensure the test suite passes and code is linted
+        5. Open a pull request describing your changes
+
+        Please read `CONTRIBUTING.md` for coding standards, commit message conventions,
+        and the review process before submitting.
+
+        ## FAQ / Troubleshooting
+        **Q: I'm getting a database connection error on startup.**
+        A: Double-check that `DATABASE_URL` in your `.env` file matches your PostgreSQL
+        credentials and that the database is running and reachable.
+
+        **Q: The package installs but imports fail.**
+        A: Make sure you're using a supported Python version (3.9+) and that your virtual
+        environment is activated.
+
+        **Q: How do I reset my local development environment?**
+        A: Run `docker-compose down -v` to remove containers and volumes, then
+        `docker-compose up -d` to start fresh.
+
+        ## License
+        This project is licensed under the MIT License. See the `LICENSE` file for full
+        details.
+
+        ## Acknowledgments
+        - Thanks to the maintainers of FastAPI, SQLAlchemy, and Celery, whose work this
+        project builds on
+        - Inspired by similar tools in the open-source community that shaped early
+        design decisions
+        - Thanks to all contributors who have submitted issues, pull requests, and
+        feedback
+
+        ## Contact
+        - Maintainer: [Your Name](mailto:email@example.com)
+        - Issues and feature requests: [GitHub Issues](https://github.com/user/repo/issues)
+        - Discussions: [GitHub Discussions](https://github.com/user/repo/discussions)
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -53,7 +218,7 @@ class TestReadmeScorer:
         assert result.success is True
         data = result.data
         assert data["has_readme"] is True
-        assert data["word_count"] > 100
+        assert data["word_count"] > 500
         assert data["word_count_category"] == "comprehensive"
         assert data["has_installation_section"] is True
         assert data["has_usage_section"] is True
@@ -157,9 +322,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +384,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +400,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
