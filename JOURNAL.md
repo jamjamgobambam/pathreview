@@ -43,3 +43,25 @@ I reproduced Issue #152 by running `pytest tests/unit/test_faithfulness_checker.
 
 **Blockers or open questions:**
 I need to determine how `_is_supported()` can accept one-token matches for short, specific technical claims without allowing common or weak single-token matches to create false positives. The test suite also contains an unrelated existing failure involving a context chunk whose `text` value is `None`; I will keep that outside the scope of Issue #152 unless the maintainers indicate otherwise.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I reproduced Issue #152 and identified two related causes: short claims were
+filtered out during claim extraction, and `_is_supported()` required at least
+two meaningful token matches. I added a regression test based on the issue's
+short-claim example and started updating claim extraction and token matching.
+
+**Next steps:**
+I will finish the implementation, add tests for short technical claims,
+punctuation normalization, and generic-word false positives, then run
+`make check` and `make test-unit`. After the targeted tests pass, I will open a
+draft PR and request peer or mentor feedback.
+
+**Blockers:**
+The main risk is allowing one-token support without treating generic shared
+words such as `project` or `experience` as sufficient evidence.
+
+---
