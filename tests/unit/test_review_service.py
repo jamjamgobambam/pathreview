@@ -8,6 +8,8 @@ import pytest
 from core.services.review_service import (
     _run_agent_orchestration,
     _run_ingestion_pipeline,
+    _run_rag_retrieval_generation,
+    _run_safety_checks,
     create_review,
     get_review,
     list_reviews,
@@ -558,9 +560,10 @@ class TestReviewService:
         assert [s["source_type"] for s in sources] == ["github", "portfolio", "resume"]
         mock_db.commit.assert_awaited_once()
 
-    # Test for temporary placeholder according to review_servicy.py
+    # Test for temporary placeholder according to review_service.py
     @pytest.mark.asyncio
     async def test_run_agent_orchestration_returns_placeholder(self) -> None:
+        """Test _run_agent_orchestration returns placeholder defined in review_service.py"""
         mock_profile = Mock()
         mock_ingestion_results: list[dict] = []
         mock_results = await _run_agent_orchestration(mock_profile, mock_ingestion_results)
@@ -584,3 +587,162 @@ class TestReviewService:
             ],
             "overall_score": 0.75,
         }
+
+    # Test for temporary placeholder according to review_service.py
+    @pytest.mark.asyncio
+    async def test_run_rag_retrieval_generation_returns_placeholder(self) -> None:
+        """Test _run_rag_retrieval_generation returns the placeholder defined in review_service.py"""
+        mock_profile = Mock()
+        mock_ingestion_results: list[dict] = []
+        mock_agent_output: dict = {}
+        mock_results = await _run_rag_retrieval_generation(
+            mock_profile, mock_ingestion_results, mock_agent_output
+        )
+
+        # Test will fail when real logic is implemented
+        assert mock_profile.mock_calls == []
+        assert mock_results == {
+            "sections": [
+                {
+                    "section_name": "Technical Skills",
+                    "content": "Detailed feedback on technical skills based on portfolio analysis",
+                    "confidence": 0.85,
+                    "suggestions": [
+                        "Add more detail on AI/ML experience",
+                        "Include specific technologies and frameworks",
+                    ],
+                },
+                {
+                    "section_name": "Project Experience",
+                    "content": "Detailed feedback on project experience and impact",
+                    "confidence": 0.8,
+                    "suggestions": [
+                        "Include measurable impact metrics",
+                        "Add links to project repositories",
+                    ],
+                },
+                {
+                    "section_name": "Career Growth",
+                    "content": "Feedback on career progression and development",
+                    "confidence": 0.78,
+                    "suggestions": [
+                        "Document learning from each role",
+                        "Highlight growth in responsibilities",
+                    ],
+                },
+            ],
+            "overall_score": 0.81,
+        }
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_returns_false_when_output_has_no_sections(self) -> None:
+        """Test _run_safety_checks returns false when output is has no 'sections' key"""
+        mock_output: dict = {}
+
+        with patch("core.services.review_service.log") as mock_log:
+            mock_result = await _run_safety_checks(mock_output)
+            mock_log.warning.assert_called_once_with("safety_check_failed_no_sections")
+            assert mock_result is False
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_returns_false_when_output_sections_is_missing_section_name(
+        self,
+    ) -> None:
+        """Test _run_safety_checks returns false when output["sections"][section] is missing a 'section_name' key"""
+        mock_output = {
+            "sections": [
+                {"content": "test content", "confidence": 0.5, "suggestions": ["test suggestion"]}
+            ]
+        }
+
+        with patch("core.services.review_service.log") as mock_log:
+            mock_result = await _run_safety_checks(mock_output)
+            mock_log.warning.assert_called_once_with(
+                "safety_check_failed_incomplete_section", section=mock_output["sections"][0]
+            )
+            assert mock_result is False
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_returns_false_when_output_sections_is_missing_content(
+        self,
+    ) -> None:
+        """Test run_safety_checks returns false when output["sections"][section] is missing a 'content' key"""
+        mock_output = {
+            "sections": [
+                {
+                    "section_name": "test section name",
+                    "confidence": 0.5,
+                    "suggestions": ["test suggestion"],
+                }
+            ]
+        }
+
+        with patch("core.services.review_service.log") as mock_log:
+            mock_result = await _run_safety_checks(mock_output)
+            mock_log.warning.assert_called_once_with(
+                "safety_check_failed_incomplete_section", section=mock_output["sections"][0]
+            )
+            assert mock_result is False
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_returns_false_if_confidence_is_greater_than_1(self) -> None:
+        """Test _run_safety_checks returns false if output["sections"][section]["confidence"] > 1"""
+        mock_output = {
+            "sections": [
+                {
+                    "section_name": "test section name",
+                    "content": "test content",
+                    "confidence": 1.1,
+                    "suggestions": ["test suggestion"],
+                }
+            ]
+        }
+
+        with patch("core.services.review_service.log") as mock_log:
+            mock_result = await _run_safety_checks(mock_output)
+            mock_log.warning.assert_called_once_with(
+                "safety_check_failed_invalid_confidence",
+                confidence=mock_output["sections"][0]["confidence"],
+            )
+            assert mock_result is False
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_returns_false_if_confidence_is_less_than_0(self) -> None:
+        """Test _run_safety_checks returns false if output["sections"][section]["confidence"] < 0"""
+        mock_output = {
+            "sections": [
+                {
+                    "section_name": "test section name",
+                    "content": "test content",
+                    "confidence": -0.1,
+                    "suggestions": ["test suggestion"],
+                }
+            ]
+        }
+
+        with patch("core.services.review_service.log") as mock_log:
+            mock_result = await _run_safety_checks(mock_output)
+            mock_log.warning.assert_called_once_with(
+                "safety_check_failed_invalid_confidence",
+                confidence=mock_output["sections"][0]["confidence"],
+            )
+            assert mock_result is False
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_returns_true_if_output_is_complete(self) -> None:
+        """Test _run_safety_checks returns true if output has complete 'section_name' and 'content' keys, and valid 'confidence' keys"""
+        mock_output = {
+            "sections": [
+                {
+                    "section_name": "test section name",
+                    "content": "test content",
+                    "confidence": 0.5,
+                    "suggestions": ["test suggestion"],
+                }
+            ]
+        }
+
+        with patch("core.services.review_service.log") as mock_log:
+            mock_result = await _run_safety_checks(mock_output)
+            mock_log.info.assert_called_once_with("safety_checks_passed")
+            assert mock_result is True
