@@ -78,3 +78,64 @@ The handler's broad `except Exception` also masks the sibling Redis bug (#155,
 until #155 is fixed even though postgres now reads healthy. Open question for
 mentors: is a #154-only PR (postgres healthy, redis still failing) the expected
 scope, or should the redis fix be bundled?
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All PLAN.md sub-tasks are implemented. `api/routes/health.py` now imports `text`
+and runs `db.execute(text("SELECT 1"))` (sub-tasks 1–2). `tests/unit/test_health.py`
+adds three tests — a regression guard asserting a `TextClause` (not a raw string)
+is executed, plus the healthy and failure paths (sub-task 3). Verified locally:
+`pytest tests/unit/test_health.py` is 3/3 green, and a live `GET /health` flips
+postgres from `unhealthy` to `healthy` (sub-task 4). Scope held to #154 — the
+sibling redis bug (#155) left untouched (sub-task 5).
+
+**Next steps:**
+Run the full self-review (`make check` / `make test-unit`) to baseline the
+pre-existing failures and confirm my change adds none, finalize the PR
+description, and request peer feedback in Slack.
+
+**Blockers:**
+None. Carrying the Week 8 open question about #155/scope into review.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/177
+
+**Branch:** `fix/154-health-check-sql-text`
+
+**What you built:**
+The `/health` PostgreSQL probe now wraps its `SELECT 1` liveness query in
+`sqlalchemy.text()`, so it executes under SQLAlchemy 2.x instead of raising
+`ArgumentError`. The endpoint reports `postgres: "healthy"` when the database is
+reachable, instead of catching the error and returning a false 503.
+
+**Tests added or updated:**
+`tests/unit/test_health.py` (new): `test_probe_wraps_query_in_text_clause`
+(regression guard — asserts a `TextClause`, not a raw string, is executed),
+`test_postgres_reported_healthy_when_query_succeeds`, and
+`test_postgres_reported_unhealthy_when_query_fails`. All three pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+> Interpreted per this week's guidance as "introduces no new failures," since
+> this codebase ships documented pre-existing failures. Measured before/after on
+> this branch:
+> - `make test-unit`: **base 53 failed / 375 passed** → **mine 53 failed / 378
+>   passed** — same 53 pre-existing failures, +3 new passing tests, **0 new
+>   failures**.
+> - `ruff check .`: **182 errors base → 182 with my change** (net zero; my new
+>   test file is ruff-clean).
+> - `mypy`: 1 pre-existing blocking error in both states — none added.
+> - The 53 pre-existing test failures are unrelated seeded bugs in other modules
+>   (e.g. #148, #149, #150, #158) plus the redis `settings.redis_host` issue
+>   (#155) in this same file, which is deliberately out of scope.
+
+**Draft PR feedback received from:** none yet _(PR #177 is open and available for
+peer review — will share in the cohort Slack channel)_
