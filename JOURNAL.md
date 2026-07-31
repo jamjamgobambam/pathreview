@@ -96,8 +96,8 @@ None.
 [1–3 sentences summarizing what your fix does and how it works]
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+No test needed to be updated. All existing test passed. Test referenced in `tech_detector_test.py`.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** slack handle: ssangela cui
