@@ -60,3 +60,28 @@ exists but is empty, and tests/unit/ has no test_health.py). Planning to
 model my Week 9 test on test_review_service.py's AsyncMock db-session
 fixture pattern instead, calling health_check() directly rather than
 through an HTTP client.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed PLAN.md sub-tasks 1–3: added the `text` import to
+`api/routes/health.py` and wrapped the `SELECT 1` query in `text()`.
+Verified via curl that `/health` now reports `"postgres": "healthy"`
+instead of raising the SQLAlchemy `ArgumentError`. Confirmed via a
+`git stash` comparison that existing ruff/mypy issues in `health.py`
+(1 ruff error, 11 mypy errors) predate my change and aren't something
+I introduced.
+
+**Next steps:**
+Writing `tests/unit/test_health.py` (sub-task 4), modeled on
+`test_review_service.py`'s `AsyncMock` fixture pattern. Then running
+the full `make check` and `make test-unit` suite to document the
+pre-existing failure baseline before opening the PR.
+
+**Blockers:**
+None currently — the Redis check in the same function has a separate,
+known bug (#155) that always fails, so my test needs to account for
+`health_check()` always raising `HTTPException` regardless of my fix.
+Not a blocker, just something to design the test around.
