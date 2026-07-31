@@ -88,12 +88,12 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/417
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** tree/fix/150-tech-detector-fails-to-detect-config-files-and-mislabels-repo
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+The fix adds the missing node_modules/ & build/ from the should skip filter.
 
 **Tests added or updated:**
 No test needed to be updated. All existing test passed. Test referenced in `tech_detector_test.py`.
