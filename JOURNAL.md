@@ -33,3 +33,34 @@ I reproduced the issue by calling the `/api/health` endpoint in my local environ
 
 **Blockers or open questions:**
 The health endpoint needs to report the total number of safety events across all valid safety event types. The remaining investigation is to determine the best way to aggregate these counts using the existing `SafetyMonitor` implementation while following the project's existing design patterns.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the aggregation logic in `SafetyMonitor` to compute the total safety event count across all valid safety event types and updated the `/health` endpoint to use the computed value instead of a placeholder. Added unit tests covering aggregation, empty Redis state, valid event types, and error handling. During implementation, I also identified that the health endpoint was creating Redis clients using undefined configuration fields and updated it to use the project's configured `redis_url`.
+
+**Next steps:**
+Run the remaining verification checks, prepare the pull request, request feedback on the draft PR, and update the documentation with the final PR link and testing summary.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/420
+
+**Branch:** `fix/68-safety-event-count-health`
+
+**What you built:**
+Implemented `SafetyMonitor.get_total_event_count()` to aggregate safety event counts across all valid event types and updated the `/health` endpoint to report the computed value instead of a hardcoded placeholder. The Redis client initialization was also updated to use the project's configured `redis_url`, allowing the health endpoint to correctly retrieve Redis-backed safety event counts.
+
+**Tests added or updated:**
+Added `tests/unit/test_safety_monitor.py` covering aggregation across all valid safety event types, empty Redis state, validation that only supported event types are included, and graceful handling of Redis errors during event count retrieval.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** none
