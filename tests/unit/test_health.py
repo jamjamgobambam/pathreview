@@ -6,9 +6,9 @@ textual clause. Under SQLAlchemy 2.x, passing a raw string to
 and report the database as unhealthy even when it is reachable.
 """
 
-import pytest
 from unittest.mock import AsyncMock, Mock
 
+import pytest
 from fastapi import HTTPException
 from sqlalchemy.sql.elements import TextClause
 
