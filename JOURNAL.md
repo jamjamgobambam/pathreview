@@ -42,3 +42,54 @@ Reproduction steps (anyone can re-run these):
 **Blockers or open questions:**
 - Whether to score each chunk with a separate LLM call or batch all candidates into one scoring prompt (latency/cost vs. simplicity), given the free `google/gemma-3-27b-it:free` model configured in `core/config.py`.
 - Whether to construct the OpenAI client inside `LLMReranker` or inject it (leaning toward injection for testability, matching `ReviewGenerator`).
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented all of PLAN.md. Added opt-in re-ranking settings to `core/config.py`
+(`enable_reranking`, `rerank_model`, `rerank_candidate_multiplier`, all defaulting
+off). Built the `LLMReranker` class in `rag/retriever/reranker.py` — it scores each
+candidate chunk for relevance via the LLM, parses/clamps the score, keeps ties
+stable, and falls back to the incoming hybrid order on any LLM failure. Wired an
+optional typed `reranker` and a `rerank` flag into `HybridRetriever.retrieve()`;
+when disabled (the default) retrieval behavior is unchanged. Added 13 unit tests
+(`tests/unit/test_reranker.py`, `tests/unit/test_hybrid_retriever.py`), all passing,
+with the LLM fully mocked (no network calls).
+
+**Next steps:**
+Open a draft PR, request peer/mentor feedback in Slack, address it, then mark the
+PR ready for review and fill in Check-in 2.
+
+**Blockers:**
+None functionally. Documented pre-existing repo state (not caused by my change):
+`make test-unit` shows 53 failing tests on `main` (baseline 53 failed / 375 passed;
+after my change 53 failed / 388 passed — my 13 tests are the only delta).
+`make check` also fails on `main` (177 pre-existing `ruff` errors and missing type
+stubs). My changed files pass `ruff`, `black`, and `mypy` individually.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _(add after opening the PR)_
+
+**Branch:** `feat/34-llm-chunk-reranking`
+
+**What you built:**
+An optional LLM re-ranking step for retrieval: when enabled, the LLM scores each
+retrieved chunk for relevance to the query and reorders the candidates before the
+top-k are passed to generation; when disabled (default), retrieval is unchanged.
+
+**Tests added or updated:**
+`tests/unit/test_reranker.py` (9 tests) and `tests/unit/test_hybrid_retriever.py`
+(4 tests) — reorder-by-score, top_k limit, empty input, LLM-failure fallback, tie
+stability, score parsing/clamping, and disabled-vs-enabled paths. All mock the LLM.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Per the assignment's pre-existing-failure rule: "passes" = my changes introduce no
+new failures. 53 test failures and the `make check` errors pre-exist on `main` and
+are documented in the PR.)
+
+**Draft PR feedback received from:** _(name or Slack handle, or "none")_
