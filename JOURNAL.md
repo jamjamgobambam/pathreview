@@ -60,7 +60,7 @@ I had some issues with Docker Desktop not running and using the wrong port but a
 
 ### Check-in 2
 
-**PR link:**
+**PR link:** https://github.com/ascherj/pathreview/pull/458
 
 **Branch:** fix/155-health-check-redis-host
 
