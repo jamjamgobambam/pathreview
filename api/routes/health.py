@@ -26,7 +26,7 @@ async def health_check(db: Any = Depends(get_db)) -> dict[str, Any]:  # noqa: B0
             "redis": "unknown",
             "vector_db": "unknown",
         },
-        "safety_events_last_hour": 0,
+        "safety_events_last_24h": 0,
         "timestamp": datetime.utcnow().isoformat(),
     }
 
@@ -78,12 +78,12 @@ async def health_check(db: Any = Depends(get_db)) -> dict[str, Any]:  # noqa: B0
     try:
         if redis_client and health_status["dependencies"]["redis"] == "healthy":
             monitor = SafetyMonitor(redis_client)
-            health_status["safety_events_last_hour"] = monitor.get_total_event_count()
+            health_status["safety_events_last_24h"] = monitor.get_total_event_count(window_hours=24)
         else:
-            health_status["safety_events_last_hour"] = 0
+            health_status["safety_events_last_24h"] = 0
     except Exception as exc:
         log.error("safety_events_check_failed", error=str(exc))
-        health_status["safety_events_last_hour"] = 0
+        health_status["safety_events_last_24h"] = 0
 
     # Return 503 if any critical dependency is down
     if health_status["status"] == "unhealthy":

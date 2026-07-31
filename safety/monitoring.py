@@ -1,5 +1,8 @@
 """Safety event monitoring."""
 
+import time
+import uuid
+
 import redis
 import structlog
 
@@ -37,53 +40,67 @@ class SafetyMonitor:
             logger.warning("unknown_event_type", event_type=event_type)
             return
 
-        # timestamp = datetime.utcnow().isoformat()
+        timestamp = time.time()
 
         try:
             # Log to structlog
             logger.warning("safety_event", event_type=event_type, **details)
 
-            # Store count in Redis for monitoring
+            # Store in a sorted set, scored by timestamp, so we can later
+            # count events within an arbitrary trailing window (e.g. "last
+            # 24 hours") instead of a counter whose TTL keeps resetting on
+            # every new event and never actually expires under steady load.
             key = f"safety:events:{event_type}"
-            self.redis.incr(key)
-            # Set expiry to 24 hours
+            member = f"{timestamp}:{uuid.uuid4().hex}"
+            self.redis.zadd(key, {member: timestamp})
+
+            # Drop entries older than 24h so the set doesn't grow unbounded.
+            cutoff = timestamp - 86400
+            self.redis.zremrangebyscore(key, 0, cutoff)
             self.redis.expire(key, 86400)
 
         except Exception as e:
             logger.error("safety_monitor_error", error=str(e))
 
-    def get_event_count(self, event_type: str, window_hours: int = 1) -> int:
-        """Get count of safety events.
+    def get_event_count(self, event_type: str, window_hours: int = 24) -> int:
+        """Get count of safety events within a trailing time window.
 
         Args:
             event_type: Type of event
-            window_hours: Time window in hours (not enforced here; for reference)
+            window_hours: Trailing time window in hours
 
         Returns:
-            Count of events in the window
+            Count of events within the window
         """
         key = f"safety:events:{event_type}"
+        cutoff = time.time() - (window_hours * 3600)
 
         try:
-            count = self.redis.get(key)
-            return int(count) if count else 0
+            return self.redis.zcount(key, cutoff, "+inf")
 
         except Exception as e:
             logger.error("event_count_error", event_type=event_type, error=str(e))
             return 0
 
-    def get_total_event_count(self) -> int:
-        """Get total count of all safety events using a single batch Redis query.
+    def get_total_event_count(self, window_hours: int = 24) -> int:
+        """Get total count of safety events across all categories within a
+        trailing time window, using a single batched Redis pipeline.
+
+        Args:
+            window_hours: Trailing time window in hours
 
         Returns:
-            Total aggregated event count across all categories.
+            Total aggregated event count across all categories within the window.
         """
-        keys = [f"safety:events:{event_type}" for event_type in self.VALID_EVENT_TYPES]
+        cutoff = time.time() - (window_hours * 3600)
 
         try:
-            counts = self.redis.mget(keys)
-            # Filter out None values for non-existent keys and sum integers
-            return sum(int(c) for c in counts if c is not None)
+            pipe = self.redis.pipeline()
+            for event_type in self.VALID_EVENT_TYPES:
+                key = f"safety:events:{event_type}"
+                pipe.zcount(key, cutoff, "+inf")
+            counts = pipe.execute()
+            return sum(counts)
         except Exception as e:
             logger.error("total_event_count_error", error=str(e))
             return 0

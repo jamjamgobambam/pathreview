@@ -24,5 +24,5 @@ def test_health_endpoint_returns_safety_events() -> None:
     assert response.status_code == 200
     data = response.json()
 
-    assert "safety_events_last_hour" in data
-    assert data["safety_events_last_hour"] >= 3
+    assert "safety_events_last_24h" in data
+    assert data["safety_events_last_24h"] >= 3
