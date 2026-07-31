@@ -7,11 +7,14 @@
 **Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-[In 3–5 sentences, in your own words: what the issue is (not a copy-paste of
-the title), what is currently broken or missing, and what a successful fix
-would accomplish. Naming the part of the codebase it affects is helpful context.]
-
-tests fail since structlog doesnt propagate into the stblib logging system when testing. any test that uses caplog fails. we have to mod conftest.py or structlog so when testing using caplog will work as intended
+Tests fail because structlog does not propagate into the stdlib `logging` system
+during test runs. The app only wires structlog into stdlib logging via
+`core.logging.configure_logging()` at startup, which the test suite never calls,
+so structlog falls back to its default `PrintLogger` and writes straight to
+stdout/stderr. pytest's `caplog` fixture only observes records that flow through
+stdlib `logging`, so every `caplog`-based assertion fails suite-wide. A successful
+fix wires structlog into stdlib `logging` during tests (via `tests/conftest.py`)
+so `caplog.text` / `caplog.records` are populated and log assertions pass.
 
 **Branch name:** [test/159-configure-structlog-caplog]
 
@@ -38,14 +41,14 @@ Some issues say "blocked by #X" or reference another issue that needs to be reso
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [commit on branch `test/159-configure-structlog-caplog` — add link after pushing]
+**Reproduction commit link:** [27c04aa (pre-fix state on `test/159-configure-structlog-caplog`, failing test reproducible)](https://github.com/oherna25/pathreview/commit/27c04aae272ee0a2115e12b57ca7d4b026133014)
 
 **Reproduction summary:**
 Ran `pytest tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty -q`. The test failed on `assert "Empty chunks list" in caplog.text` because `caplog.text` was empty — yet the warning `Empty chunks list provided to BatchEmbeddingProcessor` appeared in captured stdout. This confirms structlog emits the event but never routes it through stdlib `logging`, so `caplog` can't see it.
 
 **PLAN.md link:** [https://github.com/oherna25/pathreview/blob/test/159-configure-structlog-caplog/PLAN.md](https://github.com/oherna25/pathreview/blob/test/159-configure-structlog-caplog/PLAN.md)
 
-**Walkthrough video (recommended):** [add Loom link, ≤2 min]
+**Walkthrough video (recommended):** None recorded.
 
 **Blockers or open questions:**
 No hard blockers. Open questions carried into Week 9: (1) whether to reuse `configure_logging()` from `core/logging.py` in tests vs. a dedicated test-only structlog config, and (2) confirming structlog's `cache_logger_on_first_use` / module-level `get_logger()` caching doesn't cause the fix to be ignored for already-imported modules.
@@ -68,8 +71,7 @@ None for this issue. Note: the repo's full unit suite has ~52 pre-existing failu
 
 ### Check-in 2 (end of week)
 
-**PR link:** [open PR against `ascherj/pathreview` and add link]
-https://github.com/ascherj/pathreview/pull/284
+**PR link:** https://github.com/ascherj/pathreview/pull/284
 
 **Branch:** `test/159-configure-structlog-caplog`
 
@@ -77,7 +79,7 @@ https://github.com/ascherj/pathreview/pull/284
 An `autouse` pytest fixture in `tests/conftest.py` that configures structlog to route log events through the stdlib `logging` system during tests. Because the app's `configure_logging()` is never called in tests, structlog otherwise defaults to a `PrintLogger` that writes straight to stdout and bypasses `caplog`; the fixture emits real `LogRecord`s so `caplog`-based assertions work suite-wide.
 
 **Tests added or updated:**
-No test assertions were changed. Touched `tests/conftest.py` (the fix). Verified against the existing `tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty`, which failed before (empty `caplog.text`) and passes after; all 11 tests in that file pass.
+Added `tests/unit/test_logging_caplog.py` — a new regression suite (`TestStructlogCaplogPropagation`, 3 tests) pinning the fixture's behavior: a warning event is captured with no extra setup, an info event is captured once the level is lowered via `caplog.at_level`, and structlog key/value context (e.g. `chunk_count=7`) is reachable as a `LogRecord` attribute. No existing test assertions were changed. Also verified against the pre-existing `tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty`, which failed before (empty `caplog.text`) and passes after; all 11 tests in that file pass. Full unit suite went from 53 failing on `main` to 52 on the branch (the target test now passes) with the 3 new tests added — no regressions; the remaining 52 failures pre-exist on `main` and are unrelated to #159.
 
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 (Note: `make check` and `make test-unit` both fail on pre-existing errors unrelated to #159. The changed file `tests/conftest.py` is lint-clean (`ruff check tests/conftest.py` passes) and the caplog test it enables passes.)
