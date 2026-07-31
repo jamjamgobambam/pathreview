@@ -6,6 +6,7 @@ from uuid import uuid4
 import pytest
 
 from core.services.review_service import (
+    _run_agent_orchestration,
     _run_ingestion_pipeline,
     create_review,
     get_review,
@@ -552,3 +553,30 @@ class TestReviewService:
         assert len(sources) == 3
         assert [s["source_type"] for s in sources] == ["github", "portfolio", "resume"]
         mock_db.commit.assert_awaited_once()
+
+    # Test for temporary placeholder according to review_servicy.py
+    @pytest.mark.asyncio
+    async def test_run_agent_orchestration_returns_placeholder(self) -> None:
+        mock_profile = Mock()
+        mock_ingestion_results: list[dict] = []
+        mock_results = await _run_agent_orchestration(mock_profile, mock_ingestion_results)
+
+        # Test will fail when real logic is implemented
+        assert mock_profile.mock_calls == []
+        assert mock_results == {
+            "sections": [
+                {
+                    "section_name": "Technical Skills",
+                    "content": "Analysis of technical skills from ingested sources",
+                    "confidence": 0.8,
+                    "suggestions": ["Add more detail on AI/ML experience"],
+                },
+                {
+                    "section_name": "Project Experience",
+                    "content": "Analysis of project experience",
+                    "confidence": 0.75,
+                    "suggestions": ["Include measurable impact metrics"],
+                },
+            ],
+            "overall_score": 0.75,
+        }
