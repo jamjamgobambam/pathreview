@@ -50,6 +50,56 @@ None blocking. One open decision documented in PLAN.md: there's a secondary late
 common). The two target tests pass with the exclusion fix alone, so I'm keeping scope to
 the vendored/build exclusion the issue describes and leaving the tie-break logic alone.
 
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All PLAN.md sub-tasks are done. Replaced the leading-slash substring skip patterns in
+`agent/tools/tech_detector.py` with a `SKIP_DIRECTORIES` frozenset and rewrote
+`_should_skip_file()` as a `@classmethod` that normalizes separators, splits the path
+into segments, and skips a file if any segment is a vendored/build directory. The two
+target tests (`test_node_modules_excluded`, `test_build_directory_excluded`) now pass,
+and all 27 tech_detector tests are green.
+
+**Next steps:**
+Open the PR to `ascherj/pathreview`, fill out the template, and document the
+pre-existing codebase failures so reviewers know they're unrelated to this change.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/PENDING
+
+**Branch:** `fix/150-exclude-vendored-build-files`
+
+**What you built:**
+Fixed the tech detector so it no longer counts files inside vendored dependency or
+build-output directories. The old skip filter used leading-slash substring matching
+(`"/node_modules/"`), which silently missed top-level directories; the new filter
+matches each path segment against a set of directory names, so `node_modules/lib/x.js`
+and nested `packages/app/build/x.js` are both excluded.
+
+**Tests added or updated:**
+No new tests needed — the two pre-existing tests `test_node_modules_excluded` and
+`test_build_directory_excluded` in `tests/unit/test_tech_detector.py` already defined
+the correct behavior and were failing; my change makes them pass (27/27 in that file).
+
+**Self-review confirmation:** [x] make check passes*  [x] make test-unit passes*
+
+\*The codebase has documented **pre-existing** failures unrelated to this issue: on a
+clean `main`, `make test-unit` reports 51 failures (review_service, security,
+skill_extractor, structural_chunker) and `make check` reports 181 lint errors. My change
+introduces **zero** new failures — my file (`agent/tools/tech_detector.py`) passes ruff,
+black, and mypy individually, and my module's tests all pass. Per the Week 9 guidance,
+"passes" here means my changes make nothing worse.
+
+**Draft PR feedback received from:** none
+
 ---
 
 ### "Is this right for me?" — scope notes
