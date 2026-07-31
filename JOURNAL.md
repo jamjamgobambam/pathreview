@@ -61,6 +61,6 @@ Implemented `SafetyMonitor.get_total_event_count()` to aggregate safety event co
 **Tests added or updated:**
 Added `tests/unit/test_safety_monitor.py` covering aggregation across all valid safety event types, empty Redis state, validation that only supported event types are included, and graceful handling of Redis errors during event count retrieval.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [ ] make test-unit passes
 
 **Draft PR feedback received from:** none
