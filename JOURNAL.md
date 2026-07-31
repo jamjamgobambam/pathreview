@@ -46,7 +46,7 @@ One open judgment call, carried from Week 8: whether the `street_address` false-
 
 ### Check-in 2 (end of week)
 
-**PR link:** [\[link to your submitted pull request\]](https://github.com/ascherj/pathreview/pull/438)
+**PR link:** https://github.com/ascherj/pathreview/pull/438
 
 **Branch:** `fix/146-parenthesized-phone-number-error`
 
