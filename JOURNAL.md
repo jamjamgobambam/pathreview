@@ -28,3 +28,44 @@ I reproduced the error by with the command `pytest tests/unit/test_readme_scorer
 
 **Blockers or open questions:**
 N/A
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I documented the pre-existing failures in the overall project
+Found 182 errors with make check
+53 failed, 375 passed with make test-unit
+
+I have read through the entire test file `test_readme_scorer.py` and identified a second potential issue. While 
+`assert data["word_count"] > 100` currently causes the test to fail, `assert data["word_count_category"] == "comprehensive"` is another assertion that needs to be considered. 
+
+After fixing the README scorer test fixture to include more than 100 words, the `assert data["word_count"] > 100` part passes, but the `assert data["word_count_category"] == "comprehensive"` line causes an assertion error because the README is marked as `adequate` and not `comprehensive`. 
+
+**Next steps:**
+My next steps are to figure out how `word_count_category` is determined and edit the README to meet the `comprehensive` requirements. 
+
+**Blockers:**
+None.
+
+
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** (https://github.com/ascherj/pathreview/pull/463)
+
+**Branch:** fix/156-readme-scorer-fixture-word-count
+
+**What you built:**
+Expanded the README fixture in the unit test so it now exceeds the threshold for a “comprehensive” score (500+ words) and satisfies the assertions. I changed the word count assertion to match the "comprehensive" label by requiring 500+ words instead of 100. The change keeps the test focused on the original bug by updating the test input rather than changing the scorer logic.
+
+
+**Tests added or updated:**
+I updated the `test_readme_scorer.py` file, specifically the `test_readme_with_all_quality_signals` test. 
+
+**Self-review confirmation:** [x] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** none
