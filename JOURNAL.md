@@ -54,7 +54,6 @@ I opened core/services/profile_service.py and review_service.py and could confir
 ### Check-in 1 (mid-week)
 
 **Current progress:**
-[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
 
 - I have written my docstrings for the profile_service.py, checking in with Claude's analysis of the codebase and comparing it with my own.
   - Explains the params, what the function does with the params, and return values.
@@ -70,20 +69,20 @@ I opened core/services/profile_service.py and review_service.py and could confir
 
 - Claude went down today 11/29, so it may take a bit of time to get back on track.
 
----
-
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/397
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** docs/119-missing-docstrings-in-services-directory
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+I added docstrings to the 4 public functions for review_service.py (create_review, get_review, list_reviews, process_review). I covered the arguments, return values, raise conditions, plus the caveats the signatures don't show: : create_review accepts a user_id it never checks, get_review can't distinguish "no such review" from "not yours", and process_review never raises at all because it converts every exception into status="failed". While documenting process_review I found that it assigns a list to review.sections while the model declared it Mapped[dict | None], so I corrected the model to list[dict] | None to match both the service and the API schema. I also annotated the db parameters as AsyncSession, which the pre-commit mypy hook needed to pass on this file.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+None. I did add a pytest for profile_service in an earlier check in, but that was more for personal understanding of that service file, but it has since been reverted.
 
-**Self-review confirmation:** [ ] make check passes [ ] make test-unit passes
+**Self-review confirmation:** [] make check passes [] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+Neither gate passes on main independently of this branch: ruff check . reports 180 errors, black --check . wants to reformat 50 files, and make test-unit ends at 53 failed / 375 passed. On the two files this PR touches, ruff, black, and the pre-commit mypy hook all pass, and test_review_service.py gives the same 13 failed / 6 passed with and without my changes.
+
+**Draft PR feedback received from:** Shawn Blackman (GitHub handle is: sh4wnbk)
