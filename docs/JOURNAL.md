@@ -132,3 +132,63 @@ I am still confirming exact mock LLM provider and how the system works.
 
 Furthermore, there is no subfolder with code for the reranker steps in pathreview/rag. retrieval (exist) → reranking (DNE) → generation (exist) → parsing (exist) 
 
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All 5 steps of the PLAN.md plan are done. Replaced the `xfail` stub with a real
+end-to-end test in `tests/integration/test_rag_pipeline.py` that chains
+retrieval → reranking → generation → parsing against the actual RAG modules
+(`VectorStore`, `KeywordSearcher`, `HybridRetriever`, `ReviewGenerator`), and
+confirmed `pytest tests/integration -v -m integration` passes. Also wrote
+`tests/integration/EXPLANATION.md` documenting how the test works and why each
+assertion is there. Ran a self-review pass afterward: fixed import ordering
+and formatting (`ruff --fix`, `black`) and two `E501` long-line violations in
+the new test file so it's lint-clean on its own.
+
+**What you built:**
+One integration test, `test_full_rag_pipeline_retrieval_to_parsed_output`,
+that indexes a small resume/README corpus into a real ChromaDB
+`VectorStore` + BM25 `KeywordSearcher`, retrieves and reranks via
+`HybridRetriever`, feeds the retrieved chunks into `ReviewGenerator` with a
+mocked LLM client (no live OpenAI calls), and asserts the parsed sections
+have the right names, content, confidence, and citations — proving all four
+stages actually connect end-to-end, not just in isolation.
+
+**Next steps:**
+Open the PR: fill out the PR template, write the PR description, and run
+through the pre-submission checklist. Squash/clean up commit history if
+needed before requesting review.
+
+**Tests added or updated:**
+`tests/integration/test_rag_pipeline.py` — new file, replaces the `xfail`
+stub; covers the full RAG pipeline (retrieval, reranking, generation,
+parsing) in one end-to-end test. No existing test files were modified.
+
+**Blockers:**
+None currently.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+*(`test_rag_pipeline.py` itself is lint/format-clean and its own test passes.
+`make test-unit` has 53 pre-existing failures across unrelated modules —
+documented in `tests/integration/EXPLANATION.md` — that predate this change
+and are unaffected by it.)*
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
