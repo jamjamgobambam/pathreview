@@ -53,28 +53,51 @@ Currently, tests for auth middleware check if a token is valid or not. However, 
 ### Check-in 1 (mid-week)
 
 **Current progress:**
-[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+Implemented the two sub-tasks from PLAN.md that make up the actual fix:
+`tests/integration/conftest.py` (shared fixtures — a DB-backed `test_user`,
+a valid `auth_token`, and an `httpx.AsyncClient` wired to the app) and
+`tests/integration/test_auth_middleware.py` (5 tests: baseline valid-token
+pass, missing header, malformed token, wrong-secret token, expired token).
+No changes to `api/middleware/auth.py` or `core/security.py`, per the
+"not in scope" note in PLAN.md.
 
 **Next steps:**
-[What are you working on for the rest of the week?]
+Confirm `make test-integration` and `make check` pass in my own local
+environment [confirm this — you were last debugging a missing
+`.venv/bin/alembic`], then open a draft PR for review.
 
 **Blockers:**
-[Anything slowing you down? Or leave blank.]
+Using `make setup` and `make run` was not working as intended
 
 ---
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/464
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** feat/90-auth-edge-cases-tests
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+Added integration test coverage for `get_current_user()` (the auth
+dependency guarding every protected route), covering four previously
+untested edge cases — expired, malformed, and wrong-secret tokens, plus a
+missing `Authorization` header — alongside a valid-token baseline. All five
+were manually reproduced against a running instance beforehand (see Week 8
+entry); the middleware was already correct, so this closes a test-coverage
+gap rather than fixing a bug.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+- `tests/integration/conftest.py` (new) — `test_user`, `auth_token`,
+  `client` fixtures, plus an autouse fixture disposing the SQLAlchemy
+  engine's connection pool between tests (needed to avoid cross-event-loop
+  asyncpg errors under pytest-asyncio's per-test event loops).
+- `tests/integration/test_auth_middleware.py` (new) — 5 tests against
+  `GET /profiles/{profile_id}`, asserting the exact status codes/messages
+  confirmed during Week 8 reproduction.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [✅] make check passes  [✅] make test-unit passes
+[Check these only once you've actually run them yourself and confirmed —
+note any pre-existing failures you saw and that your branch doesn't add
+new ones, per the "Pre-existing failures" guidance above]
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
