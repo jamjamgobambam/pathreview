@@ -101,10 +101,10 @@ N/A
 ### Check-in 1 (mid-week)
 
 **Current progress:**
-I fixed the issue.
+Completed the core sub-tasks from PLAN.md: configured structlog for testing environments and refactored test_empty_chunks_list_returns_empty in tests/unit/test_batch_processor.py.
 
 **Next steps:**
-Get the work reviewed.
+Get the work reviewed and verify test suites pass locally.
 
 
 **Blockers:**
@@ -114,13 +114,13 @@ N/A
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/ONESO-goat/a201-pathreview/tree/feat/159-structlog-output-is-not-captured
+**PR link:** https://github.com/ascherj/pathreview/pull/461
 
 **Branch:** 159-structlog-output-is-not-captured
 
 **What you built:**
 
-Migrated the original logging logic from the package `logging` towards the package `structlog`. Added `
+Migrated the original logging logic from the package `logging` towards the package `structlog`. Added custom fixtures to bridge structlog outputs with pytest's caplog mechanism.
 
 **Tests added or updated:**
 
@@ -140,9 +140,9 @@ class TestConfigs:
 
 To test the functions created.
 
-After testing in `/unit/conftest.py`, move back to `/unit/test_batch_processor.py` to test out the new knoewledge on loggings in pythons.
+After testing in `/unit/conftest.py`, move back to `/unit/test_batch_processor.py` to test out the new knowledge on loggings in python.
 
-There, with the help of Gemini I added;
+There, with the help of Gemini I added:
 
 ```python
   @pytest.fixture(name="caplog")
@@ -156,9 +156,10 @@ There, with the help of Gemini I added;
         structlog.configure(processors=[caplog])
 ```
 
-*   `fixture_log_output()` is a pytest fixture of structlog logs, simlir to `caplog` of logging.
-*   `fixture_configure_structlog` makes sure that when even a log in captured, it sends it to the pytest `fixture_log_output` fixture. 
+* `fixture_log_output()` is a pytest fixture of structlog logs, similar to caplog of logging.
 
-**Self-review confirmation:** [✅] make check passes  [✅] make test-unit passes
+* `fixture_configure_structlog` makes sure that when a log is captured, it sends it to the pytest fixture_log_output fixture.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none

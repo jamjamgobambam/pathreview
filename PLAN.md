@@ -1,3 +1,7 @@
+# PLAN.md
+
+---
+
 Solution Plan: Fix Structlog Capture in Pytest
 Issue: https://github.com/ascherj/pathreview/issues/159
 
