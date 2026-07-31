@@ -42,3 +42,31 @@ The health check expects separate `redis_host` and `redis_port` values, while
 the existing configuration provides a single `redis_url`. I need to confirm
 whether the preferred fix is to reuse `redis_url` directly or introduce
 separate typed settings without creating duplicate configuration sources.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+I completed the issue reproduction and solution plan. Before changing the
+health-check implementation, I ran the required checks to establish a baseline.
+`make check` failed during Ruff with 182 pre-existing lint errors, so its Black
+and mypy steps did not run. `make test-unit` collected 428 tests: 375 passed and
+53 failed, with 4 warnings. These results were recorded before implementing the
+issue #155 fix.
+
+**Next steps:**
+
+Update the Redis health check to use the existing `settings.redis_url`, add
+focused unit tests for successful and failed Redis connections, and rerun both
+commands to confirm that the change introduces no new failures. Then open a
+draft PR and request feedback.
+
+**Blockers:**
+
+The repository already has 182 lint errors and 53 failing unit tests unrelated
+to issue #155. These pre-existing failures will be compared with the
+post-change results and documented in the PR description.
+
+---
