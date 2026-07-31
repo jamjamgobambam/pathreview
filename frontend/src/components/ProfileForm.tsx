@@ -30,6 +30,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess }) => {
 
     if (portfolioUrl && portfolioUrl.length > 500) {
       newErrors.portfolio = 'Portfolio URL must be 500 characters or less'
+    } else if (portfolioUrl && !/^https?:\/\//.test(portfolioUrl)) {
+      newErrors.portfolio = 'Portfolio URL must start with http:// or https://'
     }
 
     setErrors(newErrors)

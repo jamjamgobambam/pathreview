@@ -8,8 +8,10 @@ from core.models.review import Review
 from core.models.profile import Profile
 from core.models.ingested_source import IngestedSource
 from api.schemas.review import FeedbackSection
+from ingestion.parsers.web_parser import WebParser
 
 log = structlog.get_logger()
+_web_parser = WebParser()
 
 
 async def create_review(
@@ -229,11 +231,11 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
     # Ingest from portfolio URL if available
     if profile.portfolio_url:
         try:
-            # Placeholder: actual portfolio ingestion logic
+            parse_result = _web_parser.parse(profile.portfolio_url)
             portfolio_data = {
                 "source_type": "portfolio",
                 "url": profile.portfolio_url,
-                "data": f"Portfolio data from {profile.portfolio_url}",
+                "data": parse_result.text,
             }
             sources.append(portfolio_data)
 
