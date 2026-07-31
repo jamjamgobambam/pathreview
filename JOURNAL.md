@@ -36,3 +36,16 @@ Ran `tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty
 
 **Blockers or open questions:**
 Still deciding fixture scope (session vs. function) for the structlog bridge in `tests/conftest.py`, and need to confirm `cache_logger_on_first_use` won't let a module cache a pre-fixture logger. Details in PLAN.md's Risks & unknowns section.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md: added an autouse, function-scoped `configure_structlog_for_tests` fixture in `tests/conftest.py` that calls `structlog.configure(...)` with `logger_factory=structlog.stdlib.LoggerFactory()` and `cache_logger_on_first_use=False`, mirroring the processor chain in `core/logging.py::configure_logging()` but rendering to a plain string via `KeyValueRenderer` instead of JSON/console output. Resolved the two open risks from Week 8: chose function-scoped (not session-scoped) specifically so `cache_logger_on_first_use=False` can't let a module-level logger cache a pre-fixture configuration. Verified `test_empty_chunks_list_returns_empty` now passes, and added `tests/unit/test_logging_conftest.py` with three tests exercising the fixture directly (event text in `caplog.text`, correct `levelname` in `caplog.records`, and bound context via `.bind()`) to prove the fix is suite-wide and not special-cased to the batch processor. Ran the full unit suite before and after: 53 failed/375 passed → 52 failed/379 passed — the only failure that flipped is the target test, and the remaining 52 are pre-existing failures unrelated to #159 (confirmed same test names in both runs).
+
+**Next steps:**
+Run `make check` (ruff/black/mypy) to self-review against CONTRIBUTING.md, open a draft PR for peer/mentor feedback in Slack, then mark ready for review and submit Check-in 2.
+
+**Blockers:**
+None.

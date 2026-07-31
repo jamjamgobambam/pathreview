@@ -1,29 +1,42 @@
-"""Shared test fixtures for PathReview.
-
-Reproduction note (issue #159): structlog output is not bridged into stdlib
-`logging`, so pytest's `caplog` fixture never sees it. No fixture here
-configures `structlog.configure(...)` for the test process, so log calls made
-via `structlog.get_logger()` (e.g. `ingestion/embeddings/batch_processor.py`)
-render straight to stdout through structlog's own processor chain and never
-reach the stdlib root logger that `caplog` attaches to.
-
-Repro steps:
-    .venv/Scripts/python.exe -m pytest \
-        tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::\
-test_empty_chunks_list_returns_empty -q
-
-Observed: the test fails with `AssertionError: assert ('Empty chunks list' in
-'' or False)` — `caplog.text` is empty even though "Captured stdout call"
-shows the line was logged:
-    2026-07-24 04:17:08 [warning  ] Empty chunks list provided to BatchEmbeddingProcessor
-
-Fix (tracked in PLAN.md): add a fixture here that routes structlog through
-`structlog.stdlib.ProcessorFormatter` (or wraps tests in
-`structlog.testing.capture_logs()`) so `caplog`-based assertions work
-suite-wide, not just for this one test.
-"""
+"""Shared test fixtures for PathReview."""
 
 import pytest
+import structlog
+
+
+@pytest.fixture(autouse=True)
+def configure_structlog_for_tests() -> None:
+    """Bridge structlog output into stdlib `logging` so `caplog` sees it.
+
+    Without this, `structlog.get_logger()` falls back to structlog's own
+    default global configuration, which renders events straight to stdout
+    through its own processor chain and never reaches the stdlib root logger
+    that pytest's `caplog` fixture attaches to (issue #159). Configuring
+    `logger_factory=structlog.stdlib.LoggerFactory()` here — mirroring the
+    real `configure_logging()` in `core/logging.py`, which is only ever
+    called from `scripts/seed_db.py` and never during tests — routes every
+    `structlog.get_logger()` call through a real `logging.Logger`, so
+    `caplog.text` / `caplog.records` work for any test.
+
+    Function-scoped (not session-scoped) and `cache_logger_on_first_use=False`
+    so this reconfigures on every test and never lets a module-level
+    `logger = structlog.get_logger()` cache a stale configuration.
+    """
+    structlog.configure(
+        processors=[
+            structlog.stdlib.filter_by_level,
+            structlog.stdlib.add_logger_name,
+            structlog.stdlib.add_log_level,
+            structlog.stdlib.PositionalArgumentsFormatter(),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.processors.UnicodeDecoder(),
+            structlog.processors.KeyValueRenderer(key_order=["event"]),
+        ],
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        cache_logger_on_first_use=False,
+    )
 
 
 @pytest.fixture
