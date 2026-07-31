@@ -85,3 +85,29 @@ None currently — the Redis check in the same function has a separate,
 known bug (#155) that always fails, so my test needs to account for
 `health_check()` always raising `HTTPException` regardless of my fix.
 Not a blocker, just something to design the test around.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/446
+
+**Branch:** fix/154-health-check-sqlalchemy-text
+
+**What you built:**
+Fixed the `/health` endpoint's Postgres probe, which was passing a raw
+SQL string to `execute()` — incompatible with SQLAlchemy 2.x. Wrapped
+the query in `text()` so the health check correctly reports Postgres as
+healthy when it's reachable, instead of always failing.
+
+**Tests added or updated:**
+Added `tests/unit/test_health.py` with two tests: one confirming the
+Postgres check reports "healthy" when `execute()` succeeds, and one
+confirming it reports "unhealthy" when `execute()` raises an exception.
+Both tests account for `health_check()` still raising `HTTPException`
+overall due to the separate, pre-existing Redis bug (#155), verifying
+the Postgres field specifically is correctly isolated from that failure.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(both confirmed to introduce no new failures beyond the documented
+pre-existing baseline — see PR #446 description for full details)
+
+**Draft PR feedback received from:** none yet — posted in Slack for review
