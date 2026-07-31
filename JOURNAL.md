@@ -53,7 +53,7 @@ None right now. Went with batched scoring (all chunks in one prompt) which resol
 
 ### Check-in 2 (end of week)
 
-**PR link:** [TO BE FILLED AFTER PR IS OPENED]
+**PR link:** https://github.com/ascherj/pathreview/pull/452
 
 **Branch:** `feat/34-setup-&-short-description`
 
