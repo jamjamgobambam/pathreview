@@ -78,3 +78,41 @@ Unnecessary for missing documentation.
 
 **Blockers or open questions:**
 No.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+All four sub-tasks from PLAN.md are complete. I drafted the "Hybrid Retrieval Scoring" subsection under "RAG System" in `docs/ARCHITECTURE.md` (formula, default weights, normalization, min-score filtering), added a worked example with three chunks and verified its arithmetic by hand, cross-checked every statement sentence by sentence against `HybridRetriever.retrieve()`, and did a grammar and format consistency pass.
+
+The change is committed as `docs(rag): explain hybrid retrieval scoring formula` and pushed.
+
+I also ran `make check` and `make test-unit` before and after the change: identical results as expected, confirming my docs-only change introduces no new failures.
+
+**Next steps:**
+
+Open a draft PR to the upstream repository, share it for peer feedback in Slack, address any feedback, then mark the PR ready for review and complete Check-in 2.
+
+**Blockers:**
+
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
