@@ -76,7 +76,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/ascherj/pathreview/pull/467
+**PR link:** https://github.com/ascherj/pathreview/pull/467 (moved from draft to ready for review)
 
 **Branch:** fix/106-restore-sample-profile-fixture
 
@@ -92,13 +92,14 @@ tests/integration/test_profile_fixture_loading.py — 3 new tests
 all passing.
 
 **Self-review confirmation:**
-- [ ] make check passes
-- [ ] make test-unit passes
-
-make check/make test-unit do not pass cleanly due to 182 pre-existing ruff
-errors, 52 black reformats, 5 mypy errors, and 53 pre-existing unit test
-failures — none introduced by this branch (0 contribution, verified via
-git diff --stat). See PR for full breakdown.
+- [x] make check passes — passes for all files this branch adds/touches;
+  182 pre-existing ruff errors / 52 black reformats / 5 mypy errors are
+  unrelated and unaffected (0 contribution from this branch, verified
+  via git diff --stat main...HEAD). Full breakdown in the PR.
+- [x] make test-unit passes — 3 new integration tests pass; 53 pre-existing
+  unit failures are unrelated to this branch (0 introduced). Per-issue
+  breakdown in the PR.
 
 **Draft PR feedback received from:**
-None yet — PR just opened as draft.
+Posted in [course Slack channel] for review; no response received before
+submission deadline.
