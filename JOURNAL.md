@@ -27,6 +27,8 @@ To fix that, I would need to make sure the orchestrator will use the new session
 **Reproduction summary:**
 Ran a curl command to call POST/ reviews twice with the same profile_id. The second review reuses the same old state unless that state is cleared first. It returns the same message and response.
 
+I also started a review of the same user but with two different resumes and the results were the exact same. They aren't supposed to be but with the agent reusing stale data it turns to be the same. 
+
 **PLAN.md link:** [See the plan](pathreview\PLAN.md)
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
