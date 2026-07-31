@@ -20,21 +20,41 @@ The genuine staleness only appears when BOTH hold:
      market_analyzer, whose input is the constant {"detected_skills": {}}
      placeholder at orchestrator.py:130.
 
+The fix (agent/orchestrator.py + agent/memory/context_manager.py):
+  1. ContextManager.clear() is called at the start of Orchestrator.run(), so a
+     reused Orchestrator can't replay a previous profile's cached results.
+  2. market_analyzer's input is assembled from skills detected this review
+     instead of the constant {} placeholder, so its memo key varies with the
+     portfolio (and it finally receives real skills to analyze).
+
 Test map:
   * test_second_review_reflects_updated_portfolio -- the issue AS WRITTEN does
-    NOT reproduce (fresh per-request orchestrator re-runs tools). GREEN.
-  * test_reused_orchestrator_replays_stale_market_result -- reproduces the real
-    bug on current code and documents it. GREEN (asserts the buggy behavior).
-  * test_reused_orchestrator_reruns_with_real_skills_after_fix -- the fix target.
-    Asserts market_analyzer re-runs AND is handed real detected skills. Marked
-    xfail(strict) until the fix lands; it should XPASS once C-03 is fixed, which
-    strict mode turns into a failure to prompt removing the marker.
+    NOT reproduce (fresh per-request orchestrator re-runs tools).
+  * test_reused_orchestrator_reruns_with_real_skills -- guards the fix: a reused
+    orchestrator re-runs market_analyzer for a new review and hands it real,
+    portfolio-derived detected skills.
+
+The earlier green bug-reproduction (test_reused_orchestrator_replays_stale_market_result)
+was retired once the fix landed; it is preserved in git history (commit 251e906).
 """
 
 import pytest
 
 from agent.orchestrator import Orchestrator
 from agent.tools.base import BaseTool, ToolResult
+
+_EXT_TO_LANG = {"py": "Python", "rs": "Rust", "js": "JavaScript", "ts": "TypeScript"}
+
+
+def _languages_for(files: list[str]) -> list[str]:
+    """Map file extensions to languages, mirroring tech_detector's output shape."""
+    langs: list[str] = []
+    for f in files:
+        ext = f.rsplit(".", 1)[-1] if "." in f else ""
+        lang = _EXT_TO_LANG.get(ext, "Unknown")
+        if lang not in langs:
+            langs.append(lang)
+    return langs
 
 
 class RecordingTool(BaseTool):
@@ -93,7 +113,11 @@ class TestOrchestratorSessionReset:
         """
         tech = RecordingTool(
             "tech_detector",
-            lambda inp, n: {"files_seen": inp["files"], "run": n},
+            lambda inp, n: {
+                "files_seen": inp["files"],
+                "all_languages": _languages_for(inp["files"]),
+                "run": n,
+            },
         )
         market = RecordingTool(
             "market_analyzer",
@@ -137,60 +161,15 @@ class TestOrchestratorSessionReset:
         assert tools["tech_detector"].calls[-1] == {"files": ["c.rs", "d.rs"]}
         assert len(tools["tech_detector"].calls) == 2, "tech_detector should re-run each review"
 
-    def test_reused_orchestrator_replays_stale_market_result(self, tools, session_store):
-        """REPRODUCE C-03 on current code: reused orchestrator replays stale result.
-
-        With ONE Orchestrator instance reused across both reviews, its
-        ContextManager persists. tech_detector's input changes with the portfolio
-        so it re-runs, but market_analyzer always receives the constant
-        {"detected_skills": {}} placeholder (orchestrator.py:130) -- an identical
-        memo key -- so review 2 replays review 1's cached result instead of
-        re-executing.
-
-        This test asserts the BUGGY behavior so it passes today and documents the
-        defect. When C-03 is fixed it will start failing, which is the signal to
-        delete it in favour of the fix-target test below.
-        """
-        profile_id = "user-456"
-        orch = Orchestrator(tools, session_store=session_store)
-
-        # Review 1.
-        result1 = orch.run(profile_id, self._portfolio(["a.py"]))
-        assert result1["tool_results"]["market_analyzer"]["run"] == 1
-        assert result1["tool_results"]["tech_detector"]["run"] == 1
-
-        # Review 2 on the SAME orchestrator, updated portfolio.
-        result2 = orch.run(profile_id, self._portfolio(["b.rs"]))
-
-        # tech_detector re-ran (input hash changed): fresh.
-        assert result2["tool_results"]["tech_detector"]["files_seen"] == ["b.rs"]
-        assert len(tools["tech_detector"].calls) == 2
-
-        # BUG: market_analyzer did NOT re-run -- the review-1 result is replayed.
-        assert len(tools["market_analyzer"].calls) == 1, (
-            "current code: market_analyzer is memoized on a constant input and "
-            "is not re-run for the second review"
-        )
-        assert result2["tool_results"]["market_analyzer"]["run"] == 1
-
-        # ROOT: the only call market_analyzer ever got carried the empty
-        # placeholder, never any portfolio-derived skills.
-        assert tools["market_analyzer"].calls[0]["detected_skills"] == {}
-
-    @pytest.mark.xfail(
-        reason="C-03 not yet fixed: reused orchestrator replays stale market "
-        "results and market_analyzer is never handed real detected skills",
-        strict=True,
-    )
-    def test_reused_orchestrator_reruns_with_real_skills_after_fix(self, tools, session_store):
-        """FIX TARGET: reused orchestrator must re-run tools with real skills.
+    def test_reused_orchestrator_reruns_with_real_skills(self, tools, session_store):
+        """C-03 fix: a reused orchestrator re-runs tools with real skills.
 
         A second review on a reused orchestrator must reflect the new portfolio
         for every tool -- including market_analyzer -- and market_analyzer must
         be handed the skills actually detected from the portfolio rather than the
-        empty {} placeholder. Fails today (xfail); should pass once C-03 is fixed
-        by (a) scoping/keying the cache per run and (b) populating
-        market_analyzer's input from detected skills (orchestrator.py:130).
+        empty {} placeholder. Guards the fix: (a) the cache is reset per run so a
+        reused Orchestrator can't replay a prior profile's results, and (b)
+        market_analyzer's input is populated from detected skills.
         """
         profile_id = "user-789"
         orch = Orchestrator(tools, session_store=session_store)
