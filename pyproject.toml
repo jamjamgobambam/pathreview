@@ -34,6 +34,7 @@ dependencies = [
     "structlog>=24.1.0",
     "rank-bm25>=0.2.2",
     "numpy>=1.26.0",
+    "PyYAML>=6.0.1",
 ]
 
 [project.optional-dependencies]
@@ -50,6 +51,7 @@ dev = [
     "pre-commit>=3.6.0",
     "mutmut>=2.4.4",
     "types-redis>=4.6.0",
+    "types-PyYAML>=6.0.12",
 ]
 
 [tool.setuptools.packages.find]
