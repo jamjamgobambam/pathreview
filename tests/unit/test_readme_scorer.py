@@ -17,35 +17,148 @@ class TestReadmeScorer:
     def test_readme_with_all_quality_signals(self, scorer):
         """Test README with all quality signals returns high score."""
         readme = """
-        # Project Name
-        A comprehensive project description.
+        # PathReview — AI-Powered Code Review Platform
+
+        PathReview is a comprehensive, open-source code review platform that
+        leverages artificial intelligence to provide detailed, actionable
+        feedback on pull requests and code submissions. The platform combines
+        static analysis, natural language processing, and large language model
+        integration to help development teams maintain high code quality
+        standards across their repositories. Whether you are a solo developer
+        looking for a second pair of eyes or a large engineering organization
+        seeking to standardize review practices, PathReview adapts to your
+        workflow and delivers consistent, high-quality reviews.
 
         ## Installation
+
+        Follow these steps to install PathReview in your local development
+        environment. The platform requires Python 3.9 or higher, Node.js 18
+        or higher, and a running PostgreSQL instance for persistent storage.
+
         ```bash
-        pip install package
+        git clone https://github.com/example/pathreview.git
+        cd pathreview
+        python -m venv .venv
+        source .venv/bin/activate
+        pip install -e ".[dev]"
+        cd frontend && npm install
+        ```
+
+        After installing dependencies, copy the example environment file and
+        configure your local settings. You will need to provide database
+        credentials and an API key for the language model provider you want
+        to use. See the setup guide for a complete list of environment
+        variables and their descriptions.
+
+        ```bash
+        cp .env.example .env
+        # Edit .env with your configuration
+        make migrate
+        make seed
         ```
 
         ## Usage
+
+        Start the development servers with a single command. The backend API
+        server runs on port 8000 and the frontend development server runs on
+        port 5173 with hot module replacement enabled.
+
         ```python
-        import package
-        package.run()
+        import pathreview
+        client = pathreview.Client(api_key="your-key")
+        result = client.review("https://github.com/user/repo/pull/42")
+        print(result.summary)
+        print(result.suggestions)
         ```
 
+        You can also use the command-line interface to submit reviews from
+        your terminal without writing any code. The CLI supports all the same
+        options as the Python client library and can be integrated into your
+        continuous integration pipeline for automated review on every pull
+        request.
+
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+
+        - Automated code review with actionable feedback and suggestions
+        - Resume and README quality scoring with detailed breakdowns
+        - Retrieval-augmented generation for context-aware review comments
+        - Built-in safety guardrails including PII scrubbing and bias detection
+        - RESTful API with comprehensive OpenAPI documentation
+        - Modern React frontend with responsive design and dark mode support
+        - Extensible plugin architecture for custom review rules and tools
+        - Batch processing support for reviewing multiple files at once
 
         ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
+
+        - Python 3.9 with FastAPI for the backend API server
+        - React 18 with TypeScript for the frontend application
+        - PostgreSQL 15 for persistent data storage and retrieval
+        - Redis for caching and rate limiting across services
+        - LangChain for orchestrating large language model interactions
+        - Alembic for database schema migrations and version control
+        - Docker and Docker Compose for containerized development
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
+        ![License](https://example.com/license.svg)
 
         ## Live Demo
+
         [Try it here](https://demo.example.com)
+
+        Visit our hosted demo environment to explore the platform without any
+        local setup. The demo includes sample repositories and pre-generated
+        reviews so you can see the full range of feedback the platform
+        provides.
+
+        ## API Reference
+
+        The PathReview API follows RESTful conventions and returns JSON
+        responses for all endpoints. Authentication is handled via JSON Web
+        Tokens issued at the login endpoint. Rate limiting is applied per
+        user with configurable thresholds to prevent abuse. The API
+        documentation is auto-generated from the FastAPI route definitions
+        and is available at the docs endpoint when the server is running.
+
+        ## Architecture
+
+        The platform follows a modular architecture with clear separation
+        of concerns. The ingestion layer handles document parsing and
+        chunking. The retrieval-augmented generation layer manages vector
+        storage and semantic search. The agent layer orchestrates tool
+        execution and response generation. The safety layer provides
+        guardrails for content filtering and bias detection. Each layer
+        communicates through well-defined interfaces making it easy to
+        extend or replace individual components without affecting the rest
+        of the system.
+
+        ## Contributing
+
+        We welcome contributions from the community. Please read our
+        contributing guide for details on our code of conduct, development
+        workflow, branch naming conventions, and the process for submitting
+        pull requests. All contributions must include relevant tests and
+        pass the automated quality checks before they can be merged.
+
+        ## Testing
+
+        Run the full test suite to verify your changes before submitting
+        a pull request. The project uses pytest for unit and integration
+        testing with comprehensive fixtures and mock objects for external
+        service dependencies.
+
+        ## Deployment
+
+        PathReview can be deployed using Docker Compose for small teams
+        or Kubernetes for larger organizations requiring horizontal
+        scaling and high availability. The deployment guide covers both
+        approaches with step-by-step instructions and configuration
+        templates for common cloud providers.
+
+        ## License
+
+        This project is licensed under the MIT License. See the LICENSE
+        file for the full license text and terms of use.
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -53,7 +166,7 @@ class TestReadmeScorer:
         assert result.success is True
         data = result.data
         assert data["has_readme"] is True
-        assert data["word_count"] > 100
+        assert data["word_count"] > 500
         assert data["word_count_category"] == "comprehensive"
         assert data["has_installation_section"] is True
         assert data["has_usage_section"] is True
@@ -157,9 +270,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
