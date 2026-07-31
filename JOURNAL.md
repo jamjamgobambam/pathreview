@@ -50,3 +50,48 @@ likewise pre-existing red (182 ruff, 52 black, 5 mypy findings), all in
 unchanged code — this branch modifies zero existing files and its new files
 contribute nothing to those counts (verified). See the PR description for the
 per-issue breakdown of the baseline.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+The fix itself (fixture + integration test) was completed in Week 8, ahead
+of schedule. This week I focused on pre-PR verification: ran `make check`
+and `make test-unit` to establish the pre-existing failure baseline, and
+confirmed via `git diff --stat main...HEAD` that my branch adds 4 files and
+modifies zero existing files, so all 182 ruff errors, 52 black reformats,
+5 mypy errors, and 53 unit test failures are pre-existing and unaffected
+by this branch. I also mapped the 53 unit failures to their root causes
+(#158: 13, #159: 1, unattributed pre-existing bugs: 39, #163: 0) with
+verified error signatures rather than guessing from filenames.
+
+**Next steps:**
+Self-review against docs/CONTRIBUTING.md, draft the PR description with
+the baseline documentation included, get a peer/mentor to review the draft
+PR, then finalize and submit.
+
+**Blockers:**
+None.
+
+### Check-in 2 (end of week)
+
+**PR link:** _TODO_
+
+**Branch:** fix/106-restore-sample-profile-fixture
+
+**What I built:**
+_TODO_
+
+**Tests added:**
+_TODO_
+
+**Self-review checklist (against docs/CONTRIBUTING.md):**
+- [ ] Code follows the project's style/formatting conventions
+- [ ] Tests added and passing for the change
+- [ ] PR description documents the pre-existing baseline
+- [ ] No unrelated files modified
+- [ ] Commit messages are clear and scoped
+
+**Draft PR feedback:**
+_TODO_
