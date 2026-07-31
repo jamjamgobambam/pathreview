@@ -28,3 +28,55 @@ I created a valid profile without a résumé, GitHub username, portfolio URL, or
 **PLAN.md link:** https://github.com/Rura-M/pathreview/blob/tests/88-POST-/reviews-endpoint-has-no-test-for-when-the-profile-has-no-ingested-documents-/PLAN.md
 
 **Blockers or open questions:**
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented validation for `POST /reviews` so the endpoint confirms that the
+requested profile exists, belongs to the authenticated user, and has at least
+one associated ingested source before creating a review. I also added
+`tests/unit/test_review_routes.py` with a regression test for a valid profile
+that has no ingested documents.
+
+**Next steps:**
+Review the final diff, commit the implementation and test, push the branch, and
+open a pull request. I will also document the repository-wide test failures
+that are unrelated to this change.
+
+**Blockers:**
+The focused regression test passes, but the full unit suite currently has
+pre-existing failures and errors in unrelated modules. Some tests also attempt
+to download tokenizer data while network access is unavailable.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** `tests/88-POST-/reviews-endpoint-has-no-test-for-when-the-profile-has-no-ingested-documents-`
+
+**What you built:**
+I updated `create_review_endpoint` to return `404` when the profile is missing
+or not owned by the authenticated user and `400` with `"Profile has no
+ingested documents"` when the profile has no associated `IngestedSource`
+records. The endpoint now stops before creating a review, committing database
+changes, or scheduling background processing in the empty-content case.
+
+**Tests added or updated:**
+I added `tests/unit/test_review_routes.py`. The test covers an authenticated
+request for an existing profile with no ingested documents and verifies the
+`400` status and error message, that `create_review` is not called, that no
+commit occurs, and that no background task is scheduled.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Focused verification:** [x] regression test passes  [x] Ruff passes  [x] Black passes
+
+`make check` remains blocked by pre-existing type errors in
+`core/services/review_service.py`. The full unit suite also contains unrelated
+pre-existing failures, so `make test-unit` is not marked as passing.
+
+**Draft PR feedback received from:** none
