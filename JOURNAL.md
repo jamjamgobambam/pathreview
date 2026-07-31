@@ -68,3 +68,35 @@ I reproduced the issue by calling the health endpoint via a curl command `curl -
 
 **Blockers or open questions:**
 
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I have not implemented any of the steps from my PLAN.md. I may have more work ahead of me as I am considering writing a unit test for the endpoint I am modifying to make sure it works as expected reliably.
+
+**Next steps:**
+I am going to iteratively complete the plan I outlined in my PlAN.md. As I make changes, I will run `make test-unit` to make sure I am not breaking any functionality. Once I complete my change and ensure that my fix "done" as outlined in the 7 steps shown in class, I will create and submit a PR.
+
+**Blockers:**
+
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
