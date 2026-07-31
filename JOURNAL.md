@@ -55,7 +55,7 @@ None — `make check` has pre-existing failures across the codebase unrelated to
 
 ### Check-in 2 (end of week)
 
-**PR link:** [to be filled]
+**PR link:** https://github.com/ascherj/pathreview/pull/473
 
 **Branch:** `fix/158-review-service-async-mocks`
 
