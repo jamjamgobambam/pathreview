@@ -746,3 +746,14 @@ class TestReviewService:
             mock_result = await _run_safety_checks(mock_output)
             mock_log.info.assert_called_once_with("safety_checks_passed")
             assert mock_result is True
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_catches_exception_and_returns_false(self) -> None:
+        """Test _run_safety_checks catches exception and returns false"""
+        mock_output = Mock()
+        mock_output.get.side_effect = Exception("boom")
+
+        with patch("core.services.review_service.log") as mock_log:
+            mock_result = await _run_safety_checks(mock_output)
+            mock_log.error.assert_called_once_with("safety_checks_error", error="boom")
+            assert mock_result is False
