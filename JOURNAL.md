@@ -35,3 +35,36 @@ Running `pytest tests/unit/test_review_service.py -q` produces 13 failures with 
 
 **Blockers or open questions:**
 `list_reviews` calls `db.execute` twice (count query + page query). After fixing `mock_result` to `MagicMock`, both calls return the same mock — need to verify test assertions are loose enough, or use `side_effect` to return separate mocks per call.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed all sub-tasks from PLAN.md. Replaced `AsyncMock()` with `MagicMock()` for all 13 `mock_result` instances in `tests/unit/test_review_service.py`. Also fixed a secondary broken assertion in `test_list_reviews_ordered_by_created_at` which used `assert_called_once()` but `list_reviews` calls `db.execute` twice (count query + page query). Added `MagicMock` to the imports.
+
+**Next steps:**
+Run `make check` and `make test-unit`, confirm no new failures introduced, open the PR.
+
+**Blockers:**
+None — `make check` has pre-existing failures across the codebase unrelated to this fix; my changes introduce no new errors.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [to be filled]
+
+**Branch:** `fix/158-review-service-async-mocks`
+
+**What you built:**
+Replaced `AsyncMock()` with `MagicMock()` for all 13 mock result objects in `tests/unit/test_review_service.py`. Because `AsyncMock` makes child attribute calls return coroutines, the service's synchronous `.scalars().first()` and `.scalars().all()` calls were raising `AttributeError`. Switching to `MagicMock` makes those calls return plain `Mock` objects as expected. Also fixed one incorrect `assert_called_once()` assertion that failed to account for `list_reviews` making two `db.execute` calls.
+
+**Tests added or updated:**
+Modified `tests/unit/test_review_service.py` — all 13 previously failing tests now pass by correcting the `AsyncMock` → `MagicMock` mock setup on the result object. One additional assertion (`test_list_reviews_ordered_by_created_at`) updated from `assert_called_once()` to `assert call_count == 2` to match the actual service behavior. All 19 tests now pass.
+
+**Self-review confirmation:** [x] make check passes (pre-existing failures only, no new failures introduced)  [x] make test-unit passes
+
+**Draft PR feedback received from:** none

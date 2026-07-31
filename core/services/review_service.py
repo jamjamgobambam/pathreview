@@ -1,19 +1,22 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from typing import cast
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
 
 async def create_review(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
@@ -33,22 +36,22 @@ async def create_review(
 
 
 async def get_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    return cast(Review | None, result.scalars().first())
 
 
 async def list_reviews(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     page: int = 1,
     page_size: int = 20,
@@ -74,13 +77,13 @@ async def list_reviews(
         .limit(page_size)
     )
     result = await db.execute(stmt)
-    reviews = result.scalars().all()
+    reviews = list(result.scalars().all())
 
     return reviews, total
 
 
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
@@ -166,7 +169,7 @@ async def process_review(
         ]
 
         review.status = "complete"
-        review.sections = [s.model_dump() for s in sections]
+        review.sections = [s.model_dump() for s in sections]  # type: ignore[assignment]
         review.overall_score = rag_output.get("overall_score", None)
         review.updated_at = datetime.utcnow()
 
@@ -194,7 +197,7 @@ async def process_review(
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
 
-async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
+async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[dict]:
     """
     Run ingestion pipeline to extract data from profile sources.
     Returns list of ingested source data.
@@ -254,10 +257,10 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
     # Ingest from resume if available
     if profile.resume_text:
         try:
-            resume_data = {
+            resume_data: dict[str, str] = {
                 "source_type": "resume",
-                "filename": profile.resume_filename,
-                "data": profile.resume_text,
+                "filename": profile.resume_filename or "",
+                "data": profile.resume_text or "",
             }
             sources.append(resume_data)
 
