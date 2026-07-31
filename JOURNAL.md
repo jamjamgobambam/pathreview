@@ -238,33 +238,41 @@ Found 41 errors in 2 files (checked 4 source files)
 branch 'fix/156-readme-scorer-test-fixture' set up to track 'origin/fix/156-readme-scorer-test-fixture'.
 Everything up-to-date
 ```
+mypy Failed: the type checker requires every test method to have typed parameters and a return type, such as -> None. Your two README test files already had many untyped test methods, so Mypy reports 41 errors.
+added parameters to functions and return type to all the test methods in both test_readme_parser.py and test_readme_scorer.py files.
 
 ---
 
 ### Check-in 2 (end of week)
 
 #### Summary
-Replaces the 51-word inline README fixture that caused `assert 51 > 100` with a reusable fixture containing more than 100 lines and 500 words. This makes the scorer test validate the scorer's actual comprehensive threshold and quality signals; it also fixes README heading detection for indented Markdown used by existing parser tests.
+Replaces the 51-word inline README fixture that caused `assert 51 > 100` with reusable Markdown fixtures. The scorer now tests a realistic README containing more than 100 lines and 500 words, matching its actual “comprehensive” threshold. The change also fixes README heading detection for indented Markdown and verifies parser behavior with external Markdown fixtures.
 
 #### Issue
 Closes #156
 
 #### Changes
-- Added a shared comprehensive README fixture at `tests/test_data/README.md`.
-- Updated `test_readme_with_all_quality_signals` to load that fixture and assert the documented 500-word comprehensive threshold.
-- Added a parser regression test that verifies the large fixture is preserved and its headings are detected.
+- Added external Markdown fixtures in `tests/test_data/` for comprehensive, empty, short, and unstructured README inputs.
+- Updated `test_readme_with_all_quality_signals` to load `README.md` and assert the documented `>= 500` comprehensive threshold.
+- Updated README parser and scorer tests to use external fixture files instead of relying only on hard-coded content.
+- Added parser regression coverage for large and unstructured Markdown fixtures.
 - Updated `ReadmeParser` to recognize indented Markdown headings.
+- Added required test type annotations so the pre-commit Mypy hook passes.
 - Formatted imports in `readme_scorer.py`.
 
+
 #### Testing
-- [ ] Unit tests pass (`make test-unit`) — command was run; all 429, 349 passed but 49 unrelated baseline tests fail, and 31 errors.
-- [ ] Integration tests pass (`make test-integration`) — not run; this change has no integration behavior.
-- [ ] Linter passes (`make lint`) — repository has 180 unrelated baseline lint errors.
-- [ ] Type checker passes (`make typecheck`) — command was run but exceeded the 60-second local timeout before producing a result.
-- [x] New/updated tests cover the changes — targeted README parser and scorer suite: 39 passed.
+- [ ] Unit tests pass (`make test-unit`) — command was run: 349 passed, but 49 unrelated baseline tests failed and 31 unrelated errors occurred.
+- [ ] Integration tests pass (`make test-integration`) — not run; this change does not affect service integration behavior.
+- [ ] Linter passes (`make lint`) — the full repository has 180 unrelated baseline lint errors.
+- [ ] Type checker passes (`make typecheck`) — command exceeded the 60-second local timeout.
+- [x] New/updated tests cover the changes — targeted README parser and scorer suite: 40 passed.
+- [x] Pre-commit checks pass — Ruff, Black, and Mypy passed for this commit.
 
 #### Notes for Reviewers
-Please review the fixture threshold: `comprehensive` is 500+ words in `ReadmeScorer`, so the test now asserts `>= 500` rather than the previous contradictory `> 100`. The test-data directory also contains untracked `MT.md` and `READMEE.md` files that are not part of this change and should not be staged.
+`ReadmeScorer` defines `comprehensive` as 500 or more words, so the corrected test asserts `>= 500` instead of the previous contradictory `> 100`. All Markdown files under `tests/test_data/` are intentionally included as external test fixtures.
+Please review the fixture threshold: `comprehensive` is 500+ words in `ReadmeScorer`, so the test now asserts `>= 500` rather than the previous contradictory `> 100`. The test-data directory also contains `EMPTY.md`, `READMEE.md` , etc.files that are additional test files for the edge cases.
+
 
 
 **PR link:** To be added after the PR is opened.
