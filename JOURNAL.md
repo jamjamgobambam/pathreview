@@ -41,3 +41,21 @@ Run the full `make test-unit` and `make check` suite to confirm no new regressio
 
 **Blockers:**
 One open judgment call, carried from Week 8: whether the `street_address` false-positive bug (`test_mixed_pii_and_text`) needs its own filed issue. Also had to skip the `mypy` pre-commit hook (`SKIP=mypy`) for the test-file commit since all 409 test functions repo-wide lack return-type annotations (a pre-existing repo-wide gap that `make check`'s `typecheck` target already excludes via not passing `tests/` to mypy), so this isn't something introduced by this change. I'm documenting it here and will note it in the PR description too.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [\[link to your submitted pull request\]](https://github.com/ascherj/pathreview/pull/438)
+
+**Branch:** `fix/146-parenthesized-phone-number-error`
+
+**What you built:**
+Fixed two bugs in the `phone_us` regex in `safety/pii_scrubber.py` (issue #146) so parenthesized and space-separated US phone numbers are correctly redacted. First, widened each `[-.]?` separator group to `[-. ]?` so space-separated numbers like `(555) 123-4567` match at all, without changing the existing dashed/dotted formats. Second, while testing, found that the leading `(` or `+` was still being left un-redacted even after a number matched. I replaced the regex's leading `\b` anchor with a `(?<!\w)` lookbehind so those characters are now fully consumed by the match.
+
+**Tests added or updated:**
+Only `tests/unit/test_pii_scrubber.py` was touched. Extended `test_us_phone_formats` with a no-space parenthesized case (`"(555)123-4567"`). Added `test_phone_number_parens_fully_redacted`, which asserts a full clean replacement (`"Call me at (555) 123-4567"` → `"Call me at [REDACTED]"`) — this covers a second bug found after the initial fix, where the leading `(`/`+` was left dangling un-redacted instead of being consumed by the match. Added `test_space_separated_numbers_false_positive`, which documents a known, accepted tradeoff: widening the separator to include spaces means unrelated 3-3-4 digit sequences (e.g. three separate numbers in a sentence) can now false-positive as a phone number.
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+
+**Draft PR feedback received from:** none
