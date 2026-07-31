@@ -345,60 +345,6 @@ class TestReviewService:
         mock_db_session.execute.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_process_review_stops_early_when_review_is_not_found(
-        self, mock_db_session: Mock
-    ) -> None:
-        """Test process_review stops early when review is not found"""
-        review_id = uuid4()
-        profile_id = uuid4()
-
-        mock_result = Mock()
-        mock_result.scalars.return_value.first.return_value = None
-        mock_db_session.execute = AsyncMock(return_value=mock_result)
-
-        # Confirm error is logged as stated
-        with patch("core.services.review_service.log") as mock_log:
-            await process_review(mock_db_session, review_id, profile_id)
-            mock_log.error.assert_called_once_with(
-                "review_not_found_for_processing", review_id=str(review_id)
-            )
-
-        mock_db_session.execute.assert_awaited_once()
-        mock_db_session.add.assert_not_called()
-        mock_db_session.commit.assert_not_awaited()
-
-    @pytest.mark.asyncio
-    async def test_process_review_stops_early_when_profile_is_not_found(
-        self, mock_db_session: Mock
-    ) -> None:
-        """Test process_review stops early when profile is not found"""
-        review_id = uuid4()
-        profile_id = uuid4()
-
-        fake_review = Mock()
-        review_lookup_result = Mock()
-        review_lookup_result.scalars.return_value.first.return_value = fake_review
-
-        profile_lookup_result = Mock()
-        profile_lookup_result.scalars.return_value.first.return_value = None
-
-        mock_db_session.execute = AsyncMock(
-            side_effect=[review_lookup_result, profile_lookup_result]
-        )
-
-        # Confirm error is logged as stated
-        with patch("core.services.review_service.log") as mock_log:
-            await process_review(mock_db_session, review_id, profile_id)
-            mock_log.error.assert_called_once_with(
-                "profile_not_found_for_processing", profile_id=str(profile_id)
-            )
-
-        assert mock_db_session.execute.await_count == 2
-        mock_db_session.add.assert_called_once_with(fake_review)
-        assert fake_review.status == "failed"
-        mock_db_session.commit.assert_awaited_once()
-
-    @pytest.mark.asyncio
     async def test_run_ingestion_pipeline_adds_nothing_and_returns_empty_list_if_profile_is_empty(
         self,
     ) -> None:
@@ -757,3 +703,250 @@ class TestReviewService:
             mock_result = await _run_safety_checks(mock_output)
             mock_log.error.assert_called_once_with("safety_checks_error", error="boom")
             assert mock_result is False
+
+    @pytest.mark.asyncio
+    async def test_process_review_stops_early_when_review_is_not_found(
+        self, mock_db_session: Mock
+    ) -> None:
+        """Test process_review stops early when review is not found"""
+        review_id = uuid4()
+        profile_id = uuid4()
+
+        mock_result = Mock()
+        mock_result.scalars.return_value.first.return_value = None
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+
+        # Confirm error is logged as stated
+        with patch("core.services.review_service.log") as mock_log:
+            await process_review(mock_db_session, review_id, profile_id)
+            mock_log.error.assert_called_once_with(
+                "review_not_found_for_processing", review_id=str(review_id)
+            )
+
+        mock_db_session.execute.assert_awaited_once()
+        mock_db_session.add.assert_not_called()
+        mock_db_session.commit.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_process_review_stops_early_when_profile_is_not_found(
+        self, mock_db_session: Mock
+    ) -> None:
+        """Test process_review stops early when profile is not found"""
+        review_id = uuid4()
+        profile_id = uuid4()
+
+        fake_review = Mock()
+        review_lookup_result = Mock()
+        review_lookup_result.scalars.return_value.first.return_value = fake_review
+
+        profile_lookup_result = Mock()
+        profile_lookup_result.scalars.return_value.first.return_value = None
+
+        mock_db_session.execute = AsyncMock(
+            side_effect=[review_lookup_result, profile_lookup_result]
+        )
+
+        # Confirm error is logged as stated
+        with patch("core.services.review_service.log") as mock_log:
+            await process_review(mock_db_session, review_id, profile_id)
+            mock_log.error.assert_called_once_with(
+                "profile_not_found_for_processing", profile_id=str(profile_id)
+            )
+
+        assert mock_db_session.execute.await_count == 2
+        mock_db_session.add.assert_called_once_with(fake_review)
+        assert fake_review.status == "failed"
+        mock_db_session.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_process_review_returns_early_if_safety_checks_not_passed(self, mock_db_session: Mock) -> None:
+        """Test process_review returns early if safety checks don't pass and sets review status as failed"""
+        mock_review_id = uuid4()
+        mock_profile_id = uuid4()
+
+        mock_review = Mock()
+        mock_review_lookup = Mock()
+        mock_review_lookup.scalars.return_value.first.return_value = mock_review
+
+        mock_profile = Mock()
+        mock_profile_lookup = Mock()
+        mock_profile_lookup.scalars.return_value.first.return_value = mock_profile
+
+        mock_db_session.execute = AsyncMock(
+            side_effect = [mock_review_lookup, mock_profile_lookup]
+        )
+
+        with (
+            patch("core.services.review_service._run_ingestion_pipeline") as mock_run_ingestion_pipeline,
+            patch("core.services.review_service._run_agent_orchestration") as mock_run_agent_orchestration,
+            patch("core.services.review_service._run_rag_retrieval_generation") as mock_run_rag_retrieval_generation,
+            patch("core.services.review_service._run_safety_checks") as mock_run_safety_checks,
+            patch("core.services.review_service.log") as mock_log):
+            mock_run_ingestion_pipeline.return_value = []
+            mock_run_agent_orchestration.return_value = {}
+            mock_run_rag_retrieval_generation.return_value = {}
+            mock_run_safety_checks.return_value = False
+
+            await process_review(mock_db_session, mock_review_id, mock_profile_id)
+            mock_log.warning.assert_called_once_with("safety_checks_failed", review_id=str(mock_review_id))
+
+            assert mock_review.status == "failed"
+            assert mock_db_session.add.call_count == 2
+            assert mock_db_session.commit.await_count == 2
+        
+
+
+    @pytest.mark.asyncio
+    async def test_process_review_catches_exception_and_sets_review_status_as_failed(
+        self, mock_db_session: Mock
+    ) -> None:
+        """Test process_review catches a mid-pipeline exception, logs it, and marks the review failed"""
+        review_id = uuid4()
+        profile_id = uuid4()
+
+        mock_review = Mock()
+        mock_profile = Mock()
+
+        review_lookup = Mock()
+        review_lookup.scalars.return_value.first.return_value = mock_review
+
+        profile_lookup = Mock()
+        profile_lookup.scalars.return_value.first.return_value = mock_profile
+
+        recovery_lookup = Mock()
+        recovery_lookup.scalars.return_value.first.return_value = mock_review
+
+        mock_db_session.execute = AsyncMock(
+            side_effect=[review_lookup, profile_lookup, recovery_lookup]
+        )
+
+        with (
+            patch("core.services.review_service._run_ingestion_pipeline") as mock_run_ingestion_pipeline,
+            patch("core.services.review_service.log") as mock_log,
+        ):
+            mock_run_ingestion_pipeline.side_effect = Exception("ingestion boom")
+
+            await process_review(mock_db_session, review_id, profile_id)
+
+            mock_log.error.assert_called_once_with(
+                "review_processing_failed", review_id=str(review_id), error="ingestion boom"
+            )
+
+        assert mock_review.status == "failed"
+        assert mock_db_session.execute.await_count == 3
+        assert mock_db_session.add.call_count == 2
+        assert mock_db_session.commit.await_count == 2
+
+    @pytest.mark.asyncio
+    async def test_process_review_leaves_status_as_processing_when_recovery_also_fails(
+        self, mock_db_session: Mock
+    ) -> None:
+        """Test process_review leaves review status as 'processing' when the pipeline fails and the crash-recovery status update also fails"""
+        review_id = uuid4()
+        profile_id = uuid4()
+
+        mock_review = Mock()
+        mock_profile = Mock()
+
+        review_lookup = Mock()
+        review_lookup.scalars.return_value.first.return_value = mock_review
+
+        profile_lookup = Mock()
+        profile_lookup.scalars.return_value.first.return_value = mock_profile
+
+        mock_db_session.execute = AsyncMock(
+            side_effect=[review_lookup, profile_lookup, Exception("boom")]
+        )
+
+        with (
+            patch("core.services.review_service._run_ingestion_pipeline") as mock_run_ingestion_pipeline,
+            patch("core.services.review_service.log") as mock_log,
+        ):
+            mock_run_ingestion_pipeline.side_effect = Exception("ingestion boom")
+
+            await process_review(mock_db_session, review_id, profile_id)
+
+            mock_log.error.assert_any_call(
+                "review_processing_failed", review_id=str(review_id), error="ingestion boom"
+            )
+            mock_log.error.assert_any_call(
+                "review_status_update_failed", review_id=str(review_id), error="boom"
+            )
+            assert mock_log.error.call_count == 2
+
+        assert mock_review.status == "processing"
+        assert mock_db_session.execute.await_count == 3
+        assert mock_db_session.add.call_count == 1
+        assert mock_db_session.commit.await_count == 1
+
+    @pytest.mark.asyncio
+    async def test_process_review_completes_successfully_and_stores_sections(
+        self, mock_db_session: Mock
+    ) -> None:
+        """Test process_review threads data between each step and stores sections/overall_score on success"""
+        review_id = uuid4()
+        profile_id = uuid4()
+
+        mock_review = Mock()
+        mock_profile = Mock()
+
+        review_lookup = Mock()
+        review_lookup.scalars.return_value.first.return_value = mock_review
+
+        profile_lookup = Mock()
+        profile_lookup.scalars.return_value.first.return_value = mock_profile
+
+        mock_db_session.execute = AsyncMock(side_effect=[review_lookup, profile_lookup])
+
+        ingestion_results = [{"source_type": "github", "data": "example"}]
+        agent_output = {
+            "sections": [{"section_name": "Technical Skills"}],
+            "overall_score": 0.7,
+        }
+        rag_output = {
+            "sections": [
+                {
+                    "section_name": "Technical Skills",
+                    "content": "Strong technical background",
+                    "confidence": 0.9,
+                    "suggestions": ["Add more project details"],
+                }
+            ],
+            "overall_score": 0.85,
+        }
+
+        with (
+            patch("core.services.review_service._run_ingestion_pipeline") as mock_run_ingestion_pipeline,
+            patch("core.services.review_service._run_agent_orchestration") as mock_run_agent_orchestration,
+            patch("core.services.review_service._run_rag_retrieval_generation") as mock_run_rag_retrieval_generation,
+            patch("core.services.review_service._run_safety_checks") as mock_run_safety_checks,
+            patch("core.services.review_service.log"),
+        ):
+            mock_run_ingestion_pipeline.return_value = ingestion_results
+            mock_run_agent_orchestration.return_value = agent_output
+            mock_run_rag_retrieval_generation.return_value = rag_output
+            mock_run_safety_checks.return_value = True
+
+            await process_review(mock_db_session, review_id, profile_id)
+
+            mock_run_ingestion_pipeline.assert_called_once_with(mock_db_session, mock_profile)
+            mock_run_agent_orchestration.assert_called_once_with(mock_profile, ingestion_results)
+            mock_run_rag_retrieval_generation.assert_called_once_with(
+                mock_profile, ingestion_results, agent_output
+            )
+            mock_run_safety_checks.assert_called_once_with(rag_output)
+
+        assert mock_review.status == "complete"
+        assert mock_review.overall_score == 0.85
+        assert mock_review.sections == [
+            {
+                "section_name": "Technical Skills",
+                "content": "Strong technical background",
+                "confidence": 0.9,
+                "suggestions": ["Add more project details"],
+            }
+        ]
+        assert mock_review.updated_at is not None
+        assert mock_db_session.execute.await_count == 2
+        assert mock_db_session.add.call_count == 2
+        assert mock_db_session.commit.await_count == 2
