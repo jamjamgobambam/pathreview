@@ -9,7 +9,9 @@ from core.services.review_service import (
     create_review,
     get_review,
     list_reviews,
+    _run_ingestion_pipeline,
 )
+from ingestion.parsers.base import ParseResult
 
 
 @pytest.mark.unit
@@ -338,3 +340,66 @@ class TestReviewService:
 
         # Should order by created_at descending
         mock_db_session.execute.assert_called_once()
+
+
+@pytest.mark.unit
+class TestRunIngestionPipelinePortfolio:
+    """Test suite for the portfolio branch of _run_ingestion_pipeline."""
+
+    @pytest.fixture
+    def mock_db_session(self):
+        """Create a mock async database session."""
+        session = AsyncMock()
+        session.add = Mock()
+        session.commit = AsyncMock()
+        return session
+
+    @pytest.fixture
+    def mock_profile(self):
+        """Create a mock Profile with only a portfolio_url set."""
+        profile = Mock()
+        profile.id = uuid4()
+        profile.github_username = None
+        profile.portfolio_url = "http://example.com"
+        profile.resume_text = None
+        return profile
+
+    @pytest.mark.asyncio
+    async def test_portfolio_ingestion_uses_real_fetched_text(self, mock_db_session, mock_profile):
+        """Test that a successful fetch stores the real parsed text, not a placeholder string."""
+        with patch("core.services.review_service._web_parser") as mock_web_parser:
+            mock_web_parser.parse.return_value = ParseResult(
+                text="Jane Doe builds things with Python and React.",
+                metadata={"source_type": "portfolio", "url": "http://example.com"},
+                source_type="portfolio",
+            )
+
+            sources = await _run_ingestion_pipeline(mock_db_session, mock_profile)
+
+        assert len(sources) == 1
+        portfolio_source = sources[0]
+        assert portfolio_source["source_type"] == "portfolio"
+        assert portfolio_source["data"] == "Jane Doe builds things with Python and React."
+        assert "Portfolio data from" not in portfolio_source["data"]
+        mock_web_parser.parse.assert_called_once_with("http://example.com")
+
+    @pytest.mark.asyncio
+    async def test_portfolio_ingestion_failure_is_skipped(self, mock_db_session, mock_profile):
+        """Test that a fetch failure is caught, logged, and doesn't add a fabricated source."""
+        with patch("core.services.review_service._web_parser") as mock_web_parser:
+            mock_web_parser.parse.side_effect = ValueError("Failed to fetch portfolio URL")
+
+            sources = await _run_ingestion_pipeline(mock_db_session, mock_profile)
+
+        assert sources == []
+
+    @pytest.mark.asyncio
+    async def test_no_portfolio_ingestion_when_url_absent(self, mock_db_session, mock_profile):
+        """Test that no fetch is attempted when the profile has no portfolio_url."""
+        mock_profile.portfolio_url = None
+
+        with patch("core.services.review_service._web_parser") as mock_web_parser:
+            sources = await _run_ingestion_pipeline(mock_db_session, mock_profile)
+
+        mock_web_parser.parse.assert_not_called()
+        assert sources == []
