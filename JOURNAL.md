@@ -56,3 +56,21 @@ Detected: []
 
 **Blockers or open questions:**
 I still need to inspect the current phone-number regular expression and related tests before finalizing the solution plan.
+
+
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I confirmed the baseline before changing the implementation. `make check` reports 182 existing lint errors, and `make test-unit` reports 375 passed and 53 failed. The failing unit tests include the parenthesized US phone-number cases from issue #146. I have reproduced the bug, traced it to the `phone_us` pattern in `safety/pii_scrubber.py`, and completed the solution plan.
+
+**Next steps:**
+I will update the US phone-number regular expression, run the focused PII scrubber tests, add or update regression tests if needed, and verify that the change introduces no new failures.
+
+**Blockers:**
+The repository already contains unrelated lint and unit-test failures. I will compare the results after my change against the recorded baseline.
+
+---
