@@ -38,3 +38,29 @@ This is a good Tier 1 issue because it is important but tightly scoped. The bug 
 **Walkthrough video (recommended):** Not recorded yet. The graded deliverables are the reproduction commit, `PLAN.md`, and this Week 8 journal update.
 
 **Blockers or open questions:** No major blockers. The main implementation risk for Week 9 is widening the US phone regex enough to catch whitespace and parenthesized formats without over-matching SSNs, version numbers, or long digit identifiers.
+
+## Week 9 - Solution Building & PR Submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:** I completed the main implementation tasks from `PLAN.md`: I updated the `phone_us` pattern in `safety/pii_scrubber.py` so parenthesized US phone numbers and whitespace-separated US formats are detected, and I kept the pattern bounded so it does not match inside longer word or digit strings. I also updated `tests/unit/test_pii_scrubber.py` to cover the new phone-number formats, full `detect()` values, detection positions, and false-positive guard cases for SSNs, version numbers, and long tracking IDs.
+
+**Next steps:** I need to finish the final self-review, push the implementation branch, open the upstream pull request, and paste the live PR link into Check-in 2. I also need to document the project-wide `make check` and `make test-unit` results honestly because the focused PII scrubber tests pass, but the broader repository currently has unrelated baseline failures outside this fix.
+
+**Blockers:** No code blockers. The only workflow blocker is GitHub authentication/permissions for creating the upstream PR from this environment, so the PR may need to be opened manually from the GitHub compare page.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** Pending live PR URL. Open it from this compare page, then replace this line with the created PR link: https://github.com/ascherj/pathreview/compare/main...somtizle:pathreview:fix/146-pii-parenthesized-phone?expand=1
+
+**Branch:** `fix/146-pii-parenthesized-phone`
+
+**What you built:** I fixed the PII scrubber so common US phone numbers like `(555) 123-4567`, `(555)123-4567`, and `+1 (555) 123-4567` are redacted and detected as `phone_us`. The fix broadens the US phone regex to allow whitespace and balanced parenthesized area codes while preserving boundaries that avoid partial matches inside longer strings.
+
+**Tests added or updated:** I updated `tests/unit/test_pii_scrubber.py`. The tests now cover parenthesized phone-number redaction, no-space parenthesized phone numbers, `+1` plus parenthesized area codes, full detected phone values and positions from `detect()`, and false-positive protection for version numbers, SSNs, and long tracking identifiers.
+
+**Self-review confirmation:** [x] make check passes for changed files; full repo `make check` was run and fails on unrelated pre-existing lint issues outside this PR. [x] make test-unit passes for the changed PII scrubber test file; full repo `make test-unit` was run and fails on unrelated pre-existing unit-test failures outside this PR.
+
+**Draft PR feedback received from:** none
