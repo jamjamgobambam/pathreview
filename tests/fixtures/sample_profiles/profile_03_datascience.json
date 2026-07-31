@@ -1,0 +1,11 @@
+{
+  "profile_id": "bench_datascience_03",
+  "github_username": "sample-dev-03",
+  "projects": ["churn-prediction-model", "data-pipeline"],
+  "query": "How is this candidate's overall portfolio?",
+  "chunks": [
+    {"source_id": "readme_churn_model", "section": "overview", "text": "churn-prediction-model uses scikit-learn to predict customer churn from historical data. Includes a Jupyter notebook with exploratory analysis and model evaluation."},
+    {"source_id": "readme_data_pipeline", "section": "overview", "text": "data-pipeline is an Airflow-based ETL pipeline that ingests data from S3 into a data warehouse. Includes unit tests for transformation logic."},
+    {"source_id": "resume", "section": "experience", "text": "Data scientist with 3 years of experience in machine learning and data engineering. Proficient in Python, SQL, and pandas."}
+  ]
+}
