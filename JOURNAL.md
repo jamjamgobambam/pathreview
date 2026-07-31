@@ -56,7 +56,7 @@ Open draft PR, request peer feedback, finalize and submit PR.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [PR to be added after opening]
+**PR link:** https://github.com/ascherj/pathreview/pull/472
 
 **Branch:** `fix/156-readme-scorer-fixture-length`
 
