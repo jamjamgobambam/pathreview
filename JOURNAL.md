@@ -32,7 +32,7 @@ I initially considered issue #59, which requests a fully stubbed end-to-end test
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** Pending — this commit documents the reproduction.
+**Reproduction commit link:** [580d766](https://github.com/rodmendoza2404/pathreview/commit/580d7661565a7cf8d0f2c3ec2d86679b14a81db4)
 
 **Reproduction summary:**
 I reproduced Issue #159 by running `TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty`. The test failed because structlog emitted the expected warning to captured stdout, while `caplog.text` remained empty and `caplog.records` contained no matching record.
