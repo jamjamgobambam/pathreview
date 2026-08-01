@@ -95,3 +95,82 @@ pre-existing failures across the full suite are unrelated to this change,
 documented in the PR description)
 
 **Draft PR feedback received from:** None
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback came in on PR #387 by the end of the
+module. I also requested peer feedback in Slack during Week 9 before
+marking the PR ready for review, but did not receive a response before
+that deadline either.
+
+**How you responded:**
+N/A — no feedback was received to respond to.
+
+### Reflection
+
+**What was harder than you expected?**
+Environment setup took far longer than the actual code fix. `make` isn't
+available on Windows PowerShell at all, so I had to translate every
+Makefile target (`setup`, `run`) into the equivalent manual commands
+(venv creation, `pip install -e ".[dev]"`, `alembic upgrade head`, running
+uvicorn and the Vite dev server in separate terminals). On top of that,
+Docker Desktop wasn't running when I first tried `docker compose up -d`,
+and then a separate flaky-network issue caused image pulls to fail
+partway through with `EOF` errors on the exact same layer, requiring a
+`wsl --shutdown` before a retry finally succeeded. None of that was
+related to the actual bug I was fixing — it was pure infrastructure
+friction, and it ate most of Week 7.
+
+**What did you learn about working in a large codebase?**
+The single biggest lesson was that "does my code work" and "does the
+project's test suite pass" are two different questions in an established
+codebase. When I ran the full `tests/unit` suite, 52 tests were already
+failing before I changed anything — spanning bias detection, PII
+scrubbing, resume parsing, and more, none of which I touched. I had to
+learn to isolate my own diff (`git diff main -- <file>`) and use
+`git stash` to prove a set of failures existed identically on unmodified
+`main`, rather than either panicking about them or silently ignoring them.
+Documenting "this PR introduces no new failures" turned out to be a real
+skill, not a formality — it's the difference between a reviewer trusting
+your PR and a reviewer having to re-verify everything themselves. I also
+learned that a project's local pre-commit hooks and its official CI
+target (`make check`) aren't always the same thing — my pre-commit `mypy`
+hook flagged 26 errors in the test file that the project's own
+`mypy api/ core/ ingestion/ rag/ agent/ safety/` target would never catch,
+since it doesn't even check `tests/`.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for translating between environments (Makefile
+targets to PowerShell commands), diagnosing unfamiliar error messages
+(the Docker npipe connection error, the asyncpg `ConnectionRefusedError`
+traceback, the ruff/black/mypy output), and structuring the planning
+documents (PLAN.md, PR description) so nothing required by the rubric was
+missed. Where it fell short was code I generated myself without careful
+review: I introduced two indentation bugs by hand (a broken `context_text`
+block in `faithfulness_checker.py`, and a completely de-indented test
+method in the test file) that weren't caught until pytest's collection
+step failed. AI could tell me *why* the traceback happened, but it
+couldn't have caught the mistake before I ran it — that required me to
+actually read the diff carefully before committing.
+
+**What would you do differently if you started over?**
+I'd read the actual Makefile before assuming `make setup` would just work,
+since knowing upfront that it depended on Docker, Redis, and a vector DB
+would have let me start Docker Desktop and diagnose the network issue in
+parallel with other setup steps instead of hitting it as a surprise mid-way
+through. I'd also run `git diff` against my own changes immediately after
+every edit, rather than after pytest failed — that would have caught both
+indentation bugs before wasting a debugging cycle on them.
+
+**What are you most proud of from this module?**
+Being able to definitively separate "failures I caused" from "failures
+that already existed" using `git stash` and isolated diffs, and documenting
+that clearly enough in the PR description that a reviewer wouldn't need to
+redo that investigation themselves. That felt like the most transferable,
+professional skill from the whole module — more than the one-line fix
+itself.
