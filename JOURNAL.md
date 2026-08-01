@@ -30,3 +30,37 @@ Wrote `scripts/reproduce_43.py`, which runs the same `Orchestrator.run()` call t
 
 **Blockers or open questions:**
 Still need to confirm how `Orchestrator` is instantiated in the FastAPI app (singleton vs. per-request) before finalizing the exact fix approach. Also need to check whether the Redis-backed `session_store` (separate from `ContextManager`) needs its own invalidation logic once the `ContextManager` issue is fixed.
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in `agent/orchestrator.py` — `ContextManager` is now created fresh inside `run()` instead of persisting on the `Orchestrator` instance across requests, and `_execute_tool()` now takes it as a parameter. Added `tests/unit/test_orchestrator.py` with 4 tests covering the regression (tool re-executes on a second review, results are fresh not cached, no cross-user leakage). Confirmed `make test-unit` (53 pre-existing failures, unrelated, 379 passed including my new tests) and `make check` (179 pre-existing errors, down slightly from the 182 baseline, no new errors introduced). Opened draft PR #485.
+
+**Next steps:**
+Share the draft PR in Slack for peer/mentor feedback, address any comments, then mark it ready for review before the deadline.
+
+**Blockers:**
+None currently.
+
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/485
+
+**Branch:** fix/43-clear-session-state
+
+**What you built:**
+Fixed the root cause of #43 — `Orchestrator` was creating a single long-lived `ContextManager` instance that persisted across every review, silently returning cached tool results from a previous review instead of re-running tools for a user's updated portfolio. `ContextManager` is now created fresh inside `run()`, scoped to a single review, while still allowing legitimate within-review memoization.
+
+**Tests added or updated:**
+Added `tests/unit/test_orchestrator.py` with 4 tests: tool executes on first review, tool re-executes on a second review with the same input (core regression test for #43), second review returns fresh (not cached) results, and two different users don't share cached results.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(179 pre-existing lint errors and 53 pre-existing test failures remain, unrelated to this change and documented in the PR description; my changes introduce zero new failures/errors and add 4 new passing tests.)
+
+**Draft PR feedback received from:** none
