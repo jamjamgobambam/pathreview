@@ -82,3 +82,9 @@ https://github.com/morishbhayani/pathreview/commit/5bd128f
 **Current blockers:**
 
 There are no blockers specific to issue #50. The repository still contains unrelated pre-existing unit-test and lint failures.
+
+**Pull request:**
+
+https://github.com/ascherj/pathreview/pull/527
+
+**PR status:** Open and ready for review
