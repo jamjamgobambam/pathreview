@@ -54,16 +54,19 @@ I little unfamilliar with creating test cases in Python but using AI and other t
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [https://github.com/ascherj/pathreview/pull/425]
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** [feat/13-add-conditional-hash-re-embedding]
 
 **What you built:**
 [1–3 sentences summarizing what your fix does and how it works]
+I added a conditional check to the readme parser that skips README ingestion if the contents of the README hasn't changed between uploads. I added functionality to the check_skip function where the db query returns whether a simmilar file exists and also the _add_ingestedResource function which adds the ingested readme to the database.
 
 **Tests added or updated:**
 [Which test files did you touch? What do they cover?]
+Added file: tests/unit/test_ingestion_pipeline.py. The tests cover the scenarios where two identical readmes are uploaded to the ingestion pipeline one after another. There are scenarios that check for the exisitng functionality as well. I also covered the edge cases where an identical readme is passed to another repository.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
+None
