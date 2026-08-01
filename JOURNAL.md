@@ -55,7 +55,7 @@ None — the fix is a one-line change. Will run the full test suite after applyi
 
 ### Check-in 2 (PR submission)
 
-**PR link:** [to be filled after PR is opened]
+**PR link:** https://github.com/ascherj/pathreview/pull/503
 
 **What changed from the plan:**
 No deviations. The fix matched the plan exactly. The only extra work was patching Redis/settings mocks in tests since those probes also run in the handler and would fail in a unit test environment without a live Docker stack.
