@@ -33,6 +33,7 @@ I reproduced the issue by using the provided resume parser example with resume t
 **Blockers or open questions:**
 None at this time.
 
+
 ## Week 9 — Solution building & PR submission
 
 ### Check-in 1 (mid-week)
@@ -64,3 +65,34 @@ Updated `tests/unit/test_resume_parser.py` — added `test_detect_sections_with_
 *(177 pre-existing lint errors and 50 pre-existing test failures exist codebase-wide, none introduced by this change and none in the two files this PR touches beyond two pre-existing, unrelated `_strip_markdown()` failures — verified via `git stash` comparison. See PR description for details.)*
 
 **Draft PR feedback received from:** ⚠️ none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was provided during Summer 2026, so there were no comments from reviewers or maintainers to address.
+
+**How you responded:**
+N/A — no reviewer feedback was received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was understanding the existing codebase well enough to make a focused change without introducing unnecessary changes. Reproducing the issue, identifying the relevant files, understanding the surrounding implementation, and determining what needed to be changed required more investigation than I initially expected. I learned that fixing an issue is not just about writing code; it is also about understanding the project's existing structure, conventions, and expected behavior.
+
+**What did you learn about working in a large codebase?**
+I learned that contributing to someone else's codebase requires more discipline than working on my own projects. I had to follow existing patterns, understand how different files and components interacted, and make the smallest change necessary to address the issue. I also learned the importance of checking tests, formatting, typing, and repository conventions before considering a change complete.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were useful for helping me understand unfamiliar code, interpret error messages, identify possible causes, and think through implementation approaches. They helped me move faster when navigating files and unfamiliar patterns. However, AI could not replace actually validating the solution in the repository. I still needed to inspect the code myself, run tests and checks, compare the proposed change against the existing implementation, and make decisions based on the project's specific conventions.
+
+**What would you do differently if you started over?**
+If I started over, I would spend more time planning the reproduction and expected behavior before making changes. I would also verify the repository's testing, typing, and formatting requirements earlier in the process instead of discovering some issues later. This would make the implementation more deliberate and reduce unnecessary iteration.
+
+**What are you most proud of from this module?**
+I am most proud of learning how to contribute to an existing codebase rather than only building projects from scratch. I gained experience navigating unfamiliar code, investigating an issue, making a targeted change, validating my work, and documenting the process. The biggest takeaway was learning that a strong contribution is not just code that works, but a change that fits the existing project and can be understood and maintained by other developers.
