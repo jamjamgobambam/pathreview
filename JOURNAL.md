@@ -116,3 +116,34 @@ https://www.loom.com/share/a85ab29d2c694b70992cfcabf61f98fd
 - Need to confirm the best approach for detecting tests using GitHub API repository tree data while minimizing additional API requests.
 - Need to determine the expected fallback behavior if GitHub API calls fail due to rate limits, permissions, or network errors.
 - Need to validate whether `has_tests` detection should support only common patterns (`tests/`, `test/`, `pytest.ini`, `test_*.py`) or include additional conventions such as `spec/` and `__tests__/`.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+- Implemented the `_get_repo_tree()` helper in `agent/tools/github_tool.py` to retrieve repository file structure using the GitHub Tree API with a single request.
+- Added the `_has_tests()` helper method to detect common test indicators:
+  - `tests/` and `test/` directories
+  - `test_*.py` and `*_test.py` file patterns
+  - pytest configuration files
+- Integrated the new `has_tests` boolean field into the repository metadata output in `_fetch_repo_metadata()`.
+- Followed the existing `_has_readme()` pattern by adding error handling and returning `False` safely when GitHub API requests fail.
+- Updated `tests/unit/test_github_tool.py` with tests covering:
+  - repositories containing tests
+  - repositories without tests
+  - API failure fallback behavior
+
+
+**Next steps:**
+- Run validation commands:
+  - `make check`
+  - `make test-unit`
+- Review the implementation for edge cases such as empty repositories and large repository tree responses.
+- Update PR description with implementation details, testing instructions, and reviewer notes.
+- Submit the pull request and verify that the PR template is fully completed.
+
+**Blockers:**
+- None.
+---

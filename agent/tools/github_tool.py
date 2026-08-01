@@ -92,6 +92,7 @@ class GitHubTool(BaseTool):
             "open_issues_count": repo_json.get("open_issues_count", 0),
             "last_commit_date": repo_json.get("pushed_at", ""),
             "has_readme": self._has_readme(username, repo_name),
+            "has_tests": self._has_tests(username, repo_name),
             "topics": repo_json.get("topics", []),
             "homepage": repo_json.get("homepage") or "",
         }
@@ -125,5 +126,55 @@ class GitHubTool(BaseTool):
         try:
             response = httpx.head(url, headers=headers, timeout=5.0)
             return bool(response.status_code == 200)
+        except Exception:
+            return False
+
+    def _get_repo_tree(self, username: str, repo_name: str) -> list[dict]:
+        """Fetch repository file tree using GitHub Tree API.
+
+        Uses a single API call to reduce request overhead.
+        """
+
+        url = f"{self.base_url}/repos/{username}/{repo_name}/git/trees/HEAD?recursive=1"
+
+        headers = {}
+        if self.api_token:
+            headers["Authorization"] = f"token {self.api_token}"
+
+        try:
+            response = httpx.get(url, headers=headers, timeout=10.0)
+            response.raise_for_status()
+
+            data = response.json()
+
+            # Avoid incorrect detection on incomplete responses
+            if data.get("truncated"):
+                return []
+
+            tree: list[dict] = data.get("tree", [])
+            return tree
+
+        except Exception:
+            return []
+
+    def _has_tests(self, username: str, repo_name: str) -> bool:
+        """Check whether repository contains tests."""
+
+        try:
+            tree = self._get_repo_tree(username, repo_name)
+
+            for item in tree:
+                path = item.get("path", "").lower()
+
+                if (
+                    path.startswith("tests/")
+                    or path.startswith("test/")
+                    or path.endswith("pytest.ini")
+                    or path.split("/")[-1].startswith("test_")
+                    or path.endswith("_test.py")
+                ):
+                    return True
+
+            return False
         except Exception:
             return False
