@@ -1,6 +1,6 @@
-from fastapi import Request
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
 from core.security import decode_access_token
@@ -14,12 +14,12 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
     response.
     """
 
-    def __init__(self, app, rate_limiter: RateLimiter, limit: int):
+    def __init__(self, app: FastAPI, rate_limiter: RateLimiter, limit: int) -> None:
         super().__init__(app)
         self.rate_limiter = rate_limiter
         self.limit = limit
 
-    async def dispatch(self, request: Request, call_next) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         identifier = None
         auth_header = request.headers.get("Authorization")
 
