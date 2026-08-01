@@ -33,3 +33,36 @@ I ran the app locally and tried calling a few endpoints using only what docs/API
 
 **Blockers or open questions:**
 Still need to confirm the seeded test accounts from docs/SETUP.md actually work right after a fresh make setup, and I need to figure out the cleanest way to include a sample resume file in the curl example for POST /profiles since there isn't one in the repo already.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All sub-tasks from PLAN.md's Plan section are done: I ran the app locally, hit every endpoint in docs/API.md with curl using a real seeded account, and added a verified example and response for each one, plus the shared auth header note. The step 5 re-read (reading the doc as a first-time contributor) caught three real problems that would've broken someone following it top to bottom, a missing resume.md fixture, a profile getting deleted before the reviews section that still needed it, and a misleading empty-list example, all of which I fixed.
+
+**Next steps:**
+Run make check and make test-unit as a final baseline check, then open the PR.
+
+**Blockers:**
+None. I did find two endpoints that exist in the code but aren't documented at all (PUT /profiles/{profile_id} and GET /reviews/{review_id}/status), I'm leaving those out of scope per PLAN.md and calling them out as a follow-up instead.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** docs/117-api-curl-examples
+
+**What you built:**
+I added a runnable curl example and a real example response to every endpoint in docs/API.md, all verified against a local instance. Along the way I actually followed my own doc top to bottom and caught four real problems that would've broken a first-time contributor: a missing resume.md fixture, a profile getting deleted before the reviews section still needed it, a misleading empty-list example, and a curl upload that 422'd because curl doesn't reliably guess a file's MIME type on its own.
+
+**Tests added or updated:**
+None, this is a docs-only change to docs/API.md, no code paths were touched.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+make check: 182 pre-existing lint errors, all in files I didn't touch (mostly unused variables in existing test files). make test-unit: 53 pre-existing test failures, 375 passing. Neither command lints or tests docs/API.md, so this docs-only change can't be responsible for either, confirmed by running both before and after my final edits with identical counts.
+
+**Draft PR feedback received from:** none
