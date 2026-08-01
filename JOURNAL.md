@@ -43,3 +43,39 @@ raised from the `" ".join(...)` call in `FaithfulnessChecker.check()` — confir
 `relevance_scorer.py:32` has the same `chunk.get("text", "")` pattern and may have
 an identical latent crash reachable through `EvalSuite.run()`. Leaving it out of
 this issue's scope but may file a follow-up.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md step 1: `rag/evaluator/faithfulness_checker.py`
+now builds `context_text` with `chunk.get("text") or ""` instead of
+`chunk.get("text", "")`, so a chunk with an explicit `"text": None` falls back to
+`""` the same way a missing key already did. `test_none_context_chunk_text` now
+passes, and `test_missing_text_key_in_chunk` (the already-passing case) is
+unaffected. Manually exercised `FaithfulnessChecker.check()` with a
+`[valid_chunk, {"text": None}]` list — returns a normal float (`1.0`) instead of
+crashing.
+
+Also confirmed the PLAN.md risk: `EvalSuite.run()` still crashes on the same
+input, but via `RelevanceScorer.score()` → `_tokenize()` calling `.lower()` on
+`None` (`relevance_scorer.py:32-33`) — a separate, identical bug in a different
+file. Staying out of scope for #153 per the plan; noting it as a likely
+follow-up issue.
+
+Ran `make test-unit` and `make check` before and after the fix (stashing/popping
+the change to diff) to separate pre-existing failures from anything new:
+- `make test-unit`: 53 failed / 375 passed before, 52 failed / 376 passed after
+  — exactly the one target test flipping to passing, no other change.
+- `make check`: 181 pre-existing `ruff` errors, identical count with and without
+  the fix (none in `faithfulness_checker.py`); `black` and `mypy` run clean on
+  the touched file. Pre-existing `black` drift and a `mypy` gap in
+  `eval_suite.py:23` (untouched file) are unrelated to this change.
+
+**Next steps:**
+Update PR description to document the pre-existing failures and the
+`relevance_scorer.py` follow-up, then open the draft PR for peer/mentor review.
+
+**Blockers:**
+None.
