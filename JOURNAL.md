@@ -58,7 +58,7 @@ The repository currently has pre-existing lint and unit-test failures unrelated 
 
 ### Check-in 2 (end of week)
 
-**PR link:** [add after the PR is opened]
+**PR link:** https://github.com/ascherj/pathreview/pull/519
 
 **Branch:** `fix/157-partial-overlap-fixture`
 
