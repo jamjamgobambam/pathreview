@@ -33,3 +33,16 @@ I confirmed the gap by running `git show 10d3713:core/services/profile_service.p
 
 **Blockers or open questions:**
 The actual docstring fix — and the type-annotation fixes needed to get the mypy pre-commit hook passing — were already completed and committed back in Week 7, ahead of this week's plan-then-build pacing. `PLAN.md` below documents the approach I actually followed rather than a forward-looking plan. No PR has been opened yet; that's a Week 9 step per the module schedule.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Docstring work and mypy fixes were completed in Week 7. This week I ran a baseline check (`make check`, `make test-unit`) to confirm my two changed files are clean and documented the pre-existing unrelated failures (53 total, including 13 in `test_review_service.py` traced to a pre-existing mock/coroutine bug - confirmed unrelated by running the same suite against the commit before my changes). Opened a draft PR (#489) against `ascherj/pathreview` with the full write-up.
+
+**Next steps:**
+Share the PR in Slack for peer/mentor feedback, address anything that comes back, then mark it ready for review.
+
+**Blockers:**
+None currently - waiting on peer/mentor review before finalizing.
