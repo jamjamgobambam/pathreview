@@ -23,3 +23,17 @@ the existing `test_us_phone_number_redaction` test.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [paste after you push]
+
+**Reproduction summary:** Ran the scrub()/detect() snippets from issue #146 locally — confirmed `(555) 123-4567` passes through scrub() unredacted while `555-123-4567` in the same string is correctly redacted, and detect() returns [] for the parenthesized number. Confirmed via pytest that 4 of 6 phone-related tests fail (test_us_phone_number_redaction, test_us_phone_formats, test_detect_phone_pii, test_phone_at_start_of_text); the other 2 (international, phone-at-end) pass.
+
+**PLAN.md link:** [paste after you push]
+
+**Walkthrough video (recommended):** [optional]
+
+**Blockers or open questions:**
+Unclear whether "+1 555 123 4567" (space-separated international-style format) needs a separate fix beyond the parenthesis issue — will check when implementing next week.
