@@ -45,16 +45,16 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/488 (draft, opened for peer/mentor feedback — not yet marked ready for review)
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `feat/50-has-tests-detection`
 
 **What you built:**
-[1-3 sentences summarizing what your fix does and how it works]
+Added `GitHubTool._has_tests(username, repo_name)`, which fetches the repo's root contents listing and checks entry names for test indicators (`tests`, `test`, `pytest.ini`, or `test_*.py`), then wired the result into `_fetch_repo_metadata`'s output as a new `has_tests` boolean, alongside the existing `has_readme` field. Any request failure degrades to `has_tests=False` rather than raising, matching `_has_readme`'s existing behavior.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+`tests/unit/test_github_tool.py` — three cases: test indicators present (`has_tests=True`), no indicators (`has_tests=False`), and contents-request failure (`has_tests=False`, overall call still succeeds).
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes on changed files (`agent/tools/github_tool.py`, `tests/unit/test_github_tool.py` — clean via `ruff`/`mypy`; full-repo `make check` still reports pre-existing failures in unrelated files, unchanged from the Week 8 baseline)  [x] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none yet — pending peer/mentor review
