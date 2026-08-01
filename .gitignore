@@ -44,3 +44,5 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+before-*.txt
+after-*.txt
