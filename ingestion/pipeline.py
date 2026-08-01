@@ -350,9 +350,11 @@ class IngestionPipeline:
         """
         Persist a row recording that a source has been ingested.
 
-        The row carries the content hash that _check_skip later matches on. This
-        method owns its transaction and commits, so the pipeline is usable
-        without a caller managing the session.
+        The row carries the content hash that _check_skip later matches on.
+        On success this commits, so the pipeline is usable without a caller
+        managing the session. On a database error it does not roll back or
+        swallow: the exception propagates so the session's owner decides how
+        to handle a transaction that may hold their pending writes.
 
         Args:
             profile_id: ID of the profile owner
@@ -376,10 +378,14 @@ class IngestionPipeline:
                 content_hash=content_hash,
                 chunk_count=chunk_count,
             )
-        except SQLAlchemyError as e:
-            await self.db_session.rollback()
+        except SQLAlchemyError:
+            # get_db() yields one session per request, so this session may hold
+            # a caller's pending writes. Rolling back here would discard them,
+            # and swallowing the error would return a successful-looking result
+            # after failing to record. Let the failure surface so the session's
+            # owner decides how to handle the broken transaction.
             logger.error(
                 "Failed to record ingested source",
                 content_hash=content_hash,
-                error=str(e),
             )
+            raise

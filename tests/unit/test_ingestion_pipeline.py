@@ -13,6 +13,7 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
+from sqlalchemy.exc import SQLAlchemyError
 
 from core.models.ingested_source import IngestedSource
 from ingestion.pipeline import IngestionPipeline
@@ -198,3 +199,25 @@ async def test_hash_content_is_full_sha256(pipeline: IngestionPipeline) -> None:
 
     assert len(digest) == 64
     assert digest == pipeline._hash_content(README_CONTENT.encode())
+
+
+async def test_record_ingested_source_propagates_db_errors(
+    pipeline: IngestionPipeline,
+) -> None:
+    """A database error while recording surfaces instead of being swallowed.
+
+    The session is shared per request, so _record_ingested_source must not roll
+    back (that would discard a caller's pending writes) or swallow the error
+    (that would return a successful-looking result after failing to persist).
+    The exception is expected to propagate.
+    """
+    session = cast("FakeAsyncSession", pipeline.db_session)
+
+    async def _raise() -> None:
+        raise SQLAlchemyError("commit failed")
+
+    session.commit = _raise  # type: ignore[method-assign]
+    content_hash = pipeline._hash_content(README_CONTENT)
+
+    with pytest.raises(SQLAlchemyError):
+        await pipeline._record_ingested_source(PROFILE_ID, "readme", content_hash, 4)
