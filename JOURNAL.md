@@ -45,3 +45,19 @@ Waiting on peer review after posting a request in both my section Slack channel 
 
 **Blockers:**
 No implementation blockers at this point. The only outstanding item is peer review, which has been requested but I haven't received any feedback yet.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/484
+
+**Branch:** fix/157-relevance-scorer-partial-overlap-fixture
+
+**What you built:**
+Fixed a mislabeled test fixture in `test_query_with_partial_overlap` — the query and chunk previously shared 100% of tokens (a full-match case), so the scorer's correct 1.0 score failed the test's expected 0.3–0.9 range. Updated the chunk text so only 2 of 4 query tokens overlap, producing a score of 0.5 that genuinely represents partial-overlap behavior.
+
+**Tests added or updated:**
+Updated the fixture data in `tests/unit/test_relevance_scorer.py::test_query_with_partial_overlap`. No new test files were needed since the existing test structure was correct, only the fixture data was wrong.
+
+**Self-review confirmation:** [x] make check passes (pre-existing failures documented and unrelated) [x] make test-unit passes (52 pre-existing failures unrelated to this change; target test now passes)
+
+**Draft PR feedback received from:** none (requested in section Slack channel and #ai201-community-su26, no responses received)
