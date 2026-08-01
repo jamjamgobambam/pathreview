@@ -78,7 +78,7 @@ no new failures.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(to be filled when the PR is opened)_
+**PR link:** https://github.com/ascherj/pathreview/pull/490
 
 **Branch:** `docs/36-hybrid-retrieval-scoring`
 
