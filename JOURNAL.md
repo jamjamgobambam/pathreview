@@ -59,3 +59,19 @@ Request peer review in the cohort Slack channel, address any feedback, then flip
 
 **Blockers:**
 None. The pre-existing broken gates (53 test failures, 183 lint errors, 12 mypy errors on `main`) are documented in the PR and unaffected by this change.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/305
+
+**Branch:** `feat/13-content-hash-skip-reembedding`
+
+**What you built:**
+Wired content-hash deduplication into the ingestion pipeline for issue #13. `_check_skip` queries the real `IngestedSource` model on `(content_hash, profile_id, source_type)` and returns a skip result when a match exists; `_record_ingested_source` persists a row and commits. The pipeline's database access is async to match the `AsyncSession` the app supplies, so identical content is embedded once and skipped on re-ingest while changed content still ingests. Following peer review, the record function's error path was changed to let database errors surface rather than roll back a shared session.
+
+**Tests added or updated:**
+`tests/unit/test_ingestion_pipeline.py`, rewritten as seven async tests driven through a stateful in-memory session that records rows and matches them back, so the skip path is exercised end to end rather than mocked. Covers skip on identical re-ingest, no skip on single-character change, per-profile scoping, empty-check returning None, row persistence with commit, full 64-char digest hashing, and database errors propagating instead of being swallowed.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** @kylipoo
