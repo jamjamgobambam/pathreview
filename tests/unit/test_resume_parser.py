@@ -167,6 +167,44 @@ class TestResumeParser:
         assert any("education" in s for s in indented_sections)
         assert any("skills" in s for s in indented_sections)
 
+    def test_detect_sections_tab_indented(self, parser):
+        """Headers indented with tabs are detected (issue #147)."""
+        text = "\tExperience:\n\tSenior Dev\n\tEducation:\n\tBS CS"
+        sections = [s.lower() for s in parser._detect_sections(text)]
+        assert any("experience" in s for s in sections)
+        assert any("education" in s for s in sections)
+
+    def test_detect_sections_mixed_space_tab_indent(self, parser):
+        """Headers indented with mixed spaces and tabs are detected (issue #147)."""
+        text = " \t Experience:\n\t  Skills: Python"
+        sections = [s.lower() for s in parser._detect_sections(text)]
+        assert any("experience" in s for s in sections)
+        assert any("skills" in s for s in sections)
+
+    def test_detect_sections_first_line_indented(self, parser):
+        """An indented header on the very first line (no preceding newline) is detected."""
+        text = "    Summary:\nExperienced engineer"
+        sections = [s.lower() for s in parser._detect_sections(text)]
+        assert any("summary" in s for s in sections)
+
+    def test_detect_sections_crlf_line_endings(self, parser):
+        """Indented headers survive CRLF (\\r\\n) line endings from PDF extraction (issue #147)."""
+        text = "    Experience:\r\n    Senior Dev\r\n    Education:\r\n    BS CS"
+        sections = [s.lower() for s in parser._detect_sections(text)]
+        assert any("experience" in s for s in sections)
+        assert any("education" in s for s in sections)
+
+    def test_detect_sections_ignores_midsentence_occurrence(self, parser):
+        """A header word appearing mid-sentence must not be falsely detected (issue #147).
+
+        Guards against the whitespace-tolerant anchors over-matching: the
+        trailing boundary still requires the header to end its own field.
+        """
+        text = "    I gained experience building scalable education tools."
+        sections = [s.lower() for s in parser._detect_sections(text)]
+        assert not any("experience" in s for s in sections)
+        assert not any("education" in s for s in sections)
+
     def test_strip_markdown_syntax(self, parser):
         """Test markdown syntax stripping."""
         markdown_text = """
