@@ -59,20 +59,22 @@ and where it belongs.
 ### Check-in 1 (mid-week)
 
 **Current progress:**
-Implemented the fix from PLAN.md. Sub-tasks 1–4 are done: added a `#### Hybrid Retrieval
-Scoring` subsection to `docs/ARCHITECTURE.md` under the RAG System section, containing the
-blended-score formula, the default 0.7/0.3 weights table, the max-normalization explanation
-for vector similarity and BM25, the worked numerical example (validated in Week 8), and a
-notes/edge-cases list. Committed as `docs(rag): document hybrid retrieval scoring formula`.
+Started building the fix from PLAN.md. Sub-tasks 1–2 are in place: I re-read the scoring
+logic in `rag/retriever/hybrid.py` and drafted the `#### Hybrid Retrieval Scoring` subsection
+in `docs/ARCHITECTURE.md` with the blended-score formula and the default 0.7/0.3 weights
+table. Sub-task 3 (the worked numerical example) is partially written — I still need to run
+the numbers back through the exact code path to make sure the blended values I quote are
+correct before I trust them in the docs. Sub-task 4 (notes/edge cases) is only outlined so far.
 
 **Next steps:**
-Finish sub-task 5: run `make check` and `make test-unit` to record the baseline, fill in
-the PR template, and open the PR against upstream `main`. Then add the PR link to Check-in 2.
+Validate the numerical example against the real formula, finish the edge-cases list, then
+move to sub-task 5: set up the venv, record the `make check` / `make test-unit` baseline,
+fill in the PR template, and open the PR against upstream `main`.
 
 **Blockers:**
-None blocking. Noted that the repo has pre-existing `make check`/`make test-unit` failures
-unrelated to this change (see Check-in 2); since this PR is documentation-only it introduces
-no new failures.
+Local env isn't fully set up yet (`.venv` missing), so I haven't been able to run
+`make check` / `make test-unit` to confirm a baseline — planning to build it before opening
+the PR. No blockers on the writing itself.
 
 ---
 
