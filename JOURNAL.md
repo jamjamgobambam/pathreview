@@ -138,7 +138,7 @@ even when all optional fields (`github_username`, `portfolio_url`,
 > (`api/schemas/profile.py`, `tests/unit/test_profile_schema.py`) individually
 > pass ruff, black, and mypy.
 
-**Draft PR feedback received from:** <!-- name or Discord handle, or "none" -->
+**Draft PR feedback received from:** None
 
 ---
 
