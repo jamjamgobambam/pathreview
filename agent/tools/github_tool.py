@@ -1,5 +1,7 @@
 """GitHub repository metadata tool."""
 
+import fnmatch
+
 import httpx
 import structlog
 
@@ -92,6 +94,7 @@ class GitHubTool(BaseTool):
             "open_issues_count": repo_json.get("open_issues_count", 0),
             "last_commit_date": repo_json.get("pushed_at", ""),
             "has_readme": self._has_readme(username, repo_name),
+            "has_tests": self._has_tests(username, repo_name),
             "topics": repo_json.get("topics", []),
             "homepage": repo_json.get("homepage") or "",
         }
@@ -125,5 +128,36 @@ class GitHubTool(BaseTool):
         try:
             response = httpx.head(url, headers=headers, timeout=5.0)
             return bool(response.status_code == 200)
+        except Exception:
+            return False
+
+    def _has_tests(self, username: str, repo_name: str) -> bool:
+        """Check if repository has test indicators in its root directory.
+
+        Args:
+            username: GitHub username
+            repo_name: Repository name
+
+        Returns:
+            True if a test directory, pytest.ini, or test_*.py file is found
+        """
+        url = f"{self.base_url}/repos/{username}/{repo_name}/contents"
+
+        headers = {}
+        if self.api_token:
+            headers["Authorization"] = f"token {self.api_token}"
+
+        try:
+            response = httpx.get(url, headers=headers, timeout=5.0)
+            if response.status_code != 200:
+                return False
+
+            entries = response.json()
+            names = [entry.get("name", "").lower() for entry in entries]
+
+            return any(
+                name in ("tests", "test", "pytest.ini") or fnmatch.fnmatch(name, "test_*.py")
+                for name in names
+            )
         except Exception:
             return False

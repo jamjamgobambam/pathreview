@@ -27,3 +27,34 @@ Wrote a mocked unit test (`tests/unit/test_github_tool.py`) that calls `GitHubTo
 
 **Blockers or open questions:**
 Still need to confirm whether `GitHubTool` is ever constructed with an `api_token` in practice — my planned fix adds one more GitHub API call per repo (root contents listing) to detect tests, and unauthenticated requests are already rate-limited to 60/hr, so I want to check real usage before finalizing in Week 9. Also scoped the fix to root-level test indicators only (won't catch nested test dirs like `backend/tests/`) — noted as a known limitation in PLAN.md rather than something to solve now.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented all of PLAN.md's sub-tasks 1–4: added `_has_tests(username, repo_name)` to `GitHubTool`, modeled on the existing `_has_readme` pattern (fetches the repo's root contents listing, checks entry names against `tests`/`test`/`pytest.ini`/`test_*.py`, case-insensitively); wired `has_tests` into the `metadata` dict in `_fetch_repo_metadata`; and any request failure (404, rate-limit, etc.) returns `False` rather than raising, matching `_has_readme`'s behavior. Extended `tests/unit/test_github_tool.py` with URL-aware mocking covering the true case, the false/no-indicators case, and the contents-request-failure case — all 3 pass. Ran the full `tests/unit/` suite (53 pre-existing failures unrelated to this issue, unchanged from the Week 8 baseline of 54 minus our now-passing reproduction test) and `ruff check`/`ruff format --check`/`mypy` against the changed files — all clean, no new errors introduced.
+
+**Next steps:**
+Commit the change, open a draft PR, and request peer/mentor feedback per the Week 9 checklist before marking it ready for review.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1-3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
