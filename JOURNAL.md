@@ -36,3 +36,48 @@ I reproduced the issue by running two reviews for the same profile through one o
 
 **Blockers or open questions:**
 I need to confirm whether one `Orchestrator` instance can serve concurrent reviews and whether Redis session state is intended to support resuming an interrupted review. The planned review-local context avoids cross-review cache races without changing that future persistence contract.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented review-local memoization in the agent orchestrator so cached tool results
+cannot leak between reviews. Each review now replaces its persisted session data instead
+of merging with older results, and the focused regression suite has seven passing tests
+covering repeated reviews, empty plans, profile isolation, same-review memoization, and
+failed reruns.
+
+**Next steps:**
+Review the final diff, run the focused tests and required repository checks again, document
+the pre-existing failures, and prepare the change for peer or mentor feedback before
+submitting the pull request.
+
+**Blockers:**
+The baseline repository had 182 pre-existing lint errors; after this change it has 179,
+with the touched files passing Ruff and Black. The full unit suite went from 54 failures
+and 31 errors to 52 failures and 31 errors because the two Issue #43 reproductions now
+pass. The remaining failures are outside this issue.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** Pending final PR submission
+
+**Branch:** `fix/43-clear-agent-session`
+
+**What you built:**
+The orchestrator now creates a review-local memoization context and persists only the
+current review's results. This prevents earlier tool output from leaking into later
+reviews while preserving duplicate-call caching inside a single review.
+
+**Tests added or updated:**
+`tests/unit/test_orchestrator_session_isolation.py` covers fresh state between reviews,
+replacement of persisted state, empty plans, profile isolation, same-review memoization,
+and failed reruns.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(No new failures compared with the documented baseline.)
+
+**Draft PR feedback received from:** Pending peer or mentor review
