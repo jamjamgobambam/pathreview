@@ -39,3 +39,35 @@ Added a failing unit test (`tests/unit/test_stale_embeddings_repro.py`) that dri
 **Blockers or open questions:**
 - Where should the "current version" hash live — read back from chunk metadata (keeps the fix inside the files the issue names) or implement real `IngestedSource` persistence? Leaning toward metadata for scope.
 - Delete/add ordering: a naive "delete old then add new" risks wiping the good version if embedding fails. Deciding whether to delete only after the new chunks embed successfully.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Captured a baseline of pre-existing `make check` / `make test-unit` failures, then implemented the #27 fix in `ingestion/pipeline.py` per PLAN.md — all three sub-tasks: stable `source_id` + `content_hash` in metadata, content-based skip detection, and delete-before-add to clear stale chunks.
+
+**Next steps:**
+Finish the regression tests (replace / skip / orphan cases), confirm no new failures vs baseline, open a draft PR for feedback, then mark ready.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/510
+
+**Branch:** `fix/27-stale-vectordb-embeddings`
+
+**What you built:**
+Re-ingesting an edited README now replaces the previous version's chunks instead of leaving them behind. A README is identified by a stable `source_id` with a separate `content_hash`; unchanged content is skipped, and changed content deletes the old chunks (by `source_id`) before storing the new ones, so the retriever only ever sees the current version.
+
+**Tests added or updated:**
+`tests/unit/test_stale_embeddings_repro.py` — the Week 8 reproduction, now a passing regression suite: stable-identity, replace-on-edit (the original repro), skip-on-identical, and no-orphans-on-shorter-edit.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(In this codebase "passes" = no new failures: unit 54→53 with only the #27 repro fixed; ruff 182→182, mypy 5→5, black 52→52 — zero new issues.)
+
+**Draft PR feedback received from:** none
