@@ -130,17 +130,20 @@ class ResumeParser(BaseParser):
         text_lower = text.lower()
 
         for section in SECTION_HEADERS:
-            # Look for section header patterns.
-            # BUG (issue #147): these patterns anchor the header to the exact
-            # start of a line (`^`/`\n`). PDF-extracted text often keeps leading
-            # spaces/tabs, so an indented header (e.g. "    Experience:") matches
-            # nothing and detected_sections comes back empty. See regression test
-            # test_detect_sections_with_leading_whitespace.
+            # Look for section header patterns (issue #147).
+            # A header can carry leading indentation — PDF text extraction
+            # routinely preserves leading spaces/tabs (e.g. "    Experience:").
+            # `[ \t]*` after each line anchor absorbs that indentation. It is
+            # deliberately horizontal-only (not `\s*`) so a match cannot leak
+            # across a newline onto the following line. The trailing `\s*$` /
+            # `\s*[:|-]` boundary is kept so the header still has to end its
+            # field, which prevents substring false positives like
+            # "Work Experience Highlights".
             patterns = [
-                rf"^{re.escape(section)}\s*$",
-                rf"^{re.escape(section)}\s*[:|-]",
-                rf"\n{re.escape(section)}\s*$",
-                rf"\n{re.escape(section)}\s*[:|-]",
+                rf"^[ \t]*{re.escape(section)}\s*$",
+                rf"^[ \t]*{re.escape(section)}\s*[:|-]",
+                rf"\n[ \t]*{re.escape(section)}\s*$",
+                rf"\n[ \t]*{re.escape(section)}\s*[:|-]",
             ]
 
             for pattern in patterns:
