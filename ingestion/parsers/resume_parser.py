@@ -97,8 +97,8 @@ class ResumeParser(BaseParser):
 
     def _strip_markdown(self, content: str) -> str:
         """Remove markdown syntax from content."""
-        # Remove markdown headers
-        text = re.sub(r"^#+\s+", "", content, flags=re.MULTILINE)
+        # Remove markdown headers ([ \t]* tolerates leading indentation, issue #147)
+        text = re.sub(r"^[ \t]*#+\s+", "", content, flags=re.MULTILINE)
 
         # Remove markdown links [text](url)
         text = re.sub(r"\[([^\]]+)\]\(([^\)]+)\)", r"\1", text)
@@ -123,19 +123,19 @@ class ResumeParser(BaseParser):
 
         return text.strip()
 
-    # five test cases in test_resume_parser.py fail, problem seems to be in this method.
     def _detect_sections(self, text: str) -> list[str]:
         """Detect common resume sections from text."""
         detected = []
         text_lower = text.lower()
 
         for section in SECTION_HEADERS:
-            # Look for section header patterns
+            # Look for section header patterns.
+            # ``[ \t]*`` after the ``^`` anchor tolerates leading indentation
+            # (issue #147). With re.MULTILINE, ``^`` already matches at every
+            # line start, so separate ``\n``-anchored patterns are unnecessary.
             patterns = [
-                rf"^{re.escape(section)}\s*$",
-                rf"^{re.escape(section)}\s*[:|-]",
-                rf"\n{re.escape(section)}\s*$",
-                rf"\n{re.escape(section)}\s*[:|-]",
+                rf"^[ \t]*{re.escape(section)}\s*$",
+                rf"^[ \t]*{re.escape(section)}\s*[:|-]",
             ]
 
             for pattern in patterns:
