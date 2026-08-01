@@ -32,3 +32,16 @@ I ran `pytest tests/unit/test_relevance_scorer.py -q` and was able to reproduce 
 
 **Blockers or open questions:**
 Still need to confirm the exact scoring formula in `RelevanceScorer.score()` before finalizing new fixture values.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed the fix for issue #157 by modifying the fixture in `test_query_with_partial_overlap` (`tests/unit/test_relevance_scorer.py`) so the chunk text overlaps with only 2 of the 4 query tokens, resulting in a relevance score of 0.5 that falls within the expected 0.3–0.9 range. Ran `make test-unit` before and after the update to verify the change was isolated: 53 failures beforehand (all pre-existing and unrelated), 52 afterward, with the only difference being the target test now passing. Created a draft PR (#484), completed the required template, and documented that the remaining mypy and lint issues were already present and unrelated to this fix.
+
+**Next steps:**
+Waiting on peer review after posting a request in both my section Slack channel and the `#ai201-community-su26` channel. After receiving feedback, or once the review window has passed, I'll respond to any comments, mark the PR as ready for review, and complete one final self-review against `CONTRIBUTING.md` before Sunday's deadline.
+
+**Blockers:**
+No implementation blockers at this point. The only outstanding item is peer review, which has been requested but I haven't received any feedback yet.
