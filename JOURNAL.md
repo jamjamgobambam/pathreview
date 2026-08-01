@@ -51,7 +51,7 @@ None. I did find two endpoints that exist in the code but aren't documented at a
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/500
 
 **Branch:** docs/117-api-curl-examples
 
