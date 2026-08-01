@@ -84,7 +84,7 @@ None.
 ---
 ### Check-in 2 - Will complete after PR
 
-**PR link:** [paste PR URL here]
+**PR link:** [#457](https://github.com/ascherj/pathreview/pull/457)
 
 **Branch:** `test/75-safety-middleware-integration-tests`
 
@@ -100,4 +100,4 @@ An end-to-end integration test for the safety middleware chain. A `run_safety_pi
 
 **Draft PR feedback received from:** peer reviewer (cohort).
 
-**Review response:** The reviewer confirmed the tests exercise the real guards end to end and that the `fired()` set correctly proves guard isolation. They raised four points: (1) `run_safety_pipeline` hand-assembles the guards rather than importing production wiring, so composition/ordering isn't verified against production; (2) the sanitize-delimiter test asserts the end state rather than isolating `sanitize`; (3) confirm the tests actually run under `make test-integration` and aren't silently deselected; and (4) general praise. I looked over the suggestions and concluded no code changes were needed: point 1 is out of scope for #75 (the issue explicitly excludes changes to `review_service._run_safety_checks`), so I instead documented in the PR that production ordering remains unverified; point 2 the reviewer themself marked "fine as is"; and point 3 I verified directly — all 11 tests pass under `pytest tests/integration -v -m integration` with the `integration` marker registered in `pyproject.toml` and no Docker required, so the checklist claim holds.
+**Review response:** My reviewer is Shawn Blackman. The reviewer confirmed the tests exercise the real guards end to end and that the `fired()` set correctly proves guard isolation. They raised four points: (1) `run_safety_pipeline` hand-assembles the guards rather than importing production wiring, so composition/ordering isn't verified against production; (2) the sanitize-delimiter test asserts the end state rather than isolating `sanitize`; (3) confirm the tests actually run under `make test-integration` and aren't silently deselected; and (4) general praise. I looked over the suggestions and concluded no code changes were needed: point 1 is out of scope for #75 (the issue explicitly excludes changes to `review_service._run_safety_checks`), so I instead documented in the PR that production ordering remains unverified; point 2 the reviewer themself marked "fine as is"; and point 3 I verified directly — all 11 tests pass under `pytest tests/integration -v -m integration` with the `integration` marker registered in `pyproject.toml` and no Docker required, so the checklist claim holds.
