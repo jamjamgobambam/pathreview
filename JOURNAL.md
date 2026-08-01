@@ -102,7 +102,7 @@ documenting these; my change introduces zero new failures.
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/newairforces/pathreview/pull/1
+**PR link:** https://github.com/ascherj/pathreview/pull/515
 
 **Branch:** `fix/147-resume-section-leading-whitespace`
 
