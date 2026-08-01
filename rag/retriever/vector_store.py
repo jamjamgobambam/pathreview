@@ -113,7 +113,11 @@ class VectorStore:
         return retrieved
 
     def delete_by_source_id(self, source_id: str, collection_name: str) -> None:
-        """Delete all chunks from a source (for re-ingestion).
+        """Delete all chunks with an exact source_id (a single content version).
+
+        ``source_id`` embeds the content hash, so this only matches one version of
+        a document. To clear every version of a document on re-ingestion, use
+        :meth:`delete_by_document_id` with the content-independent document key.
 
         Args:
             source_id: Source identifier
@@ -130,3 +134,28 @@ class VectorStore:
             collection.delete(ids=all_docs["ids"])
             logger.info("deleted_by_source", source_id=source_id,
                        count=len(all_docs["ids"]), collection=collection_name)
+
+    def delete_by_document_id(self, document_id: str, collection_name: str) -> None:
+        """Delete every chunk belonging to a document, across all its versions.
+
+        Chunks are tagged with a stable ``document_id`` that is independent of the
+        content hash, so this removes the previously ingested version of a
+        document before its replacement is stored. This is what keeps the store
+        from returning stale chunks after a document is re-ingested (issue #27).
+        Safe no-op when no chunks match.
+
+        Args:
+            document_id: Stable, content-independent document identifier
+                (e.g. ``readme_{profile_id}_{repo_name}``).
+            collection_name: Collection to delete from.
+        """
+        collection = self.get_collection(collection_name)
+
+        stale = collection.get(
+            where={"document_id": {"$eq": document_id}}
+        )
+
+        if stale["ids"]:
+            collection.delete(ids=stale["ids"])
+            logger.info("deleted_by_document", document_id=document_id,
+                       count=len(stale["ids"]), collection=collection_name)

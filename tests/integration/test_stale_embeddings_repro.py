@@ -1,108 +1,92 @@
-"""Reproduction for issue #27 — stale embeddings persist after README re-ingestion.
+"""Regression test for issue #27 — stale embeddings after README re-ingestion.
 
 https://github.com/ascherj/pathreview/issues/27
 
-Root cause
+Background
 ----------
-When a README is updated and re-ingested, the ingestion pipeline never removes
-the previously stored chunks, so the vector store ends up holding BOTH the old
-and the new embeddings. Two facts in the codebase combine to cause this:
+When a README was updated and re-ingested, the ingestion pipeline never removed
+the previously stored chunks, so the vector store held BOTH the old and the new
+embeddings and the retriever could surface content the current README no longer
+contained. Two facts combined to cause it:
 
-1. `ingestion/pipeline.py::IngestionPipeline.ingest_readme` builds the source id
-   as ``f"readme_{profile_id}_{repo_name}_{self._hash_content(content)}"``. The
-   content hash is part of the id, so an edited README produces a *different*
-   source_id and its chunks land under brand-new ids instead of overwriting the
-   old ones.
+1. ``IngestionPipeline.ingest_readme`` built the source id with the content hash
+   baked in, so an edited README produced a *different* id and its chunks landed
+   under brand-new ids instead of overwriting the old ones.
+2. ``VectorStore.delete_by_source_id`` existed but was never called, so nothing
+   evicted the previous version's chunks.
 
-2. `rag/retriever/vector_store.py::VectorStore.delete_by_source_id` exists but is
-   never called anywhere in the pipeline (verified: it has no callers). Nothing
-   ever evicts the previous version's chunks.
+The fix keys each chunk on a stable, content-independent ``document_id`` and has
+the pipeline delete that document's existing chunks before storing the new
+version. This test was originally the reproduction (asserting both versions
+coexisted); the assertions are now inverted to guard the fix — re-ingesting an
+updated README must leave only the current content behind.
 
-Result: the retriever can surface chunks that describe content the current
-README no longer contains.
-
-This test reproduces the bug by mimicking exactly what the pipeline does today
-(embedding id == ``f"{source_id}_chunk_{chunk_index}"`` per
-`ingestion/embeddings/batch_processor.py::_store_embedding`). It asserts the
-CURRENT (buggy) behavior so it passes today and proves the bug is real. Once the
-fix lands, the assertion marked ``BUG`` below should be inverted to assert that
-the stale chunk is gone.
+This drives the real ``IngestionPipeline`` (parser + structural chunker + batch
+processor) against an in-memory ChromaDB collection using the deterministic
+``MockEmbeddingProvider``.
 """
 
-import hashlib
+import uuid
+from unittest.mock import Mock
 
 import chromadb
 import pytest
-from chromadb.api.models.Collection import Collection
+
+from ingestion.embeddings.provider import MockEmbeddingProvider
+from ingestion.pipeline import IngestionPipeline
 
 
-def _hash_content(content: str) -> str:
-    """Mirror IngestionPipeline._hash_content."""
-    return hashlib.sha256(content.encode()).hexdigest()[:16]
-
-
-def _readme_source_id(profile_id: str, repo_name: str, content: str) -> str:
-    """Mirror the source_id scheme in IngestionPipeline.ingest_readme."""
-    return f"readme_{profile_id}_{repo_name}_{_hash_content(content)}"
-
-
-def _ingest(
-    collection: Collection,
-    profile_id: str,
-    repo_name: str,
-    content: str,
-    embedding: list[float],
-) -> str:
-    """Simulate one README ingestion the way the pipeline does it today.
-
-    Stores a single chunk (chunk_index=0) with an id of
-    ``f"{source_id}_chunk_0"`` — matching batch_processor._store_embedding.
-    Critically, it performs NO deletion of prior chunks, exactly like the
-    real pipeline.
-    """
-    source_id = _readme_source_id(profile_id, repo_name, content)
-    embedding_id = f"{source_id}_chunk_0"
-    collection.add(
-        ids=[embedding_id],
-        embeddings=[embedding],
-        documents=[content],
-        metadatas=[{"source_id": source_id, "chunk_index": 0, "source_type": "readme"}],
+def _make_pipeline() -> tuple[IngestionPipeline, "chromadb.api.models.Collection.Collection"]:
+    client = chromadb.EphemeralClient()
+    collection = client.create_collection(
+        name=f"readme_regression_{uuid.uuid4().hex}", metadata={"hnsw:space": "cosine"}
     )
-    return source_id
+    pipeline = IngestionPipeline(
+        vector_db=collection,
+        db_session=Mock(),
+        embedding_provider=MockEmbeddingProvider(),
+    )
+    return pipeline, collection
 
 
 @pytest.mark.integration
-def test_stale_embeddings_remain_after_readme_reingestion() -> None:
-    """Re-ingesting an updated README leaves the old chunk in the store."""
-    client = chromadb.EphemeralClient()
-    collection = client.create_collection(name="readme_repro", metadata={"hnsw:space": "cosine"})
-
+def test_reingested_readme_leaves_no_stale_chunks() -> None:
+    """Re-ingesting an updated README replaces the old chunk instead of adding to it."""
+    pipeline, collection = _make_pipeline()
     profile_id, repo_name = "profile1", "weather-app"
 
     # --- v1: original README, mentions "Flask" ---
     old_content = "# Weather App\nBuilt with Flask and a REST API."
-    old_source_id = _ingest(collection, profile_id, repo_name, old_content, [0.1, 0.2, 0.3])
+    pipeline.ingest_readme(profile_id, repo_name, old_content)
 
     # --- v2: README edited; "Flask" replaced with "FastAPI" ---
     new_content = "# Weather App\nBuilt with FastAPI and a REST API."
-    new_source_id = _ingest(collection, profile_id, repo_name, new_content, [0.11, 0.21, 0.31])
+    pipeline.ingest_readme(profile_id, repo_name, new_content)
 
-    # The content change produced a different source_id, so nothing overwrote v1.
-    assert old_source_id != new_source_id
+    stored_docs = collection.get()["documents"]
 
-    stored = collection.get()
-    stored_docs = stored["documents"]
+    # Fixed behavior (issue #27): only the current README survives.
+    assert any("FastAPI" in d for d in stored_docs), "current README content is missing"
+    assert not any("Flask" in d for d in stored_docs), "stale v1 chunk was not evicted"
 
-    # BUG (issue #27): BOTH versions are present. The store should contain only
-    # the current README, but the stale "Flask" chunk was never evicted.
-    assert old_content in stored_docs, "expected the stale v1 chunk to still be present (bug)"
-    assert new_content in stored_docs
-    assert (
-        len(stored["ids"]) == 2
-    ), f"expected 2 chunks (1 stale + 1 current), got {len(stored['ids'])}"
-
-    # A retrieval can therefore return outdated content ("Flask") that no longer
-    # reflects the live README ("FastAPI").
-    hits = collection.query(query_embeddings=[[0.1, 0.2, 0.3]], n_results=2)
+    # A retrieval can therefore never return the outdated "Flask" content.
+    query_vec = MockEmbeddingProvider().embed([old_content])[0]
+    hits = collection.query(query_embeddings=[query_vec], n_results=5)
     returned_docs = hits["documents"][0]
-    assert old_content in returned_docs, "retriever returned the stale chunk (bug reproduced)"
+    assert all("Flask" not in d for d in returned_docs), "retriever returned a stale chunk"
+
+
+@pytest.mark.integration
+def test_unchanged_readme_is_not_reembedded() -> None:
+    """Re-ingesting identical content is skipped rather than deleted and rewritten."""
+    pipeline, collection = _make_pipeline()
+    content = "# Weather App\nBuilt with FastAPI and a REST API."
+
+    first = pipeline.ingest_readme("profile1", "weather-app", content)
+    ids_after_first = set(collection.get()["ids"])
+
+    second = pipeline.ingest_readme("profile1", "weather-app", content)
+
+    assert first.skipped is False
+    assert second.skipped is True
+    assert set(collection.get()["ids"]) == ids_after_first
