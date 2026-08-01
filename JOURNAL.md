@@ -14,3 +14,14 @@ FaithfulnessChecker._is_supported() (rag/evaluator/faithfulness_checker.py) mark
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/gzam1028/pathreview/commit/a49fe21
+
+**Reproduction summary:** Added a failing unit test in `tests/unit/test_faithfulness_checker.py` showing that `FaithfulnessChecker._is_supported()` requires at least two non-stop-word tokens to overlap between a claim and the context, regardless of how many content words the claim actually has. A short claim like "Good communicator" (2 meaningful tokens: "good", "communicator") is checked against the paraphrased context "Excellent communicator with clients and stakeholders" — only "communicator" overlaps (1 token, since "excellent" isn't "good"), so it's marked unsupported even though the claim is clearly true. The test asserts `supported is True` and currently fails with `assert False is True`, proving the bug is real and not just a misreading of the issue description.
+
+**PLAN.md link:** https://github.com/gzam1028/pathreview/blob/fix/152-faithfulness-short-claims-not-supported/PLAN.md
+
+**Blockers or open questions:**
+The fix will require flipping the expected value of an existing test (`test_minimum_overlap_required`) since it currently documents the same buggy threshold behavior on purpose. Need to make sure that change is explained clearly in the PR so it doesn't look like an accidental regression. No blockers on the environment or reproduction itself.
