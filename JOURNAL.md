@@ -27,3 +27,36 @@ I reproduced the issue by adding a temporary `raise RuntimeError("Test error")` 
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I added `exc_info=True` to all `logger.error` calls in `agent/orchestrator.py` and `agent/error_handling.py`. This makes structlog emit the full exception traceback whenever a tool fails, instead of just the error string. I also created `tests/unit/test_orchestrator.py` and `tests/unit/test_error_handling.py` with 44 new unit tests, including tests that specifically assert `exc_info=True` is present in the logged calls. All 44 pass.
+
+**Next steps:**
+Open a draft PR, request peer feedback in Slack, and fill in Check-in 2 with the PR link before Sunday.
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
