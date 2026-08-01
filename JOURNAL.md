@@ -131,3 +131,41 @@ Docker image pulls for local services were blocked by repeated EOF errors, so fu
 
 **Week 8 current status:**
 `PLAN.md` has been created, the issue has been reproduced, the solution plan is documented, the focused fix is implemented, the PR is open, and relevant mocked unit tests are passing.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+The solution is complete. I updated `api/routes/health.py` so the Redis health check uses the existing `settings.redis_url` configuration, and I added focused mocked unit tests in `tests/unit/test_health.py`. The PR is already open.
+
+**Next steps:**
+Review the changed files and PR, keep the journal current, and complete any additional validation that is available locally.
+
+**Blockers:**
+Docker-backed runtime validation is blocked by repeated EOF errors while pulling `postgres:16-alpine`, `redis:7-alpine`, and `chromadb/chroma:0.4.22`. The full Docker environment could not be started. `make check` and `make test-unit` were not run, so they are not marked as passing.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/171
+
+**Branch:** `fix/155-health-check-redis-settings`
+
+**What I built:**
+I fixed the Redis health check to construct its client from `settings.redis_url` instead of the missing `settings.redis_host` and `settings.redis_port` settings.
+
+**Tests added or updated:**
+Added `tests/unit/test_health.py` with mocked tests covering a healthy health check and verification that the configured Redis URL is used. The focused commands passed with 21 tests total:
+
+```powershell
+.\.venv\Scripts\python -m pytest tests/unit/test_health.py -v
+.\.venv\Scripts\python -m pytest tests/unit/test_health.py tests/unit/test_rate_limiter.py -v
+```
+
+`make check` and `make test-unit` were not run locally. Docker-backed validation remains blocked by the image pull EOF errors described above.
+
+**Self-review confirmation:**
+I reviewed the implementation and tests for scope, correctness, and valid Markdown formatting. The fix remains limited to the Redis settings mismatch and its focused tests.
+
+**Draft PR feedback received from:**
+none yet
