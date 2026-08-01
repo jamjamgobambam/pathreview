@@ -73,3 +73,29 @@ Reproduction confirmed: portfolio_url is accepted and stored on Profile, but no 
 
 **Blockers or open questions:**
 `IngestionPipeline` currently has no live caller anywhere in the app — resume and readme ingestion aren't wired into any route either, only stored directly on the `Profile` row. Need to confirm with mentors/instructors whether wiring `ingest_portfolio_url` into `api/routes/profiles.py` is expected to also surface/fix this broader wiring gap, or whether it's acceptable to scope this issue narrowly to the portfolio-URL path only.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All 5 sub-tasks from PLAN.md's "Plan" section are implemented:
+
+1. `ingestion/parsers/web_page_parser.py` — new `WebPageParser` fetches a URL via `httpx` (10s timeout, follows redirects), validates `Content-Type` is HTML, and extracts text with `BeautifulSoup` (stripping `script`/`style`/`nav`/`footer`/`noscript` tags).
+2. `ingestion/pipeline.py` — added `ingest_portfolio_url(profile_id, url)`, following the same structure as `ingest_readme`. Also completed `_check_skip()` and `_record_ingested_source()`, which were previously stub/placeholder methods — they now actually query and persist to the `ingested_sources` table via SQLAlchemy, which resume/readme/repo ingestion benefit from too.
+3. `ingestion/chunking/strategy_selector.py` — added a `"web"` branch. Deviated from PLAN.md's suggestion of `StructuralChunker`: web pages are stripped to plain text with no markdown headings, so the heading-based structural chunker would produce zero chunks. Mapped to `SemanticChunker` instead, with a comment explaining why.
+4. `api/routes/profiles.py` — wired `ingest_portfolio_url` into both `create_profile_endpoint` and `update_profile_endpoint` via a new `get_ingestion_pipeline` FastAPI dependency. Ingestion runs best-effort: a slow or unreachable portfolio site logs a warning but does not fail profile creation/update, since there's no background job infra in this codebase to defer it to.
+5. `pyproject.toml` — added `beautifulsoup4` as a dependency for real HTML parsing (in place of a regex-only fallback).
+
+New tests: `tests/unit/test_web_page_parser.py` (8 tests: HTML stripping, empty/SPA pages, bytes input, invalid content type, missing title, successful fetch, HTTP error, non-HTML content type) and `tests/unit/test_pipeline.py` (4 tests: happy path, skip-if-already-ingested via content hash, fetch failure propagation, no-extractable-text edge case). All 12 pass.
+
+Verified no regressions: `make test-unit` baseline (before this work) was 57 failed / 383 passed; after, 53 failed / 387 passed — the same pre-existing failures, minus 4 that only failed because this code didn't exist yet. `make check` deltas (2 new mypy findings, a few new ruff `B008` instances) are all the same pre-existing conventions already used throughout `api/routes/profiles.py` (untyped `db` params, `Depends()` in argument defaults) — no new categories of lint/type debt introduced.
+
+**Next steps:**
+- Run `make check` in full (lint + format + typecheck) one more time across the whole repo to confirm.
+- Read `docs/CONTRIBUTING.md` and double check branch naming, commit message, and docstring conventions before opening the PR.
+- Open a draft PR early and ask for peer/mentor feedback per the Week 9 instructions.
+- Fill in the PR template and write the description, calling out the pre-existing failures explicitly as instructed.
+
+**Blockers:**
+None currently — the open question from Week 8 (whether to also fix the broader "pipeline has no caller" gap for resume/readme) resolved itself naturally: completing `_check_skip`/`_record_ingested_source` for real was necessary for portfolio-URL dedup to work at all, so it also benefits the other source types as a side effect, without expanding scope beyond issue #11's route-wiring for `portfolio_url`.
