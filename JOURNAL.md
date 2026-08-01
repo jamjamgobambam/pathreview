@@ -58,7 +58,7 @@ None — the fix is a one-line change. Will run the full test suite after applyi
 **PR link:** https://github.com/ascherj/pathreview/pull/503
 
 **What changed from the plan:**
-No deviations. The fix matched the plan exactly. The only extra work was patching Redis/settings mocks in tests since those probes also run in the handler and would fail in a unit test environment without a live Docker stack.
+No deviations. The fix matched the plan exactly. The only extra work was patching Redis/settings mocks in the happy-path unit tests, since the handler also runs Redis and vector-DB probes — patching them keeps the tests focused on the postgres probe (the scope of this fix) and makes them runnable without a live stack.
 
 **Self-review against project standards:**
 - [x] `make test-unit` — 6 new tests pass, no regressions
