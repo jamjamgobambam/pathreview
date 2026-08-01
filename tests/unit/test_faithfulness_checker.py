@@ -215,8 +215,9 @@ class TestFaithfulnessChecker:
 
         supported = checker._is_supported(claim, context)
 
-        # Despite word overlap, should look for meaningful overlap (not stop words)
-        # This depends on implementation
+        # Support comes from meaningful overlap ("project", "documented"), not
+        # from shared stop words like "the"/"is" — so this is still supported.
+        assert supported is True
 
     def test_minimum_overlap_required(self, checker):
         """Test that minimum meaningful overlap is required for support."""
