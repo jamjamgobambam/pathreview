@@ -55,9 +55,10 @@ submitting the pull request.
 
 **Blockers:**
 The baseline repository had 182 pre-existing lint errors; after this change it has 179,
-with the touched files passing Ruff and Black. The full unit suite went from 54 failures
-and 31 errors to 52 failures and 31 errors because the two Issue #43 reproductions now
-pass. The remaining failures are outside this issue.
+with the touched files passing Ruff and Black. `make test-unit` reports the same 53
+pre-existing failures before and after this change (baseline: 53 failed / 375 passed;
+after: 53 failed / 382 passed, 0 errors) — this change adds 7 new passing isolation tests
+and introduces no new failures. The remaining failures are outside this issue.
 
 ---
 
