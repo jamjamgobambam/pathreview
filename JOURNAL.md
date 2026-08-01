@@ -46,3 +46,52 @@ explicitly `None`.
 Still need to grep `ingestion/` and `agent/` to confirm whether the same
 `.get("text", ...)` pattern appears elsewhere before finalizing the full fix
 scope for Week 9.
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in `rag/evaluator/faithfulness_checker.py` — changed
+`chunk.get("text", "")` to `chunk.get("text") or ""` (sub-tasks 1–2 from
+PLAN.md). Added 2 new unit tests in `tests/unit/test_faithfulness_checker.py`
+covering all-None-chunks and mixed-None-and-valid-chunk cases (sub-task 4).
+Ran the full `tests/unit` suite and confirmed the fix introduces no new
+failures — 377 passed both before and after, with 52 pre-existing failures
+unrelated to this change (verified 3 of those in my own test file fail
+identically on unmodified `main` via `git stash`). Applied `black`
+formatting to both touched files.
+
+**Next steps:**
+Open a draft PR, request peer/mentor feedback in Slack, and finalize the PR
+description before Sunday's deadline.
+
+**Blockers:**
+None.
+
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/387
+
+**Branch:** fix/153-faithfulness-checker-none-text
+
+**What you built:**
+Fixed a `TypeError` crash in `FaithfulnessChecker.check()` that occurred
+when a context chunk's `"text"` field was explicitly `None`. Changed
+`chunk.get("text", "")` to `chunk.get("text") or ""` so `None` values are
+coerced to empty strings before being joined into the context string.
+
+**Tests added or updated:**
+Added `test_all_none_context_chunks` and
+`test_mixed_none_and_valid_context_chunks` to
+`tests/unit/test_faithfulness_checker.py`, covering the case where every
+context chunk has `None` text and the case where a `None` chunk is mixed
+with a valid one. The existing `test_none_context_chunk_text` (previously
+failing) now passes with this fix.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(confirmed via equivalent `ruff`/`black`/`mypy` commands on the two files
+this PR touches, since `make` isn't available on Windows PowerShell; 52
+pre-existing failures across the full suite are unrelated to this change,
+documented in the PR description)
+
+**Draft PR feedback received from:** None
