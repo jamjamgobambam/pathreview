@@ -88,3 +88,25 @@ There are no blockers specific to issue #50. The repository still contains unrel
 https://github.com/ascherj/pathreview/pull/527
 
 **PR status:** Open and ready for review
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/527
+
+**Branch:** `feat/50-add-has-tests`
+
+**What you built:**
+
+I added a `has_tests` Boolean to the GitHub repository analysis output. `GitHubTool` now retrieves the repository tree from the default branch and detects `tests/`, `test/`, `pytest.ini`, and Python files named `test_*.py`.
+
+**Tests added or updated:**
+
+I added `tests/unit/test_github_tool.py` with 9 focused tests covering positive and negative detection cases, repository-tree retrieval, metadata integration, and empty repositories. All 9 focused tests pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+The full checks still contain documented pre-existing failures, but this contribution introduced no new failures. The focused files pass Ruff, Black, and Mypy.
+
+**Draft PR feedback received from:** none
