@@ -46,3 +46,22 @@ Share the PR in Slack for peer/mentor feedback, address anything that comes back
 
 **Blockers:**
 None currently - waiting on peer/mentor review before finalizing.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/489
+
+**Branch:** docs/119-service-docstrings
+
+**What you built:**
+Added Google-style docstrings (description, Args, Returns, Raises) to every function in `core/services/profile_service.py` (4 functions) and `core/services/review_service.py` (9 functions, including 4 private `_run_*` helpers). No runtime behavior changed - this is a documentation-only fix, with accompanying `db: AsyncSession` type annotations needed to get the mypy pre-commit hook passing.
+
+**Tests added or updated:**
+None added or updated. Since this is a docstring-only change with no behavior modification, there's nothing new to test. Confirmed via baseline diff that `make test-unit`'s 53 failures are all pre-existing and unrelated (identical failure set on the commit before my changes).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both pass in the sense required for a codebase with documented pre-existing failures: my two changed files are clean under `ruff`/`mypy`, and my changes introduce zero new test failures.)
+
+**Draft PR feedback received from:** none - posted in the course Slack channel with time to spare before the deadline, no response received.
