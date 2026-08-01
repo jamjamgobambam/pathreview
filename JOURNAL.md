@@ -37,11 +37,11 @@ None.
 
 
 ### Check-in 2 (end of week)
-**PR link:** [I will add this link after opening the PR]
+**PR link:** YOUR_PR_LINK_HERE
 **Branch:** fix/155-redis-host-settings
 **What you built:**
-I fixed an `AttributeError` in the `/health` endpoint caused by missing Redis configuration fields. I updated the `Settings` class in `core/config.py` to include `redis_host` and `redis_port` with standard localhost defaults, matching the project's Pydantic `Field` patterns. This allows the health check to gracefully probe Redis without crashing the application.
+I fixed an `AttributeError` in the `/health` endpoint that crashed the application. Based on peer feedback, instead of polluting the `Settings` model with redundant `redis_host` and `redis_port` fields, I refactored `api/routes/health.py` to directly use the existing `settings.redis_url` via `redis.Redis.from_url()`. This keeps the configuration DRY while allowing the health check to execute gracefully.
 **Tests added or updated:**
-I created a new test file `tests/unit/test_config.py` because the configuration module previously lacked tests. I added `test_settings_redis_defaults` which verifies that the `Settings` model correctly initializes the new `redis_host` and `redis_port` fields with the expected default values.
+I created `tests/unit/test_health.py` and added `test_health_endpoint_resolves_without_crash` which uses a FastAPI `TestClient` to verify the endpoint returns a valid 200 or 503 status code instead of a 500 Internal Server Error.
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
-**Draft PR feedback received from:** none
+**Draft PR feedback received from:** @fperezrugama (implemented their suggested from_url refactor and route testing)
