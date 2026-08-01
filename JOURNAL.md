@@ -30,3 +30,34 @@ Ran `pytest tests/unit/test_review_service.py -q` in my local environment and ob
 
 **Blockers or open questions:**
 None at this time. The issue is fully isolated to mock setup within `tests/unit/test_review_service.py`.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Refactored the `mock_db_session` fixture in `tests/unit/test_review_service.py` to fix the async/sync mock boundary. Changed `db.execute` to an `AsyncMock` returning a synchronous `MagicMock` for result objects, resolving the `AttributeError: 'coroutine' object has no attribute 'first'` error.
+
+**Next steps:**
+Update all individual test cases in `test_review_service.py` to use the updated fixture pattern, verify all 19 tests pass, and run `make check` and `make test-unit`.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** fix/158-async-mocks
+
+**What you built:**
+Fixed the unit test mock setup in `tests/unit/test_review_service.py` by ensuring `db.execute` returns a synchronous `MagicMock` result object. This allows `.scalars().first()` and `.scalars().all()` to be called synchronously on query results, restoring all 19 unit tests to passing status without altering production code.
+
+**Tests added or updated:**
+Updated `tests/unit/test_review_service.py`. Fixed mock session fixtures and query expectations across all 19 unit tests covering `review_service.py` CRUD operations (get, create, update, delete, list).
+
+**Self-review confirmation:** [x] make check passes [x] make test-unit passes
+
+**Draft PR feedback received from:** none
