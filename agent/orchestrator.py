@@ -58,7 +58,7 @@ class Orchestrator:
                 logger.info("tool_executed", tool=tool_name, success=True)
 
             except Exception as e:
-                logger.error("tool_execution_failed", tool=tool_name, error=str(e))
+                logger.error("tool_execution_failed", tool=tool_name, error=str(e), exc_info=True)
                 results[tool_name] = {"error": str(e), "success": False}
 
         # Persist state
@@ -166,10 +166,10 @@ class Orchestrator:
             return result
 
         except TimeoutError:
-            logger.error("tool_timeout", tool=tool_name, timeout=self.tool_timeout)
+            logger.error("tool_timeout", tool=tool_name, timeout=self.tool_timeout, exc_info=True)
             raise
         except Exception as e:
-            logger.error("tool_execution_error", tool=tool_name, error=str(e))
+            logger.error("tool_execution_error", tool=tool_name, error=str(e), exc_info=True)
             raise
 
     def _execute_with_timeout(self, tool, tool_input: dict, timeout: Optional[float] = None):

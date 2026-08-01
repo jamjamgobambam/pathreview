@@ -42,7 +42,7 @@ def retry_with_backoff(max_retries: int = 3, backoff_factor: float = 2.0,
                         time.sleep(wait_time)
                     else:
                         logger.error("retry_exhausted", func=func.__name__,
-                                   max_retries=max_retries, error=str(e))
+                                   max_retries=max_retries, error=str(e), exc_info=True)
 
             if last_exception:
                 raise last_exception
@@ -93,5 +93,5 @@ class RetryContext:
             return True  # Suppress exception and retry
 
         logger.error("retry_context_exhausted", attempt=self.attempt,
-                   max_retries=self.max_retries, error=str(exc_val))
+                   max_retries=self.max_retries, error=str(exc_val), exc_info=True)
         return False  # Re-raise exception
