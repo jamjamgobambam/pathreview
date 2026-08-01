@@ -51,17 +51,11 @@ ready for review.
 None so far. Noted a separate pre-existing bug in the Redis check
 (settings.redis_host/redis_port don't exist on Settings) out of scope
 for #154, documented it in the PR notes rather than fixing it here.
-
----
-
-Good — that's your PR description, well done. Now Check-in 2 in JOURNAL.md is a separate, shorter thing: a summary of the PR for your journal, not a repeat of the PR itself. Here's a version tailored to what you've actually done, using real content instead of placeholders:
-
-markdown
 ---
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/hoanggddo/pathreview/pull/[379]
+**PR link:** https://github.com/hoanggddo/pathreview/pull/379
 
 **Branch:** fix/154-health-check-raw-sql-string
 
@@ -87,3 +81,4 @@ in the PR notes — confirmed present on main before this change and not
 introduced by it.)
 
 **Draft PR feedback received from:** none
+
