@@ -85,3 +85,92 @@ E    +  where '' = <LogCaptureFixture>.text
 - Need to confirm empirically that the import-time bound logger in
   `ingestion/embeddings/batch_processor.py` picks up the test fixture's
   reconfiguration (depends on `cache_logger_on_first_use=False`).
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Working from `PLAN.md`, I completed the core sub-tasks:
+- **Sub-task 1 — lock in the reproduction (done Week 8):** confirmed
+  `test_empty_chunks_list_returns_empty` fails with an empty `caplog`, while the
+  warning shows under *Captured stdout*.
+- **Sub-task 2 — add the `autouse` fixture in `tests/conftest.py` (done):**
+  `structlog_to_stdlib_logging` reconfigures structlog to end its processor chain
+  with `structlog.stdlib.render_to_log_kwargs`, using
+  `logger_factory=structlog.stdlib.LoggerFactory()`,
+  `wrapper_class=structlog.stdlib.BoundLogger`, and
+  `cache_logger_on_first_use=False`, then calls `structlog.reset_defaults()` on
+  teardown.
+- **Sub-task 3 — level/propagation (done):** confirmed warning/error records are
+  captured at the default root level; info-level assertions use
+  `caplog.set_level(logging.INFO)` (the idiomatic pytest approach), demonstrated
+  in the new tests.
+- **Sub-task 5 — decide the config home (done):** chose the test-scoped
+  `conftest.py` fixture over modifying `configure_logging()`, so dev/prod log
+  rendering is untouched. Also empirically confirmed the Week 8 open question:
+  the import-time bound logger in `batch_processor.py` **does** pick up the
+  fixture config because `cache_logger_on_first_use=False` makes the lazy proxy
+  re-read configuration per call.
+
+**Next steps:**
+- Finish sub-task 4 (verify against the full unit suite) and write dedicated
+  regression tests in `tests/unit/test_logging_caplog.py`.
+- Run `make check` and `make test-unit`, record the pre-existing-failure
+  baseline, and confirm my changes add no new failures.
+- Open the PR against `ascherj/pathreview`, request peer review, and finalize.
+
+**Blockers:**
+None. (The codebase has many pre-existing `make check`/`make test-unit`
+failures unrelated to this issue — see Check-in 2 for how I handled the
+baseline.)
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _<!-- PASTE the live PR URL here once opened, e.g. https://github.com/ascherj/pathreview/pull/NNN -->_
+
+**Branch:** `fix/159-structlog-pytest-caplog`
+
+**What you built:**
+An `autouse` pytest fixture (`structlog_to_stdlib_logging` in
+`tests/conftest.py`) that reconfigures structlog during the test run to route
+events through the standard-library `logging` pipeline via
+`structlog.stdlib.render_to_log_kwargs` + `LoggerFactory`, with
+`cache_logger_on_first_use=False`. This produces real `LogRecord`s that pytest's
+`caplog` can capture, so log-based assertions work suite-wide again, and it
+restores structlog defaults on teardown so no state leaks between tests. No
+application code changes — dev (`ConsoleRenderer`) and prod (`JSONRenderer`)
+output are unaffected.
+
+**Tests added or updated:**
+- `tests/conftest.py` — added the `structlog_to_stdlib_logging` autouse fixture.
+- `tests/unit/test_logging_caplog.py` (new) — regression tests covering: a
+  warning appears in `caplog.text`; the event becomes a `LogRecord` with the
+  correct level; info-level capture after `caplog.set_level(INFO)`; error-level
+  capture; bound structured fields (e.g. `chunk_count=42`) attach to the record
+  without breaking the message; and a logger bound at import time
+  (`BatchEmbeddingProcessor`) is captured — the original issue #159 scenario.
+- `tests/unit/test_batch_processor.py::test_empty_chunks_list_returns_empty` —
+  the pre-existing reproduction test now passes unchanged.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+> **Pre-existing failures (documented per course guidance).** Before making any
+> changes I recorded a baseline on the clean branch: `make test-unit` = **53
+> failed / 375 passed**; `ruff check .` = **182 errors**; `black --check .` = 52
+> files would reformat; `mypy` (scope `api/ core/ ingestion/ rag/ agent/
+> safety/`) = **5 errors** (missing third-party stubs + a numpy/py3.12 stub
+> issue). After my changes: unit tests = **52 failed / 382 passed** — my fix
+> repairs 1 pre-existing failure (`test_empty_chunks_list_returns_empty`) and
+> adds 6 new passing tests, with **zero new failures** (verified by diffing
+> JUnit-XML failure sets before/after). `ruff`/`black`/`mypy` counts are
+> unchanged, and my two touched files pass `ruff` and `black` cleanly. In this
+> codebase with documented pre-existing failures, "passes" means my changes
+> introduce no new failures — confirmed.
+
+**Draft PR feedback received from:** none
+
