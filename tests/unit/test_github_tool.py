@@ -137,3 +137,9 @@ class TestGitHubTool:
     def test_has_tests_returns_false_for_empty_repository(self, tool: GitHubTool) -> None:
         """Return False when the repository contains no paths."""
         assert tool._has_tests([]) is False
+
+    def test_has_tests_detects_test_directory(self, tool: GitHubTool) -> None:
+        """Return True when a singular test directory is present."""
+        paths = ["src/app.py", "test/test_app.py"]
+
+        assert tool._has_tests(paths) is True
