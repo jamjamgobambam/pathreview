@@ -31,3 +31,36 @@ I reproduced the issue by calling `IngestionPipeline.ingest_repo_metadata()` twi
 **PLAN.md link:** https://github.com/RuiZhangg/pathreview/blob/fix/6-duplicate-embeddings-error/PLAN.md
 
 **Blockers or open questions:** None
+
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I added a focused unit test for duplicate repository ingestion in `tests/unit/test_ingestion_pipeline.py` and implemented the backend fix in `ingestion/pipeline.py`. The pipeline now serializes repo metadata consistently, checks `IngestedSource` before processing a repo, records a real ingested-source row after a successful first ingestion, and skips the second ingestion instead of writing duplicate embeddings. The targeted test now passes, and `ruff` passes on the touched files.
+
+**Next steps:**
+I need to review the final diff, commit only the relevant files for this issue, push the branch, and open the PR with a complete description. After the PR is open, I need to request peer or mentor feedback and then update Check-in 2 with the PR link, testing summary, and feedback source.
+
+**Blockers:**
+The full repo checks still have pre-existing failures outside this issue: `make test-unit` still reports 53 known failures, and `make check` still fails on repo-wide lint issues unrelated to `ingestion/pipeline.py` or the new test file. I will document those in the PR notes so reviewers can separate baseline problems from this fix.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
