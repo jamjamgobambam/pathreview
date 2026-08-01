@@ -23,3 +23,25 @@ I started the local server using `make run` and hit the backend API directly usi
 - **PLAN.md link:** https://github.com/theoneineed/pathreview/blob/fix/155-redis-host-settings/PLAN.md
 - **Walkthrough video (recommended):** didn't make a video.
 - **Blockers or open questions:** None.
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+**Current progress:**
+I successfully reproduced the bug and traced it to missing fields in `core/config.py`. I implemented the fix by adding `redis_host` and `redis_port` to the `Settings` class, matching the existing Pydantic `Field` patterns. Running the server locally confirms the `AttributeError` is gone and the Redis health check now passes.
+**Next steps:**
+I need to verify that `make check` and `make test-unit` have not introduced any new failures beyond the pre-existing baseline. After that, I will commit my changes, push to my branch, and open the Draft Pull Request.
+**Blockers:**
+None.
+
+
+### Check-in 2 (end of week)
+**PR link:** [I will add this link after opening the PR]
+**Branch:** fix/155-redis-host-settings
+**What you built:**
+I fixed an `AttributeError` in the `/health` endpoint caused by missing Redis configuration fields. I updated the `Settings` class in `core/config.py` to include `redis_host` and `redis_port` with standard localhost defaults, matching the project's Pydantic `Field` patterns. This allows the health check to gracefully probe Redis without crashing the application.
+**Tests added or updated:**
+I created a new test file `tests/unit/test_config.py` because the configuration module previously lacked tests. I added `test_settings_redis_defaults` which verifies that the `Settings` model correctly initializes the new `redis_host` and `redis_port` fields with the expected default values.
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+**Draft PR feedback received from:** none
