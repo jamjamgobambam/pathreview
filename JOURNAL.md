@@ -63,7 +63,7 @@ pass. The remaining failures are outside this issue.
 
 ### Check-in 2 (end of week)
 
-**PR link:** Pending final PR submission
+**PR link:** https://github.com/ascherj/pathreview/pull/499
 
 **Branch:** `fix/43-clear-agent-session`
 
