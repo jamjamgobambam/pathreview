@@ -152,3 +152,70 @@ Added `tests/integration/test_agent_e2e.py` with 7 tests covering the full `Orch
 **Self-review:**
 - [x] `make check` passes (mypy now clean on all staged files; pre-existing ruff errors in other files are out of scope)
 - [x] `make test-unit` passes (53 failed / 375 passed — identical to pre-existing baseline in `TEST_BASELINE.md`)
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No
+
+**Summary of feedback:**
+Two reviewers approved on July 29: lavgolla ("Looks good to me!") and
+CCatherineeeee ("lgtm! Thank you for addressing other issues!"). Neither
+requested changes.
+
+**How you responded:**
+Neither requested changes.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the pre-commit hook to pass was more involved than anticipated.
+mypy ran on the staged test file and, because it was the first file on
+this branch to import from `agent/`, it followed the imports and surfaced
+pre-existing type errors across `agent/error_handling.py`,
+`agent/orchestrator.py`, `agent/memory/context_manager.py`, and
+`agent/memory/session_store.py` — none of which I had touched. Fixing
+those required understanding the full import chain, not just my own code.
+
+**What did you learn about working in a large codebase?**
+Pre-existing technical debt becomes your problem the moment you touch
+adjacent code. The agent/ files had been committed before the mypy hook
+was enforced and had quietly accumulated type errors. My test file was
+the first to import from them in a commit, which surfaced those errors
+on my PR rather than the original author's. In your own project you can
+defer cleanup; in a shared codebase, that debt can land on whoever shows
+up next.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for reading and cross-referencing unfamiliar code
+quickly — understanding how `retry_with_backoff(max_retries=2,
+backoff_factor=1.5)` interacts with `_execute_with_timeout` without
+tracing it manually, and catching that `FailingTool.call_count` should
+be an instance variable in `__init__`, not a class variable. Where it
+fell short: the GitHub MCP server was broken, so the PR had to be opened
+manually. AI also can't run code or confirm a test actually exercises
+the right code path — I had to read the orchestrator source to verify
+the assertions made sense.
+
+**What would you do differently if you started over?**
+Run `make check` (not just `make test-unit`) locally before the first
+commit attempt. The mypy failures only surfaced when the hook ran at
+commit time — catching them earlier would have avoided an extra round of
+type annotation fixes across multiple files. I'd also add the type
+annotations to the agent/ files in a separate commit clearly labeled as
+pre-existing cleanup, to keep the review diff cleaner.
+
+**What are you most proud of from this module?**
+The session hydration test (`test_session_persistence_hydration`). It
+pre-seeds the stub store with a stale key before calling `run()` and
+verifies that key survives after the orchestrator merges new results.
+That test would have caught a real regression — if someone removed the
+`session_store.get(profile_id) or {}` line and replaced it with a fresh
+dict, every other test would still pass but this one would fail. Writing
+a test that can actually catch a specific, realistic mistake felt like
+the point of the whole exercise.
