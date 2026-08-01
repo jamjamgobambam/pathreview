@@ -133,3 +133,7 @@ class TestGitHubTool:
         tree_request = mock_get.call_args_list[1]
         assert "/git/trees/develop" in tree_request.args[0]
         assert metadata["has_tests"] is True
+
+    def test_has_tests_returns_false_for_empty_repository(self, tool: GitHubTool) -> None:
+        """Return False when the repository contains no paths."""
+        assert tool._has_tests([]) is False
