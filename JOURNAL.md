@@ -176,20 +176,33 @@ passed**: my 3 tests added, zero new failures.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(to be added Sunday once the draft PR is marked ready for review)_
+**PR link:** https://github.com/ascherj/pathreview/pull/367 (ready for review, not a draft)
 
 **Branch:** `fix/154-health-db-probe-text`
 
 **What you built:**
-_(fill Sunday)_
+Wrapped the `/health` PostgreSQL liveness probe in `sqlalchemy.text()`
+(`await db.execute(text("SELECT 1"))`) so it runs under SQLAlchemy 2.x, which no longer accepts
+raw strings as textual SQL. Previously the raw-string `ArgumentError` was swallowed by the probe's
+`except` block, so `/health` reported Postgres `"unhealthy"` and returned 503 even when the
+database was fully reachable; now the probe succeeds and reports `"healthy"`, while a genuine
+outage still returns 503. One import + one line in `api/routes/health.py`, plus a new test file.
 
 **Tests added or updated:**
-`tests/unit/test_health.py` — three unit tests covering the 200 healthy path, the 503 probe-error
-path, and a regression guard that the probe uses a SQLAlchemy `text()` clause.
+`tests/unit/test_health.py` (new) — three unit tests: the 200 healthy path
+(`postgres: "healthy"`), the 503 probe-error path (`postgres: "unhealthy"`), and a regression
+guard (`test_probe_uses_text_clause_not_raw_string`) asserting the probe is executed as a
+SQLAlchemy `TextClause` rather than a raw string. The guard is what actually pins the fix:
+reverting to `db.execute("SELECT 1")` fails *only* that test.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 _(Note: this repo has documented pre-existing failures — see PR "Notes for Reviewers." "Passes"
-here means my changes introduce no new failures: unit suite 53 pre-existing fails unchanged,
-+3 of my tests passing.)_
+here means my changes introduce no new failures: `make test-unit` went from 53 failed / 375 passed
+to 53 failed / 378 passed — my 3 tests added, zero new failures — and the changed files
+(`health.py`, `test_health.py`) are both ruff- and black-clean. The repo-wide ruff/mypy baseline
+is pre-existing and untouched.)_
 
-**Draft PR feedback received from:** _(fill Sunday)_
+**Draft PR feedback received from:** Karen Calpo — flagged that the `.gitignore` change carried
+personal course-note patterns unrelated to the fix. Addressed in `d352b04`: restored `.gitignore`
+to upstream and moved the personal ignores to `.git/info/exclude`, so the PR diff is now scoped to
+the fix + tests.
