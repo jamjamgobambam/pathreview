@@ -42,3 +42,43 @@ I ran `GitHubTool` against the PathReview repository, which contains automated t
 **Blockers or open questions:**
 
 I still need to determine the best GitHub API endpoint for retrieving the repository file tree and whether the existing test-detection logic in `ingestion/parsers/repo_analyzer.py` can be reused.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1
+
+**Current progress:**
+
+I implemented repository test detection in `GitHubTool`. The tool now retrieves the repository tree from GitHub using the repository's default branch and adds a `has_tests` Boolean to the metadata output.
+
+The detection returns `true` when it finds:
+
+- a `tests/` directory
+- a `test/` directory
+- a `pytest.ini` file
+- a Python file named `test_*.py`
+
+It returns `false` when none of these indicators are present.
+
+**Testing completed:**
+
+- Added 9 focused unit tests in `tests/unit/test_github_tool.py`
+- All 9 focused tests pass
+- Ruff passes for both changed files
+- Black passes for both changed files
+- Mypy passes for both changed files
+- A real GitHub smoke test against the PathReview repository returned `has_tests: True`
+- Full unit suite result: 384 passed and 53 pre-existing failures
+- Project lint result: 181 pre-existing errors, with no errors in the two files changed for this issue
+
+**Implementation commit:**
+
+https://github.com/morishbhayani/pathreview/commit/dfb7294
+
+**Edge-case test commit:**
+
+https://github.com/morishbhayani/pathreview/commit/5bd128f
+
+**Current blockers:**
+
+There are no blockers specific to issue #50. The repository still contains unrelated pre-existing unit-test and lint failures.
