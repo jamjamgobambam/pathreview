@@ -51,16 +51,16 @@ The full repo checks still have pre-existing failures outside this issue: `make 
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/498
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `fix/6-duplicate-embeddings-error`
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+I fixed duplicate repository ingestion by checking `IngestedSource` before processing repo metadata and recording a real ingested-source row after the first successful ingestion. Re-ingesting the same repo now returns a skipped result instead of writing duplicate embeddings.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+Added `tests/unit/test_ingestion_pipeline.py`, covering duplicate repo ingestion and verifying the second ingestion does not write another vector entry.
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none yet
