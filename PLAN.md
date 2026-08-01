@@ -1,6 +1,6 @@
 ## Solution plan
 
-**Issue:** [Fix partial-overlap fixture in relevance scorer test](https://github.com/viswanathv4320/pathreview/issues/157)
+**Issue:** [Fix partial-overlap fixture in relevance scorer test](https://github.com/ascherj/pathreview/issues/157)
 
 
 ### Understand
