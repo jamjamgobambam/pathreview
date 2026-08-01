@@ -178,3 +178,85 @@ python -m pytest tests/unit/test_orchestrator_stale_cache.py -v
 The failing test at `tests/unit/test_orchestrator_stale_cache.py` documents the
 exact location of the bug and acts as the regression guard for the fix.
 
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+The first 2 sub-tasks from PLAN.MD are done:
+  1. **Add `ContextManager.clear()`** — reset `self.results = {}` with a log line.
+    Keeps memoization a *within-run* optimization instead of a cross-run cache.
+  2. **Reset the in-memory cache at the start of each review** — call
+    `self.context_manager.clear()` at the top of `Orchestrator.run` (before the
+    plan executes). This fixes variant 1: a reused orchestrator re-runs its tools
+    because the identical-hash cache entries from the previous review are gone.
+
+**Next steps:**
+[What are you working on for the rest of the week?]
+Finish the remaining 2 sub-tasks from PLAN.MD and ensure the test cases that were previsoly failing on purporsed will be fixed after the changes
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/529
+
+**Branch:** `fix/43-stale-session-cache`
+
+**What you built:**
+Fixed issue #43 (session state not cleared between reviews) at both cache layers.
+Added `ContextManager.clear()` and call it at the top of `Orchestrator.run`, so
+the in-memory memoization is reset per review — a reused orchestrator now
+re-executes its tools instead of serving byte-identical-hash cache hits from the
+previous review (variant 1). Changed persistence to save only the current run's
+`results` (`self.session_store.set(profile_id, results)`) instead of
+`session_state.update(results)`, so a tool dropped from a later plan no longer
+lingers in the persisted session (variant 2). The now-dead session load/merge was
+removed.
+
+**Tests added or updated:**
+`tests/unit/test_orchestrator_stale_cache.py` — the two regression tests committed
+earlier as failing now pass: `test_second_review_reruns_tools_after_portfolio_update`
+(variant 1, in-memory stale cache) and `test_stale_results_not_accumulated_in_session_state`
+(variant 2, persisted-state accumulation). No other test files were changed.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+Neither target passes **repo-wide** due to pre-existing erros.
+
+### Notes for Reviewers
+
+**Pre-existing CI failures (not introduced by this PR):**
+
+`make check` and `make test-unit` are both red on `main` *before* this branch —
+all in modules this PR does not touch.
+
+- **Lint (`make check`):** 182 ruff errors repo-wide. The 4 that fall in the
+  files I edited are all pre-existing, on lines I did not change:
+  - `agent/memory/context_manager.py:3` — `I001` (import sorting)
+  - `agent/orchestrator.py:3` — `I001` (import sorting)
+  - `agent/orchestrator.py:17` — `UP045` (`Optional[...]` → `X | None`)
+  - `agent/orchestrator.py:172` — `UP045` (`Optional[...]` → `X | None`)
+
+  My changes (`ContextManager.clear()` ~`context_manager.py:59`, the `clear()`
+  call and persist edit in `orchestrator.py:43`/`63`) add **zero** new lint errors.
+
+- **Unit tests (`make test-unit`):** 53 pre-existing failures in unrelated
+  modules — `test_review_service`, `test_security`, `test_skill_extractor`,
+  `test_tech_detector`, `test_structural_chunker`.
+
+**Verified in isolation:** stashing this fix → 55 failed / 375 passed; with it →
+53 failed / 377 passed. It flips exactly the two #43 regression tests
+(`tests/unit/test_orchestrator_stale_cache.py`) from failing → passing and adds
+no new failures.
+
+I intentionally did **not** fix the unrelated lint/test failures to keep this PR
+scoped to issue #43.
+
+**Draft PR feedback received from:** none
