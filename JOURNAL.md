@@ -37,10 +37,10 @@ None.
 
 
 ### Check-in 2 (end of week)
-**PR link:** YOUR_PR_LINK_HERE
+**PR link:** https://github.com/ascherj/pathreview/pull/513#event-28827910108
 **Branch:** fix/155-redis-host-settings
 **What you built:**
-I fixed an `AttributeError` in the `/health` endpoint that crashed the application. Based on peer feedback, instead of polluting the `Settings` model with redundant `redis_host` and `redis_port` fields, I refactored `api/routes/health.py` to directly use the existing `settings.redis_url` via `redis.Redis.from_url()`. This keeps the configuration DRY while allowing the health check to execute gracefully.
+I fixed an `AttributeError` in the `/health` endpoint that crashed the application. Based on peer feedback, I refactored `api/routes/health.py` to directly use the existing `settings.redis_url` via `redis.Redis.from_url()`, keeping the configuration DRY. Additionally, I added missing typing annotations to the health route (`dict[str, Any]`) to satisfy `mypy` and resolved pre-existing linter errors caught during the pre-commit phase.
 **Tests added or updated:**
 I created `tests/unit/test_health.py` and added `test_health_endpoint_resolves_without_crash` which uses a FastAPI `TestClient` to verify the endpoint returns a valid 200 or 503 status code instead of a 500 Internal Server Error.
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
