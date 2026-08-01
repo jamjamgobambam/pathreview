@@ -47,16 +47,16 @@ Open a draft PR, request peer feedback in Slack, and fill in Check-in 2 with the
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/508
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `fix/44-orchestrator-silent-failure`
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+Added `exc_info=True` to `logger.error` calls in `orchestrator.py` and `error_handling.py` to ensure structlog emits full exception stack traces when tools fail or retries are exhausted. This resolves the silent failure swallowing issue (Issue #44).
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+Created `tests/unit/test_orchestrator.py` and `tests/unit/test_error_handling.py` with 44 tests to verify orchestrator flow, retry context logic, and specifically assert that `exc_info=True` is passed to the logger on failures.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
