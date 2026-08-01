@@ -131,7 +131,7 @@ baseline.)
 
 ### Check-in 2 (end of week)
 
-**PR link:** _<!-- PASTE the live PR URL here once opened, e.g. https://github.com/ascherj/pathreview/pull/NNN -->_
+**PR link:** https://github.com/ascherj/pathreview/pull/501
 
 **Branch:** `fix/159-structlog-pytest-caplog`
 
