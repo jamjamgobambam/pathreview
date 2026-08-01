@@ -38,3 +38,44 @@ await db.execute("SELECT 1")  # ❌ Fails in SQLAlchemy 2.x
 
 **Blockers or open questions:**
 Since issue has other dependencies not directly related, how would fixing this particular issue help in solving related issues associated with SQLAlchemy in the repo?
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+- Applied fix to `api/routes/health.py`:
+  - Added `from sqlalchemy import text` import
+  - Wrapped raw SQL string: changed `await db.execute("SELECT 1")` to `await db.execute(text("SELECT 1"))`
+- Verified fix works locally — PostgreSQL health check now passes (`postgres_health_check_passed`)
+- Created integration test file `tests/integration/test_health.py` to verify health endpoint behavior
+- Updated `tests/conftest.py` with `AsyncClient` fixture for integration tests
+- Updated `PLAN.md` with specific, actionable investigation steps based on Week 8 feedback
+
+**Next steps:**
+- Run `make check` to verify linting and type checks pass
+- Run `make test-unit` to ensure no existing tests are broken
+- Submit pull request to upstream repo
+- Update Journal with PR link
+
+**Blockers:**
+- Redis health check is failing due to a separate pre-existing configuration issue (`Settings object has no attribute 'redis_host'`). This is unrelated to issue #154 and will not be addressed in this PR.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [to be added after submission]
+
+**Branch:** `fix/154-healthcheck-SQL-string`
+
+**What you built:**
+Wrapped the raw SQL string `"SELECT 1"` in SQLAlchemy's `text()` function inside the health check endpoint. This fixes a `CompileError` that occurs in SQLAlchemy 2.x, which no longer accepts raw strings passed directly to `execute()`. The fix required adding one import and changing one line of code in `api/routes/health.py`.
+
+**Tests added or updated:**
+- Added `tests/integration/test_health.py` — covers three scenarios: postgres healthy response (200), all dependencies present in response, and correct response structure.
+- Updated `tests/conftest.py` — added `AsyncClient` fixture needed for integration tests.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** none
