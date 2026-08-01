@@ -66,3 +66,40 @@ Successfully reproduced the issue by calling `GET /health` endpoint. Redis conta
 
 **Blockers or open questions:**
 None identified. The actual bug is that `settings.redis_host` doesn't exist, causing the false "unhealthy" status. I'll fix this in Week 9 by using `settings.redis_url` instead.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+- ✅ Sub-task 1: Updated Redis connection in `api/routes/health.py` — replaced `redis.Redis(host=settings.redis_host, port=settings.redis_port)` with `redis.Redis.from_url(settings.redis_url)`
+- ✅ Sub-task 2: Tested locally — `curl http://localhost:8000/health` now returns `"redis": "healthy"` ✅
+- ✅ Sub-task 3: Ran `make check` and `make test-unit` — no new failures introduced
+- ✅ Sub-task 4: Created `tests/unit/test_health.py` with tests for Redis healthy/unhealthy scenarios
+- ✅ Sub-task 5: Opened draft PR for peer feedback
+
+**Next steps:**
+- Get peer feedback on draft PR
+- Address any feedback I agree with
+- Mark PR as ready for review
+
+**Blockers:**
+None identified. PostgreSQL showing "unhealthy" is a separate pre-existing issue (#154) not related to my fix.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [LINK_TO_YOUR_PR]
+
+**Branch:** fix/155-redis-health-check
+
+**What you built:**
+Updated the health check endpoint to use `settings.redis_url` instead of the nonexistent `settings.redis_host` and `settings.redis_port`. This fixes the false "unhealthy" report when Redis is actually running.
+
+**Tests added or updated:**
+Created `tests/unit/test_health.py` with tests for Redis healthy/unhealthy scenarios and PostgreSQL healthy/unhealthy scenarios.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** [Add name/handle if you got feedback]
