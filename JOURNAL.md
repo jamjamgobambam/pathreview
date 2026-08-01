@@ -22,7 +22,7 @@ This felt like a reasonable scope for a first contribution, though in practice i
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/vzan2012/pathreview/commit/c02d7eaac82b359315a463dfba7f592f3f62bdbb
+**Reproduction commit link:** https://github.com/vzan2012/pathreview/commit/50e8159f7bff63a23af87688474b322e639fe92a
 
 **Reproduction summary:**
 I confirmed the gap by running `git show 10d3713:core/services/profile_service.py` to view the original functions before my fix — each one had only a one-line docstring (e.g. `create_profile` just said `"""Create a new profile for a user."""`) with no Args, Returns, or Raises sections, matching exactly what issue #119 describes.
