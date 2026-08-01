@@ -18,34 +18,101 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+        A comprehensive project description that explains what this project does,
+        who it's for, and why it exists. This project was built to solve a real
+        problem: developers spend too much time manually reviewing profiles and
+        need an automated way to score quality signals across READMEs, resumes,
+        and repository metadata. This tool automates that process end to end,
+        saving reviewers hours of manual work while producing more consistent,
+        repeatable results across every profile that gets evaluated by the system.
 
         ## Installation
-        ```bash
+        To get started, clone the repository and install the required dependencies.
+        Make sure you have Python 3.9 or higher installed on your machine before
+        proceeding with the installation steps below. We also recommend using a
+        virtual environment to keep your dependencies isolated from other projects
+        on your system, which helps avoid version conflicts down the line.
+
+```bash
+        git clone https://github.com/example/package.git
+        cd package
+        python -m venv .venv
+        source .venv/bin/activate
+        pip install -r requirements.txt
         pip install package
-        ```
+```
+
+        ## Configuration
+        Before running the tool, copy the example environment file and fill in
+        your own values. Most settings have sensible defaults, but you will need
+        to provide credentials for any external services the tool connects to.
+
+```bash
+        cp .env.example .env
+```
 
         ## Usage
-        ```python
+        Once installed, you can import the package and start using it right away.
+        The example below demonstrates a basic usage pattern that covers the most
+        common use case: scoring a single README file and inspecting the result.
+        You can also batch process multiple files at once if you have a large
+        number of profiles to review in a single sitting.
+
+```python
         import package
-        package.run()
-        ```
+
+        scorer = package.ReadmeScorer()
+        result = scorer.run("path/to/readme.md")
+        print(result.overall_score)
+```
 
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+        - Feature 1: Automatic word count and category detection
+        - Feature 2: Section detection for installation and usage instructions
+        - Feature 3: Badge and demo link detection for quick quality signals
+        - Feature 4: Configurable scoring weights for different quality dimensions
+        - Feature 5: Structured logging for observability in production environments
+        - Feature 6: Batch processing support for scoring many profiles at once
 
         ## Tech Stack
+        This project is built using a modern, well-supported stack chosen for
+        reliability and developer productivity:
         - Python 3.9
         - FastAPI
         - PostgreSQL
+        - SQLAlchemy
+        - Pytest for testing
+        - Docker for containerized deployment
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
+        ![License](https://example.com/license.svg)
 
         ## Live Demo
-        [Try it here](https://demo.example.com)
+        Want to see it in action before installing anything? [Try it here](https://demo.example.com)
+        and explore a hosted version with sample data already loaded, so you can
+        get a feel for the scoring output without setting up your own environment
+        or worrying about configuring any credentials yourself.
+
+        ## Testing
+        Run the test suite locally to confirm everything works as expected after
+        making changes. We aim for high coverage across all core scoring logic.
+
+```bash
+        pytest tests/ -v
+```
+
+        ## Contributing
+        Contributions are welcome. Please open an issue before submitting a large
+        pull request so we can discuss the approach together and avoid duplicated
+        work across contributors working on similar features at the same time.
+        We also ask that all contributions include relevant tests and follow the
+        existing code style used throughout the rest of the project.
+
+        ## License
+        This project is licensed under the MIT License. See the LICENSE file for
+        full details on what is and isn't permitted when using or redistributing
+        this code in your own projects.
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -53,11 +120,10 @@ class TestReadmeScorer:
         assert result.success is True
         data = result.data
         assert data["has_readme"] is True
-        # REPRODUCED (issue #156): fixture is only ~51 words, but scorer requires
-        # 500+ words for "comprehensive" (see agent/tools/readme_scorer.py).
-        # Confirmed via: pytest tests/unit/test_readme_scorer.py -q
-        # → FAILED assert 51 > 100 (word_count=51, category=minimal)
-        assert data["word_count"] > 100
+        # REPRODUCED (issue #156): fixture was previously ~51 words, but scorer
+        # requires 500+ words for "comprehensive" (see agent/tools/readme_scorer.py).
+        # Extended fixture above now genuinely exceeds 500 words.
+        assert data["word_count"] >= 500
         assert data["word_count_category"] == "comprehensive"
         assert data["has_installation_section"] is True
         assert data["has_usage_section"] is True
