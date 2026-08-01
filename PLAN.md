@@ -7,7 +7,7 @@ This is a feature gap, not a crash-causing bug, nothing throws or breaks, but th
 
 From reproducing the bug, I found that create_review creates the review and starts the background task without checking whether the profile has any ingested content.
 
-From there, `_run_agent_orchestration` and `_run_rag_retrieval_generation still return the same placeholder feedback even when the ingestion step returns an empty list. Since _run_safety_checks only verifies that the response has the expected format, it doesn't catch that the feedback wasn't generated from any real profile data.
+From there, `_run_agent_orchestration` and `_run_rag_retrieval_generation` still return the same placeholder feedback even when the ingestion step returns an empty list. Since `_run_safety_checks` only verifies that the response has the expected format, it doesn't catch that the feedback wasn't generated from any real profile data.
 
 Expected behavior: `POST /reviews` should reject (or the background task should fail) when a profile has zero ingested sources, with a clear error rather than a silently "complete" review full of fake data.
 
