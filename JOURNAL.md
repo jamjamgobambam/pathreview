@@ -27,11 +27,11 @@ the existing `test_us_phone_number_redaction` test.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [paste after you push]
+**Reproduction commit link:** https://github.com/bimalitani100/pathreview/commit/106cb12df5fcac6fe088e5a16514e3df1d177f95
 
 **Reproduction summary:** Ran the scrub()/detect() snippets from issue #146 locally — confirmed `(555) 123-4567` passes through scrub() unredacted while `555-123-4567` in the same string is correctly redacted, and detect() returns [] for the parenthesized number. Confirmed via pytest that 4 of 6 phone-related tests fail (test_us_phone_number_redaction, test_us_phone_formats, test_detect_phone_pii, test_phone_at_start_of_text); the other 2 (international, phone-at-end) pass.
 
-**PLAN.md link:** [paste after you push]
+**PLAN.md link:** https://github.com/bimalitani100/pathreview/blob/fix/146-pii-scrubber-parenthesized-phone/PLAN.md
 
 **Walkthrough video (recommended):** [optional]
 
