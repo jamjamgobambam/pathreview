@@ -132,6 +132,12 @@ class IngestionPipeline:
         """
         Ingest a README document.
 
+        Re-ingestion is version-aware: a README is identified by a stable
+        source_id (profile + repo), while content_hash records the revision. If
+        the content is unchanged since the last ingestion it is skipped; if it
+        changed, the previous version's chunks are removed before the new ones
+        are stored, so stale content is never left behind.
+
         Args:
             profile_id: ID of the profile owner
             repo_name: Name of the repository
@@ -140,7 +146,10 @@ class IngestionPipeline:
         Returns:
             IngestResult with ingestion status
         """
-        source_id = f"readme_{profile_id}_{repo_name}_{self._hash_content(content)}"
+        # Split identity from version: source_id is a stable logical key for this
+        # README (constant across edits), while content_hash stamps the revision.
+        source_id = f"readme_{profile_id}_{repo_name}"
+        content_hash = self._hash_content(content)
 
         logger.info(
             "Starting README ingestion",
@@ -149,10 +158,19 @@ class IngestionPipeline:
             source_id=source_id,
         )
 
-        # Check if already ingested
-        skip_result = self._check_skip(source_id, "readme")
-        if skip_result:
-            return skip_result
+        # Skip only if this exact content was already ingested. Otherwise fall
+        # through so an edited README replaces its stale chunks (deleted below).
+        if self._existing_content_hash(source_id) == content_hash:
+            logger.info(
+                "README unchanged since last ingestion, skipping",
+                source_id=source_id,
+            )
+            return IngestResult(
+                source_id=source_id,
+                chunk_count=0,
+                skipped=True,
+                skip_reason="Content unchanged since last ingestion",
+            )
 
         try:
             # Parse README
@@ -167,6 +185,7 @@ class IngestionPipeline:
             metadata = parse_result.metadata.copy()
             metadata.update({
                 "source_id": source_id,
+                "content_hash": content_hash,
                 "profile_id": profile_id,
                 "repo_name": repo_name,
                 "source_type": "readme",
@@ -175,6 +194,13 @@ class IngestionPipeline:
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
             logger.info("README chunked successfully", chunk_count=len(chunks))
+
+            # Replace any prior version: clear its chunks before storing the new
+            # ones so stale content can no longer be retrieved. Guard on chunks so
+            # an empty parse can't wipe a good previously ingested version.
+            if chunks:
+                self.vector_db.delete(where={"source_id": source_id})
+                logger.info("Cleared previous README version", source_id=source_id)
 
             # Generate embeddings and store
             self.batch_processor.process(chunks)
@@ -276,6 +302,35 @@ class IngestionPipeline:
         if isinstance(content, str):
             content = content.encode()
         return hashlib.sha256(content).hexdigest()[:16]
+
+    def _existing_content_hash(self, source_id: str) -> str | None:
+        """Return the content_hash of a previously ingested source, or None.
+
+        Reads stored chunk metadata for this source_id straight from the vector
+        store, which is the source of truth for what has already been ingested.
+        Used to decide whether re-ingested content is unchanged (skip) or edited
+        (replace).
+
+        Args:
+            source_id: Stable logical identifier for the source.
+
+        Returns:
+            The stored content_hash, or None if this source has no chunks yet.
+        """
+        try:
+            existing = self.vector_db.get(where={"source_id": source_id})
+        except Exception as e:
+            logger.warning(
+                "Could not look up existing source",
+                source_id=source_id,
+                error=str(e),
+            )
+            return None
+
+        metadatas = existing.get("metadatas") or []
+        if not metadatas:
+            return None
+        return metadatas[0].get("content_hash")
 
     def _check_skip(self, source_id: str, source_type: str) -> Optional[IngestResult]:
         """
