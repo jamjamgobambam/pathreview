@@ -106,7 +106,9 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** 
+
+[https://github.com/ascherj/pathreview/pull/559](https://github.com/ascherj/pathreview/pull/559)
 
 **Branch:** fix/146-enhance-pii-scrubber
 
@@ -145,7 +147,7 @@ I also added a new unit test, `test_phone_number_partially_formatted_redaction`,
 
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
-NOTE: both of these checks pass in relation to my bug fix. There were existing failures for both checks
+NOTE: both of these checks pass in relation to my bug fix. There were existing failures for both checks that pre-date my fix. This is documented in my PR.
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
 none
