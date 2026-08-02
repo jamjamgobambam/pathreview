@@ -75,9 +75,8 @@ vs. 53 failed/381 passed on this branch) that my changes introduce no new
 test failures — all pre-existing failures are in unrelated modules.
 
 **Next steps:**
-Opened a draft PR (#598) and shared it in Slack for feedback.
-Will incorporate any feedback received, then mark ready for review and
-finalize Check-in 2.
+Opened a draft PR (#598), the fix is fully tested and self-reviewed
+against CONTRIBUTING.md standards.
 
 **Blockers:**
 None currently.
