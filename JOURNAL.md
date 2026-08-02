@@ -69,4 +69,57 @@ These commands prints the status codes of 1000 GET requests made for the reviews
 **PLAN.md link:** [PLAN.md](PLAN.md)
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+So far, the JWT rate limiter and the tests for the JWT are implemented along with the headers that were needed from the issue. X-RateLimit-Limit and X-RateLimit-Remaining headers are added to every API response.
+
+**Next steps:**
+Implement the IP ratelimiting as the fallback when JWT tokens are malformed or expired. Unit testing will are also needed to verify that it reaches to the IP fall back or manual testing.
+
+**Blockers:**
+When implementing the IP rate-limit, how would it limit requests from the login or register pages?
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** `fix/86-api-rate-limiting-header`
+
+**What you built:**
+Added `RateLimitMiddleware` (`api/middleware/rate_limiter.py`), which wires 
+the existing (previously unused) `RateLimiter` class into every API request. It resolves a rate-limiting identifier from the JWT's `sub` claim when a valid bearer token is present, falling back to the client's IP address for unauthenticated or invalid/expired tokens. It attaches `X-RateLimit-Limit` and `X-RateLimit-Remaining` headers to every response, and returns a 429 with those same headers once the caller exceeds `rate_limit_per_minute` within the rolling 60-second window.
+
+**Tests added or updated:**
+`tests/unit/test_rate_limiter_middleware.py` (new file, 11 tests): covers 
+valid-JWT requests under/over the limit, remaining-count decrementing 
+across repeated calls, per-user identifier isolation, IP fallback for 
+missing/malformed/non-Bearer/invalid Authorization headers, IP-based 
+isolation across different clients, IP-path over-limit denial, and JWT 
+taking priority over IP when both are available. `RateLimiter`'s own 
+internal logic (rolling window, per-identifier isolation, fail-open on 
+Redis error) is unchanged and already covered by the existing 
+`tests/unit/test_rate_limiter.py`, so this suite mocks `RateLimiter` 
+directly rather than re-testing it.
+
+**Self-review confirmation:** 
+* [x] make check passes  
+
+make check` (lint) introduces zero new errors — confirmed the same 
+182 pre-existing errors present on a fresh clean pull remain unchanged 
+after my changes; my two new files pass `ruff check` cleanly on their own
+
+* [x] make test-unit passes
+
+`python -m pytest tests/unit/test_rate_limiter_middleware.py 
+tests/unit/test_rate_limiter.py`, 30 passed  
+Prior to changes was 53 failed, 375 passed, 1 warnings in 5.00s
+After Changes was 53 failed, 386 passed, 2 warnings in 5.00s 
+As a result no changes caused pre-existing tests to fail. 
+
+**Draft PR feedback received from:** none
