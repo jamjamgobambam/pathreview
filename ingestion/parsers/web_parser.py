@@ -99,12 +99,22 @@ class WebParser(BaseParser):
             "word_count": word_count,
         }
 
-        logger.info(
-            "portfolio_parsed",
-            url=url,
-            word_count=word_count,
-            text_preview=text[:200],
-        )
+        if word_count == 0:
+            logger.warning(
+                "portfolio_page_empty_text",
+                url=url,
+                message=(
+                    "No visible text extracted; the page may be a JS-rendered "
+                    "SPA that a plain HTTP fetch can't see into"
+                ),
+            )
+        else:
+            logger.info(
+                "portfolio_parsed",
+                url=url,
+                word_count=word_count,
+                text_preview=text[:200],
+            )
 
         return ParseResult(
             text=text,

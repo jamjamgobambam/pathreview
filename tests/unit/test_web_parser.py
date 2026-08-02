@@ -122,3 +122,16 @@ class TestWebParser:
         assert isinstance(result, ParseResult)
         assert result.text == ""
         assert result.metadata["word_count"] == 0
+
+    def test_parse_empty_page_logs_a_warning_not_silent(self, parser):
+        """Test that empty extraction (e.g. a JS-rendered SPA) is surfaced as a warning."""
+        html = "<html><body><div id='root'></div></body></html>"
+        with (
+            patch("ingestion.parsers.web_parser.httpx.get", return_value=_mock_response(html)),
+            patch("ingestion.parsers.web_parser.logger") as mock_logger,
+        ):
+            parser.parse("http://example.com/spa")
+
+        mock_logger.warning.assert_called_once()
+        assert mock_logger.warning.call_args.args[0] == "portfolio_page_empty_text"
+        mock_logger.info.assert_not_called()
