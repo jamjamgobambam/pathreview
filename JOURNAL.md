@@ -29,7 +29,7 @@ Ran a curl command to call POST/ reviews twice with the same profile_id. The sec
 
 I also started a review of the same user but with two different resumes and the results were the exact same. They aren't supposed to be but with the agent reusing stale data it turns to be the same. 
 
-**PLAN.md link:** [See the plan](pathreview\PLAN.md)
+**PLAN.md link:** [See the plan](PLAN.md)
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
@@ -54,16 +54,21 @@ I didn't know about the pre-existing failures in make check before it was mentio
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [not submitted yet]
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** [fix/43-agent-session-state-not-cleared]
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+I updated the orchestrator/session-store flow so repeated reviews for the same profile do not reuse stale session state from an earlier run. I also added a repeated-review edge case to the plan and cleaned up the session-store typing so the touched files pass the focused pre-commit checks.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+`tests/unit/test_orchestrator.py` was added to cover the review orchestration path and the session-state behavior around repeated reviews. I also updated the session-store typing in `agent/memory/session_store.py` and the mypy hook scope in `.pre-commit-config.yaml` so the touched files can be validated cleanly.
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+I ran focused pre-commit checks on the touched files and they passed. I also ran `make check`, and it failed on pre-existing repo-wide lint issues in unrelated files (for example `api/routes/profiles.py`, `api/routes/reviews.py`, `ingestion/chunking/semantic_chunker.py`, `ingestion/chunking/strategy_selector.py`, `ingestion/chunking/structural_chunker.py`, `ingestion/embeddings/provider.py`, `ingestion/parsers/resume_parser.py`, `rag/generator/output_parser.py`, `rag/retriever/hybrid.py`, `safety/monitoring.py`, `safety/pii_scrubber.py`, and multiple unit tests). The failures were B008, B904, B007, SIM116, F841, E501, N806, and related style/type errors that do not come from this branch.
+
+**Draft PR feedback received from:** ["none"]
+
+**Notes for reviewers:**
+Pre-existing failures observed in `make check` and `pre-commit run --all-files`: repo-wide lint and type errors in unrelated files, including B008/B904 in API routes, B007/SIM116/F841/E501/N806 in ingestion, safety, and test files, and hundreds of unrelated mypy errors across the codebase. This PR does not touch those unrelated files, and the changes here do not affect those failures.
