@@ -41,3 +41,20 @@ export interface AuthResponse {
   access_token: string
   token_type: string
 }
+
+export interface ShareLink {
+  share_url: string
+  token: string
+  expires_at: string
+}
+
+export interface PublicReview {
+  status: 'pending' | 'processing' | 'complete' | 'failed'
+  overall_score?: number
+  sections?: FeedbackSection[]
+  created_at: string
+}
+
+export interface ApiError extends Error {
+  status?: number
+}
