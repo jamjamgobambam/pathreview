@@ -36,4 +36,6 @@ Connecting every other file and making sure it reads the new key I created.
 ### Edge cases
 What inputs or states should your fix handle gracefully?
 
-I don't think is needs to handle anything gracefully. It just generates a different review_id everytime. I will continue making sure there is no edge cases though.
+If a user starts a second review for the same profile before or after a prior review has completed, the new run should begin without inheriting stale session state from the earlier run.
+
+If no prior session data exists for a profile, the orchestrator should treat that as a fresh review and continue without error.
