@@ -14,6 +14,17 @@ class TestTechDetector:
         """Create a TechDetector instance."""
         return TechDetector()
 
+    def test_root_node_modules_path_should_be_skipped(self, detector: TechDetector) -> None:
+        """Reproduce root-level node_modules path filtering bug."""
+        filepath = "node_modules/pkg/index.js"
+
+        actual_result = detector._should_skip_file(filepath)
+
+        assert actual_result is True, (
+            f"Expected _should_skip_file({filepath!r}) to return True, "
+            f"but received {actual_result!r}"
+        )
+
     def test_single_language_repo(self, detector):
         """Test single-language repo correctly identifies primary_language."""
         files = [
