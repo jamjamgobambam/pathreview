@@ -70,7 +70,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [paste final non-draft PR link]
+**PR link:** https://github.com/ascherj/pathreview/pull/585
 
 **Branch:** `fix/150-ignore-vendored-build-files`
 
