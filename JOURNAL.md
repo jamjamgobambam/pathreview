@@ -116,3 +116,16 @@ I reproduced the issue by making 2 reviews using the same user and portfolio. In
 
 **Blockers or open questions:**
 None for now
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I have implemented the full caching service and completed all tasks in PLAN.md. The appropriate edits to the POST /review and review create service function.
+
+**Next steps:**
+I will be opening my PR and making appropriate edits based on the feedback.
+
+**Blockers:**
+Nothing so far - resolved linter issues I was originally facing.
