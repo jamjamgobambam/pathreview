@@ -42,3 +42,23 @@ I will finish the self-review, confirm that the existing orchestrator passes `ha
 
 **Blockers:**
 The focused GitHub-tool suite passes, but the full `make test-unit` run currently has unrelated pre-existing failures across other modules, plus tokenizer tests that attempt a blocked network download. The current environment's mypy run also fails while parsing NumPy's type stubs because the configured Python target is older than the installed stubs require. These failures do not involve the changed GitHub-tool files and will need to be documented in the PR.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/568
+
+**Branch:** feat/50-has-tests-repo-analysis
+
+**What you built:**
+I added a `has_tests` boolean to successful GitHub repository analysis. The tool inspects the default branch's recursive Git tree for exact `tests/` or `test/` directories, `pytest.ini`, and Python files named `test_*.py`, while avoiding near-match false positives and returning an analysis error for incomplete tree data.
+
+**Tests added or updated:**
+I expanded `tests/unit/test_github_tool.py` to 17 focused cases covering every supported test indicator, repositories without tests, nested paths, near-match false positives, URL-encoded default branches, and truncated or malformed GitHub tree responses. All 17 focused tests pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+The repository-wide commands retain documented pre-existing failures unrelated to this contribution: `make check` reports existing lint and environment type-stub errors, while `make test-unit` reports failures in other modules and network-dependent tokenizer setup. The changed files pass Ruff, Black, and mypy, and all changed-module unit tests pass; this contribution introduces no new failures.
+
+**Draft PR feedback received from:** none
