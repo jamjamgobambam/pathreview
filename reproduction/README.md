@@ -186,3 +186,74 @@ This commit documents the broken behavior and where it occurs.
 
 It does **not** implement the production fix. The fix is planned in the
 root-level `PLAN.md` and will be implemented in Week 9.
+
+## Week 9 Post-Fix Verification
+
+The fix was implemented in commit
+`d5a6a906ab54f061e5fd83900625472541bb73df` (see the root-level `PLAN.md` for the
+plan it follows). The reproduction commands above were re-run against the fixed
+code; each now shows the corrected behavior.
+
+### Automated test
+
+Command:
+
+```bash
+pytest \
+  tests/unit/test_structural_chunker.py::TestStructuralChunker::test_document_with_no_headings \
+  -v
+```
+
+Result:
+
+```text
+PASSED
+```
+
+The test was strengthened to also assert that the original content is preserved,
+that caller-supplied metadata survives, and that the heading defaults are
+`heading_path=""` and `heading_level=0`.
+
+### Direct runtime reproduction
+
+Command:
+
+```bash
+PYTHONPATH=. python reproduction/reproduce_issue_149.py
+```
+
+Result:
+
+```text
+Input characters: 1000
+Chunks returned: 1
+Expected chunks: at least 1
+```
+
+The single returned chunk carries `heading_path=""`, `heading_level=0`,
+`chunk_index=0`, and the caller's `source` / `source_type` metadata — the
+heading-less document is no longer silently discarded.
+
+### Full chunker suite
+
+Command:
+
+```bash
+pytest tests/unit/test_structural_chunker.py tests/unit/test_semantic_chunker.py -q
+```
+
+Result:
+
+```text
+32 passed
+```
+
+All 16 structural chunker tests (including the new
+`test_large_document_with_no_headings_sub_chunked`, which covers the >800-token
+`SemanticChunker` delegation path) and all 16 semantic chunker tests pass, so the
+fix resolves issue #149 without regressing existing behavior.
+
+### Scope note
+
+The related preamble-before-first-heading behavior documented above is
+**unchanged** by this fix and remains out of scope for issue #149.

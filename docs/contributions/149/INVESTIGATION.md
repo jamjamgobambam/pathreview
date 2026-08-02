@@ -140,4 +140,29 @@ Behavioral invariants a fix must not break:
 - The exact chosen fix (fallback to semantic chunker vs. synthesize a default
   section vs. other) — that decision and its `PLAN.md` belong to Week 8.
 - Whether the preamble-before-first-heading sub-observation is in scope for #149.
-</content>
+
+## 8. Week 9 resolution (runtime-confirmed)
+
+The open items from §7 are now resolved against running code (fix commit
+`d5a6a906ab54f061e5fd83900625472541bb73df`):
+
+- **`test_document_with_no_headings` did fail at runtime** (`assert 0 >= 1`),
+  confirming the Week 7 static tension in §3. It now passes after the fix and was
+  strengthened to assert content preservation, caller-metadata survival, and the
+  `heading_path=""` / `heading_level=0` defaults.
+- **Chosen fix:** synthesize a single default section rather than call
+  `SemanticChunker` directly from `_extract_sections`. When a nonempty document
+  produces no heading-based sections, `_extract_sections` appends
+  `{"content": text.strip(), "path": [], "level": 0}`. This keeps the section
+  seam intact, so the existing `chunk()` loop still applies the 800-token
+  threshold and delegates oversized heading-less documents to `SemanticChunker` —
+  reusing the one fallback path noted in §5 without adding a second entry point.
+- **Preamble-before-first-heading remains out of scope for #149.** The fix guard
+  (`if not sections and text.strip()`) only fires when *no* heading sections were
+  produced, so documents that contain headings — including any preamble above the
+  first one — are untouched. The metadata invariants in §6 all hold: empty and
+  whitespace input still return `[]`, caller metadata survives, and `chunk_index`
+  stays sequential (verified by `test_large_document_with_no_headings_sub_chunked`).
+
+All 16 structural and 16 semantic chunker tests pass. Post-fix reproduction
+evidence is captured in `reproduction/README.md`.

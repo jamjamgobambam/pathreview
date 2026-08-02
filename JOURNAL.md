@@ -136,3 +136,40 @@ the first Markdown heading (confirmed during this week's investigation — the
 preamble was dropped from the returned chunks). I am keeping that behavior
 outside the narrow issue #149 plan unless maintainers confirm it should be
 addressed in the same change.
+
+## Week 9 — Implementation & verification
+
+**Fix commit link:**
+`https://github.com/techmilano/pathreview/commit/d5a6a906ab54f061e5fd83900625472541bb73df`
+
+**Fix summary:**
+I implemented the plan from `PLAN.md`. In
+`StructuralChunker._extract_sections()` (`ingestion/chunking/structural_chunker.py`),
+after the existing final-section save, I added a narrow fallback: when a
+nonempty document produced no heading-based sections, it now returns a single
+untitled section `{"content": text.strip(), "path": [], "level": 0}`. The
+existing `chunk()` loop then emits one chunk with `heading_path=""`,
+`heading_level=0`, and reuses the 800-token threshold so large heading-less
+documents still delegate to `SemanticChunker`. The guard only fires when **no**
+heading sections were produced, so documents with headings — including the
+preamble-before-first-heading case — are unaffected and stay out of scope.
+
+**Verification:**
+The previously failing `test_document_with_no_headings` now passes; I
+strengthened it to also assert content preservation, caller-metadata survival,
+and the `heading_path=""` / `heading_level=0` defaults. I added
+`test_large_document_with_no_headings_sub_chunked` to cover the semantic
+sub-chunking path and sequential `chunk_index` values. All 16 structural
+chunker tests and all 16 semantic chunker tests pass (32 total). The Week 8
+reproduction script now reports `Chunks returned: 1` with the expected
+metadata, confirming the silent data loss is resolved. Post-fix evidence is
+recorded in `reproduction/README.md`; the Week 7 static investigation is
+reconciled with runtime results in `docs/contributions/149/INVESTIGATION.md`.
+
+**Walkthrough video (recommended):**
+`Not recorded.`
+
+**Blockers or open questions:**
+None blocking. The preamble-before-first-heading behavior remains a known,
+related limitation that is intentionally left out of scope for issue #149; it
+can be raised separately with maintainers.
