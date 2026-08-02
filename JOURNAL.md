@@ -55,3 +55,29 @@ this in tests/unit/test_repo_analyzer.py.
 Need to confirm whether we're using an authenticated GitHub connection to
 avoid rate limits, and whether file_structure should be a flat string or a
 list — leaning toward string based on how the existing detection code uses it.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in agent/tools/github_tool.py — added a
+_fetch_file_structure method that calls GitHub's Git Trees API and wires
+it into the metadata dict returned by _fetch_repo_metadata. Verified
+locally that has_tests now correctly returns True for a real repo with
+tests (previously always False, since the file_structure field it depends
+on was never populated). Added 4 new unit tests in
+tests/unit/test_github_tool.py covering the success case, API failure
+handling, truncated tree handling, and metadata wiring. Fixed a
+pre-existing mypy no-any-return error in _has_readme while in the area.
+Confirmed via baseline comparison against main (57 failed/375 passed there
+vs. 53 failed/381 passed on this branch) that my changes introduce no new
+test failures — all pre-existing failures are in unrelated modules.
+
+**Next steps:**
+Opened a draft PR (#598) and shared it in Slack for feedback.
+Will incorporate any feedback received, then mark ready for review and
+finalize Check-in 2.
+
+**Blockers:**
+None currently.
