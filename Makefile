@@ -16,7 +16,7 @@ PYTEST := $(VENV_BIN)/pytest
 # ---- Setup ----
 
 setup: ## First-time setup: venv, deps, migrations, seed data
-	python -m venv .venv || python3 -m venv .venv
+	/opt/homebrew/bin/python3.14 -m venv .venv || python3.14 -m venv .venv || python3 -m venv .venv || python -m venv .venv
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
 	$(PIP) install -e ".[dev]"
 	$(VENV_BIN)/pre-commit install
