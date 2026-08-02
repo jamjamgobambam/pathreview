@@ -87,7 +87,7 @@ I am going to iteratively complete the plan I outlined in my PlAN.md. As I make 
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/538
 
 **Branch:** `fix/wrap-health-check-sql-in-text`
 
