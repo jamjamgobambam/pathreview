@@ -40,3 +40,35 @@ Ran the reproduction script directly against StructuralChunker.chunk() with a ~1
 
 **Blockers or open questions:**
 Still need to confirm whether other parts of the codebase (agent/, rag/) assume heading_level is always an integer 1-6, since headingless sections will need some sentinel value there.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed the root-cause investigation from PLAN.md: traced the bug to the guard condition in `_extract_sections()` that only collected content lines once `heading_stack` was non-empty. Implemented the fix by replacing that guard with a content-based check, allowing headingless documents to be captured as a section. Verified the fix resolves the original repro (`chunk()` now returns 1 chunk instead of 0 for a headingless document) and confirmed all pre-existing tests in `test_structural_chunker.py` still pass.
+
+**Next steps:**
+Add a new test covering a headingless document that also exceeds `SECTION_TOKEN_LIMIT`, to confirm the `SemanticChunker` sub-chunking fallback works correctly for this case too. Then run `make check` and `make test-unit` for full self-review, document any pre-existing failures, and open the PR.
+
+**Blockers:**
+None — the fix ended up being narrower in scope than expected once the root cause was clear.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/578
+
+**Branch:** fix/149-structural-chunker-no-headings
+
+**What you built:**
+Fixed `StructuralChunker._extract_sections()` so documents with no markdown headings are no longer silently dropped from the RAG index. The fix replaces a guard condition that depended on heading state with one that checks for actual accumulated content, so headingless documents are now captured as a section (using `heading_path=""` and `heading_level=0` as sentinel values) instead of producing an empty chunk list.
+
+**Tests added or updated:**
+Added `test_large_document_with_no_headings_is_sub_chunked` in `tests/unit/test_structural_chunker.py`, covering the case where a headingless document also exceeds `SECTION_TOKEN_LIMIT` and must be routed through `SemanticChunker` rather than returned as a single oversized chunk. The pre-existing `test_document_with_no_headings` test (previously failing) now passes without modification.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+*(Both commands surface pre-existing, unrelated failures documented in the PR description — 52 pre-existing test failures across unrelated modules and 182 pre-existing lint errors repo-wide, plus a pre-existing mypy/NumPy stub incompatibility. This change introduces no new failures in any of the three.)*
+
+**Draft PR feedback received from:** none
