@@ -15,7 +15,8 @@ class FaithfulnessChecker:
 
         Args:
             feedback: Generated feedback text
-            context_chunks: Retrieved context chunks
+            context_chunks: Retrieved context chunks. A chunk whose "text" key is
+                missing or set to None contributes no text to the context.
 
         Returns:
             Faithfulness score 0.0-1.0 (ratio of supported claims)
