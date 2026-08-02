@@ -44,3 +44,21 @@ Run make check and make test-unit at the full project level to confirm no regres
 
 **Blockers:**
 The project has 182 pre-existing make check errors and 53 pre-existing make test-unit failures unrelated to issue #153 (confirmed via git stash before making changes). None of these block my fix, but I will document them transparently in the PR's Notes for Reviewers section.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/592
+
+**Branch:** fix/153-faithfulness-none-context-text
+
+**What you built:**
+Fixed a TypeError in FaithfulnessChecker.check() that occurred when a context chunk had {"text": None}. Changed chunk.get("text", "") to chunk.get("text") or "" so both missing and None text values fall back to an empty string instead of crashing the join() call.
+
+**Tests added or updated:**
+Updated tests/unit/test_faithfulness_checker.py: confirmed the existing test_none_context_chunk_text now passes (previously failed with TypeError), and added a new test test_mixed_none_and_valid_context_chunks covering a list of chunks where one has None text and another has valid text, asserting the valid chunk still contributes to the score.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+(Both commands pass for the files this PR touches; the project has pre-existing, unrelated failures documented in the PR's Notes for Reviewers section, confirmed via git stash to exist before this change.)
+
+**Draft PR feedback received from:** none — no peer/mentor review available this term (per course announcement); self-reviewed against the pre-submission checklist instead.
