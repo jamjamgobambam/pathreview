@@ -64,8 +64,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(open the PR from the compare URL below, then paste the resulting PR URL here)_
-https://github.com/ascherj/pathreview/compare/main...GolamMortuzaSourov:fix/153-faithfulness-checker-none-chunk-text
+**PR link:** https://github.com/ascherj/pathreview/pull/566
 
 **Branch:** `fix/153-faithfulness-checker-none-chunk-text`
 
