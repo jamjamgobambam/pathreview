@@ -3,6 +3,7 @@
 import structlog
 
 from .keyword_search import KeywordSearcher
+from .llm_reranker import LLMReranker
 from .vector_store import VectorStore
 
 logger = structlog.get_logger()
@@ -17,6 +18,7 @@ class HybridRetriever:
         keyword_searcher: KeywordSearcher,
         vector_weight: float = 0.7,
         keyword_weight: float = 0.3,
+        llm_reranker: LLMReranker | None = None,
     ):
         """Initialize hybrid retriever.
 
@@ -30,6 +32,7 @@ class HybridRetriever:
         self.keyword_searcher = keyword_searcher
         self.vector_weight = vector_weight
         self.keyword_weight = keyword_weight
+        self.llm_reranker = llm_reranker
 
     def retrieve(
         self,
@@ -126,6 +129,8 @@ class HybridRetriever:
         # TODO (Issue #34): We currently just return final_results here.
         # We need to pass final_results to an LLM to score them, sort them
         # based on the LLM score, and THEN return them.
+        if self.llm_reranker:
+            final_results = self.llm_reranker.rerank(query, final_results)
         return final_results
 
     def _get_all_chunks(self, collection_name: str) -> list[dict]:
