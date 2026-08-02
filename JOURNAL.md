@@ -66,3 +66,22 @@ Write the PR description using the strong-PR-description examples as reference, 
 
 **Blockers:**
 `make check`'s mypy hook flags `disallow_untyped_defs` on every pre-existing test method in this file (none had `-> None` before my change either) — documented this as pre-existing in my commit message and will note it in the PR's "Notes for Reviewers" section rather than fixing all 37 unrelated methods.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/594
+
+**Branch:** test/37-prompt-template-snapshot-tests
+
+**What you built:**
+Replaced the broken prompt template snapshot test (which only checked hash type/length and could never fail) with a parametrized test that asserts each of the 5 templates' v1 content hash against a hardcoded expected value. Editing a template's wording without bumping its version now fails with a clear, actionable error message.
+
+**Tests added or updated:**
+`tests/unit/test_prompt_templates.py` — replaced `test_template_snapshot_content_hash` with `EXPECTED_TEMPLATE_HASHES` and a parametrized `test_template_snapshot_matches_expected_hash`, covering all 5 templates individually. All 41 tests in the file pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+*(both pass with only pre-existing, unrelated failures — documented in commit message and PR "Notes for Reviewers"; no new failures introduced)*
+
+**Draft PR feedback received from:** none — skipped peer review due to time constraints on submission day
