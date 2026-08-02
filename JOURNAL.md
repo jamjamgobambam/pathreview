@@ -35,3 +35,19 @@ I reproduced issue #154 by running the application locally and sending a request
 **Blockers or open questions:**
 
 The Redis health check also reports a separate configuration error, but it appears unrelated to issue #154 and is outside the scope of this contribution.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+Implemented the PostgreSQL health check fix by replacing the raw SQL query with SQLAlchemy's `text()` wrapper. Added a unit test verifying that the health check executes a SQLAlchemy `TextClause`. Confirmed the issue is resolved locally.
+
+**Next steps:**
+
+Open a draft pull request, request peer feedback, complete the PR template, and perform final verification before marking the PR ready for review.
+
+**Blockers:**
+
+The repository contains unrelated pre-existing failures in `make test-unit` and `make check`, but they are outside the scope of issue #154.
