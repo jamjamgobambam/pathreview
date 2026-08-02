@@ -1,7 +1,7 @@
 """BM25-based keyword search retriever."""
 
-from rank_bm25 import BM25Okapi
 import structlog
+from rank_bm25 import BM25Okapi
 
 logger = structlog.get_logger()
 
@@ -21,9 +21,7 @@ class KeywordSearcher:
             chunks: List of chunk dicts with 'text' field
         """
         self.chunks = chunks
-        tokenized_corpus = [
-            self._tokenize(chunk["text"]) for chunk in chunks
-        ]
+        tokenized_corpus = [self._tokenize(chunk["text"]) for chunk in chunks]
         self.bm25 = BM25Okapi(tokenized_corpus)
         logger.info("keyword_index_built", chunk_count=len(chunks))
 
@@ -45,9 +43,7 @@ class KeywordSearcher:
         scores = self.bm25.get_scores(query_tokens)
 
         # Create list of (chunk, score) tuples
-        scored_chunks = [
-            (self.chunks[i], scores[i]) for i in range(len(self.chunks))
-        ]
+        scored_chunks = [(self.chunks[i], scores[i]) for i in range(len(self.chunks))]
 
         # Sort by score descending
         scored_chunks.sort(key=lambda x: x[1], reverse=True)
@@ -59,8 +55,9 @@ class KeywordSearcher:
             result["bm25_score"] = float(score)
             results.append(result)
 
-        logger.info("keyword_search_complete", query_len=len(query_tokens),
-                   results_count=len(results))
+        logger.info(
+            "keyword_search_complete", query_len=len(query_tokens), results_count=len(results)
+        )
         return results
 
     @staticmethod

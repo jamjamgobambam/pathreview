@@ -1,6 +1,7 @@
 """Prompt injection detection and defense."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()

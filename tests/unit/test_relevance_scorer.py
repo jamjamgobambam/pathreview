@@ -18,9 +18,7 @@ class TestRelevanceScorer:
         """Test query with perfect keyword match in chunks returns score close to 1.0."""
         query = "Python development framework"
         chunks = [
-            {
-                "text": "Python is a great development language for building frameworks"
-            },
+            {"text": "Python is a great development language for building frameworks"},
         ]
 
         score = scorer.score(query, chunks)
@@ -34,9 +32,7 @@ class TestRelevanceScorer:
         """Test query with zero keyword overlap returns score close to 0.0."""
         query = "Rust Kubernetes microservices"
         chunks = [
-            {
-                "text": "Python is dynamically typed and interpreted language"
-            },
+            {"text": "Python is dynamically typed and interpreted language"},
         ]
 
         score = scorer.score(query, chunks)
@@ -48,9 +44,7 @@ class TestRelevanceScorer:
         """Test query with partial overlap returns score between 0 and 1."""
         query = "Python Django web framework"
         chunks = [
-            {
-                "text": "Django is a Python web framework for rapid development"
-            },
+            {"text": "Django is a Python web framework for rapid development"},
         ]
 
         score = scorer.score(query, chunks)
@@ -71,9 +65,7 @@ class TestRelevanceScorer:
     def test_empty_query_returns_zero(self, scorer):
         """Test empty query returns 0.0."""
         query = ""
-        chunks = [
-            {"text": "Some content"}
-        ]
+        chunks = [{"text": "Some content"}]
 
         score = scorer.score(query, chunks)
 
@@ -96,9 +88,7 @@ class TestRelevanceScorer:
     def test_case_insensitive_matching(self, scorer):
         """Test that keyword matching is case insensitive."""
         query = "PYTHON PROGRAMMING"
-        chunks = [
-            {"text": "python programming is fun"}
-        ]
+        chunks = [{"text": "python programming is fun"}]
 
         score = scorer.score(query, chunks)
 
@@ -117,10 +107,7 @@ class TestRelevanceScorer:
     def test_empty_text_in_chunk(self, scorer):
         """Test handling of empty text in chunk."""
         query = "Python"
-        chunks = [
-            {"text": ""},
-            {"text": "Python programming"}
-        ]
+        chunks = [{"text": ""}, {"text": "Python programming"}]
 
         score = scorer.score(query, chunks)
 
@@ -130,9 +117,7 @@ class TestRelevanceScorer:
     def test_very_long_query(self, scorer):
         """Test handling of very long query."""
         query = "Python " * 100
-        chunks = [
-            {"text": "Python is a programming language"}
-        ]
+        chunks = [{"text": "Python is a programming language"}]
 
         score = scorer.score(query, chunks)
 
@@ -142,9 +127,7 @@ class TestRelevanceScorer:
     def test_very_long_chunk(self, scorer):
         """Test handling of very long chunk."""
         query = "Python"
-        chunks = [
-            {"text": "Python " * 1000 + "is a great language"}
-        ]
+        chunks = [{"text": "Python " * 1000 + "is a great language"}]
 
         score = scorer.score(query, chunks)
 
@@ -154,9 +137,7 @@ class TestRelevanceScorer:
     def test_special_characters_ignored(self, scorer):
         """Test that special characters are handled."""
         query = "Python c++ golang"
-        chunks = [
-            {"text": "c++ is a systems programming language"}
-        ]
+        chunks = [{"text": "c++ is a systems programming language"}]
 
         score = scorer.score(query, chunks)
 
@@ -166,9 +147,7 @@ class TestRelevanceScorer:
     def test_multiple_keyword_matches(self, scorer):
         """Test scoring improves with multiple keyword matches."""
         query = "Python framework development tools"
-        chunks = [
-            {"text": "Python django flask development framework tools"}
-        ]
+        chunks = [{"text": "Python django flask development framework tools"}]
 
         score = scorer.score(query, chunks)
 
@@ -178,11 +157,7 @@ class TestRelevanceScorer:
     def test_single_word_chunks(self, scorer):
         """Test handling of single-word chunks."""
         query = "Python development"
-        chunks = [
-            {"text": "Python"},
-            {"text": "development"},
-            {"text": "framework"}
-        ]
+        chunks = [{"text": "Python"}, {"text": "development"}, {"text": "framework"}]
 
         score = scorer.score(query, chunks)
 
@@ -204,9 +179,7 @@ class TestRelevanceScorer:
     def test_common_words_not_preventing_scoring(self, scorer):
         """Test that common words don't prevent scoring."""
         query = "the best Python framework"
-        chunks = [
-            {"text": "Django is the best Python web framework"}
-        ]
+        chunks = [{"text": "Django is the best Python web framework"}]
 
         score = scorer.score(query, chunks)
 
@@ -216,9 +189,7 @@ class TestRelevanceScorer:
     def test_chunk_without_text_key(self, scorer):
         """Test handling of chunk missing 'text' key."""
         query = "Python"
-        chunks = [
-            {"content": "Python programming"}  # Wrong key
-        ]
+        chunks = [{"content": "Python programming"}]  # Wrong key
 
         score = scorer.score(query, chunks)
 
@@ -229,10 +200,7 @@ class TestRelevanceScorer:
     def test_whitespace_only_in_chunks(self, scorer):
         """Test chunks with only whitespace."""
         query = "Python"
-        chunks = [
-            {"text": "   "},
-            {"text": "\n\t"}
-        ]
+        chunks = [{"text": "   "}, {"text": "\n\t"}]
 
         score = scorer.score(query, chunks)
 
@@ -244,7 +212,7 @@ class TestRelevanceScorer:
         chunks = [
             {"text": "Python is great"},
             {"text": "Python programming"},
-            {"text": "Java is different"}
+            {"text": "Java is different"},
         ]
 
         score = scorer.score(query, chunks)

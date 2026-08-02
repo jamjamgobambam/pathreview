@@ -2,6 +2,7 @@
 
 import httpx
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -35,44 +36,30 @@ class GitHubTool(BaseTool):
         repo_name = input_data.get("repo_name")
 
         if not username or not repo_name:
-            return ToolResult(
-                success=False,
-                data={},
-                error="Missing github_username or repo_name"
-            )
+            return ToolResult(success=False, data={}, error="Missing github_username or repo_name")
 
         try:
             repo_data = self._fetch_repo_metadata(username, repo_name)
             return ToolResult(success=True, data=repo_data)
 
         except httpx.HTTPStatusError as e:
-            logger.error("github_request_failed", status=e.response.status_code,
-                        username=username, repo=repo_name)
+            logger.error(
+                "github_request_failed",
+                status=e.response.status_code,
+                username=username,
+                repo=repo_name,
+            )
             if e.response.status_code == 404:
-                return ToolResult(
-                    success=False,
-                    data={},
-                    error="Repository not found"
-                )
+                return ToolResult(success=False, data={}, error="Repository not found")
             elif e.response.status_code == 403:
-                return ToolResult(
-                    success=False,
-                    data={},
-                    error="Rate limited or access denied"
-                )
+                return ToolResult(success=False, data={}, error="Rate limited or access denied")
             return ToolResult(
-                success=False,
-                data={},
-                error=f"GitHub API error: {e.response.status_code}"
+                success=False, data={}, error=f"GitHub API error: {e.response.status_code}"
             )
 
         except Exception as e:
             logger.error("github_tool_error", error=str(e))
-            return ToolResult(
-                success=False,
-                data={},
-                error=str(e)
-            )
+            return ToolResult(success=False, data={}, error=str(e))
 
     def _fetch_repo_metadata(self, username: str, repo_name: str) -> dict:
         """Fetch repository metadata from GitHub API.
@@ -109,8 +96,13 @@ class GitHubTool(BaseTool):
             "homepage": repo_json.get("homepage") or "",
         }
 
-        logger.info("github_repo_fetched", username=username, repo=repo_name,
-                   language=metadata["primary_language"], stars=metadata["star_count"])
+        logger.info(
+            "github_repo_fetched",
+            username=username,
+            repo=repo_name,
+            language=metadata["primary_language"],
+            stars=metadata["star_count"],
+        )
 
         return metadata
 

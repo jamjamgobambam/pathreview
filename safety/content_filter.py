@@ -1,6 +1,7 @@
 """Content filter for generated feedback."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -37,6 +38,8 @@ class ContentFilter:
                 logger.warning("harmful_content_detected", pattern=pattern)
                 was_filtered = True
                 # Replace harmful phrases with neutral text
-                filtered_text = re.sub(pattern, "[CONTENT REMOVED]", filtered_text, flags=re.IGNORECASE)
+                filtered_text = re.sub(
+                    pattern, "[CONTENT REMOVED]", filtered_text, flags=re.IGNORECASE
+                )
 
         return filtered_text, was_filtered
