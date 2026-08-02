@@ -51,3 +51,18 @@ Ran the existing `test_template_snapshot_content_hash` test, then edited the wor
 
 **Blockers or open questions:**
 Deciding between one combined snapshot hash vs. per-template hashes — leaning per-template for better diagnostics, will finalize in Week 9.
+
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix for issue #37. Replaced the broken `test_template_snapshot_content_hash` test (which only checked hash type/length) with a parametrized `test_template_snapshot_matches_expected_hash` test that asserts each of the 5 templates' v1 content against a hardcoded expected MD5 hash. Verified the fix works by re-running the Week 8 reproduction: editing `skills_feedback` wording now fails the test with a clear message, while reverting brings it back to green. All 41 tests in the file pass (up from 37 — net +4 from swapping 1 broken test for 5 real ones). Confirmed `make test-unit` shows no new failures (53 pre-existing failures, same as Week 8 baseline; 379 passed, up from 375).
+
+**Next steps:**
+Write the PR description using the strong-PR-description examples as reference, run through the full pre-submission self-review checklist, and open a draft PR for peer/mentor feedback before marking it ready for review.
+
+**Blockers:**
+`make check`'s mypy hook flags `disallow_untyped_defs` on every pre-existing test method in this file (none had `-> None` before my change either) — documented this as pre-existing in my commit message and will note it in the PR's "Notes for Reviewers" section rather than fixing all 37 unrelated methods.
