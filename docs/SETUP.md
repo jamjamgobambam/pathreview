@@ -25,7 +25,7 @@ Use **Git Bash** (included with [Git for Windows](https://git-scm.com/download/w
 
 ```bash
 winget install GnuWin32.Make
-echo 'export PATH="$PATH:/c/Program Files (x86)/GnuWin32/bin"' >> ~/.bashrc
+echo 'export PATH="$PATH:/c/Program Files (x86)/GnuWin32/bin"' >~/.bashrc
 source ~/.bashrc
 ```
 
@@ -59,6 +59,32 @@ make setup
 # 5. Start the application
 make run
 ```
+
+**Windows (Docker Desktop):**
+
+Before running `docker compose up -d`, make sure Docker Desktop is fully started and shows **Engine running**. If you have just opened Docker Desktop, wait until initialization completes before continuing.
+
+If this is your first time using Docker Compose on Windows:
+
+```bash
+docker compose version
+docker compose up -d
+docker compose ps
+```
+
+If you receive an error such as:
+
+```
+Cannot connect to the Docker daemon
+```
+
+or
+
+```
+error during connect
+```
+
+Docker Desktop is either not running or the WSL 2 backend has not finished starting. Open Docker Desktop, wait for **Engine running**, then retry the commands.
 
 Open http://localhost:5173 in your browser. The API is at http://localhost:8000 (Swagger docs at /docs).
 

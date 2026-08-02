@@ -1,7 +1,8 @@
 """Rate limiting with rolling window."""
 
-import redis
 import time
+
+import redis
 import structlog
 
 logger = structlog.get_logger()
@@ -18,8 +19,9 @@ class RateLimiter:
         """
         self.redis = redis_client
 
-    def check_rate_limit(self, identifier: str, limit: int,
-                        window_seconds: int = 60) -> tuple[bool, int]:
+    def check_rate_limit(
+        self, identifier: str, limit: int, window_seconds: int = 60
+    ) -> tuple[bool, int]:
         """Check if request is within rate limit.
 
         Args:
@@ -47,14 +49,17 @@ class RateLimiter:
                 self.redis.expire(key, window_seconds + 1)
                 remaining = limit - current_count - 1
 
-                logger.info("rate_limit_allowed", identifier=identifier,
-                           current_count=current_count + 1, limit=limit)
+                logger.info(
+                    "rate_limit_allowed",
+                    identifier=identifier,
+                    current_count=current_count + 1,
+                    limit=limit,
+                )
                 return True, remaining
 
             else:
                 # Rate limit exceeded
-                logger.warning("rate_limit_exceeded", identifier=identifier,
-                             limit=limit)
+                logger.warning("rate_limit_exceeded", identifier=identifier, limit=limit)
                 return False, 0
 
         except Exception as e:
