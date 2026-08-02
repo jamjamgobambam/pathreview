@@ -17,6 +17,7 @@ The faithfulness checker's `check()` method builds context text by pulling the `
 
 **Scope reasoning:**
 I chose a Tier 1 issue since this is my first time contributing to a large, unfamiliar codebase, and Tier 1 issues are scoped to a single file/function rather than requiring system-wide understanding. This issue is well-scoped: the bug is isolated to one function (`check()`) in one file (the faithfulness checker in `rag/`), the root cause is already clearly identified in the issue description, and there's an existing failing test I can use to verify my fix. I estimate this will take 3-6 hours of focused work, which fits comfortably within the Week 8-9 timeline. Several other students are also working on this issue, but since claims are non-exclusive and grading is based on my own submitted artifacts, that doesn't change my choice. There are no blockers or dependencies noted on the issue.
+
 ## Week 8 — Reproduction & solution planning
 
 **Reproduction commit link:** https://github.com/jmonarro-ai/pathreview/commit/97e9b0a
@@ -30,3 +31,16 @@ I ran the existing test test_none_context_chunk_text against the unmodified Fait
 
 **Blockers or open questions:**
 None currently. The fix is well-scoped to one line in check(); the main thing I'll verify in Week 9 is that the fix doesn't change scores for any of the other currently-passing tests.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed sub-tasks 1-4 from PLAN.md: fixed the None-handling bug in FaithfulnessChecker.check() by changing chunk.get("text", "") to chunk.get("text") or "", confirmed test_none_context_chunk_text now passes, ran the full test_faithfulness_checker.py suite to confirm no regressions, and manually verified the original TypeError no longer occurs. Also added the planned test_mixed_none_and_valid_context_chunks test.
+
+**Next steps:**
+Run make check and make test-unit at the full project level to confirm no regressions outside the faithfulness checker module, then open a draft PR and fill in the PR template.
+
+**Blockers:**
+The project has 182 pre-existing make check errors and 53 pre-existing make test-unit failures unrelated to issue #153 (confirmed via git stash before making changes). None of these block my fix, but I will document them transparently in the PR's Notes for Reviewers section.
