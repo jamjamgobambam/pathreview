@@ -115,4 +115,4 @@ To be honest, I would spend more time reading the code and understanding the flo
 
 **What are you most proud of from this module?**
 
-I am proud that I was able to work through a confusing codebase and complete a change that fit the project.
+I am proud that I was able to work through a confusing codebase and complete a change that fit the project. I am also proud because this is my first open-source contribution and it opens the road for many of them to come later (because it won't feel as intimidating anymore).
