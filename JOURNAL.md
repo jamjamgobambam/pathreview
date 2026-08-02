@@ -24,7 +24,7 @@ I selected this issue because it is labeled Tier 1 and is estimated to take appr
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** *(add after committing)*
+**Reproduction commit link:** https://github.com/k-hetherington/pathreview/commit/9d48bbe)
 
 **Reproduction summary:**
 
@@ -32,7 +32,7 @@ I reproduced Issue #68 by reviewing the implementation immediately before my fix
 
 While investigating, I found that `SafetyMonitor` only stored cumulative Redis counters using `INCR`. Although `get_event_count()` accepted a `window_hours` parameter, the value was never enforced because events were not stored with timestamps. As a result, the application could not accurately report the number of safety events that occurred during the previous hour.
 
-**PLAN.md link:** *(add after creating PLAN.md)*
+**PLAN.md link:** https://github.com/k-hetherington/pathreview/blob/fix/68-safety-event-health-count/PLAN.md
 
 **Walkthrough video (recommended):**
 
