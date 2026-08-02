@@ -49,3 +49,21 @@ None. The code in `rag/retriever/hybrid.py` clearly defines the vector weight (0
 
 **Blockers:**
 None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/Le-Zu/pathreview/pull/1
+
+**Branch:** `docs/36-explain-hybrid-retrieval-scoring`
+
+**What you built:**
+Completed Sub-Tasks 2, 3, and 4 by adding a comprehensive `#### Hybrid Retrieval Scoring` subsection and step-by-step numerical worked example to `docs/ARCHITECTURE.md`. This documents the vector similarity (0.7) and BM25 keyword (0.3) weights, max-normalization logic (`raw / max`), zero-division safeguards, score blending equation, minimum score filtering (`min_score = 0.3`), and top-k ranking (`max_chunks = 10`) implemented in `rag/retriever/hybrid.py`.
+
+**Tests added or updated:**
+N/A (Documentation-only issue). Inspected source implementation in `rag/retriever/hybrid.py` to confirm that all documented formulas, default weights (0.7 vector / 0.3 keyword), max score normalization (`raw / max`), zero safeguards, `min_score = 0.3` threshold, and top-k filtering (`max_chunks = 10`) match runtime code behavior. Verified existing test structure in `tests/unit/test_keyword_search.py`, validated Markdown rendering across documents, and confirmed baseline execution via `make check` and `make test-unit`.
+
+**Self-review confirmation:** [x] make check passes [x] make test-unit passes
+
+**Draft PR feedback received from:** none
