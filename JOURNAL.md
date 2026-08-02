@@ -87,6 +87,18 @@ Not an actual blocker, but an issue I observed: this repo's local `pre-commit` h
 
 ---
 
+### Check-in 1.5 (draft PR feedback)
+
+Opened the PR as a draft and got a review pass from **Meenakshi ([@msistla96](https://github.com/msistla96)) / Yamaan Nandolia** (Slack). No blockers were raised — feedback was framed as optional polish plus two things worth a second look:
+
+1. **JS-rendered/SPA portfolios extract silently.** A plain `httpx` fetch returns valid-but-empty text for JS-rendered sites, and that was previously indistinguishable from a real (if short) page in the logs. Fixed by having `web_parser.py` log a `portfolio_page_empty_text` **warning** (instead of an info log) whenever extraction yields zero words, so it's now discoverable rather than silent. Added `test_parse_empty_page_logs_a_warning_not_silent` to cover it.
+2. **Fetch-failure path test coverage.** The reviewer asked whether the "fetch fails → caught, logged, skipped" behavior (mirroring the existing github/resume try/except pattern) was actually covered by a test, since that's the branch most likely to regress. It was already covered (`test_portfolio_ingestion_failure_is_skipped`), but only asserted the returned `sources` list stayed empty — I strengthened it to also assert `db_session.add` is never called, so a regression that tried to write a fabricated `IngestedSource` on failure would now be caught too.
+3. **`--no-verify` paper trail.** The reviewer suggested filing a tracking issue for the repo-wide pre-existing debt so the `--no-verify` pattern has somewhere to point beyond JOURNAL.md/PR descriptions. Given this is a course assignment scoped to a single issue rather than an ongoing enterprise codebase, I didn't file a separate issue — instead documented in the PR description that this (filing a tracking issue, and a separate one for the `IngestedSource.raw_data` bug I discovered while testing) is what I'd actually do as the next step in a real enterprise setting, so the reasoning is visible without expanding this PR's scope.
+
+All three addressed across 3 follow-up commits (`9651177`, `9f80223`, `133ccb6`), pushed to the same branch.
+
+---
+
 ### Check-in 2 (end of week)
 
 **PR link:** [link to your submitted pull request]
@@ -94,11 +106,12 @@ Not an actual blocker, but an issue I observed: this repo's local `pre-commit` h
 **Branch:** feat/11-add-support-for-ingesting-portfolio-website-url
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+Fixed portfolio URL ingestion end-to-end: added a `WebParser` that actually fetches and extracts text from a submitted portfolio URL (replacing a placeholder string that was silently fabricated and never fetched anything), wired it into the review pipeline, added a matching `IngestionPipeline.ingest_portfolio` method, and tightened `portfolio_url` validation on both the API schema and the frontend form. Verified manually end-to-end using a local dummy portfolio server and confirmed via backend logs that real page text is now extracted and used.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+`tests/unit/test_web_parser.py` (9 tests — fetch success, script/style stripping, unreachable URL, non-200 status, non-HTML content-type, empty/JS-only page now warns instead of silent), `tests/unit/test_pipeline.py` (3 tests for `ingest_portfolio` — success, dedup skip, error propagation), `tests/unit/test_profile_schema.py` (10 tests for portfolio URL scheme validation), and 3 tests added to `tests/unit/test_review_service.py` covering the portfolio branch of `_run_ingestion_pipeline` (real fetched text used, failure is caught/skipped without writing a fabricated source, no-op when portfolio_url is absent).
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both pass in the sense the assignment defines: zero new failures introduced beyond the documented pre-existing baseline of 53 test failures / 182 ruff errors / 103 mypy errors / 52 files black would reformat — verified by diffing tool output on every touched file against its pre-change version.)
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** Meenakshi ([@msistla96](https://github.com/msistla96)) on GitHub / Yamaan Nandolia on Slack
