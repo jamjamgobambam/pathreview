@@ -15,3 +15,22 @@ The architecture documentation mentions the hybrid retrieval system but does not
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:**
+(To be filled after committing)
+
+**Reproduction summary:**
+
+I reviewed `docs/ARCHITECTURE.md` and confirmed that it describes hybrid retrieval but does not explain how vector similarity and BM25 scores are combined to produce the final retrieval ranking. The documentation identifies the components but does not describe the scoring formula or ranking process.
+
+**PLAN.md link:**
+(To be filled after pushing)
+
+**Walkthrough video (recommended):**
+Not recorded.
+
+**Blockers or open questions:**
+
+I need to identify where the hybrid retrieval scoring logic is implemented so the documentation accurately reflects the current behavior.
