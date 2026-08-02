@@ -69,16 +69,22 @@ test failures unrelated to this issue — my change introduces none.)
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/533
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `fix/154-health-db-probe-text`
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+The `/health` DB probe ran the raw string `"SELECT 1"`, which raises
+`ArgumentError` under SQLAlchemy 2.x and made the endpoint falsely report
+PostgreSQL as unhealthy even when the database was reachable. Wrapping the query
+in `sqlalchemy.text()` fixes this so the probe runs and reports the true
+database status. The change is scoped to the Postgres probe only.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+`tests/unit/test_health.py` — a regression test that calls `health_check` with a
+mocked session and asserts the DB probe is invoked with a SQLAlchemy `text()`
+clause rather than a raw string. Fails before the fix, passes after.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
