@@ -30,9 +30,12 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
                 identifier = payload.get("sub")
 
         if identifier is None:
-            # JWT-only first pass: unauthenticated requests aren't rate
-            # limited yet (IP fallback to be added later).
-            return await call_next(request)
+            # Note: uses request.client.host directly. Does not inspect
+            # X-Forwarded-For or similar proxy headers — if this app is ever
+            # deployed behind a reverse proxy/load balancer, this would
+            # report the proxy's IP rather than the real client IP. Out of
+            # scope for this issue; flagging for future consideration.
+            identifier = request.client.host
 
         allowed, remaining = self.rate_limiter.check_rate_limit(
             identifier=identifier,

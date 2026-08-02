@@ -27,8 +27,8 @@ class TestRateLimiterMiddleware:
         return MagicMock()
 
     @pytest.fixture
-    def client(self, mock_rate_limiter: MagicMock) -> TestClient:
-        """Create a TestClient wrapping a minimal app with only the rate limiter middleware."""
+    def app(self, mock_rate_limiter: MagicMock) -> FastAPI:
+        """Create a minimal app with only the rate limiter middleware."""
         app = FastAPI()
         app.add_middleware(RateLimiterMiddleware, rate_limiter=mock_rate_limiter, limit=60)
 
@@ -36,6 +36,11 @@ class TestRateLimiterMiddleware:
         def ping() -> dict[str, bool]:
             return {"ok": True}
 
+        return app
+
+    @pytest.fixture
+    def client(self, app: FastAPI) -> TestClient:
+        """Create a TestClient wrapping the minimal app, using TestClient's default client host."""
         return TestClient(app)
 
     def test_valid_token_under_limit_allowed(
@@ -100,38 +105,95 @@ class TestRateLimiterMiddleware:
         ]
         assert identifiers == ["user_a", "user_b"]
 
-    def test_malformed_jwt_not_rate_limited(
+    def test_malformed_jwt_falls_back_to_ip(
         self, client: TestClient, mock_rate_limiter: MagicMock
     ) -> None:
-        """Test a malformed/invalid JWT falls through unrestricted (no IP fallback yet)."""
+        """Test a malformed/invalid JWT falls back to rate limiting by client IP."""
+        mock_rate_limiter.check_rate_limit.return_value = (True, 59)
+
         response = client.get("/ping", headers={"Authorization": "Bearer not.a.valid.jwt"})
 
         assert response.status_code == 200
-        mock_rate_limiter.check_rate_limit.assert_not_called()
+        mock_rate_limiter.check_rate_limit.assert_called_once_with(
+            identifier="testclient", limit=60, window_seconds=60
+        )
 
-    def test_no_authorization_header_not_rate_limited(
+    def test_no_authorization_header_falls_back_to_ip(
         self, client: TestClient, mock_rate_limiter: MagicMock
     ) -> None:
-        """Test a request with no Authorization header falls through unrestricted."""
+        """Test a request with no Authorization header falls back to rate limiting by client IP."""
+        mock_rate_limiter.check_rate_limit.return_value = (True, 59)
+
         response = client.get("/ping")
 
         assert response.status_code == 200
-        mock_rate_limiter.check_rate_limit.assert_not_called()
+        mock_rate_limiter.check_rate_limit.assert_called_once_with(
+            identifier="testclient", limit=60, window_seconds=60
+        )
 
-    def test_non_bearer_scheme_not_rate_limited(
+    def test_non_bearer_scheme_falls_back_to_ip(
         self, client: TestClient, mock_rate_limiter: MagicMock
     ) -> None:
-        """Test an Authorization header using a non-Bearer scheme falls through unrestricted."""
+        """Test a non-Bearer Authorization scheme falls back to IP-based rate limiting."""
+        mock_rate_limiter.check_rate_limit.return_value = (True, 59)
+
         response = client.get("/ping", headers={"Authorization": "Basic dXNlcjpwYXNz"})
 
         assert response.status_code == 200
-        mock_rate_limiter.check_rate_limit.assert_not_called()
+        mock_rate_limiter.check_rate_limit.assert_called_once_with(
+            identifier="testclient", limit=60, window_seconds=60
+        )
 
-    def test_authorization_header_without_bearer_prefix_not_rate_limited(
+    def test_authorization_header_without_bearer_prefix_falls_back_to_ip(
         self, client: TestClient, mock_rate_limiter: MagicMock
     ) -> None:
-        """Test an Authorization header with no scheme prefix at all falls through unrestricted."""
+        """Test an Authorization header with no scheme prefix falls back to rate limiting by IP."""
+        mock_rate_limiter.check_rate_limit.return_value = (True, 59)
+
         response = client.get("/ping", headers={"Authorization": "sometoken123"})
 
         assert response.status_code == 200
-        mock_rate_limiter.check_rate_limit.assert_not_called()
+        mock_rate_limiter.check_rate_limit.assert_called_once_with(
+            identifier="testclient", limit=60, window_seconds=60
+        )
+
+    def test_ip_fallback_denies_over_limit(
+        self, client: TestClient, mock_rate_limiter: MagicMock
+    ) -> None:
+        """Test an unauthenticated request over the limit is denied same as the JWT path."""
+        mock_rate_limiter.check_rate_limit.return_value = (False, 0)
+
+        response = client.get("/ping")
+
+        assert response.status_code == 429
+        assert response.headers["X-RateLimit-Remaining"] == "0"
+
+    def test_different_client_ips_use_distinct_identifiers(
+        self, app: FastAPI, mock_rate_limiter: MagicMock
+    ) -> None:
+        """Test unauthenticated requests from different IPs are isolated, like the JWT case."""
+        mock_rate_limiter.check_rate_limit.return_value = (True, 59)
+        client_a = TestClient(app, client=("1.2.3.4", 12345))
+        client_b = TestClient(app, client=("5.6.7.8", 54321))
+
+        client_a.get("/ping")
+        client_b.get("/ping")
+
+        identifiers = [
+            call.kwargs["identifier"] for call in mock_rate_limiter.check_rate_limit.call_args_list
+        ]
+        assert identifiers == ["1.2.3.4", "5.6.7.8"]
+
+    def test_valid_jwt_takes_priority_over_ip(
+        self, app: FastAPI, mock_rate_limiter: MagicMock
+    ) -> None:
+        """Test a valid JWT's sub claim is used over client IP when both are available."""
+        mock_rate_limiter.check_rate_limit.return_value = (True, 59)
+        token = create_access_token({"sub": "user123"})
+        client = TestClient(app, client=("9.9.9.9", 12345))
+
+        client.get("/ping", headers={"Authorization": f"Bearer {token}"})
+
+        mock_rate_limiter.check_rate_limit.assert_called_once_with(
+            identifier="user123", limit=60, window_seconds=60
+        )
