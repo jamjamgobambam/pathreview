@@ -31,7 +31,7 @@ class TestCreateReviewEndpoint:
 
     def _mock_profile_query(self, mock_db_session, profile):
         """Wire db.execute() → scalars().first() → profile."""
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.first.return_value = profile
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -104,6 +104,7 @@ class TestCreateReviewEndpoint:
         self._mock_profile_query(mock_db, profile)
 
         from datetime import datetime
+
         mock_review = Mock()
         mock_review.id = uuid4()
         mock_review.profile_id = profile.id
