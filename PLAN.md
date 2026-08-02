@@ -61,46 +61,58 @@ The input is a list of repository-relative file paths supplied through:
 
 ```python
 TechDetector.execute({"files": files})
+```
 
 Example input:
 
+```python
 [
     "main.py",
     "core/app.py",
     "node_modules/lib/index.js",
     "build/bundle.js",
 ]
+```
 
 Before the fix, JavaScript files inside ignored directories may remain in the
 analysis and produce:
 
+```python
 {
     "primary_language": "JavaScript",
     "all_languages": ["JavaScript", "Python"],
     "frameworks": [],
 }
+```
 
 After the fix, the ignored JavaScript files should not affect detection:
 
+```python
 {
     "primary_language": "Python",
     "all_languages": ["Python"],
     "frameworks": [],
 }
+```
 
-The public output structure of TechDetector should remain unchanged.
+The public output structure of `TechDetector` should remain unchanged.
 
-Risks & unknowns
+### Risks & unknowns
+
 - A broad substring check could incorrectly skip legitimate paths such as
-src/rebuild/parser.py because the directory name contains build. The implementation should compare complete directory components instead.
-- Windows paths may use backslashes while repository APIs commonly return forward slashes. Path normalization must support both.
-- Configuration files inside excluded directories must also be filtered so they do not introduce frameworks such as Node.js.
-- If every supplied file is excluded, the detector should continue returning Unknown instead of raising an exception.
-- The current primary-language selection behavior may have unrelated issues. This fix should remain limited to Issue #150 unless testing proves a broader
-change is required.
+  `src/rebuild/parser.py` because the directory name contains `build`. The
+  implementation should compare complete directory components instead.
+- Windows paths may use backslashes while repository APIs commonly return
+  forward slashes. Path normalization must support both.
+- Configuration files inside excluded directories must also be filtered so they
+  do not introduce frameworks such as Node.js.
+- If every supplied file is excluded, the detector should continue returning
+  `Unknown` instead of raising an exception.
+- The current primary-language selection behavior may have unrelated issues.
+  This fix should remain limited to Issue #150 unless testing proves a broader
+  change is required.
 
-
-Edge cases
+### Edge cases
 
 The implementation and tests should cover:
 
