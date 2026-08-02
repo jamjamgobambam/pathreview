@@ -110,7 +110,7 @@ Write a concise, professional summary capturing:
 
 Provide only the summary text, no JSON formatting needed.
 """
-    }
+    },
 }
 
 

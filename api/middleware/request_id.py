@@ -1,8 +1,9 @@
+import uuid
+
+import structlog
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
-import uuid
-import structlog
 
 log = structlog.get_logger()
 

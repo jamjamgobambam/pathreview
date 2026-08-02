@@ -1,14 +1,14 @@
 """Tests for security.py"""
 
-import pytest
 from datetime import timedelta
-from unittest.mock import patch
+
+import pytest
 
 from core.security import (
-    hash_password,
-    verify_password,
     create_access_token,
     decode_access_token,
+    hash_password,
+    verify_password,
 )
 
 
@@ -118,11 +118,7 @@ class TestSecurity:
 
     def test_roundtrip_token_with_data(self):
         """Test complete roundtrip: create and decode token."""
-        original_data = {
-            "user_id": "user_456",
-            "username": "alice",
-            "email": "alice@example.com"
-        }
+        original_data = {"user_id": "user_456", "username": "alice", "email": "alice@example.com"}
 
         token = create_access_token(original_data)
         decoded = decode_access_token(token)
@@ -191,10 +187,7 @@ class TestSecurity:
 
     def test_token_with_special_characters_in_data(self):
         """Test token with special characters in claims."""
-        data = {
-            "username": "user@example.com",
-            "description": "User with special chars: !@#$%"
-        }
+        data = {"username": "user@example.com", "description": "User with special chars: !@#$%"}
 
         token = create_access_token(data)
         decoded = decode_access_token(token)

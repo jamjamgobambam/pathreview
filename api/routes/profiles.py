@@ -1,18 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from uuid import UUID
-import structlog
 import mimetypes
+from uuid import UUID
 
-from api.schemas.profile import ProfileCreate, ProfileResponse, ProfileUpdate
+import structlog
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.profile import Profile
+from api.schemas.profile import ProfileCreate, ProfileResponse, ProfileUpdate
 from core.database import get_db
+from core.models.user import User
 from core.services.profile_service import (
     create_profile,
+    delete_profile,
     get_profile,
     update_profile,
-    delete_profile,
 )
 
 log = structlog.get_logger()
@@ -59,10 +59,9 @@ async def create_profile_endpoint(
             if file_mime == "application/pdf":
                 try:
                     import PyPDF2
+
                     pdf_reader = PyPDF2.PdfReader(content)
-                    resume_text = "\n".join(
-                        page.extract_text() for page in pdf_reader.pages
-                    )
+                    resume_text = "\n".join(page.extract_text() for page in pdf_reader.pages)
                 except Exception as exc:
                     log.error("pdf_parsing_failed", error=str(exc))
                     raise HTTPException(

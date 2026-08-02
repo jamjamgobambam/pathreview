@@ -56,9 +56,11 @@ class ReadmeParser(BaseParser):
             if match:
                 level = len(match.group(1))
                 text = match.group(2).strip()
-                headings.append({
-                    "level": level,
-                    "text": text,
-                    "line": line_num,
-                })
+                headings.append(
+                    {
+                        "level": level,
+                        "text": text,
+                        "line": line_num,
+                    }
+                )
         return headings

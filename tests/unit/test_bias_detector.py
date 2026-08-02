@@ -117,7 +117,9 @@ class TestBiasDetector:
 
     def test_technical_feedback_not_flagged(self):
         """Test pure technical feedback not flagged."""
-        text = "Consider adding error handling to your API endpoints and documenting the parameters."
+        text = (
+            "Consider adding error handling to your API endpoints and documenting the parameters."
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -210,7 +212,9 @@ class TestBiasDetector:
 
     def test_multiple_bias_indicators(self):
         """Test text with multiple bias indicators."""
-        text = "young bootcamp graduates can't write code and immigrant developers lack fundamentals"
+        text = (
+            "young bootcamp graduates can't write code and immigrant developers lack fundamentals"
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
