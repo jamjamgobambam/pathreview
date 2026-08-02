@@ -63,10 +63,10 @@ test_none_context_chunk_text
 ### Check-in 1 (mid-week)
 
 **Current progress:**
-I implemented the fix for Issue #152 by updating the faithfulness checker to correctly handle short claims with supporting evidence. I tested the implementation throughout development and verified that the related unit tests passed.
+I implemented the fix for Issue #152 by updating the faithfulness checker to correctly support short claims with valid evidence. I also improved claim extraction and context matching and verified the behavior using the related unit tests.
 
 **Next steps:**
-Run the project checks, open a pull request, request feedback, and update the documentation before submitting.
+Run the project checks, create a pull request, update my documentation, and submit my branch for review.
 
 **Blockers:**
 None.
@@ -75,19 +75,19 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [Paste your pull request URL here]
+**PR link:** https://github.com/CV17-09/pathreview-issue-152/pull/1
 
 **Branch:** `fix/152-short-claims-faithfulness`
 
 **What you built:**
-I updated the faithfulness checker so that short claims with valid supporting evidence are recognized correctly. The implementation also improves handling of context matching while keeping the existing scoring behavior.
+I updated the faithfulness checker so that short claims with supporting evidence are correctly recognized. The implementation improves claim extraction, keyword matching, and safely handles `None` context values while preserving the existing scoring behavior.
 
 **Tests added or updated:**
-I updated the faithfulness checker implementation and verified it using `tests/unit/test_faithfulness_checker.py`. All 22 tests in that file passed successfully.
+I verified the implementation using `tests/unit/test_faithfulness_checker.py`. All **22** unit tests for the faithfulness checker passed successfully.
 
 **Self-review confirmation:**
 - [ ] make check passes
-- [ ] make test-unit passes (project has pre-existing unrelated failures)
+- [ ] make test-unit passes *(repository contains pre-existing unrelated failures)*
+- [x] `pytest tests/unit/test_faithfulness_checker.py -v` passes (22/22)
 
-**Draft PR feedback received from:**
-None
+**Draft PR feedback received from:** None
