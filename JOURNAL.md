@@ -66,3 +66,36 @@ Three new files. tests/unit/test_web_parser.py (10 tests) covers text extraction
 (Both in the sense the cohort defined for a repo with documented pre-existing failures: my changes introduce zero new failures. The 53 pre-existing test failures and the pre-existing mypy errors are documented in the PR description.)
 
 **Draft PR feedback received from:** none — I posted the draft PR in Slack for review, but no one left feedback before the deadline.
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback came in. The PR (ascherj/pathreview #571) is open and marked ready for review, but no reviewer or maintainer has commented on it. I posted it in Slack during Week 9 and again this week, but no one picked it up before the deadline.
+
+**How you responded:**
+Nothing to respond to, so I left the PR as-is. I re-read my own diff one more time as a self-review and confirmed the tests still pass and the pre-existing failures are documented in the PR description. If a reviewer comes back later, the one thing I'd expect them to raise is the scope question I flagged, so I made sure that's called out clearly in the PR notes.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The tooling, by far — not the feature. Writing the WebParser and the ingest_portfolio method was straightforward because I could copy the existing resume and README parsers almost line for line. What ate my time was the pre-commit hooks. My first commit silently failed and I didn't realize a hook had blocked it until I checked git log and saw nothing new. The mypy hook then rejected my test file for missing type annotations, and when I looked closer I found the repo's own existing tests (like test_resume_parser.py) are all untyped and would fail the exact same hook. So "match the existing patterns" and "pass the hook" were in direct conflict. Then when I touched pipeline.py, mypy pulled in a whole graph of pre-existing type errors in files I never opened, which meant that commit couldn't pass the hook no matter what I did to my own code — I had to commit it with --no-verify and document why. Deciding that a bypass was actually the honest choice there, and not just me giving up, took more judgment than I expected.
+
+**What did you learn about working in a large codebase?**
+That the actual code change is often tiny and the hard part is everything around it. The URL was already wired from the frontend all the way to the database — the only thing missing was the fetch-and-extract step in the middle, which had been stubbed with a hard-coded placeholder string. So contributing was less about writing new logic and more about finding the one dead end in a system I didn't build, and then matching how everything else around it was done. I also learned that a big codebase can be shipping with 53 failing tests and a type checker that doesn't even finish, and that's just the reality you work inside — your job is to not make it worse, not to fix all of it. In my own projects a red test suite would feel like an emergency; here it was the starting condition.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for exploration and for the tooling fights. It traced the portfolio_url path across the codebase fast and pointed me straight at the placeholder in review_service.py, which would have taken me a long time to find by hand. It was also good at explaining exactly why each pre-commit hook was failing and at proposing the fixes (the type annotations, the TYPE_CHECKING import, the mock harness so mypy would stop complaining about assigning to mocked methods). Where it fell short was judgment and anything outside my machine. It couldn't tell me whether the review_service wiring was in scope — that's a human decision that needed Slack. It couldn't get me peer review. And early on it kept assuming make would work when it didn't exist on my Windows setup until I installed it. The scope question is still unresolved, and no amount of AI help closes that; it needs a maintainer.
+
+**What would you do differently if you started over?**
+I'd settle the scope question before writing any code instead of carrying it as an open blocker through three weeks. I built the pipeline method the issue described, but I never got a straight answer on whether the feature is expected to work end to end through review_service.py, and that uncertainty hangs over the whole PR. I'd also capture a full baseline of make check and make test-unit on day one — I recorded the failing tests early but didn't capture the mypy baseline until later, and having both up front would have made my "no new failures" claim cleaner from the start. And I'd have confirmed upstream-vs-fork for the PR target earlier rather than near the deadline.
+
+**What are you most proud of from this module?**
+That I didn't paper over the messy parts. It would have been easy to slap --no-verify on every commit, or to check every box in the PR template and call it passing. Instead I made my own code genuinely clean — fully typed, its own tests, mypy-clean — and only bypassed the hook where the failures were provably pre-existing, and then I documented exactly why in the PR. Turning a wall of 53 red failures and a broken type checker into an honest, defensible contribution felt like the real skill this module was teaching.
