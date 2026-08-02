@@ -84,3 +84,34 @@ tests/unit/test_pii_scrubber.py — the reproduction test from week 8 (test_pare
 **Self-review confirmation:** [x] make check passes (for my changed files — repo-wide has 181 pre-exisitng ruff errors unrelated to this change, documented in PR description) [x] make test-unit passes (49 pre-exisitng unrelated failures documented in PR description, my change fixes 4 and introduces 0 new ones)
 
 **Draft PR feedback received from:** 
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+na
+
+**How you responded:**
+na
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Proving that my change didnt break anything else. The regex fix itself was small, basically one line plus a lookbehind swap, but the codebase already had 53 failing tests and 181 ruff errors before I touched anything. So every time I ran the suite I had to stop and figure out whether a given failure was mine or already there. I ended up stashing my change and rerunning the full suite just to get a clean before/after count I could actually trust. That step took longer than writing the fix.
+
+**What did you learn about working in a large codebase?**
+You dont get to fix everything you see. I found a seperate street_address bug while I was in there and had to leave it alone and just document it instead of fixing it, because it wasnt part of the issue I was assigned. Also learned that "does this pass" isnt a yes or no question in a repo like this, its "does this pass relative to the baseline it already had," which is a different mindset than working on my own projects where a clean test run actually means clean.
+
+**How did AI tools help and where did they fall short?**
+AI was most useful early on for explaining why the regex was failing, specifically the difference between a \b boundary and a (?<!\w) lookbehind and why that mattered for the leading paren getting dropped from the match. It was also helpful for scaffolding the reproduction test structure in week 8. Where it fell short was anything that needed me to actually run the app or the test suite locally. The week 7 issue looked done from just reading the code and the issue description, but it wasnt fully resolved until I actually called the endpoint with a real token and found the count query problem underneath. No amount of reading the code substituted for running it.
+
+**What would you do differently if you started over?**
+Id verify the issue against the running app before committing to it instead of after. I spent real time on the pagination issue before realizing the described bug was already fixed and the actual problem was one layer deeper. If id run the app first in week 7 id have gotten to the real scope faster.
+
+**What are you most proud of from this module?**
+Keeping the fix narrow. It would have been easy to also fix the street_address bug or try to clean up some of the pre-exisitng ruff errors while I was in the file, but I kept the PR to exactly the one issue and documented the rest separately instead of scope creeping into stuff nobody asked me to touch.
