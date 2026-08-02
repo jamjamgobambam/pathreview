@@ -76,7 +76,7 @@ test-unit` and `make check` run cleanly.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [pending — not yet opened]
+**PR link:** [#577](https://github.com/ascherj/pathreview/pull/577)
 
 **Branch:** `fix/147-resume-parsing-error`
 
