@@ -87,7 +87,7 @@ When implementing the IP rate-limit, how would it limit requests from the login 
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [Link to pull request](https://github.com/ascherj/pathreview/compare/main...kevku:pathreview:fix/86-api-rate-limiting-header?expand=1)
 
 **Branch:** `fix/86-api-rate-limiting-header`
 
