@@ -183,6 +183,15 @@ class TestFaithfulnessChecker:
         assert isinstance(score, float)
         assert 0.2 < score < 0.8
 
+    def test_supported_short_claims_score_fully(self, checker):
+        """Reproduce issue #152 for two supported one-fact claims."""
+        score = checker.check(
+            "Knows Python. Knows SQL.",
+            [{"text": "python expert"}, {"text": "sql expert"}],
+        )
+
+        assert score == pytest.approx(1.0)
+
     def test_very_long_feedback(self, checker):
         """Test handling of very long feedback text."""
         feedback = "The developer. " * 100
@@ -229,7 +238,7 @@ class TestFaithfulnessChecker:
         # Need at least 2 meaningful tokens for support
 
     def test_none_context_chunk_text(self, checker):
-        """Test handling of None in context chunk text."""
+        """Reproduce issue #153 at the checker boundary."""
         feedback = "Has Python skills"
         context_chunks = [
             {"text": None}
@@ -237,9 +246,7 @@ class TestFaithfulnessChecker:
 
         score = checker.check(feedback, context_chunks)
 
-        # Should handle gracefully
-        assert isinstance(score, float)
-        assert 0.0 <= score <= 1.0
+        assert score == 0.0
 
     def test_missing_text_key_in_chunk(self, checker):
         """Test handling of missing 'text' key in context chunk."""
