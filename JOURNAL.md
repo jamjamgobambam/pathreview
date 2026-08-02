@@ -26,4 +26,4 @@ I updated `tests/unit/test_faithfulness_checker.py` to cover supported and unsup
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** none
+**Draft PR feedback received from:** As of right now none, but I sent requests for a review on slack.
