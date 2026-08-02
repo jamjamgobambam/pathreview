@@ -29,3 +29,34 @@ I verified the codebase currently only uses vector and keyword similarity in `ra
 
 **Blockers or open questions:**
 None at the moment. The plan is solid and I understand where the changes need to be made.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I have fully implemented the LLM re-ranking feature for Issue #34. I created the `LLMReranker` utility class in `rag/retriever/llm_reranker.py` and successfully wired it into `HybridRetriever.__init__` and `HybridRetriever.retrieve`. 
+
+**Next steps:**
+Finish setting up tests and open a draft PR for review.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/543
+
+**Branch:** `feat/34-llm-reranker`
+
+**What you built:**
+I built an `LLMReranker` class that intercepts the search results from the `HybridRetriever`. It takes the retrieved chunks, prompts OpenAI to score their relevance from 1-10 against the user's query, and then re-sorts the chunks so the generator gets the highest quality context first.
+
+**Tests added or updated:**
+I created a new test file `tests/unit/test_llm_reranker.py`. It uses `unittest.mock.Mock` to simulate OpenAI's API response and verifies that chunks are correctly re-sorted based on the mock LLM scores.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** [Insert name of reviewer]
