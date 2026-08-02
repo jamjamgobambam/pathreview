@@ -71,6 +71,7 @@ None. Pre-existing unrelated `make test-unit` failures (53) and ruff lint noise 
 `tests/unit/test_rate_limiter.py` — updated all call sites for `ip_address`, added the IP-gap reproduction case plus dual-bucket / unauthenticated / remaining-min cases. `tests/unit/test_rate_limit_middleware.py` — allow/429, IP extraction, optional JWT user id, and exempt paths (35 related tests passing).
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
-(Ran both; 53 pre-existing unit failures and unrelated ruff noise remain — no new failures from this change.)
+- There are 53 pre-existing unit failures and unrelated ruff noise.
+- **No new failures for new features of this branch.** `test_rate_limit_middleware.py` pass 100%.
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
