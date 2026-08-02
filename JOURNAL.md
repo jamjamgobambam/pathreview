@@ -97,3 +97,60 @@ signal to remove the marker once the fix lands.
   on `main`) blocks the pre-commit hook / CI on any commit touching these files;
   I'll fix it as part of the solution PR.
 
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the core fix. Reworked `ReviewGenerator._consolidate_feedback`
+(PLAN sub-tasks 1–3) to group feedback by content similarity and merge each
+group into one cross-project comment, added the `_normalize_content` and
+`_merge_sections` helpers, and added an optional `FeedbackSection.projects`
+field to record which projects a merged section covers. Removed the dead
+`sections = []` that tripped ruff/mypy (sub-task 5).
+
+**Next steps:**
+Finish expanding the tests (PLAN sub-task 4) with the edge cases, run the full
+self-review (`make check` / `make test-unit`) against the recorded baseline to
+confirm no new failures, then open the PR.
+
+**Blockers:**
+Deciding the similarity threshold — settled on a conservative `0.9` guarded by a
+"distinct feedback preserved" test.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _(PR pending creation — see note below; will paste the URL here)_
+
+**Branch:** `fix/28-duplicate-feedback-sections-when-multiple-projects`
+
+**What you built:**
+`_consolidate_feedback` now groups feedback sections by normalized-content
+similarity (`difflib`, threshold 0.9) and merges each group into a single
+section that lists the projects it applies to and unions their suggestions —
+replacing the old dedup-by-`section_name`, which left one repeated observation
+per same-stack project.
+
+**Tests added or updated:**
+`tests/unit/test_issue_28_duplicate_feedback.py` — promoted last week's `xfail`
+reproduction to a passing test and added 8 more: exact and near-identical
+merges, distinct feedback preserved, suggestion union/dedup, project recording,
+empty and single-section inputs, and the same-`section_name`/different-content
+case the old code silently dropped. 9 tests, all passing.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+> **Pre-existing failures (per course guidance).** `main` already has 53 failing
+> unit tests, 182 `ruff` errors, and a `mypy` numpy-stub error, all unrelated to
+> issue #28. I recorded the baseline before starting and confirmed my changes
+> introduce **no new failures** (the set of failing unit tests is identical
+> before/after; ruff dropped 182→178, black 52→50 as my touched files are now
+> clean). "Passes" above is used in that sense — my changes do not make anything
+> worse. Details are documented in the PR description.
+
+**Draft PR feedback received from:** none
+
