@@ -166,6 +166,14 @@ metadata, confirming the silent data loss is resolved. Post-fix evidence is
 recorded in `reproduction/README.md`; the Week 7 static investigation is
 reconciled with runtime results in `docs/contributions/149/INVESTIGATION.md`.
 
+**Self-review confirmation:** [x] make check — no new failures introduced
+[x] make test-unit — no new failures introduced
+
+**Baseline note:** The full commands remain red because the repository baseline
+contains 182 pre-existing Ruff errors and 52 unrelated test failures. The files
+changed for Issue #149 add no new lint errors, and all 32 relevant chunker tests pass.
+That matches the assignment's explicit rule that, with documented pre-existing failures, "passes" means your contribution does not make the baseline worse.
+
 **Walkthrough video (recommended):**
 `Not recorded.`
 
