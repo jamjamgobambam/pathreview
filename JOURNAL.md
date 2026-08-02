@@ -101,7 +101,7 @@ All three addressed across 3 follow-up commits (`9651177`, `9f80223`, `133ccb6`)
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [#1](https://github.com/arushibhatia/pathreview/pull/1)
 
 **Branch:** feat/11-add-support-for-ingesting-portfolio-website-url
 
