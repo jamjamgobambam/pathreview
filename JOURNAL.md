@@ -83,16 +83,23 @@ documented as out of scope.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [[link to my submitted pull request](https://github.com/ascherj/pathreview/pull/587)]
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** [test/88-verify-review-endpoint-tests]
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+`POST /reviews` now rejects a profile that has nothing to review. Before
+scheduling the background task, `create_review_endpoint` loads the profile (via
+`get_profile`) and returns 422 if it has no GitHub/résumé/portfolio content, or
+404 if it is missing or not owned by the caller.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+Added `tests/unit/test_review_routes.py` — the repo's first TestClient-based route
+test. It covers content-less profile → 422, missing/unowned profile → 404, and a
+profile with content → 200 "pending".
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+("passes" = my changes introduce no new failures; the repo's pre-existing
+ruff/mypy/test failures are documented in the PR's Notes for Reviewers.)
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
