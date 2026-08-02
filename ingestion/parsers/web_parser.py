@@ -99,7 +99,12 @@ class WebParser(BaseParser):
             "word_count": word_count,
         }
 
-        logger.info("portfolio_parsed", url=url, word_count=word_count)
+        logger.info(
+            "portfolio_parsed",
+            url=url,
+            word_count=word_count,
+            text_preview=text[:200],
+        )
 
         return ParseResult(
             text=text,
