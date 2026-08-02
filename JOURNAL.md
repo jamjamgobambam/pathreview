@@ -73,16 +73,16 @@ print('X-Request-ID-present=', 'X-Request-ID' in last.headers)
 Implemented every code sub-task in `PLAN.md`: added the rate-limit middleware, connected it to the existing Redis-backed limiter, registered it in the API, exposed the headers through CORS, and added HTTP-level unit tests. The middleware uses `request.client.host`, enforces the configured per-minute limit, returns `429` after exhaustion, and adds quota headers to allowed, denied, and handled error responses.
 
 **Next steps:**
-Request peer or mentor feedback, address any agreed changes, commit and push the implementation, open the PR, and replace the pending PR link below before submission.
+Monitor CI and reviewer feedback, address any required changes, and keep the PR ready for final submission.
 
 **Blockers:**
-No draft PR or peer review is available yet. The implementation was intentionally left uncommitted, so it cannot be pushed or used to open a PR until committing is authorized.
+None currently.
 
 ---
 
 ### Check-in 2 (end of week)
 
-**PR link:** Pending — the changes have not been committed or pushed, so no PR exists yet.
+**PR link:** https://github.com/ascherj/pathreview/pull/563
 
 **Branch:** `feat/86-ratelimit-headers`
 
