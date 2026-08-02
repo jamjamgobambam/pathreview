@@ -80,3 +80,24 @@ against CONTRIBUTING.md standards.
 
 **Blockers:**
 None currently.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/598
+
+**Branch:** feat/50-has-tests-detection
+
+**What you built:**
+Fixed has_tests detection by adding a _fetch_file_structure method to
+GitHubTool that calls GitHub's Git Trees API and populates the previously
+missing file_structure field, which the existing detection logic in
+repo_analyzer.py depends on. Also fixes has_ci and tech_stack, which
+depended on the same field.
+
+**Tests added or updated:**
+tests/unit/test_github_tool.py — 4 new tests covering the success case,
+API failure handling, truncated tree handling, and metadata wiring.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes (no new failures vs. baseline: 53 vs. 57 pre-existing)
+
+**Draft PR feedback received from:** None
