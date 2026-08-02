@@ -61,3 +61,34 @@ Added tests/unit/test_mock_generator.py, which covers the mock review generator 
 (Both pass in the sense that no new failures were introduced. The codebase already had 182 lint errors and 53 failing tests before this change, confirmed by checking before starting. My new files are lint-clean, and all new tests pass.)
 
 **Draft PR feedback received from:** none yet
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review comments came in on the pull request before the course ended.
+
+**How you responded:**
+Not applicable, since no feedback arrived.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting a working local environment was harder than the actual coding. I hit a real bug in a pinned Docker image, where ChromaDB and numpy were incompatible with each other. I also tried running Docker inside a Docker container, which does not work because of how overlay filesystems stack. I had to switch to a real virtual machine before I could even start on the issue itself.
+
+**What did you learn about working in a large codebase?**
+The issue description did not fully match the real code. It said the eval logic ran during live requests, but when I checked, that code was never called anywhere except its own tests. I also found a second bug on my own: a class that was never used anywhere and had a broken interface. Working in someone else's codebase means checking what the code actually does, not just trusting what the issue says.
+
+**How did AI tools help — and where did they fall short?**
+AI was useful for reading through unfamiliar files quickly and for writing repetitive test code. It fell short on judgment calls, like deciding what counted as in scope for the issue, and on tooling problems that needed real trial and error, like the Docker setup and a mypy version mismatch. Those needed actual investigation, not just a generated answer.
+
+**What would you do differently if you started over?**
+I would confirm the local environment setup actually works end to end before assuming a plan will work, instead of discovering problems partway through setup. I would also read the actual code the issue points to before trusting the issue's own description of the problem.
+
+**What are you most proud of from this module?**
+Finding that the eval code the issue described as already running live was actually never connected to anything. That was not something the issue told me. I found it myself by checking the real code.
