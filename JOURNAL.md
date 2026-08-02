@@ -147,3 +147,29 @@ https://www.loom.com/share/a85ab29d2c694b70992cfcabf61f98fd
 **Blockers:**
 - None.
 ---
+
+### Check-in 2 (end of week)
+
+**PR link:**  
+
+(https://github.com/ascherj/pathreview/pull/547)
+
+**Branch:**  
+
+feat/50-add-has-tests-to-repo-analysis
+
+**What you built:**  
+Completed the implementation of the `has_tests` boolean field in the GitHub repository metadata analysis. The solution uses the GitHub Tree API to inspect repository contents and detect common testing indicators such as test directories, Python test files, and pytest configuration files, while handling API failures safely.
+
+**Tests added or updated:**  
+Updated `tests/unit/test_github_tool.py` to include test cases for:
+- repositories containing test files or directories (`has_tests = True`)
+- repositories without test indicators (`has_tests = False`)
+- GitHub API failure fallback behavior
+
+**Self-review confirmation:**  
+ [x] make check passes (pre-existing failures unrelated to this PR)  
+ [x] make test-unit passes (pre-existing failures unrelated to this PR) 
+
+**Draft PR feedback received from:**  
+none
