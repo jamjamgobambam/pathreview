@@ -2,7 +2,6 @@
 
 import redis
 import structlog
-from datetime import datetime, timedelta
 
 logger = structlog.get_logger()
 
@@ -16,7 +15,7 @@ class SafetyMonitor:
         "injection_attempt",
         "content_filtered",
         "bias_detected",
-        "rate_limited"
+        "rate_limited",
     }
 
     def __init__(self, redis_client: redis.Redis):
@@ -37,8 +36,6 @@ class SafetyMonitor:
         if event_type not in self.VALID_EVENT_TYPES:
             logger.warning("unknown_event_type", event_type=event_type)
             return
-
-        timestamp = datetime.utcnow().isoformat()
 
         try:
             # Log to structlog
@@ -72,3 +69,23 @@ class SafetyMonitor:
         except Exception as e:
             logger.error("event_count_error", event_type=event_type, error=str(e))
             return 0
+
+    def get_total_event_count(self, window_hours: int = 1) -> int:
+        """Get the combined count of safety events across all event types.
+
+        Sums the per-type counters tracked in Redis so callers (such as the
+        health check endpoint) can report a single "safety events" figure
+        without knowing the individual event types.
+
+        Args:
+            window_hours: Time window in hours. Not enforced here (matching
+                get_event_count); kept for API symmetry.
+
+        Returns:
+            Total count across every type in VALID_EVENT_TYPES. Returns 0 if
+            no events have been recorded. Errors reading any single type are
+            handled by get_event_count (that type contributes 0).
+        """
+        return sum(
+            self.get_event_count(event_type, window_hours) for event_type in self.VALID_EVENT_TYPES
+        )

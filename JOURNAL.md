@@ -35,3 +35,35 @@ Reproduction steps:
 
 **Blockers or open questions:**
 The field is named `safety_events_last_hour`, but `get_event_count()` ignores its `window_hours` argument and `log_event()` sets a 24-hour Redis TTL — so the underlying counters aren't actually scoped to one hour. Going into Week 9 I need to decide whether to keep the name and document the approximation, or implement a true rolling 1-hour window (per-minute buckets / sorted sets).
+
+## Week 9 – Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the core of the fix from `PLAN.md`. Added `SafetyMonitor.get_total_event_count()` in `safety/monitoring.py` (sub-task 1) — it sums the per-type Redis counters across `VALID_EVENT_TYPES`. Wired it into `api/routes/health.py` so `safety_events_last_hour` reports the real total instead of a hardcoded `0` (sub-task 2). While wiring it, I found the existing Redis check referenced `settings.redis_host`/`redis_port`, which don't exist in `core/config.py` (only `redis_url` does), so I switched to `redis.Redis.from_url(settings.redis_url)` and reuse that one client for both the Redis health check and the safety count.
+
+**Next steps:**
+Finish sub-task 3 (fail-safe on Redis outage) and sub-task 4 (tests): unit tests for the new aggregate method and an endpoint-level test proving the wiring. Then run `make check` / `make test-unit` and document the pre-existing baseline before opening the PR.
+
+**Blockers:**
+Decided to keep the `safety_events_last_hour` name and document the window approximation (per the Week 8 open question) rather than build a true rolling 1-hour window — that's a larger change and out of scope for issue #68. Noted as a follow-up.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _[to be filled in when the PR is opened against `ascherj/pathreview`]_
+
+**Branch:** `feat/68-add-safety-events-count-to-health-check`
+
+**What you built:**
+The `/health` endpoint now reports the real number of recorded safety events instead of a constant `0`. A new `SafetyMonitor.get_total_event_count()` aggregates the per-type counters already stored in Redis, and the endpoint builds a `SafetyMonitor` from the shared Redis client to populate `safety_events_last_hour`. If Redis is unavailable the count falls back to `0` and the endpoint stays responsive (Redis is separately reported `unhealthy`).
+
+**Tests added or updated:**
+`tests/unit/test_monitoring.py` (new, 11 tests) — covers `log_event`, `get_event_count`, and the new `get_total_event_count` (summing, empty state, per-type error isolation, and an end-to-end log→count check). `tests/unit/test_health_endpoint.py` (new, 3 tests) — asserts the endpoint reports the real total, reports `0` with no events, and degrades gracefully to `0` + 503 when Redis is down.
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+_(Interpreted per the assignment's pre-existing-failures rule: the repo has a documented baseline of 53 failing unit tests and 175 ruff errors in unrelated modules. My branch adds 14 passing tests and introduces zero new failures — baseline 53 failed / 375 passed → 53 failed / 389 passed. My four changed files are clean under all three tools: `ruff` passes, `black --check` passes, and `mypy` on the two changed source files went from 11 errors → 0 (the annotations and `redis.from_url` switch cleared them). So my change makes things strictly better, not worse.)_
+
+**Draft PR feedback received from:** none (peer review happens in Slack; will request a draft-PR review there before marking ready)
