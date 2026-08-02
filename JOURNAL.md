@@ -64,3 +64,17 @@ Added `tests/unit/test_safety_monitor.py` covering aggregation across all valid 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback was received during the course timeline. Since Summer 2026 does not include reviewer feedback as part of the module, my pull request remained open without comments.
+
+**How you responded:**
+N/A
