@@ -86,3 +86,66 @@ __[link to your Loom video, ≤2 min — recommended, not graded]__
 
 **Blockers or open questions:**
 N/A
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Not midweek but here is my progress. Completed the initial failure analysis. By reviewing the failing unit tests in `tests/test_pii_scrubber.py`—specifically `test_us_phone_formats` and `test_detect_phone_pii`—I identified the specific edge cases and delimiter combinations (such as `+1` country codes and non-standard spacing) that are currently bypassing the regex patterns in `PIIScrubber`.
+
+**Next steps:**
+- Draft and test updated pattern expressions for US phone numbers.
+- Run `pytest` to confirm all previously failing phone redaction and detection tests pass.
+- Address applicable linting and pre-commit issues by running `ruff check --fix` and `ruff format` prior to committing.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** fix/146-enhance-pii-scrubber
+
+**What you built:**
+
+The issue is that, in the class `PIIScrubber`, the `scrub` function fails to redact some common phone number patterns, and the `detect` function in the same class cannot detect this PII phone number information in these common patterns either. The root cause of this is likely that the regular expression programmed into the `PII_PATTERNS` constant (below) in the `PIIScrubber` class is inefficient at catching some of the common phone number patterns.
+
+```Python
+# current PII_PATTERNS constant in PIIScrubber class used to detect and scrub PII
+PII_PATTERNS = {
+        "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+        "phone_us": r"\b(?:\+?1[-.]?)?\(?([0-9]{3})\)?[-.]?([0-9]{3})[-.]?([0-9]{4})\b",
+        "phone_intl": r"\+[0-9]{1,3}[-.]?[0-9]{1,14}",
+        "ssn": r"\b(?!000|666)[0-9]{3}-(?!00)[0-9]{2}-(?!0000)[0-9]{4}\b",
+        "street_address": r"\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Court|Ct|Circle|Cir|Park|Pl|Plaza|Place|Drive|Dr|Way|Parkway|Pkwy|Point|Pt|Pike|Run|Summit|Summit|Terrace|Ter|Trail|Trl|Tunnel|Turnpike|View|Vista|Vlg|Village|Vly|Valley)",
+    }
+```
+
+I hypothesized that the root cause of this is likely that the regular expression programmed into the `PII_PATTERNS` constant in the `PIIScrubber` class is inefficient at catching some of the common phone number patterns. To fix this, using the help of Gemini, I improved the US phone pattern to handle spaces, dashes, dots, and optional +1 country code. I also improved international phone pattern to handle spaces between blocks of digits.
+
+**Tests added or updated:**
+
+The test file relevant to these changes is `tests/test_pii_scrubber.py`.
+
+My code resolved failures in the following existing tests:
+- `test_us_phone_number_redaction`: 
+    - Covers verifying that standard US phone numbers formatted with parentheses and dashes (e.g., `(555) 123-4567`) are correctly redacted to `[REDACTED]`.
+- `test_us_phone_formats`: 
+    - Covers checking that various common US phone number formats—including hyphenated, dot-delimited, space-separated, and country code-prefixed (`+1`) variations—are reliably detected and redacted.
+- `test_detect_phone_pii`: 
+    - Covers verifying that `detect()` identifies US phone numbers, categorizes them under the `phone_us` PII type, and returns their match metadata.
+- `test_phone_at_start_of_text`: 
+    - Covers ensuring that boundary anchor matching works correctly when a phone number appears at the very beginning of a string.
+
+I also added a new unit test, `test_phone_number_partially_formatted_redaction`, which covers the edge case where a US phone number uses mixed delimiters (such as combining parentheses with dot separators like `(800).555.0199`) to ensure it is fully detected and redacted.
+
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+NOTE: both of these checks pass in relation to my bug fix. There were existing failures for both checks
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
+none
