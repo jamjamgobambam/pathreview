@@ -35,7 +35,7 @@ test and confirming `check()` returns a score instead of raising `TypeError`.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/wzltmp/pathreview/commit/7b62494
+**Reproduction commit link:** https://github.com/wzltmp/pathreview/commit/a4420c8
 
 **Reproduction summary:**
 I reproduced the issue against the `main` version of `rag/evaluator/faithfulness_checker.py`
@@ -50,3 +50,77 @@ failure was `TypeError: sequence item 0: expected str instance, NoneType found` 
 **Blockers or open questions:**
 No current blockers. Before opening the PR, I still need to run the full required checks:
 `make check` and `make test-unit`.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+PLAN.md steps 1–4 are done. The fix is implemented in
+`rag/evaluator/faithfulness_checker.py`: `check()` now builds `context_text` with
+`chunk.get("text") or ""` instead of `chunk.get("text", "")`, so a chunk with an explicit
+`"text": None` falls back to `""` exactly as a missing key already did. The existing
+`test_none_context_chunk_text` now passes, and `test_missing_text_key_in_chunk` is
+unaffected. I also audited the branch against `docs/CONTRIBUTING.md`: branch name matches
+`<type>/<issue-number>-<short-description>`, all commits are Conventional Commits with the
+`rag` scope, and there are no merge commits.
+
+**Next steps:**
+PLAN.md step 5 — establish validation evidence. This repo has many pre-existing `make
+check` and `make test-unit` failures, so I need to measure ruff, mypy, and pytest against
+a clean `upstream/main` checkout *before* and *after* my change to prove I introduce no
+new ones. I also want to strengthen test coverage: the existing regression test only
+asserts a bounded float for a lone `None` chunk, so it would still pass if the crash were
+"fixed" by discarding the whole context. Then rebase onto `upstream/main`, self-review the
+full diff, and open the PR.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/548
+
+**Branch:** `fix/153-faithfulness-checker-none-text`
+
+**What you built:**
+`FaithfulnessChecker.check()` crashed with `TypeError` whenever a retrieved context chunk
+had `"text": None`, because `dict.get()` only substitutes its default when the key is
+*absent*, not when it is present and `None` — so `" ".join(...)` received a `None`. The
+fix coerces a `None` chunk text to `""` before joining, so the malformed chunk is skipped
+and `check()` returns a normal 0.0–1.0 score instead of taking down the whole evaluation
+run. I also updated the `check()` docstring to document the nullable-text behavior.
+
+**Tests added or updated:**
+`tests/unit/test_faithfulness_checker.py` — added
+`test_none_chunk_text_does_not_discard_valid_chunks`, which passes a `None` chunk
+*alongside* a valid chunk and asserts the valid one is still scored (`score > 0.5`). This
+covers a gap the existing `test_none_context_chunk_text` could not catch: that test only
+asserts a bounded float for a lone `None` chunk, so it would still pass if the crash were
+avoided by throwing away the entire context. I verified the new test is a genuine
+regression test by reverting the one-line fix and confirming it fails, then restoring it.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+Both boxes use the documented meaning for a codebase with pre-existing failures: my
+changes introduce **no new failures**. Measured against a clean `upstream/main` worktree
+before and after:
+
+| Check | `main` (baseline) | This branch | Delta |
+|---|---|---|---|
+| `make test-unit` | 53 failed / 375 passed | 52 failed / 377 passed | −1 failure, 0 new |
+| `ruff` | 182 errors | 181 errors | −1, 0 new |
+| `mypy` (`make typecheck` scope) | 5 errors | 5 errors | identical output |
+
+I diffed the sorted lists of `FAILED` test IDs between `main` and this branch: the only
+difference is `test_none_context_chunk_text` flipping from failing to passing. Nothing
+that passed on `main` fails here. The 3 still-failing tests in
+`test_faithfulness_checker.py` are pre-existing `_is_supported()` scoring-threshold bugs,
+a separate concern I deliberately kept out of scope. All of this is documented in the PR's
+Notes for Reviewers section.
+
+**Draft PR feedback received from:** none — opened directly as ready for review. Peer
+review requested in the cohort Slack channel; I will address any feedback in follow-up
+commits on this branch.
