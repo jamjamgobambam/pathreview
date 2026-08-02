@@ -1,9 +1,12 @@
+import hashlib
 import json
 from datetime import datetime
+from typing import cast
 from uuid import UUID
 
 import structlog
 from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.schemas.review import FeedbackSection
 from core.models.ingested_source import IngestedSource
@@ -14,7 +17,7 @@ log = structlog.get_logger()
 
 
 async def create_review(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
@@ -34,7 +37,7 @@ async def create_review(
 
 
 async def get_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
@@ -45,11 +48,11 @@ async def get_review(
         select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    return cast(Review | None, result.scalars().first())
 
 
 async def list_reviews(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     page: int = 1,
     page_size: int = 20,
@@ -63,7 +66,7 @@ async def list_reviews(
     # Get total count
     count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
     count_result = await db.execute(count_stmt)
-    total = len(count_result.scalars().all())
+    total = len(cast(list[Review], count_result.scalars().all()))
 
     # Get paginated results
     stmt = (
@@ -75,13 +78,13 @@ async def list_reviews(
         .limit(page_size)
     )
     result = await db.execute(stmt)
-    reviews = result.scalars().all()
+    reviews = cast(list[Review], result.scalars().all())
 
     return reviews, total
 
 
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
@@ -100,7 +103,7 @@ async def process_review(
         # Get the review
         stmt = select(Review).where(Review.id == review_id)
         result = await db.execute(stmt)
-        review = result.scalars().first()
+        review = cast(Review | None, result.scalars().first())
 
         if not review:
             log.error("review_not_found_for_processing", review_id=str(review_id))
@@ -109,7 +112,7 @@ async def process_review(
         # Get the profile
         stmt = select(Profile).where(Profile.id == profile_id)
         result = await db.execute(stmt)
-        profile = result.scalars().first()
+        profile = cast(Profile | None, result.scalars().first())
 
         if not profile:
             log.error("profile_not_found_for_processing", profile_id=str(profile_id))
@@ -185,7 +188,7 @@ async def process_review(
         try:
             stmt = select(Review).where(Review.id == review_id)
             result = await db.execute(stmt)
-            review = result.scalars().first()
+            review = cast(Review | None, result.scalars().first())
             if review:
                 review.status = "failed"
                 review.updated_at = datetime.utcnow()
@@ -195,7 +198,7 @@ async def process_review(
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
 
-async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
+async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[dict]:
     """
     Run ingestion pipeline to extract data from profile sources.
     Returns list of ingested source data.
@@ -213,11 +216,15 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
             }
             sources.append(github_data)
 
+            github_url = f"https://github.com/{profile.github_username}"
+
             # Store in database
             ingested = IngestedSource(
                 profile_id=profile.id,
                 source_type="github",
-                raw_data=json.dumps(github_data),
+                source_url=github_url,
+                content_hash=hashlib.sha256(json.dumps(github_data).encode()).hexdigest()[:16],
+                chunk_count=0,
             )
             db.add(ingested)
         except Exception as exc:
@@ -242,7 +249,9 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
             ingested = IngestedSource(
                 profile_id=profile.id,
                 source_type="portfolio",
-                raw_data=json.dumps(portfolio_data),
+                source_url=profile.portfolio_url,
+                content_hash=hashlib.sha256(json.dumps(portfolio_data).encode()).hexdigest()[:16],
+                chunk_count=0,
             )
             db.add(ingested)
         except Exception as exc:
@@ -266,7 +275,9 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
             ingested = IngestedSource(
                 profile_id=profile.id,
                 source_type="resume",
-                raw_data=json.dumps(resume_data),
+                filename=profile.resume_filename,
+                content_hash=hashlib.sha256(json.dumps(resume_data).encode()).hexdigest()[:16],
+                chunk_count=0,
             )
             db.add(ingested)
         except Exception as exc:
