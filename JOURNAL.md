@@ -65,7 +65,7 @@ Since issue has other dependencies not directly related, how would fixing this p
 
 ### Check-in 2 (end of week)
 
-**PR link:** [to be added after submission]
+**PR link:** https://github.com/ascherj/pathreview/pull/534
 
 **Branch:** `fix/154-healthcheck-SQL-string`
 
