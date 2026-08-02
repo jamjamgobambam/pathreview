@@ -57,3 +57,37 @@ test_multiple_claims_varying_support
 Additional unrelated failure observed:
 
 test_none_context_chunk_text
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the fix for Issue #152 by updating the faithfulness checker to correctly handle short claims with supporting evidence. I tested the implementation throughout development and verified that the related unit tests passed.
+
+**Next steps:**
+Run the project checks, open a pull request, request feedback, and update the documentation before submitting.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [Paste your pull request URL here]
+
+**Branch:** `fix/152-short-claims-faithfulness`
+
+**What you built:**
+I updated the faithfulness checker so that short claims with valid supporting evidence are recognized correctly. The implementation also improves handling of context matching while keeping the existing scoring behavior.
+
+**Tests added or updated:**
+I updated the faithfulness checker implementation and verified it using `tests/unit/test_faithfulness_checker.py`. All 22 tests in that file passed successfully.
+
+**Self-review confirmation:**
+- [ ] make check passes
+- [ ] make test-unit passes (project has pre-existing unrelated failures)
+
+**Draft PR feedback received from:**
+None
