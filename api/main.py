@@ -1,11 +1,14 @@
+from typing import Any
+
+import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
-import structlog
+from fastapi.responses import JSONResponse
 
 from api.middleware.request_id import RequestIDMiddleware
-from api.routes import auth, profiles, reviews, health
+from api.middleware.rate_limit import RateLimitMiddleware
+from api.routes import auth, health, profiles, reviews
 from core.database import init_db
 
 log = structlog.get_logger()
@@ -19,7 +22,7 @@ app = FastAPI(
 
 
 # Configure OpenAPI
-def custom_openapi():
+def custom_openapi() -> Any:
     if app.openapi_schema:
         return app.openapi_schema
 
@@ -30,9 +33,7 @@ def custom_openapi():
         routes=app.routes,
     )
 
-    openapi_schema["info"]["x-logo"] = {
-        "url": "https://pathreview.example.com/logo.png"
-    }
+    openapi_schema["info"]["x-logo"] = {"url": "https://pathreview.example.com/logo.png"}
 
     app.openapi_schema = openapi_schema
     return app.openapi_schema
@@ -53,10 +54,13 @@ app.add_middleware(
 # Add request ID middleware
 app.add_middleware(RequestIDMiddleware)
 
+# Add rate limit middleware
+app.add_middleware(RateLimitMiddleware)
+
 
 # Exception handler for unhandled exceptions
 @app.exception_handler(Exception)
-async def generic_exception_handler(request: Request, exc: Exception):
+async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     request_id = getattr(request.state, "request_id", "unknown")
     log.error(
         "unhandled_exception",
@@ -84,7 +88,7 @@ app.include_router(health.router)
 
 # Startup event
 @app.on_event("startup")
-async def startup_event():
+async def startup_event() -> None:
     """Initialize database on startup."""
     try:
         await init_db()
@@ -96,7 +100,7 @@ async def startup_event():
 
 # Root endpoint
 @app.get("/")
-async def root():
+async def root() -> dict:
     """Health check endpoint."""
     return {
         "message": "PathReview API is running",
