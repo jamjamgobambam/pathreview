@@ -92,25 +92,24 @@ Tests validated by: `tests/unit/test_skill_extractor.py` (the only consumer).
 
 ### Out-of-scope follow-up
 
-While reproducing, a **fifth** test also fails — but it is unrelated to issue #148 and is
-a bug in the *test*, not the detector. `test_database_technology_detection`
-([tests/unit/test_skill_extractor.py:141](tests/unit/test_skill_extractor.py#L141)) raises
-`UnboundLocalError` because it iterates over `skill_names` before defining it:
+While reproducing, I found an existing bug in
+`test_database_technology_detection`: its list comprehension iterated over
+`skill_names` before that variable was defined. This PR includes the one-line
+correction to iterate over `result` instead.
 
-```python
-skill_names = [s.name for s in skill_names]  # should iterate over `result`
-```
-
-Not fixed here to keep this change scoped to the four JS/TS/Docker issues. Track
-separately (e.g. a one-line fix changing `skill_names` → `result`).
+That correction exposes a separate detector limitation: `psycopg2` is not
+recognized as PostgreSQL. Adding PostgreSQL driver-alias detection is unrelated
+to issue #148 and remains out of scope for this PR.
 
 ### Verification
 
-1. `python3 -m pytest tests/unit/test_skill_extractor.py -vv -s` → all tests pass, with
-   the 4 previously-failing tests now green.
+1. `python3 -m pytest tests/unit/test_skill_extractor.py -vv -s` → the four
+   JS/TS/Docker tests addressed by issue #148 pass. The remaining failure is
+   `test_database_technology_detection`, caused by the out-of-scope `psycopg2`
+   detection limitation described above.
 2. Spot-check the issue's two examples:
    - `extract_skills('Wrote index.js using const arrow functions and async/await callbacks')`
      → includes JavaScript.
    - `extract_skills('Built app.tsx and types.ts with strict TypeScript interfaces')`
      → includes TypeScript (and JavaScript), not only React.
-3. Remove the temporary `print(...)` debug lines from the 4 tests before committing.
+3. Confirmed no temporary debug output remains in the tests.

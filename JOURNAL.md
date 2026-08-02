@@ -121,16 +121,27 @@ submitted separately.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/410
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `fix/148-skill-extractor-js-ts-detection`
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+Improved JavaScript and TypeScript skill detection by recognizing CommonJS
+calls, filenames mentioned in text, explicit TypeScript references, and common
+TypeScript syntax. Added Docker detection based on multiple line-anchored
+Dockerfile instructions and Docker Compose structure, with safeguards against
+false positives.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+Updated `tests/unit/test_skill_extractor.py` with positive and negative
+regression coverage for JavaScript, TypeScript, Dockerfile, and Docker Compose
+detection. All 15 targeted tests pass; the complete test file retains one
+unrelated failure for `psycopg2` PostgreSQL detection.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+*Note: The repository-wide commands retain unrelated existing failures. Ruff and mypy
+pass for the changed implementation and test files, and all 15 targeted tests
+pass.*
+
+**Draft PR feedback received from:** Tanaka Mbavarira
