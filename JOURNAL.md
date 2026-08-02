@@ -1,18 +1,19 @@
-## Week 7 — Issue selection
+## Week 9 — Solution building and PR submission
 
-**Issue link:** https://github.com/ascherj/pathreview/issues/146
-
-**Issue title:** PII scrubber fails to redact parenthesized US phone numbers
-
-**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
-
-**Problem summary:**
-The `PIIScrubber` class in `safety/pii_scrubber.py` uses a regex pattern (`phone_us`) to detect and redact US phone numbers before resume/profile text is processed. That pattern only allows a hyphen or period as the separator right after a parenthesized area code, but not a space, so phone numbers written as `(555) 123-4567` — the most common way people format US numbers — are never matched and pass through completely un-redacted. I confirmed this by running the existing test suite: 5 tests fail as a direct result, including `test_us_phone_number_redaction`, `test_us_phone_formats`, and `test_detect_phone_pii`, all of which use the parenthesized-with-space format. A successful fix updates the regex so this format is correctly detected and redacted, without breaking the phone formats that currently pass (hyphenated, dotted, and international).
+**PR link:** https://github.com/ascherj/pathreview/pull/370
 
 **Branch name:** fix/146-parenthesized-phone-redaction
 
-**Setup confirmation:** [x] App runs locally at localhost:5173
+**Draft PR opened:** [x] Yes
 
-**Cohort ledger:** [x] Issue added to cohort ledger
+**Test results before fix:** 5 failed / 20 passed (`test_pii_scrubber.py`)
 
+**Test results after fix:** 1 failed / 25 passed — all 4 issue-related tests passing (`test_us_phone_number_redaction`, `test_us_phone_formats`, `test_detect_phone_pii`, and one more), plus new regression test `test_parenthesized_phone_with_space_separator`
 
+**Self-review against contribution standards:** [x] Completed
+
+**Draft PR feedback received from:** Sandhya Rimal
+
+**Feedback summary:** Approved, no changes requested
+
+**Ready for review:** [x] Yes
