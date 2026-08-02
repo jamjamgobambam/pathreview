@@ -62,3 +62,35 @@ Added `VectorStore.delete_collection` and wired it into `delete_profile` so that
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments arrived this week. Per Summer 2026 expectations, I am recording this as no feedback received.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was making a "small" deletion fix safely in a codebase with multiple storage layers. At first glance, issue #80 looked like one missing call, but I had to trace how profile deletion interacts with SQLAlchemy cascades, ingestion artifacts, and the vector store lifecycle. The surprising part was realizing the DB-side cleanup already worked, while ChromaDB cleanup was not connected, and that timing mattered: if vector cleanup failed after commit, the API still needed to return success for the primary operation.
+
+**What did you learn about working in a large codebase?**
+I learned that reading existing service boundaries is more important than writing code quickly. In my own projects, I usually control the whole architecture, so I can refactor aggressively. Here, the right approach was to preserve public behavior, add one focused capability (`delete_collection`) in the retrieval layer, and wire it in where ownership already existed (`delete_profile`). I also learned to use tests as documentation: adding a failing reproduction test first forced me to define expected behavior before implementation and reduced guesswork.
+
+**How did AI tools help — and where did they fall short?**
+AI helped most with accelerating codebase navigation and drafting targeted unit tests once I knew the expected behavior. It was useful for identifying likely insertion points and proposing edge-case tests (like best-effort cleanup when vector deletion raises). It fell short on system-specific correctness details: I still had to verify import patch paths, transaction ordering, and storage-environment assumptions manually. The model could suggest plausible changes, but confirming they matched this repository's actual runtime wiring required human judgment.
+
+**What would you do differently if you started over?**
+I would map the end-to-end data lifecycle earlier (create profile -> ingest -> store embeddings -> delete profile) before writing any code. I spent extra time reconciling where the vector store was instantiated versus where deletion ownership should live. I would also create a short architecture note during Week 8 with explicit "must not break" guarantees (API response behavior, commit semantics, and error logging expectations) so implementation and tests align faster.
+
+**What are you most proud of from this module?**
+I am most proud of turning a quiet data-consistency bug into a tested, production-minded fix that preserves user-facing behavior while preventing orphaned embeddings. The best part was not just making the failing test pass, but adding coverage for failure tolerance and no-op cleanup paths so the solution is resilient, not brittle.
