@@ -46,7 +46,7 @@ Next steps are to register the RateLimitMiddleware in api/main.py following the 
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** (submitted PR)[https://github.com/ascherj/pathreview/pull/580]
 
 **Branch:** [`feat/86-add-rate-limit-header`](https://github.com/ddingi09/pathreview/tree/feat/86-add-rate-limit-header)
 
