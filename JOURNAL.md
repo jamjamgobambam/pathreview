@@ -23,7 +23,7 @@ tests/unit/test_review_service.py
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** <!-- paste your commit URL here after committing -->
+**Reproduction commit link:** https://github.com/Gabbykoms/pathreview/commit/e45b300
 
 **Reproduction summary:**
 Ran `.venv/bin/pytest tests/unit/test_review_service.py --cov=core.services.review_service --cov-report=term-missing` against the current `test/109-test-coverage-service` branch. Measured coverage on `core/services/review_service.py` is **22%** (135 statements, 105 missed) — even lower than the "below 40%" the issue reports. The uncovered ranges (`98–194`, `202–279`, `288`, `323`, `369–390`) confirm that `process_review` and all four internal helpers are entirely untested. A secondary finding: **13 of the 19 pre-existing tests fail** with `AttributeError: 'coroutine' object has no attribute 'all'` because the existing scaffolding uses `AsyncMock` where SQLAlchemy 2.0's sync `result.scalars()` chain requires `MagicMock`. The full coverage report is included in the reproduction commit.
