@@ -1,12 +1,16 @@
+import redis
+import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
-import structlog
+from fastapi.responses import JSONResponse
 
+from api.middleware.rate_limit import RateLimitMiddleware
 from api.middleware.request_id import RequestIDMiddleware
-from api.routes import auth, profiles, reviews, health
+from api.routes import auth, health, profiles, reviews
+from core.config import settings
 from core.database import init_db
+from safety.rate_limiter import RateLimiter
 
 log = structlog.get_logger()
 
@@ -30,9 +34,7 @@ def custom_openapi():
         routes=app.routes,
     )
 
-    openapi_schema["info"]["x-logo"] = {
-        "url": "https://pathreview.example.com/logo.png"
-    }
+    openapi_schema["info"]["x-logo"] = {"url": "https://pathreview.example.com/logo.png"}
 
     app.openapi_schema = openapi_schema
     return app.openapi_schema
@@ -41,6 +43,14 @@ def custom_openapi():
 app.openapi = custom_openapi
 
 
+# Add rate limit middleware first so CORS and request IDs wrap rejected responses
+rate_limiter = RateLimiter(redis.Redis.from_url(settings.redis_url))
+app.add_middleware(
+    RateLimitMiddleware,
+    rate_limiter=rate_limiter,
+    limit=settings.rate_limit_per_minute,
+)
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -48,6 +58,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining"],
 )
 
 # Add request ID middleware
