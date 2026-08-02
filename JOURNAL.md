@@ -54,19 +54,21 @@ I didn't know about the pre-existing failures in make check before it was mentio
 
 ### Check-in 2 (end of week)
 
-**PR link:** [not submitted yet]
+**PR link:** [[(https://github.com/ascherj/pathreview/pull/562)](https://github.com/ascherj/pathreview/pull/562)]
 
 **Branch:** [fix/43-agent-session-state-not-cleared]
 
 **What you built:**
-I updated the orchestrator/session-store flow so repeated reviews for the same profile do not reuse stale session state from an earlier run. I also added a repeated-review edge case to the plan and cleaned up the session-store typing so the touched files pass the focused pre-commit checks.
+I updated the orchestrator/session-store flow so repeated reviews for the same profile do not reuse stale session state from an earlier run. I also fixed the review generation path so the uploaded document actually changes the final feedback instead of producing the same canned output every time. I added repeated-review and dynamic-review edge cases to the plan and cleaned up the session-store typing so the touched files pass the focused pre-commit checks.
 
 **Tests added or updated:**
-`tests/unit/test_orchestrator.py` was added to cover the review orchestration path and the session-state behavior around repeated reviews. I also updated the session-store typing in `agent/memory/session_store.py` and the mypy hook scope in `.pre-commit-config.yaml` so the touched files can be validated cleanly.
+`tests/unit/test_orchestrator.py` was added to cover the review orchestration path and the session-state behavior around repeated reviews. `tests/unit/test_review_service_ingestion.py` covers the `IngestedSource` fix, and `tests/unit/test_review_generation_dynamic.py` verifies that different uploads now produce different review output. I also updated the session-store typing in `agent/memory/session_store.py` and the mypy hook scope in `.pre-commit-config.yaml` so the touched files can be validated cleanly.
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
 I ran focused pre-commit checks on the touched files and they passed. I also ran `make check`, and it failed on pre-existing repo-wide lint issues in unrelated files (for example `api/routes/profiles.py`, `api/routes/reviews.py`, `ingestion/chunking/semantic_chunker.py`, `ingestion/chunking/strategy_selector.py`, `ingestion/chunking/structural_chunker.py`, `ingestion/embeddings/provider.py`, `ingestion/parsers/resume_parser.py`, `rag/generator/output_parser.py`, `rag/retriever/hybrid.py`, `safety/monitoring.py`, `safety/pii_scrubber.py`, and multiple unit tests). The failures were B008, B904, B007, SIM116, F841, E501, N806, and related style/type errors that do not come from this branch.
+
+The branch now includes three focused commits after the base session-state fix: one for the invalid `raw_data` ingestion argument, one for the dynamic review-output behavior, and one for the journal/plan documentation updates.
 
 **Draft PR feedback received from:** ["none"]
 
