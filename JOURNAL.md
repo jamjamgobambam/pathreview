@@ -19,12 +19,12 @@ This issue addresses an edge case in the faithfulness checker when a context chu
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** [\[link to commit documenting the reproduced issue\]](https://github.com/mxdmichael1-code/pathreview/commit/08975d3)
 
 **Reproduction summary:**
 I reproduced Issue #153 by running `TestFaithfulnessChecker::test_none_context_chunk_text` in `tests/unit/test_faithfulness_checker.py`. The test fails because `FaithfulnessChecker.check()` passes a `None` value from a context chunk into `join()`, causing a TypeError instead of handling the missing text gracefully.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** [\[link to PLAN.md in your fork\]](https://github.com/mxdmichael1-code/pathreview/blob/feat/153-faithfulness-check/PLAN.md)
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
