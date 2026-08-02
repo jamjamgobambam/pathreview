@@ -25,7 +25,7 @@ I wanted to work on a skill I have never done to challenge myself. I currently h
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue]
+**Reproduction commit link:** https://github.com/kelp-Shake/pathreview/commit/dcdfc6d8ecc50e45773baae34f567c2bb5b3bcfe
 
 **Reproduction summary:**
 I brought up the local stack (`colima start`, `docker compose up -d`) and ran the two migration commands against a fresh Postgres. `alembic upgrade head` applied all migrations cleanly, but `alembic check` failed with a drift error — it detected a `remove_constraint` operation for `uq_users_email`. That means the database built by the migrations has a unique constraint on `users.email` that the current `User` model no longer declares (the model only sets `unique=True, index=True`, which produces a unique index, not a named constraint). This is exactly the kind of drift issue #129's CI check is meant to catch automatically.
@@ -43,9 +43,9 @@ ERROR [alembic.util.messaging] New upgrade operations detected: [('remove_constr
   FAILED: New upgrade operations detected: [('remove_constraint', UniqueConstraint(Column('email', NullType(), table=<users>)))]
 ```
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://github.com/kelp-Shake/pathreview/blob/feat/129-ci-migration-validation/PLAN.md
 
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+**Walkthrough video (recommended):** N/A — not recorded (optional, not graded)
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+My main open question is how to resolve the existing `uq_users_email` drift — either update the `User` model to declare the constraint, or add a new migration that drops it. Both fix the drift, so I need to decide which one to use in Week 9 before the CI check can pass.
