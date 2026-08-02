@@ -41,3 +41,59 @@ proving the agent's session state is not cleared between reviews.
 Confirming whether any consumer intentionally relies on session state carrying
 across reviews, and how the fix should interact with the ContextManager
 in-memory memoization cache.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in `agent/orchestrator.py`: `run()` no longer loads the
+prior Redis session and merges new results onto it with `dict.update()`; it now
+persists only the current run's `results`, so each review reflects exactly the
+tools that ran. Resolved the Week 8 open question — the loaded session state was
+never read except for the merge, and no consumer relies on cross-review carry-
+over (`core/services/review_service.py` doesn't call the orchestrator yet), so
+overwriting is safe and does not affect the ContextManager memoization cache.
+Converted `tests/unit/test_orchestrator_session.py` from an `xfail`
+reproduction into a passing regression test and added two companion tests
+(overwrite-on-rerun and empty-plan). Sub-tasks 1-4 from PLAN.md are done.
+Commit: https://github.com/tquangdang/pathreview/commit/ccff341bc79b6bae7934fb0748aab8dddd20de94
+
+**Next steps:**
+Open a draft PR against upstream, request peer/mentor feedback in Slack, and
+address any comments before marking it ready for review.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [to be added once the PR is opened]
+
+**Branch:** `fix/43-clear-agent-session-state`
+
+**What you built:**
+`Orchestrator.run()` now overwrites the persisted session with only the current
+review's tool results instead of merging onto the previous session. This clears
+stale results from tools that no longer run (issue #43), so a re-review after a
+portfolio change no longer reflects removed inputs.
+
+**Tests added or updated:**
+`tests/unit/test_orchestrator_session.py` — removed the `xfail` from
+`test_removed_tool_not_persisted_across_reviews` (now a passing regression
+guard) and added `test_tool_run_in_both_reviews_is_overwritten` and
+`test_empty_second_review_clears_session`, using an in-memory `FakeRedis` so the
+tests need no Docker.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+_Interpreted as "no new failures" per the assignment: the repo has documented
+pre-existing failures unrelated to this change — 182 ruff findings, 52 files
+black would reformat, 103 mypy errors, and 53 failing unit tests before my
+changes. After my changes the unit suite is 53 failed / 378 passed (my 3
+orchestrator-session tests pass where there was previously 1 xfail), and my
+edited files add no new ruff/black/mypy findings. My change introduces no new
+failures._
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
