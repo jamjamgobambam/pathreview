@@ -389,9 +389,12 @@ class TestRunIngestionPipelinePortfolio:
         with patch("core.services.review_service._web_parser") as mock_web_parser:
             mock_web_parser.parse.side_effect = ValueError("Failed to fetch portfolio URL")
 
+            # _run_ingestion_pipeline must not propagate this - a broken portfolio
+            # fetch should never take down the rest of the review.
             sources = await _run_ingestion_pipeline(mock_db_session, mock_profile)
 
         assert sources == []
+        mock_db_session.add.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_no_portfolio_ingestion_when_url_absent(self, mock_db_session, mock_profile):
