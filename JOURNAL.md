@@ -30,3 +30,39 @@ Since this is a feature gap rather than a bug, reproducing it meant tracing what
 
 **Blockers or open questions:**
 My main open question is about scope. The placeholder that actually runs during a review lives in core/services/review_service.py, which the issue doesn't list, and that function doesn't call the IngestionPipeline class at all (GitHub and resume are placeholders there too). So I'm not sure whether "done" means just adding ingest_portfolio to the pipeline like the issue says, or also wiring the review service to use it so the feature works end to end. I'll confirm that in Slack. I'm also still unsure how to handle JavaScript-heavy portfolio sites that return almost no text without a real browser, since plain fetching can't render those.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I've built the whole feature and all five sub-tasks from PLAN.md are done. I added a WebParser in ingestion/parsers/web_parser.py that fetches a portfolio page (with a timeout, redirect handling, an HTML content-type check, and a size cap) and extracts the readable text while stripping out script, style, nav, and footer noise. I added an ingest_portfolio method to the pipeline that mirrors the existing ingest_readme flow, and I added a validator on the profile schema so a portfolio_url without http(s):// is rejected early. I also pulled in beautifulsoup4 as a dependency. Everything is committed in three commits, and I wrote 24 tests across three files that all pass.
+
+Before starting I ran the test suite and recorded that the repo already has 53 failing unit tests that have nothing to do with my issue. After my changes there are still exactly 53 failures and zero new ones, and my 24 tests pass on top of that.
+
+**Next steps:**
+Open a draft PR and get a classmate or mentor to review it in Slack. Confirm with the cohort whether the PR should target the upstream repo or my fork. Decide, based on feedback, whether to also wire core/services/review_service.py to actually call the new pipeline so the feature works end to end, or leave that as a documented follow-up. Then address any feedback, mark the PR ready for review, and fill in Check-in 2 with the PR link.
+
+**Blockers:**
+The main open question is scope: the placeholder that runs during a real review is in review_service.py, which the issue doesn't list and which doesn't call the ingestion pipeline at all. I am going to be confirming in Slack whether wiring that up is expected for this issue or belongs in a separate PR.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/571
+
+**Branch:** feat/11-ingesting-portfolio-website-URL
+
+**What you built:**
+Portfolio website ingestion. A submitted portfolio URL is now fetched and its readable text (bio, project descriptions) is extracted, chunked, embedded, and stored in the vector store alongside the resume, GitHub, and repo sources, so the AI reviewer can reference what's actually on the site. Before this change the app stored a hard-coded placeholder string instead of ever visiting the page.
+
+**Tests added or updated:**
+Three new files. tests/unit/test_web_parser.py (10 tests) covers text extraction, noise-stripping, and fetch error handling. tests/unit/test_pipeline.py (4 tests) covers the ingest_portfolio success, skip, metadata, and fetch-error paths. tests/unit/test_profile_schema.py (10 tests) covers portfolio_url validation for valid, empty, and invalid URLs.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both in the sense the cohort defined for a repo with documented pre-existing failures: my changes introduce zero new failures. The 53 pre-existing test failures and the pre-existing mypy errors are documented in the PR description.)
+
+**Draft PR feedback received from:** none — I posted the draft PR in Slack for review, but no one left feedback before the deadline.
