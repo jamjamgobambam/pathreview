@@ -73,27 +73,35 @@ class StructuralChunker(BaseChunker):
         """
         Extract sections from markdown with heading hierarchy.
 
+        Content that appears before the first heading -- or in a document with no
+        headings at all -- is emitted as a "root" section with an empty heading
+        path and level 0, so document text is never silently dropped (issue #149).
+
         Returns list of dicts with: content, path (breadcrumb), level
         """
         lines = text.split("\n")
         sections = []
         heading_stack = []  # Stack of (level, heading_text)
         current_section_lines = []
-        current_level = 0
+
+        def flush_section() -> None:
+            """Save the buffered lines as a section if they hold real content."""
+            content = "\n".join(current_section_lines).strip()
+            if content:
+                sections.append({
+                    "content": content,
+                    "path": [h[1] for h in heading_stack],
+                    "level": heading_stack[-1][0] if heading_stack else 0,
+                })
 
         for line in lines:
             heading_match = re.match(r"^(#{1,6})\s+(.+)$", line)
 
             if heading_match:
-                # Save previous section if exists
-                if current_section_lines:
-                    if heading_stack:
-                        sections.append({
-                            "content": "\n".join(current_section_lines).strip(),
-                            "path": [h[1] for h in heading_stack],
-                            "level": heading_stack[-1][0] if heading_stack else 0,
-                        })
-                    current_section_lines = []
+                # Save the section that precedes this heading (root section when
+                # no heading has been seen yet) before starting the next one.
+                flush_section()
+                current_section_lines = []
 
                 # Process new heading
                 heading_level = len(heading_match.group(1))
@@ -104,19 +112,12 @@ class StructuralChunker(BaseChunker):
                     heading_stack.pop()
 
                 heading_stack.append((heading_level, heading_text))
-                current_level = heading_level
 
             else:
-                # Regular content line
-                if heading_stack or current_section_lines:  # Only collect if we have a heading
-                    current_section_lines.append(line)
+                # Collect every content line, including text before any heading.
+                current_section_lines.append(line)
 
-        # Save final section
-        if current_section_lines and heading_stack:
-            sections.append({
-                "content": "\n".join(current_section_lines).strip(),
-                "path": [h[1] for h in heading_stack],
-                "level": heading_stack[-1][0] if heading_stack else 0,
-            })
+        # Save the final section (root section if the document had no headings).
+        flush_section()
 
         return sections
