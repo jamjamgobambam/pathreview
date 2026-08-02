@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -103,7 +103,7 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -141,7 +141,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -194,7 +194,10 @@ class SkillExtractor:
             js_evidence.append("Arrow function syntax")
         if re.search(r"\bimport\s+type\b", text):
             ts_evidence.append("TypeScript type-only imports")
-        if re.search(r"\b(interface|type|enum|implements|readonly|public|private|protected)\b", text):
+        if re.search(
+            r"\b(interface|type|enum|implements|readonly|public|private|protected)\b",
+            text,
+        ):
             ts_evidence.append("TypeScript syntax keywords")
         if re.search(
             r":\s*(string|number|boolean|any|unknown|never|void|Promise<|Array<|Record<|\w+\[\])",
@@ -282,6 +285,20 @@ class SkillExtractor:
     def _detect_databases(self, text: str, skills_dict: dict) -> None:
         """Detect databases."""
         text_lower = text.lower()
+
+        if (
+            any(
+                indicator in text_lower
+                for indicator in ("psycopg", "asyncpg", "pg8000", "postgres", "postgresql")
+            )
+            and "Postgresql" not in skills_dict
+        ):
+            skills_dict["Postgresql"] = SkillDetection(
+                name="Postgresql",
+                category="Database",
+                confidence=0.95,
+                evidence=["Found PostgreSQL client library reference in content"],
+            )
 
         for db, confidence in self.DATABASES.items():
             if db in text_lower:
