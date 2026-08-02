@@ -18,7 +18,7 @@ tests for these formats.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** 1a15bd013ee862097b11fddbdc83fc1e54e0f99a
+**Reproduction commit link:** https://github.com/pablomoreno10/pathreview/commit/1a15bd013ee862097b11fddbdc83fc1e54e0f99a
 
 **Reproduction summary:**
 Reproduced by importing `PIIScrubber` directly and calling `scrub()`/`detect()` on
@@ -27,10 +27,42 @@ an empty list, while an unparenthesized equivalent (`555-123-4567`) was correctl
 Running `pytest tests/unit/test_pii_scrubber.py -v` confirmed 5 existing tests fail against
 this behavior.
 
-**PLAN.md link:** 
+**PLAN.md link:** https://github.com/pablomoreno10/pathreview/blob/fix/146-pii-parenthesized-phone-numbers/PLAN.md
 
 **Blockers or open questions:**
 While reproducing, also found that `test_mixed_pii_and_text` fails for an unrelated reason: the
 `street_address` pattern's `Pl` abbreviation matches the tail of ordinary words like
 "applications" (case-insensitive), corrupting unrelated text. Not in scope for #146, but flagging
 in case it should be filed as a separate issue before Week 9.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Fixed the `phone_us` regex in `safety/pii_scrubber.py` to accept a space as a separator (not just `-`/`.`), plus a related word-boundary fix so parenthesized numbers don't leave a stray `(` behind. Added 2 regression tests. All phone-related test failures from PLAN.md are resolved.
+
+**Next steps:**
+Commit, push, and open the PR.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** `fix/146-pii-parenthesized-phone-numbers`
+
+**What you built:**
+Fixed the `phone_us` regex so it correctly redacts parenthesized US phone numbers (e.g. `(555) 123-4567`), which previously passed through unredacted because the separator after the closing parenthesis only allowed `-`/`.`, never a space.
+
+**Tests added or updated:**
+`tests/unit/test_pii_scrubber.py` —> added `test_phone_no_false_positive_on_parenthetical_text` and `test_us_phone_no_stray_parenthesis_after_scrub`; 4 previously-failing tests now pass with no other changes needed.
+
+**Self-review confirmation:**
+
+[X] make check passes (for touched files — repo-wide `make check`/`make test-unit` still show pre-existing, unrelated failures in other files, confirmed identical on `main`)  
+
+[X] make test-unit passes
+
+**Draft PR feedback received from:** none
