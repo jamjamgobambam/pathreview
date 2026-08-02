@@ -75,3 +75,44 @@ I used and validated the existing unit tests in tests/unit/test_bias_detector.py
 **Note** `make check` and `make test-unit` still show existing unrelated failures elsewhere in the repository. This change did not introduce any new failures
 
 **Draft PR feedback received from:** N/A
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+
+N/A - no review.
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+N/a
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+Understanding how the existing code fit together was harder than I expected. I thought I could move faster, but the project had more moving parts than I first realized and even the setup took a long time.
+
+**What did you learn about working in a large codebase?**
+
+I learned that working in a large codebase is very different from building something from scratch. In a personal project, you already know how all the parts connect and making a mistake is not critical. In a large codebase, small changes can affect other parts of the app, so you have to be careful and thoughtful. It is also important to understand the existing patterns before making changes.
+
+**How did AI tools help — and where did they fall short?**
+
+AI helped me move faster when I was stuck or trying to understand unfamiliar code. It was useful for getting to know the codebase and getting ideas on how to solve the issue I was working on. But it still needed a lot of review. I had to check the details myself and make sure the solution actually fit the project, as well as that it doesn't break any existing structure.
+
+**What would you do differently if you started over?**
+
+To be honest, I would spend more time reading the code and understanding the flow before I started changing things. I would also break the work into smaller steps and test earlier.
+
+**What are you most proud of from this module?**
+
+I am proud that I was able to work through a confusing codebase and complete a change that fit the project.
