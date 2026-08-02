@@ -90,9 +90,9 @@ None identified. PostgreSQL showing "unhealthy" is a separate pre-existing issue
 
 ### Check-in 2 (end of week)
 
-**PR link:** [LINK_TO_YOUR_PR]
+**PR link:** https://github.com/ascherj/pathreview/pull/486
 
-**Branch:** fix/155-redis-health-check
+**Branch:** [fix/155-redis-health-check](https://github.com/fperezrugama/pathreview/tree/fix/155-redis-health-check)
 
 **What you built:**
 Updated the health check endpoint to use `settings.redis_url` instead of the nonexistent `settings.redis_host` and `settings.redis_port`. This fixes the false "unhealthy" report when Redis is actually running.
@@ -102,4 +102,4 @@ Created `tests/unit/test_health.py` with tests for Redis healthy/unhealthy scena
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** [Add name/handle if you got feedback]
+**Draft PR feedback received from:** @theoneineed
