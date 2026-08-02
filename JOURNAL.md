@@ -42,3 +42,64 @@ None yet — root cause is confirmed and isolated to a single function
 going into the fix is whether loosening the regex to tolerate leading whitespace
 could introduce false positives (e.g. a section-name word appearing mid-sentence
 on an indented line) — noted as a risk in PLAN.md.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented PLAN.md steps 1–3: loosened the four regex patterns in
+`_detect_sections()` to tolerate optional leading whitespace (`[ \t]*`) between
+the line anchor and the section name, and added two regression tests
+(`test_detect_sections_with_leading_whitespace`, matching the issue's exact
+repro case, and `test_detect_sections_with_tabs_and_inconsistent_indentation`
+for tab-indented and mixed-depth headers). Confirmed via `make test-unit` that
+this fixes all 3 tests named in the issue and introduces zero new failures
+(53 failed/375 passed baseline → 50 failed/380 passed). Also ran `make check`
+across the full repo to document the pre-existing failure baseline (177 lint
+errors, 5 typecheck errors — none in the files this PR touches). Committed as
+`b40295b` on `fix/147-resume-parsing-error` (confirmed not on `main`).
+
+**Next steps:**
+Push the branch, open the PR against upstream with the drafted description
+(root cause, changes, before/after test counts, pre-existing-failure notes),
+and record the optional walkthrough video.
+
+**Blockers:**
+Lost time to environment issues unrelated to the actual bug: the dev venv's
+SQLAlchemy install was corrupted (a `FileNotFoundError` on a missing Cython
+extension file), and `make setup`'s `pre-commit install` step hung
+indefinitely for reasons still unclear. Both are resolved now — `make
+test-unit` and `make check` run cleanly.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [pending — not yet opened]
+
+**Branch:** `fix/147-resume-parsing-error`
+
+**What you built:**
+Loosened `_detect_sections()`'s regex patterns in `ingestion/parsers/resume_parser.py`
+to allow optional leading whitespace between the line anchor and the section
+name, so indented section headers (as commonly produced by PDF text
+extraction) are detected instead of silently producing an empty
+`detected_sections` list.
+
+**Tests added or updated:**
+`tests/unit/test_resume_parser.py` — added `test_detect_sections_with_leading_whitespace`
+(the issue's exact repro case) and `test_detect_sections_with_tabs_and_inconsistent_indentation`
+(tab indentation, headers at different depths in the same document). Also added
+missing mypy type annotations across the file's existing test functions and a
+`# type: ignore[arg-type]` on two tests that intentionally pass invalid types
+to test runtime validation — both needed to satisfy the pre-commit hook on
+this file, unrelated to the bug itself.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+*(this codebase has substantial pre-existing failures — 177 lint errors, 5
+typecheck errors, 50 failing unit tests — all documented in the PR
+description; "passes" here means this change introduces zero new failures
+against that baseline, confirmed by diffing failure lists before/after)*
+
+**Draft PR feedback received from:** none yet
