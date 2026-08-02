@@ -1,13 +1,15 @@
 """Tests for the per-profile review lock (issue #82)."""
 
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
-from redis.asyncio import Redis
 
 from core.services.review_lock import ReviewLock
+
+if TYPE_CHECKING:
+    from redis.asyncio import Redis
 
 
 @pytest.mark.unit
@@ -76,15 +78,15 @@ class TestReviewLock:
                 return 0
 
         redis: Any = FakeRedis()
-        first = ReviewLock(cast(Redis, redis), profile_id)
-        second = ReviewLock(cast(Redis, redis), profile_id)
+        first = ReviewLock(cast("Redis", redis), profile_id)
+        second = ReviewLock(cast("Redis", redis), profile_id)
 
         assert await first.acquire() is True
         assert await second.acquire() is False
 
         # After the winner releases, another acquirer can take the lock.
         await first.release()
-        third = ReviewLock(cast(Redis, redis), profile_id)
+        third = ReviewLock(cast("Redis", redis), profile_id)
         assert await third.acquire() is True
 
     @pytest.mark.asyncio
@@ -147,7 +149,7 @@ class TestReviewLock:
                 return 0
 
         redis: Any = FakeRedis()
-        lock = ReviewLock(cast(Redis, redis), uuid4())
+        lock = ReviewLock(cast("Redis", redis), uuid4())
         # Foreign owner takes the key with a different token.
         redis._store[lock.key] = "someone-elses-token"
 
