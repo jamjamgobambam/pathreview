@@ -19,14 +19,14 @@ The architecture documentation mentions the hybrid retrieval system but does not
 ## Week 8 — Reproduction & solution planning
 
 **Reproduction commit link:**
-(To be filled after committing)
+https://github.com/navin-27/pathreview/commit/<commit-id>
 
 **Reproduction summary:**
 
 I reviewed `docs/ARCHITECTURE.md` and confirmed that it describes hybrid retrieval but does not explain how vector similarity and BM25 scores are combined to produce the final retrieval ranking. The documentation identifies the components but does not describe the scoring formula or ranking process.
 
 **PLAN.md link:**
-(To be filled after pushing)
+(https://github.com/navin-27/pathreview/blob/docs/36-hybrid-retrieval-scoring/PLAN.md
 
 **Walkthrough video (recommended):**
 Not recorded.
