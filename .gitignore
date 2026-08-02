@@ -44,3 +44,6 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+
+# project description 
+*pathreview-instructions.md
