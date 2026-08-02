@@ -33,3 +33,19 @@ Inspected `docs/ARCHITECTURE.md` and confirmed that while it mentions hybrid ret
 
 **Blockers or open questions:**
 None. The code in `rag/retriever/hybrid.py` clearly defines the vector weight (0.7), keyword weight (0.3), max-normalization, and score blending equation, providing all necessary details to document in `docs/ARCHITECTURE.md`.
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+- Completed Sub-Task 1 (Source Code Analysis & Verification): Inspected `rag/retriever/hybrid.py` to confirm exact default weights (0.7 vector / 0.3 keyword), max score normalization (`raw / max`), zero-division safeguard (`default=1.0`), score blending formula (`blended_score = 0.7 * vector_score_norm + 0.3 * keyword_score_norm`), minimum score threshold (`min_score = 0.3`), and top-k filtering (`max_chunks = 10`).
+
+**Next steps:**
+- Sub-Task 2: Draft `#### Hybrid Retrieval Scoring` subsection in `docs/ARCHITECTURE.md`.
+- Sub-Task 3: Construct a step-by-step numerical worked example demonstrating raw score retrieval, max-normalization, score blending, min score filtering, and top-k ranking.
+- Sub-Task 4: Perform documentation review and final verification across files.
+
+**Blockers:**
+None.
