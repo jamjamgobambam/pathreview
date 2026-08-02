@@ -124,7 +124,7 @@ Deciding the similarity threshold — settled on a conservative `0.9` guarded by
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(PR pending creation — see note below; will paste the URL here)_
+**PR link:** https://github.com/ascherj/pathreview/pull/593
 
 **Branch:** `fix/28-duplicate-feedback-sections-when-multiple-projects`
 
