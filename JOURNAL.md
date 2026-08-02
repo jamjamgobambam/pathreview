@@ -53,7 +53,7 @@ Decided to keep the `safety_events_last_hour` name and document the window appro
 
 ### Check-in 2 (end of week)
 
-**PR link:** _[to be filled in when the PR is opened against `ascherj/pathreview`]_
+**PR link:** https://github.com/ascherj/pathreview/pull/558
 
 **Branch:** `feat/68-add-safety-events-count-to-health-check`
 
