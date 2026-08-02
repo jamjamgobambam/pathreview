@@ -187,3 +187,36 @@ Running both process_review pipelines concurrently…
 
 </details>
 
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+PLAN.md sub-tasks 1–4 are done. `core/services/review_lock.py` implements a Redis SET NX EX primitive with a per-instance token and a compare-and-delete Lua release; `POST /reviews` in `api/routes/reviews.py` now acquires the lock before creating the row and releases it in the background task's `finally`. Concurrent callers get a 409 with the in-progress review's id. Unit tests cover the lock (acquire/release/foreign-owner/error swallow) and the route-level race regression using a fake Redis.
+
+**Next steps:**
+Run through the self-review checklist against `docs/CONTRIBUTING.md`, open the PR against `main`, and share the draft link for peer feedback before Sunday.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/591
+
+**Branch:** `fix/82-concurrent-reviews-races`
+
+**What you built:**
+A per-profile Redis lock that serializes `POST /reviews`: the first request acquires `review_lock:{profile_id}` via SET NX EX (5-minute TTL), creates the review, and releases the lock in the background task's `finally` using a compare-and-delete Lua script so a stale TTL can't drop someone else's lock. Concurrent callers on the same profile get 409 with the in-progress review id instead of racing to insert duplicate rows.
+
+**Tests added or updated:**
+- `tests/unit/test_review_lock.py` — 6 unit tests covering SET NX EX arguments, TTL default, contention (only one acquirer wins), release Lua semantics, error swallowing during teardown, and the foreign-owner safety guarantee.
+- `tests/unit/test_reviews_race.py` — regression test that exercises two concurrent `POST /reviews` calls against a fake Redis and asserts exactly one 201 and one 409.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Pre-existing ruff/mypy failures unrelated to issue #82 documented in the PR description; my changes introduce no new failures.)
+
+**Draft PR feedback received from:** _pending_
+
