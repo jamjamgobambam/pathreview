@@ -1,5 +1,7 @@
 """Versioned prompt templates for review generation."""
 
+import hashlib
+
 import structlog
 
 logger = structlog.get_logger()
@@ -110,7 +112,7 @@ Write a concise, professional summary capturing:
 
 Provide only the summary text, no JSON formatting needed.
 """
-    }
+    },
 }
 
 
@@ -139,3 +141,15 @@ def get_template(name: str, version: str = "v1") -> str:
     template = versions[version]
     logger.info("template_retrieved", name=name, version=version)
     return template
+
+
+def snapshot_hashes(text: str) -> str:
+    """Helper function: Generate a hash code for any inputted text.
+
+    Args:
+        text: The text to hash.
+
+    Returns:
+        Hex-encoded SHA-256 digest of the text.
+    """
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
