@@ -64,4 +64,23 @@ draft PR and request peer or mentor feedback.
 The main risk is allowing one-token support without treating generic shared
 words such as `project` or `experience` as sufficient evidence.
 
+### Check-in 2 (end of week)
+
+**PR link:** (https://github.com/ascherj/pathreview/pull/468)
+
+**Branch:** `fix/152-faithfulness-short-claims`
+
+**What you built:**
+I updated the faithfulness checker so short, grounded claims can be recognized using an adaptive token-overlap rule. The implementation also normalizes punctuation, filters generic terms, and safely handles context chunks whose `text` value is `None`.
+
+**Tests added or updated:**
+I updated `tests/unit/test_faithfulness_checker.py` with regression tests for supported short claims, punctuation normalization, generic-word false positives, mixed supported and unsupported claims, and null context text.
+
+**Self-review confirmation:** [x] make check passes [x] make test-unit passes
+
+**Draft PR feedback received from:** none
+
+**Peer review note:**
+I requested feedback in Slack but did not receive a response before the submission deadline. I completed the self-review checklist and marked the PR ready for review.
+
 ---
