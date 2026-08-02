@@ -41,6 +41,59 @@ in the tracker is 3–5 hours, which matches a middleware-plus-tests task.
 
 **Reproduction summary:** I sent 65 in-process requests from the same test client to the dependency-free `/` API route, exceeding the configured 60-request limit. Every request returned `200`, the final response had no `X-RateLimit-Limit` or `X-RateLimit-Remaining` header, and `X-Request-ID` was present; separately, all 19 existing `RateLimiter` unit tests passed, confirming that the gap is missing API wiring rather than the limiter algorithm.
 
+At the reproduction commit (`ec0a927276011808879f5f6a021152a25ebb6f4c`), I ran:
+
+```powershell
+.\.venv\Scripts\python.exe -c @'
+from fastapi.testclient import TestClient
+from api.main import app
+
+client = TestClient(app)
+responses = [client.get('/') for _ in range(65)]
+last = responses[-1]
+
+print('request_count=', len(responses))
+print('status_codes=', sorted({response.status_code for response in responses}))
+print('429_count=', sum(response.status_code == 429 for response in responses))
+print('X-RateLimit-Limit=', last.headers.get('X-RateLimit-Limit'))
+print('X-RateLimit-Remaining=', last.headers.get('X-RateLimit-Remaining'))
+print('X-Request-ID-present=', 'X-Request-ID' in last.headers)
+'@
+```
+
 **PLAN.md link:** https://github.com/isomer04/pathreview/blob/feat/86-ratelimit-headers/PLAN.md
 
 **Blockers or open questions:** Confirm whether trusted proxy configuration is available before using forwarded IP headers; otherwise use `request.client.host`. Middleware order and Redis fail-open header semantics need to be covered explicitly by the implementation tests.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented every code sub-task in `PLAN.md`: added the rate-limit middleware, connected it to the existing Redis-backed limiter, registered it in the API, exposed the headers through CORS, and added HTTP-level unit tests. The middleware uses `request.client.host`, enforces the configured per-minute limit, returns `429` after exhaustion, and adds quota headers to allowed, denied, and handled error responses.
+
+**Next steps:**
+Request peer or mentor feedback, address any agreed changes, commit and push the implementation, open the PR, and replace the pending PR link below before submission.
+
+**Blockers:**
+No draft PR or peer review is available yet. The implementation was intentionally left uncommitted, so it cannot be pushed or used to open a PR until committing is authorized.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** Pending — the changes have not been committed or pushed, so no PR exists yet.
+
+**Branch:** `feat/86-ratelimit-headers`
+
+**What you built:**
+Added API middleware that checks the existing Redis rolling-window limiter by client IP, reports `X-RateLimit-Limit` and `X-RateLimit-Remaining` on responses, and returns a JSON `429` when the quota is exhausted. Middleware ordering preserves request IDs and CORS headers on rejected requests, and the synchronous Redis call runs in a worker thread instead of blocking the async request loop.
+
+**Tests added or updated:**
+Added `tests/unit/test_rate_limit_middleware.py` with eight tests covering allowed responses, the last allowed and first denied requests, route short-circuiting, independent client IPs, missing client metadata, Redis fail-open semantics, handled route errors, and request-ID/CORS behavior on `429` responses. The focused rate-limit suite passes all 27 tests.
+
+**Self-review confirmation:** [x] make check introduces no new failures  [x] make test-unit introduces no new failures
+
+Pre-existing failures were recorded before implementation and compared afterward. Ruff reported 182 findings before and 181 afterward; Black reported 52 files needing formatting before and 51 afterward; the new middleware passes targeted Ruff, Black, and mypy checks. The full unit suite had 53 failures and 375 passes before the change; after adding all eight focused tests, the same 53 unrelated tests fail and the pass count increases to 383.
+
+**Draft PR feedback received from:** none
