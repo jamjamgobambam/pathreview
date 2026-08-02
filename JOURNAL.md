@@ -54,3 +54,49 @@ chunk containing `"text": None`. It consistently raised `TypeError` in
 **Blockers or open questions:**
 No current blockers. The fix should remain narrowly scoped to explicit `None`
 text values rather than silently converting every malformed value to a string.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the issue #153 fix in `FaithfulnessChecker.check()` so a context
+chunk with `text: None` contributes an empty string instead of crashing during
+context concatenation. Tightened the null-text regression test and added a
+mixed null/valid-context test, completing the implementation and test tasks
+from `PLAN.md`.
+
+**Next steps:**
+Run the required repository checks, review the complete PR diff, open a draft
+PR, and request feedback from a classmate or mentor in the instructor-specified
+Slack channel. Address agreed-upon feedback before marking the PR ready.
+
+**Blockers:**
+No implementation blocker. The repository-wide `make check` and
+`make test-unit` commands currently report failures outside the issue #153
+change, which must be resolved or confirmed with the instructor before final
+submission.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** Pending — create and submit the pull request after required checks
+and review are complete.
+
+**Branch:** `fix/153-faithfulness-checker-crashes-error`
+
+**What you built:**
+Updated the faithfulness checker to treat an explicitly null context `text`
+value as empty text, preventing the `TypeError` raised by `" ".join(...)`.
+Valid text in other context chunks is preserved and still participates in
+faithfulness scoring.
+
+**Tests added or updated:**
+Updated `tests/unit/test_faithfulness_checker.py` to assert a safe `0.0` score
+for a null-only context and added a mixed null/valid-context regression test
+that confirms valid context still produces the expected supported score.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** none
