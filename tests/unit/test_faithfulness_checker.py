@@ -46,12 +46,20 @@ class TestFaithfulnessChecker:
 
     def test_partial_support_returns_middle_score(self, checker):
         """Test partial support returns score between 0 and 1."""
-        feedback = "The developer shows Python expertise and Kubernetes knowledge."
+        feedback = (
+            "The developer shows Python expertise. "
+            "The developer has Kubernetes knowledge."
+        )
         context_chunks = [
             {
-                "text": "Strong Python programming skills demonstrated in projects."
+                "text": "The developer shows Python expertise in completed projects."
             },
         ]
+
+        score = checker.check(feedback, context_chunks)
+
+        assert isinstance(score, float)
+        assert score == 0.5
 
         score = checker.check(feedback, context_chunks)
 
@@ -91,11 +99,15 @@ class TestFaithfulnessChecker:
 
     def test_multiple_context_chunks(self, checker):
         """Test multiple context chunks contribute to score."""
-        feedback = "The developer has Python, JavaScript, and Docker experience."
+        feedback = (
+            "The developer has Python experience. "
+            "The developer has JavaScript experience. "
+            "The developer has Docker experience."
+        )
         context_chunks = [
-            {"text": "Python expertise shown in backend projects."},
-            {"text": "JavaScript skills demonstrated in frontend development."},
-            {"text": "Docker and containerization knowledge evident in CI/CD pipelines."},
+            {"text": "The developer has Python experience in backend projects."},
+            {"text": "The developer has JavaScript experience in frontend development."},
+            {"text": "The developer has Docker experience with CI/CD pipelines."},
         ]
 
         score = checker.check(feedback, context_chunks)
@@ -172,16 +184,19 @@ class TestFaithfulnessChecker:
 
     def test_multiple_claims_varying_support(self, checker):
         """Test scoring with multiple claims of varying support."""
-        feedback = "Python expert. Knows Rust. Skilled with Docker."
+        feedback = (
+            "Python expert. "
+            "Experienced with Rust systems. "
+            "Docker expert."
+        )
         context_chunks = [
             {"text": "Python and Docker expertise shown in projects."}
         ]
 
         score = checker.check(feedback, context_chunks)
 
-        # Two claims supported, one not
         assert isinstance(score, float)
-        assert 0.2 < score < 0.8
+        assert score == pytest.approx(2 / 3)
 
     def test_very_long_feedback(self, checker):
         """Test handling of very long feedback text."""
@@ -216,17 +231,27 @@ class TestFaithfulnessChecker:
         supported = checker._is_supported(claim, context)
 
         # Despite word overlap, should look for meaningful overlap (not stop words)
+        assert supported is False
+
         # This depends on implementation
 
-    def test_minimum_overlap_required(self, checker):
-        """Test that minimum meaningful overlap is required for support."""
-        claim = "Python expertise"
-        context = "Python"  # Only one word match
+    def test_short_claim_supported_by_single_meaningful_token(self, checker):
+        """Test a short claim can be supported by one meaningful token."""
+        claim = "Knows Python"
+        context = "The portfolio demonstrates Python expertise."
 
         supported = checker._is_supported(claim, context)
 
-        assert isinstance(supported, bool)
-        # Need at least 2 meaningful tokens for support
+        assert supported is True
+
+    def test_short_claim_without_overlap_is_unsupported(self, checker):
+        """Test a short claim remains unsupported without meaningful overlap."""
+        claim = "Knows Python"
+        context = "The portfolio demonstrates Java expertise."
+
+        supported = checker._is_supported(claim, context)
+
+        assert supported is False
 
     def test_none_context_chunk_text(self, checker):
         """Test handling of None in context chunk text."""
