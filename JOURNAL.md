@@ -42,13 +42,13 @@ None
 ### Check-in 1 (mid-week)
 
 **Current progress:**
-[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+I implemented everything but testing and adding edge cases. 
 
 **Next steps:**
-[What are you working on for the rest of the week?]
+Testing, finding edge cases, and opening a PR. 
 
 **Blockers:**
-[Anything slowing you down? Or leave blank.]
+I didn't know about the pre-existing failures in make check before it was mentioned in the assignment. I definitely need to read everything before doing everything. But I will work on cleaning up at the end of the week.
 
 ---
 
