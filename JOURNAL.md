@@ -52,3 +52,22 @@ Call me at (555) 123-4567 or [REDACTED]
 
 **Blockers or open questions:**
 Anything you're still uncertain about going into Week 9, or leave blank
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+<!-- [What have you implemented so far? Which sub-tasks from PLAN.md are done?] -->
+Completed sub-task 1 from PLAN.md by updating the phone_us regex in src/safety/pii_scrubber.py, replacing the word boundaries with digit-based lookarounds and adding whitespace as a valid separator. Also cleaned up two overly long lines and removed an unused loop variable to satisfy the linter. The fix is committed and pushed to the fix/146-pii-scrubber-phone-parens branch.
+
+**Next steps:**
+<!-- [What are you working on for the rest of the week?] -->
+Re-run the full test suite to confirm the four previously-failing tests pass along with the false-positive test. Add a new test case for the parenthesized format if it's not already covered, then manually check a few edge cases before opening the PR.
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+None currently.
+
+---
