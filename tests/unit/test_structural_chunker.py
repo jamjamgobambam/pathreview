@@ -238,3 +238,13 @@ Content for 3
 
         # Should not crash on empty sections
         assert isinstance(result, list)
+
+    def test_large_document_with_no_headings_is_sub_chunked(self, chunker):
+        """Test a long headingless document gets sub-chunked instead of dropped."""
+        text = "This is a long paragraph with no markdown headings at all. " * 100
+        result = chunker.chunk(text, {"source": "test"})
+
+        assert len(result) >= 1
+        assert all(isinstance(c, Chunk) for c in result)
+        for chunk in result:
+            assert chunk.text.strip()

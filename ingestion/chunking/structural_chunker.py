@@ -78,62 +78,45 @@ class StructuralChunker(BaseChunker):
         Extract sections from markdown with heading hierarchy.
 
         Returns list of dicts with: content, path (breadcrumb), level
-
-        BUG (#149): for documents with no headings at all, `heading_stack`
-        never becomes non-empty (nothing ever matches the heading regex),
-        so the `if heading_stack or current_section_lines:` guard below
-        drops every content line before `current_section_lines` can ever
-        accumulate anything. Reproduced locally: a ~1000-char headingless
-        document (`StructuralChunker().chunk(text, {})`) returns 0 chunks,
-        and `test_document_with_no_headings` fails with
-        `assert 0 >= 1  where 0 = len([])`.
         """
         lines = text.split("\n")
         sections = []
         heading_stack = []  # Stack of (level, heading_text)
         current_section_lines = []
-        current_level = 0
 
         for line in lines:
             heading_match = re.match(r"^(#{1,6})\s+(.+)$", line)
 
             if heading_match:
-                # Save previous section if exists
-                if current_section_lines:
-                    if heading_stack:
-                        sections.append(
-                            {
-                                "content": "\n".join(current_section_lines).strip(),
-                                "path": [h[1] for h in heading_stack],
-                                "level": heading_stack[-1][0] if heading_stack else 0,
-                            }
-                        )
-                    current_section_lines = []
+                # Save previous section if it has real content — regardless
+                # of whether any heading has been seen yet (fixes #149)
+                content = "\n".join(current_section_lines).strip()
+                if content:
+                    sections.append({
+                        "content": content,
+                        "path": [h[1] for h in heading_stack],
+                        "level": heading_stack[-1][0] if heading_stack else 0,
+                    })
+                current_section_lines = []
 
-                # Process new heading
                 heading_level = len(heading_match.group(1))
                 heading_text = heading_match.group(2).strip()
 
-                # Update heading stack based on level
                 while heading_stack and heading_stack[-1][0] >= heading_level:
                     heading_stack.pop()
 
                 heading_stack.append((heading_level, heading_text))
-                current_level = heading_level
 
             else:
-                # Regular content line
-                if heading_stack or current_section_lines:  # Only collect if we have a heading
-                    current_section_lines.append(line)
+                current_section_lines.append(line)
 
-        # Save final section
-        if current_section_lines and heading_stack:
-            sections.append(
-                {
-                    "content": "\n".join(current_section_lines).strip(),
-                    "path": [h[1] for h in heading_stack],
-                    "level": heading_stack[-1][0] if heading_stack else 0,
-                }
-            )
+        # Save final section — no longer requires heading_stack to be non-empty
+        content = "\n".join(current_section_lines).strip()
+        if content:
+            sections.append({
+                "content": content,
+                "path": [h[1] for h in heading_stack],
+                "level": heading_stack[-1][0] if heading_stack else 0,
+            })
 
         return sections
