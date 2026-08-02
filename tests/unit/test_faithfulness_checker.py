@@ -241,6 +241,36 @@ class TestFaithfulnessChecker:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
+    def test_none_and_valid_chunk_still_scores_valid_chunk(self, checker):
+        """Test a None-text chunk is skipped while a valid chunk is still scored."""
+        feedback = "The developer has strong Python skills."
+        context_chunks = [
+            {"text": None},
+            {"text": "Strong Python programming skills demonstrated in projects."},
+        ]
+
+        score = checker.check(feedback, context_chunks)
+
+        # The None chunk must not abort scoring; the valid chunk should still
+        # support the claim, yielding a positive score.
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+        assert score > 0.5
+
+    def test_all_none_chunks_do_not_crash(self, checker):
+        """Test that a list of only None-text chunks behaves like empty context."""
+        feedback = "The developer has strong Python skills."
+        context_chunks = [
+            {"text": None},
+            {"text": None},
+        ]
+
+        score = checker.check(feedback, context_chunks)
+
+        # No context to support the claim, but must not raise.
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+
     def test_missing_text_key_in_chunk(self, checker):
         """Test handling of missing 'text' key in context chunk."""
         feedback = "Has Python skills"
