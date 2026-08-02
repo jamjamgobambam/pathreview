@@ -53,3 +53,46 @@ background task is scheduled — returning 422, mirroring how `POST /profiles`
 returns 422 for an invalid résumé file. Aside: `_run_ingestion_pipeline` builds
 `IngestedSource(raw_data=...)` but the model has no `raw_data` column — a separate
 latent bug, out of scope here.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in two commits. In `api/routes/reviews.py`,
+`create_review_endpoint` now loads the target profile before scheduling the
+background task and returns 404 if it is missing/not owned, or 422 ("Profile has
+no content to review") if it has no GitHub, resume, or portfolio content. Added
+`tests/unit/test_review_routes.py` — the repo's first TestClient-based route
+test — covering three cases: content-less profile → 422, missing profile → 404,
+and a profile with content → 200 "pending". PLAN.md sub-tasks 1–4 are done;
+sub-task 5 (self-review) is also done — `ruff`, `black --check`, `mypy`, and
+`make test-unit` confirm my changes introduce no new failures versus baseline
+(53 pre-existing test failures unchanged; +3 new passing tests).
+
+**Next steps:**
+Open a draft PR, request peer/mentor review in Slack, and address any feedback I
+agree with before marking it ready for review.
+
+**Blockers:**
+None blocking. The repo has pre-existing, unrelated failures — ~180 ruff errors,
+52 files needing black, and mypy halting on a third-party numpy stub — which I've
+documented as out of scope.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
