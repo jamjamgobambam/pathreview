@@ -114,4 +114,4 @@ Fixed portfolio URL ingestion end-to-end: added a `WebParser` that actually fetc
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 (Both pass in the sense the assignment defines: zero new failures introduced beyond the documented pre-existing baseline of 53 test failures / 182 ruff errors / 103 mypy errors / 52 files black would reformat — verified by diffing tool output on every touched file against its pre-change version.)
 
-**Draft PR feedback received from:** Meenakshi ([@msistla96](https://github.com/msistla96)) on GitHub / Yamaan Nandolia on Slack
+**Draft PR feedback received from:** Meenakshi ([@msistla96](https://github.com/msistla96)) on GitHub and Yamaan Nandolia on Slack
