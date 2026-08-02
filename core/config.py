@@ -8,7 +8,9 @@ class Settings(BaseSettings):
     """Application settings with support for .env file and environment variables."""
 
     # Database
-    database_url: str = Field(default="postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_dev")
+    database_url: str = Field(
+        default="postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_dev"
+    )
     redis_url: str = Field(default="redis://localhost:6379/0")
     vector_db_url: str = Field(default="http://localhost:8001")
 
@@ -23,6 +25,8 @@ class Settings(BaseSettings):
     app_env: str = Field(default="development")
     secret_key: str = Field(default="dev-secret-key-change-in-production")
     log_level: str = Field(default="INFO")
+    # Public base URL of the frontend, used to build shareable review links
+    frontend_base_url: str = Field(default="http://localhost:5173")
 
     # GitHub
     github_token: str = Field(default="")

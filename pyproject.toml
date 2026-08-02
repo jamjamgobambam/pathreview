@@ -63,6 +63,21 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TCH"]
 
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI uses these callables as argument-default sentinels (Depends, Query,
+# and friends), which is the framework's intended pattern. Treat them as
+# immutable so B008 stops flagging every route handler.
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Header",
+    "fastapi.Body",
+    "fastapi.Form",
+    "fastapi.File",
+    "fastapi.Cookie",
+]
+
 [tool.ruff.lint.per-file-ignores]
 "core/models/*.py" = ["E501"]
 "scripts/*.py" = ["E501"]

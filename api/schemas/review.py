@@ -33,3 +33,24 @@ class ReviewListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class ShareLinkResponse(BaseModel):
+    share_url: str
+    token: str
+    expires_at: datetime
+
+
+class PublicReviewResponse(BaseModel):
+    """Read-only, public view of a review.
+
+    Deliberately whitelists only non-owner fields — no ``id``, ``profile_id``, or
+    any owner data is exposed through a share link.
+    """
+
+    status: str
+    sections: list[FeedbackSection] | None
+    overall_score: float | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
