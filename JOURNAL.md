@@ -31,3 +31,39 @@ I observed that `HybridRetriever` currently ranks chunks solely using vector sim
 
 **Blockers or open questions:**
 None. Ready to implement `LLMReranker` and integrate it into `HybridRetriever`.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+- Implemented `LLMReranker` class in `rag/retriever/reranker.py` with structured JSON scoring prompt and automatic fallback to base candidate scores on LLM API exception/timeout.
+- Integrated `LLMReranker` into `HybridRetriever` in `rag/retriever/hybrid.py` to enable 2nd-stage candidate re-ranking when `reranker` is provided.
+- Written comprehensive unit tests in `tests/unit/test_reranker.py` covering score parsing, error fallbacks, empty chunk lists, and 2-stage retrieval integration.
+
+**Next steps:**
+- Perform code quality self-review (`make check` and `make test-unit`) to ensure no new regressions are introduced.
+- Open draft PR on GitHub and solicit peer/mentor feedback.
+- Update Check-in 2 with PR link and submit final branch URL.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [https://github.com/Siqi-Du/pathreview/pull/1](https://github.com/Siqi-Du/pathreview/pull/1)
+
+**Branch:** `feat/34-llm-reranker`
+
+**What you built:**
+Implemented an optional LLM re-ranking step for `HybridRetriever` in `rag/retriever/reranker.py`. After initial vector and keyword retrieval candidates are blended, `LLMReranker` uses an LLM to score chunk relevance (0–1 scale) and prunes down to the top `max_chunks`, with graceful fallback to base hybrid scores on LLM error.
+
+**Tests added or updated:**
+Added `tests/unit/test_reranker.py`, covering `LLMReranker` candidate scoring, sorting, JSON formatting fallback, empty input handling, and `HybridRetriever` integration.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes (no new failures introduced)
+
+**Draft PR feedback received from:** none
+
