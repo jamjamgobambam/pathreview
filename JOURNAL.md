@@ -181,3 +181,35 @@ That matches the assignment's explicit rule that, with documented pre-existing f
 None blocking. The preamble-before-first-heading behavior remains a known,
 related limitation that is intentionally left out of scope for issue #149; it
 can be raised separately with maintainers.
+
+## Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/545
+
+**Branch:** `fix/149-handle-documents-without-headings`
+
+**What you built:**
+Updated `StructuralChunker` so nonempty documents without recognized Markdown
+headings are preserved as an untitled section instead of being silently
+discarded. The fix preserves caller metadata and continues using the existing
+semantic sub-chunking path for documents that exceed the 800-token section
+limit.
+
+**Tests added or updated:**
+Updated `tests/unit/test_structural_chunker.py` to verify short heading-less
+documents, large heading-less documents, content preservation, caller-metadata
+preservation, default heading metadata, semantic sub-chunking, and sequential
+chunk indexes. All 16 structural chunker tests and all 16 semantic chunker tests
+pass, for a total of 32 relevant passing tests.
+
+**Self-review confirmation:** [x] make check — no new failures introduced
+[x] make test-unit — no new failures introduced
+
+**Baseline note:** The full repository commands remain red because the
+pre-existing baseline contains 182 Ruff errors and 52 unrelated unit-test
+failures. The files changed for Issue #149 introduce no new lint errors, and all
+32 relevant chunker tests pass.
+
+**Draft PR feedback received from:** Christopher Paladines
+
+**Feedback addressed:** No changes were requested.
