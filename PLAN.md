@@ -31,8 +31,9 @@ binary supported/unsupported result cannot satisfy that contract for a single cl
 ## Implementation
 
 1. Tokenize claims and context consistently, removing surrounding punctuation while
-   preserving common technical identifiers such as `C++`, `C#`, `.NET`, `Node.js`,
-   `Objective-C`, `R&D`, and `I/O`.
+   normalizing common apostrophe and in-word hyphen variants and preserving technical
+   identifiers such as `C++`, `C#`, `.NET`, `Node.js`, `Objective-C`, `R&D`, and
+   `I/O`.
 2. Preserve the existing first-ten-claims limit and the ordinary two-term support
    threshold.
 3. Recognize a narrow short-claim form only after removing a leading reporting verb,
@@ -40,7 +41,8 @@ binary supported/unsupported result cannot satisfy that contract for a single cl
    unscoreable.
 4. Keep role nouns material unless they occur directly before a reporting verb.
 5. Return `1.0` for claims meeting the support threshold and proportional lexical
-   credit otherwise, then average the per-claim scores.
+   credit for other multi-term claims, then average the per-claim scores. Ordinary
+   one-term fragments remain unscoreable.
 6. Ignore missing, `None`, and non-string chunk text while retaining valid sibling
    chunks and logging how many malformed chunks were skipped.
 
@@ -48,8 +50,8 @@ binary supported/unsupported result cannot satisfy that contract for a single cl
 
 - The exact #152 example scores `1.0`; unrelated short claims score `0.0`.
 - Subject-led reporter forms work without making ordinary role nouns optional.
-- Context punctuation and no-space sentence boundaries do not hide supported facts or
-  split the covered technical identifiers.
+- Punctuation and reporter-led no-space sentence boundaries do not hide supported
+  facts or split the covered technical identifiers.
 - Malformed context values do not raise or hide valid sibling evidence.
 - The first-ten-claims limit and ordinary two-term threshold remain intact.
 - Focused tests pass with warnings treated as errors and cover every statement and
@@ -61,4 +63,7 @@ binary supported/unsupported result cannot satisfy that contract for a single cl
 
 This is deterministic lexical overlap, not semantic entailment. It cannot reliably
 detect negation, contradiction, or entity attribution, and equivalent ideas expressed
-with unrelated vocabulary will not match.
+with unrelated vocabulary will not match. A dotted identifier whose final component
+is a covered reporting verb followed by a space, such as `MessageBox.Show and ...`, is
+read as a sentence boundary because it is lexically indistinguishable from
+`Python.Knows SQL`.
