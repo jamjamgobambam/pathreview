@@ -66,7 +66,7 @@ The repository contains several pre-existing linting and type-checking issues ac
 
 ### Check-in 2 (end of week)
 
-**PR link:** 
+**PR link:** https://github.com/ascherj/pathreview/pull/582
 
 **Branch:** `fix/154-db-argument-error`
 
