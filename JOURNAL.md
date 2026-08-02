@@ -36,3 +36,22 @@ I ran `pytest tests/unit/test_review_service.py -v` after `make setup` and saw 1
 
 **Blockers or open questions:**
 No major blockers — root cause and fix are fully scoped in PLAN.md. Going into Week 9, the main thing I want to double check is whether any other test files in the repo have the same `AsyncMock`/`MagicMock` mismatch, so I can flag or fix those too rather than just this one file.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/555
+
+**Branch:** `fix/158-reviewservice-tests-fail`
+
+**What you built:**
+`tests/unit/test_review_service.py` built its DB query-result mock as `AsyncMock()` with no `spec`, so `.scalars()`/`.first()`/`.all()` returned live coroutines instead of their configured return values — only `db.execute()` itself is genuinely async in real SQLAlchemy. Switching `mock_result` to `MagicMock()` across the 13 affected tests fixed the mismatch. I also had to bump `[tool.mypy] python_version` to 3.12 and scope the local pre-commit mypy hook to match CI's, since a pre-existing numpy/mypy version mismatch was blocking any commit that touched a `.py` file at all.
+
+**Tests added or updated:**
+Only `tests/unit/test_review_service.py` — no new tests needed, since the existing 19 already covered `create_review`, `get_review`, and `list_reviews` correctly; they just couldn't run due to the mock misconfiguration. Went from 6/19 to 18/19 passing (the 1 remaining failure is a separate, pre-existing bug out of scope for #158 — documented in the PR).
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+(Both fail at the full-repo level on pre-existing, unrelated issues — 174 ruff errors, 103 mypy errors, and 41 failing unit tests elsewhere in the repo, none introduced by this PR. Scoped to the files this PR touches, lint/typecheck are clean and `test_review_service.py` is 18/19.)
+
+**Draft PR feedback received from:** none
