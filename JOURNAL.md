@@ -62,7 +62,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _pending — added once opened, see below_
+**PR link:** [#682 — fix(rag): group same-stack chunks so generator stops repeating feedback](https://github.com/ascherj/pathreview/pull/682)
 
 **Branch:** `fix/28-duplicate-feedback-sections`
 
