@@ -21,7 +21,7 @@ class _VisibleTextExtractor(HTMLParser):
         self._title_parts: list[str] = []
         self._in_title = False
 
-    def handle_starttag(self, tag: str, attrs) -> None:
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag in {"script", "style", "noscript"}:
             self._skip_depth += 1
         elif tag == "title":

@@ -84,6 +84,8 @@ class TestWebParser:
             response=Mock(status_code=500),
         )
 
-        with patch("ingestion.parsers.web_parser.httpx.get", return_value=response):
-            with pytest.raises(httpx.HTTPStatusError):
-                parser.parse("https://example.com")
+        with (
+            patch("ingestion.parsers.web_parser.httpx.get", return_value=response),
+            pytest.raises(httpx.HTTPStatusError),
+        ):
+            parser.parse("https://example.com")
