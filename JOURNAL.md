@@ -79,7 +79,7 @@ Wrapped the raw SQL string `"SELECT 1"` in SQLAlchemy's `text()` function inside
 
 **Self-review confirmation:** [x] make check passes (1 pre-existing B008 warning unrelated to fix)  [x] make test-unit passes (53 pre-existing failures unrelated to fix, 0 failures in health.py)
 
-**Draft PR feedback received from:** unable to read test file in integration folder, even though `test_health.py` is in the integration folder. 
+**Draft PR feedback received from:** unable to read test file in integration folder, even though `test_health.py` is in the integration folder. As a result created a unit test file in tests folder titled 'test_health.py`. 
 
 ## Week 10 — Iteration & reflection
 
