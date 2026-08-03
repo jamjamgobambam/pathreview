@@ -56,7 +56,7 @@ none
 
 ### Check-in 2 (end of week)
 
-**PR link:** 
+**PR link:** https://github.com/ascherj/pathreview/pull/704
 
 **Branch:** `test/88-reviews-no-ingested-documents`
 
