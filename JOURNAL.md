@@ -144,7 +144,8 @@ all identical before and after — none touch `docs/` or
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 *(both confirmed against the pre-existing baseline — no new failures introduced by this change; see Testing section of the PR description for counts)*
 
-**Draft PR feedback received from:** none — opened as a draft and posted in
-the cohort Slack channel for review, but no response came in before the
-Sunday deadline. Marked ready for review to submit on time; open to
-addressing feedback after the fact if any comes in.
+**Draft PR feedback received from:** none — I opened the PR as a draft
+earlier in the week but forgot to actually post it in the cohort Slack
+channel for review until Sunday, close to the deadline, so no feedback came
+in before submitting. Marked ready for review to submit on time; open to
+addressing any feedback that comes in after the fact.
