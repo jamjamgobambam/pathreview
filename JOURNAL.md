@@ -220,3 +220,35 @@ A per-profile Redis lock that serializes `POST /reviews`: the first request acqu
 
 **Draft PR feedback received from:** _pending_
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+- Peer reviewer: PR description promised `409` with an in-progress review id, but the code returned `400` with a static message; `lock.acquire()` sat above the endpoint's `try:` block, so a Redis outage there bypassed the endpoint's logged error path.
+- Architectural reviewer: lock design is sound, but the background task still uses the request-scoped `AsyncSession`, so the lock only prevents duplicate rows, not corrupted state within a single review run. Asked me to be explicit in the PR description about what the fix does and doesn't guarantee.
+
+**How you responded:**
+Two commits: (1) 400 → 409 with `profile_id` in the detail; (2) wrapped `acquire()` in its own try/except that emits a dedicated `review_lock_acquire_error` log and returns 500 with a specific message, plus a unit test simulating a Redis outage. Updated the PR body so the "409" wording matches what shipped and added a **Scope** section naming what's in scope (row-level duplication) and what's deferred (session lifecycle in `process_review`), linking my earlier out-of-scope comment on the issue.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Writing the PR description honestly. I paraphrased from PLAN.md instead of re-reading the code, and shipped "409 with the review id" in the description while the code returned 400 with no id. Intent documents drift the moment you start implementing — the PR body has to be written against the diff, not the plan.
+
+**What did you learn about working in a large codebase?**
+The bar is "don't break things," not "make everything green" — `main` had 53 failing tests and 186 ruff errors, and the honest move was to note the baseline and confirm my diff added zero new failures rather than treat pre-existing debt as my scope. And a surprising amount of review is about the PR description itself: in a shared codebase it's the primary interface for everyone who comes after you.
+
+**How did AI tools help — and where did they fall short?**
+Helped most with navigation, running the test/lint/typecheck matrix, drafting commits and messages, and reasoning through the compare-and-delete release. Fell short on judgment calls that needed codebase or stakeholder context — it drafted a verbose PR body I hadn't approved, defaulted to 503 for the Redis-outage case when the existing pattern was 500, and ran `gh pr create` against my fork instead of upstream without checking `git remote -v` first (I would have caught that if I'd been driving the terminal myself). Excellent at *doing* a specific thing well; needs a human on the "which thing" and "how much" calls, and on the sanity checks that live in muscle memory rather than in the current context.
+
+**What would you do differently if you started over?**
+Write the PR description last, from the diff, not from the plan — that's where the 409/400 mismatch came from. Decide up front whether the concurrency guard and the session-lifecycle fix ship together, and put that decision in the PR body from the first draft rather than letting a reviewer draw the scope line for me. And when delegating routine git/gh operations to AI, name the pre-flight checks explicitly (remote, branch target, staged files) instead of assuming they'll happen — the assistant is confident enough to skip them if I don't ask.
+
+**What are you most proud of from this module?**
+The compare-and-delete Lua release. My first draft had a bare `DEL`, which would silently delete a foreign owner's key if my TTL expired mid-pipeline and a fresh request took the same lock. Adding a per-instance token and gating the delete on `GET == token` is the one change that made the lock actually safe rather than probably-safe-most-of-the-time — and it's the specific piece both reviewers called out.
+
