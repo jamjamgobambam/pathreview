@@ -35,3 +35,36 @@ Ran `pytest tests/unit/test_structural_chunker.py -k test_document_with_no_headi
 
 **Blockers or open questions:**
 Still deciding between two fix strategies (treat headless doc as one section vs. fully delegate to SemanticChunker) — plan to check linked PRs #192/#162 for precedent before finalizing in Week 9. Also spent some time confirming a pre-commit failure was pre-existing project debt rather than a fork-sync issue (documented in PLAN.md's Risks & unknowns).
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md's option (a): `_extract_sections()` now treats a headless document as a single section instead of returning an empty list. Added 3 new unit tests covering a short headless doc, a long headless doc (verifying it sub-chunks via SemanticChunker), and a false-positive heading match (`#nospace`). All 18 tests in `test_structural_chunker.py` pass, and comparing against the pre-recorded baseline confirms no new failures were introduced elsewhere in the suite (53 → 52 failing, only `test_document_with_no_headings` flipped from fail to pass).
+
+**Next steps:**
+Open PR, request peer/mentor review in Slack, finalize JOURNAL Check-in 2.
+
+**Blockers:**
+Compressed the Wednesday/Sunday check-in schedule into a single day due to limited time before the deadline.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/629
+
+**Branch:** `fix/149-chunker-drops-no-heading-docs`
+
+**What you built:**
+Fixed `StructuralChunker.chunk()` silently dropping documents with no Markdown headings. When `_extract_sections()` finds no headings at all, it now returns the whole document as a single section instead of an empty list, so it gets chunked (and sub-chunked via `SemanticChunker` if it's large) like any other document.
+
+**Tests added or updated:**
+`tests/unit/test_structural_chunker.py` — added `test_long_document_with_no_headings_gets_sub_chunked`, `test_hash_without_space_is_not_treated_as_heading`, and `test_headless_document_has_empty_heading_metadata`, covering the fix's sub-chunking path, a false-positive heading edge case, and the resulting metadata shape.
+
+**Self-review confirmation:** [x] make check passes [x] make test-unit passes
+*(Note: this codebase has pre-existing failures unrelated to #149 — 180 ruff errors and 53 failing tests at baseline. "Passes" here means no new failures were introduced; see PR description for the full before/after comparison.)*
+
+**Draft PR feedback received from:** Claude Code

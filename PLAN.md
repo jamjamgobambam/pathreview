@@ -33,7 +33,8 @@
 
 ### Risks & unknowns
 
-- Not yet decided between option (a) or (b) above — plan to check linked PRs #192 and #162 for precedent before finalizing
+- **Resolved:** chose option (a) — treat the headless document as a single section (`path=[]`, `level=0`) in `_extract_sections()`, reusing the existing large-section sub-chunking logic in `chunk()` unchanged. This keeps the metadata shape consistent (`heading_path`/`heading_level` always present, even if empty) for any downstream code that expects those keys on `source_type="readme"` chunks. Implemented in [baf41d8](https://github.com/ShiriZhang/pathreview/commit/baf41d8), PR: https://github.com/ascherj/pathreview/pull/629
+
 - If using (a), need to confirm no downstream RAG/retrieval code assumes `heading_path` is always non-empty for `source_type="readme"` documents
 - If using (b), resulting chunks won't have `heading_path`/`heading_level` keys at all — need to confirm nothing downstream requires those keys unconditionally
 - **Pre-existing lint/type debt (unrelated to #149):** touching `structural_chunker.py` for the reproduction comment surfaced pre-existing `ruff`/`mypy` failures in both `structural_chunker.py` and its import, `semantic_chunker.py` (unused `current_level` variable, unused loop index, 7 missing type annotations). Initially suspected this was caused by the fork being out of sync with `upstream/main`, but verified directly against a clean `upstream/main` checkout that the same issues exist there too — confirmed genuine pre-existing debt, not a sync artifact. Cleaned it up in commit [54ff459](https://github.com/ShiriZhang/pathreview/commit/54ff4590b6f6ceb8d561a684f2dfa8f153c20c9e) since it was blocking any commit that touches these files (mypy checks the full import graph, so it can't be scoped to one file alone).
