@@ -140,6 +140,29 @@ class TestRunEvalsCLI:
         assert exit_code == 1
         assert "Evaluation failed" in capsys.readouterr().err
 
+    def test_missing_output_directory_is_created(self, cli, fixtures_dir, tmp_path):
+        """Test an output path under a directory that does not exist yet still succeeds."""
+        output = tmp_path / "reports" / "nested" / "eval_results.json"
+
+        exit_code = cli.main(["--fixtures-dir", str(fixtures_dir), "--output", str(output)])
+
+        assert exit_code == 0
+        assert output.exists()
+
+    def test_unwritable_output_exits_non_zero_without_claiming_success(
+        self, cli, fixtures_dir, tmp_path, capsys
+    ):
+        """Test a write failure is reported as a failure, not as a completed evaluation."""
+        blocked = tmp_path / "eval_results.json"
+        blocked.mkdir()
+
+        exit_code = cli.main(["--fixtures-dir", str(fixtures_dir), "--output", str(blocked)])
+
+        captured = capsys.readouterr()
+        assert exit_code == 1
+        assert "could not be written" in captured.err
+        assert "Results written to" not in captured.out
+
     def test_repeated_runs_write_identical_bytes(self, cli, fixtures_dir, tmp_path):
         """Test running the CLI twice produces the same file byte for byte."""
         first = tmp_path / "first.json"

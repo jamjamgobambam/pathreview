@@ -16,6 +16,7 @@ from rag.evaluator.benchmark_runner import (
     run_benchmarks,
     write_report,
 )
+from rag.generator.output_parser import FeedbackSection
 from rag.retriever.hybrid import HybridRetriever
 
 
@@ -328,6 +329,107 @@ class TestBenchmarkRunner:
         with pytest.raises(BenchmarkFixtureError, match="at least"):
             runner.run(portfolios)
 
+    def test_portfolio_score_is_the_mean_of_its_query_scores(self, runner, portfolios):
+        """Test per-portfolio aggregation averages that portfolio's own queries."""
+        portfolio = runner.run(portfolios).portfolios[0]
+
+        expected = sum(q.relevance_score for q in portfolio.queries) / len(portfolio.queries)
+
+        assert portfolio.relevance_score == pytest.approx(expected, abs=1e-4)
+
+    def test_aggregate_is_the_mean_of_portfolio_scores(self, runner, fixtures_dir):
+        """Test the top-level aggregate averages across portfolios, not across queries."""
+        _write_fixture(fixtures_dir, "second.json", _portfolio_payload(portfolio_id="second"))
+        report = runner.run(load_benchmark_portfolios(fixtures_dir))
+
+        expected = sum(p.overall_score for p in report.portfolios) / len(report.portfolios)
+
+        assert len(report.portfolios) == 2
+        assert report.overall_score == pytest.approx(expected, abs=1e-4)
+
+    def test_overall_score_is_the_mean_of_its_two_components(self, runner, portfolios):
+        """Test overall_score stays consistent with EvalSuite's (relevance + faithfulness) / 2."""
+        query = runner.run(portfolios).portfolios[0].queries[0]
+
+        expected = (query.relevance_score + query.faithfulness_score) / 2
+
+        assert query.overall_score == pytest.approx(expected, abs=1e-4)
+
+    def test_portfolios_are_isolated_from_each_other(self, runner, fixtures_dir):
+        """Test one portfolio's documents never surface in another's retrieval."""
+        _write_fixture(
+            fixtures_dir,
+            "other.json",
+            _portfolio_payload(
+                portfolio_id="other",
+                documents=[
+                    {
+                        "source_id": "readme_other",
+                        "source_type": "readme",
+                        "text": (
+                            "# Telemetry\nUnrelated.\n\n"
+                            "## Collectors\nGathers zirconium metrics from edge nodes.\n\n"
+                            "## Storage\nRolls observations into hourly buckets.\n\n"
+                            "## Alerting\nPages on sustained anomaly windows.\n\n"
+                            "## Retention\nDrops raw samples after thirty days."
+                        ),
+                    }
+                ],
+                queries=["zirconium metrics edge nodes"],
+            ),
+        )
+        report = runner.run(load_benchmark_portfolios(fixtures_dir))
+
+        by_id = {p.portfolio_id: p for p in report.portfolios}
+
+        # 'other' has 5 chunks of its own; 'unit01' has 5. Neither may see the other's.
+        assert by_id["other"].chunk_count == 5
+        assert by_id["unit01"].chunk_count == 5
+        for query in by_id["unit01"].queries:
+            assert query.retrieved_count <= by_id["unit01"].chunk_count
+
+    def test_keyword_documents_carry_vector_store_ids(self, runner, portfolios):
+        """Test BM25 documents are keyed by the same id VectorStore.add_chunks derives."""
+        chunks = runner.chunker.chunk(
+            portfolios[0].documents[0].text,
+            {
+                "source_id": portfolios[0].documents[0].source_id,
+                "source_type": portfolios[0].documents[0].source_type,
+            },
+        )
+
+        documents = BenchmarkRunner._keyword_documents(portfolios[0], chunks)
+
+        assert [d["id"] for d in documents] == [
+            f"readme_unit01_chunk_{i}" for i in range(len(chunks))
+        ]
+        assert all(d["text"] and "metadata" in d for d in documents)
+
+    def test_empty_generated_feedback_scores_zero_without_crashing(
+        self, runner, portfolios, monkeypatch
+    ):
+        """Test a generator returning nothing degrades to 0.0 faithfulness, not an exception."""
+        monkeypatch.setattr(runner.generator, "generate_full_review", lambda *_: [])
+
+        report = runner.run(portfolios)
+        query = report.portfolios[0].queries[0]
+
+        assert query.generated_sections == 0
+        assert query.faithfulness_score == 0.0
+        assert query.retrieved_count > 0
+
+    def test_blank_generated_feedback_scores_zero(self, runner, portfolios, monkeypatch):
+        """Test sections with empty content are treated as no feedback at all."""
+        monkeypatch.setattr(
+            runner.generator,
+            "generate_full_review",
+            lambda *_: [FeedbackSection("skills_feedback", "", 0.0, [])],
+        )
+
+        query = runner.run(portfolios).portfolios[0].queries[0]
+
+        assert query.faithfulness_score == 0.0
+
     def test_duplicate_chunk_text_is_rejected(self, runner, fixtures_dir):
         """Test identical chunks are rejected: they tie exactly and break reproducibility."""
         section = "## Overview\nA python service exposing rest apis built with fastapi.\n\n"
@@ -471,6 +573,24 @@ class TestRunBenchmarksAndWriteReport:
         keys = list(json.loads(output.read_text()).keys())
 
         assert keys == sorted(keys)
+
+    def test_write_report_creates_missing_parent_directories(self, fixtures_dir, tmp_path):
+        """Test a report path under a directory that does not exist yet still gets written."""
+        report = run_benchmarks(fixtures_dir=fixtures_dir, provider_name="mock")
+        output = tmp_path / "nested" / "deeper" / "eval_results.json"
+
+        write_report(report, output)
+
+        assert output.exists()
+
+    def test_write_report_raises_when_destination_is_unwritable(self, fixtures_dir, tmp_path):
+        """Test a write failure surfaces as OSError rather than a silently missing report."""
+        report = run_benchmarks(fixtures_dir=fixtures_dir, provider_name="mock")
+        blocked = tmp_path / "eval_results.json"
+        blocked.mkdir()
+
+        with pytest.raises(OSError):
+            write_report(report, blocked)
 
     def test_report_carries_no_volatile_fields(self, fixtures_dir, tmp_path):
         """Test no timestamp or path is embedded that would break reproducibility."""
