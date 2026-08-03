@@ -51,3 +51,28 @@ def test_health_reports_redis_healthy_when_redis_is_up() -> None:
         )
     finally:
         app.dependency_overrides.pop(get_db, None)
+
+
+@pytest.mark.integration
+def test_health_reports_redis_unhealthy_when_redis_is_down(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When Redis is unreachable, the probe must report it unhealthy and return 503.
+
+    Points ``redis_url`` at a closed port so the fix is proven to report *true*
+    status rather than being hard-coded to healthy.
+    """
+    from core import config
+
+    monkeypatch.setattr(config.settings, "redis_url", "redis://localhost:6390/0")
+    app.dependency_overrides[get_db] = _fake_db
+    try:
+        client = TestClient(app)
+        response = client.get("/health")
+        assert response.status_code == 503
+        dependencies = response.json().get("detail", {}).get("dependencies", {})
+        assert (
+            dependencies.get("redis") == "unhealthy"
+        ), f"Expected redis 'unhealthy' when down, got {dependencies.get('redis')!r}."
+    finally:
+        app.dependency_overrides.pop(get_db, None)
