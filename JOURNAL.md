@@ -92,6 +92,76 @@ pre-existing, not introduced by this change.)*
 
 ---
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback came in. Reviewer feedback isn't a feature in
+the Summer 2026 cohort, and PR #315 (https://github.com/ascherj/pathreview/pull/315)
+had no reviews or comments as of the end of the week.
+
+**How you responded:**
+N/A — no feedback to respond to. The PR remains open with the fix, tests, and a
+"Notes for Reviewers" section flagging the two out-of-scope items I found
+(the `settings.redis_host` config gap and the approximate `window_hours`).
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Reproducing the issue, not fixing it. The fix itself was ~30 lines. The hard part
+was proving the bug in a service that won't run standalone — `/health` depends on
+Postgres and Redis, and importing the route even pulls in an async DB engine at
+import time. I ended up mocking the DB, standing up an in-memory fake Redis, and
+catching the 503 the endpoint throws because of an *unrelated* pre-existing bug
+(`health.py` reads `settings.redis_host`, which doesn't exist) just to read the
+one field I cared about. Before any of that, I lost real time discovering that the
+issue tracker didn't match the code: most tier-1 "bugs" (A-01, B-01, C-01, E-02…)
+were already fixed on `main`, so I had to verify a dozen issues that didn't
+reproduce before landing on D-08, which genuinely did.
+
+**What did you learn about working in a large codebase?**
+That most of the work is orientation and restraint, not typing. Contributing to
+someone else's production code, I spent far more effort establishing a baseline
+(53 pre-existing unit failures, 182 ruff findings) and *scoping* than writing the
+change. The discipline that mattered: not running `black .` (it would have
+reformatted 53 unrelated files into my diff), not "fixing" the `redis_host` bug I
+noticed, and being able to prove — by diffing the failure set before and after —
+that I introduced zero new failures. In my own projects I fix everything I see;
+here, blast radius and a clean, reviewable diff mattered more than thoroughness.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for breadth and mechanics: fanning out to check which of ~12
+manifest issues actually reproduced, scaffolding tests that matched the existing
+`tests/unit/` patterns, and doing the before/after failure-set diffing to back up
+the "no new failures" claim. Where it fell short was judgment: deciding D-08 was
+the *honest* pick once the manifest didn't match reality, choosing to leave the
+`redis_host` bug out of scope rather than scope-creep, and figuring out how to
+represent "passes" truthfully against a suite with documented pre-existing
+failures. Those calls required reading the actual code and the assignment's
+intent — AI could generate options, but it couldn't decide what was defensible.
+
+**What would you do differently if you started over?**
+I'd verify that a candidate issue actually reproduces against the current branch
+*before* committing to it, instead of trusting that the tracker matched the code —
+that alone would have saved the detour through already-fixed bugs. I'd also set up
+the environment first thing: the heavy deps (chromadb) and the import-time DB
+engine meant "just run it" wasn't quick, and I only learned that mid-reproduction.
+
+**What are you most proud of?**
+The reproduction test. Turning "the field is always 0" into a runnable failing
+test that drives the *real* endpoint with mocked dependencies — and that it then
+survived the fix as regression coverage — felt like an actual engineering
+artifact rather than a checkbox. A close second: the scope discipline of
+documenting the `redis_host` bug for a follow-up instead of dragging it into this
+PR.
+
+---
+
 ### Note on issue selection
 
 I first surveyed the tier-1 bug issues in `scripts/issues_manifest.json`
