@@ -43,3 +43,36 @@ Request peer/mentor feedback on the draft PR via Slack. Address any feedback rec
 
 **Blockers:**
 None currently.
+
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback was provided. Per course guidance, reviewer feedback is not a feature in Summer 2026.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Picking the right issue turned out to be much harder than I expected. My first choice (#107) looked like a clean, well-scoped bug, but another student's comment thread revealed it didn't actually reproduce — the code it referenced didn't even exist in git history. My second choice (#159) reproduced perfectly, but I later found 9+ other students had already claimed and started work on the same issue on a shared class fork. I assumed picking an issue would be a quick, mostly mechanical step; instead it took real investigation — reading full comment threads, not just titles and tags — before I could commit with confidence.
+
+**What did you learn about working in a large codebase?**
+The biggest lesson was that tests reveal intent and behavior better than the code itself does. When I was trying to understand why `caplog` wasn't capturing structlog output, reading the actual test assertions (what the test expected to see vs. what it actually got) told me more about the intended behavior than reading `core/logging.py` in isolation. Tests acted like a spec for what the original developers meant the system to do, which made the codebase far more navigable than just reading source files top to bottom.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for debugging errors and tracebacks — every time I hit a wall (the numpy/ChromaDB architecture mismatch, the `vite: command not found` error, the mypy type annotation failures, the pytest marker deselection issue), being able to paste the raw error and get a targeted explanation of root cause saved enormous amounts of time compared to searching piecemeal. Where it fell short was judgment calls that required real investigation rather than pattern-matching — like actually reading through 9 comments on issue #159 to decide whether it was still worth claiming. That required me to read and reason through the actual thread myself; no shortcut replaced doing that work directly.
+
+**What would you do differently if you started over?**
+I'd pick my issue faster, with less back-and-forth. I spent a lot of time cross-referencing comment counts, tier labels, and issue descriptions across two different forks before settling on #159. In hindsight, I'd set a firmer time-box on issue selection — skim the full thread once, make a decision, and move on, rather than second-guessing across multiple rounds of comparison.
+
+**What are you most proud of from this module?**
+Getting through the Docker/environment setup mess. Between Docker Desktop not being installed at all, the ChromaDB/numpy architecture incompatibility on Apple Silicon, the missing `npm install` step, and a stuck Postgres migration from an earlier failed run, there were multiple points where nothing was working and it wasn't obvious why. Working through each error methodically — reading tracebacks carefully rather than guessing — and eventually getting a fully working local environment felt like the most real, transferable skill from this whole module.
