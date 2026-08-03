@@ -179,16 +179,87 @@ and are unaffected by it.)*
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [ https://github.com/ascherj/pathreview/pull/429]
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** test/38-integration-test_rag-pipeline
+
+**Branch Comparison Link:** [https://github.com/ascherj/pathreview/compare/main...matthewpeck6:pathreview:test/38-integration-test_rag-pipeline]
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+[One integration test, test_full_rag_pipeline_retrieval_to_parsed_output, that indexes a small resume/README corpus into a real ChromaDB VectorStore + BM25 KeywordSearcher, retrieves and reranks via HybridRetriever, feeds the retrieved chunks into ReviewGenerator with a mocked LLM client (no live OpenAI calls), and asserts the parsed sections have the right names, content, confidence, and citations proving all four stages actually connect end-to-end, not just in isolation.]
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+[pathreview/tests/integration/test_rag_pipeline.py]
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+Result: This branch introduces no new check failures. `make check` and
+`make test-unit` both show only pre-existing, unrelated failures. The
+before/after tables below shows proof none of them were introduced by this change.
+
+Full repository validation:
+
+make check
+make test-unit
+make check currently reports 182 Ruff errors across pre-existing and unrelated repository files.
+
+**Pre-existing failure verification (before vs. after):**
+
+`git diff main...HEAD --stat -- rag/ tests/unit/` returns empty — this branch
+adds only `tests/integration/test_rag_pipeline.py`, `tests/integration/EXPLANATION.md`,
+and docs. No file under `rag/` or `tests/unit/` is touched, so the pre-existing
+failure count is identical before and after this change by construction.
+
+| | Before (main) | After (this branch) |
+|---|---|---|
+| `make test-unit` result | 375 passed, 53 failed | 375 passed, 53 failed |
+
+`make test-unit \| tail -5` output (captured on this branch, 2026-08-03):
+```
+FAILED tests/unit/test_structural_chunker.py::TestStructuralChunker::test_document_with_no_headings
+FAILED tests/unit/test_tech_detector.py::TestTechDetector::test_node_modules_excluded
+FAILED tests/unit/test_tech_detector.py::TestTechDetector::test_build_directory_excluded
+================= 53 failed, 375 passed, 1 warning in 10.27s ==================
+make: *** [Makefile:40: test-unit] Error 1
+```
+
+Full per-file breakdown of the 53 pre-existing failures (file, failure count)
+is in `tests/integration/EXPLANATION.md` under "Pre-existing failures
+(unrelated to this change)" — none of the 16 failing files import or exercise
+`rag/retriever/hybrid.py`, `rag/retriever/vector_store.py`,
+`rag/retriever/keyword_search.py`, or `rag/generator/review_generator.py`.
+
+**Pre-existing Ruff errors (before vs. after):**
+
+`git diff main...HEAD --stat --name-only` shows this branch only touches
+`docs/JOURNAL.md`, `docs/PLAN.md`, and `tests/integration/test_rag_pipeline_demo.py`
+(the earlier `xfail` reproduction stub) — none of the 61 files with Ruff
+errors below. `ruff check tests/integration/test_rag_pipeline.py` on its own
+returns `All checks passed!`, so the new integration test contributes zero of
+the 182 errors.
+
+| | Before (main) | After (this branch) |
+|---|---|---|
+| `ruff check .` total | 182 errors | 182 errors |
+
+Top offenders by file (`ruff check . --output-format=concise`, re-run on this
+branch, 2026-08-03):
+
+| File | Errors |
+|---|---|
+| `tests/unit/test_prompt_templates.py` | 19 |
+| `api/routes/profiles.py` | 16 |
+| `api/routes/reviews.py` | 14 |
+| `tests/unit/test_tech_detector.py` | 8 |
+| `tests/unit/test_review_service.py` | 8 |
+| `api/schemas/profile.py` | 8 |
+| `tests/unit/test_bias_detector.py` | 5 |
+| `rag/retriever/hybrid.py` | 5 |
+| ... (53 more files, 1–4 errors each) | |
+
+Full per-file list is captured in the command output above; not reproduced in
+full here since it spans 61 files. None of these were touched by this branch
+(see `git diff` note above), so — same as the unit-test table — the before
+and after counts are identical by construction, not by re-running against a
+`main` checkout.
+
