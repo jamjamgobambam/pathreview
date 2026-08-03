@@ -218,7 +218,7 @@ A per-profile Redis lock that serializes `POST /reviews`: the first request acqu
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 (Pre-existing ruff/mypy failures unrelated to issue #82 documented in the PR description; my changes introduce no new failures.)
 
-**Draft PR feedback received from:** _pending_
+**Draft PR feedback received from:** @hkumar30 (peer review exchange)
 
 ## Week 10 — Iteration & reflection
 
@@ -242,6 +242,8 @@ Writing the PR description honestly. I paraphrased from PLAN.md instead of re-re
 
 **What did you learn about working in a large codebase?**
 The bar is "don't break things," not "make everything green" — `main` had 53 failing tests and 186 ruff errors, and the honest move was to note the baseline and confirm my diff added zero new failures rather than treat pre-existing debt as my scope. And a surprising amount of review is about the PR description itself: in a shared codebase it's the primary interface for everyone who comes after you.
+
+Reviewing a peer's health-check PR also pushed me to articulate the codebase's dependency-injection pattern out loud — something I'd applied correctly in my own PR without having to defend it. The pattern has two halves that give different perks: services take their Redis/DB client as a plain constructor argument (no `Depends`), which is what keeps them framework-independent — the same code runs from a worker or a script, not just a FastAPI request. The route, on the other side, wires those clients via `Depends(get_redis_client)`, which is what enables clean test overrides (`app.dependency_overrides[...]`) and self-documenting endpoint signatures. Applying a convention correctly and being able to explain *why* each half is shaped that way are two different skills, and code review is where the second one gets built.
 
 **How did AI tools help — and where did they fall short?**
 Helped most with navigation, running the test/lint/typecheck matrix, drafting commits and messages, and reasoning through the compare-and-delete release. Fell short on judgment calls that needed codebase or stakeholder context — it drafted a verbose PR body I hadn't approved, defaulted to 503 for the Redis-outage case when the existing pattern was 500, and ran `gh pr create` against my fork instead of upstream without checking `git remote -v` first (I would have caught that if I'd been driving the terminal myself). Excellent at *doing* a specific thing well; needs a human on the "which thing" and "how much" calls, and on the sanity checks that live in muscle memory rather than in the current context.
