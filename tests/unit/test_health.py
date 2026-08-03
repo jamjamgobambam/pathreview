@@ -1,11 +1,11 @@
 """Tests for api/routes/health.py"""
 
-from typing import cast
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
 from api.routes.health import health_check
+from core.config import settings
 
 
 @pytest.mark.unit
@@ -31,7 +31,7 @@ class TestHealthCheck:
             result = await health_check(db=mock_db_session)
 
         assert result["dependencies"]["redis"] == "healthy"
-        mock_from_url.assert_called_once()
+        mock_from_url.assert_called_once_with(settings.redis_url, decode_responses=True)
 
     @pytest.mark.asyncio
     async def test_redis_health_check_reports_unhealthy_on_connection_failure(
@@ -49,5 +49,6 @@ class TestHealthCheck:
                 await health_check(db=mock_db_session)
 
         assert exc_info.value.status_code == 503
-        detail = cast("dict", exc_info.value.detail)
+        detail = exc_info.value.detail
+        assert isinstance(detail, dict)
         assert detail["dependencies"]["redis"] == "unhealthy"
