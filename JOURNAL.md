@@ -32,13 +32,13 @@ I am still uncertain about where the error exactly is and what type of logic err
 ### Check-in 1 (mid-week)
 
 **Current progress:**
-[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+I have looked through `hybrid.py` and I have deduced what the error might be. I have located possible locations to fix this error as well.
 
 **Next steps:**
-[What are you working on for the rest of the week?]
+I am working on narrowing down the location and fixing the error. I plan to have this done by the end of the week.
 
 **Blockers:**
-[Anything slowing you down? Or leave blank.]
+Since this is a logic error, there are many places where the error could reside.
 
 ---
 
