@@ -120,7 +120,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Evaluation failed: {exc}", file=sys.stderr)
         return 1
 
-    output_path = write_report(report, args.output)
+    try:
+        output_path = write_report(report, args.output)
+    except OSError as exc:
+        # An unwritable destination must not be reported as a successful run:
+        # that is the exact failure mode this script was written to remove.
+        print(f"Evaluation ran but the report could not be written: {exc}", file=sys.stderr)
+        return 1
+
     print(format_summary(report, output_path))
     return 0
 

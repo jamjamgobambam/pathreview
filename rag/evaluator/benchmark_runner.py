@@ -253,12 +253,44 @@ def parse_portfolio(data: object, source: str) -> BenchmarkPortfolio:
     if not isinstance(profile, dict):
         raise BenchmarkFixtureError(f"{source}: 'profile' must be an object")
 
-    raw_documents = data.get("documents")
+    raw_queries = data.get("queries")
+    if not isinstance(raw_queries, list) or not raw_queries:
+        raise BenchmarkFixtureError(f"{source}: 'queries' must be a non-empty list")
+
+    queries = [
+        _require_non_empty_string(query, f"queries[{index}]", source)
+        for index, query in enumerate(raw_queries)
+    ]
+
+    return BenchmarkPortfolio(
+        portfolio_id=portfolio_id,
+        description=description,
+        profile=profile,
+        documents=_parse_documents(data.get("documents"), source),
+        queries=queries,
+    )
+
+
+def _parse_documents(raw_documents: object, source: str) -> list[BenchmarkDocument]:
+    """Validate a fixture's documents list.
+
+    Args:
+        raw_documents: The fixture's 'documents' value
+        source: Fixture file path, used in error messages
+
+    Returns:
+        Validated documents in fixture order
+
+    Raises:
+        BenchmarkFixtureError: If the list is missing, empty, contains a
+            malformed entry, or repeats a source_id
+    """
     if not isinstance(raw_documents, list) or not raw_documents:
         raise BenchmarkFixtureError(f"{source}: 'documents' must be a non-empty list")
 
     documents = []
     seen_source_ids = set()
+
     for index, raw_document in enumerate(raw_documents):
         if not isinstance(raw_document, dict):
             raise BenchmarkFixtureError(f"{source}: documents[{index}] must be an object")
@@ -278,22 +310,7 @@ def parse_portfolio(data: object, source: str) -> BenchmarkPortfolio:
 
         documents.append(BenchmarkDocument(source_id=source_id, source_type=source_type, text=text))
 
-    raw_queries = data.get("queries")
-    if not isinstance(raw_queries, list) or not raw_queries:
-        raise BenchmarkFixtureError(f"{source}: 'queries' must be a non-empty list")
-
-    queries = [
-        _require_non_empty_string(query, f"queries[{index}]", source)
-        for index, query in enumerate(raw_queries)
-    ]
-
-    return BenchmarkPortfolio(
-        portfolio_id=portfolio_id,
-        description=description,
-        profile=profile,
-        documents=documents,
-        queries=queries,
-    )
+    return documents
 
 
 def load_benchmark_portfolios(
@@ -507,11 +524,42 @@ class BenchmarkRunner:
             )
 
         indexed.embeddings = self.embedding_provider.embed([c.text for c in indexed.chunks])
+        indexed.chunk_dicts = self._keyword_documents(portfolio, indexed.chunks)
 
+        vector_store.add_chunks(
+            list(zip(indexed.chunks, indexed.embeddings, strict=True)),
+            f"profile_{portfolio.portfolio_id}",
+        )
+        return indexed
+
+    @classmethod
+    def _keyword_documents(
+        cls,
+        portfolio: BenchmarkPortfolio,
+        chunks: list[Chunk],
+    ) -> list[dict]:
+        """Build the BM25 documents, rejecting chunks that cannot be told apart.
+
+        Each document carries the same id VectorStore.add_chunks derives, because
+        HybridRetriever joins its two halves on that id.
+
+        Args:
+            portfolio: The portfolio being indexed, named in error messages
+            chunks: The portfolio's chunks
+
+        Returns:
+            Chunk dicts ready for KeywordSearcher.index
+
+        Raises:
+            BenchmarkFixtureError: If two chunks share an id or share their text
+        """
+        documents = []
         seen_ids: set[str] = set()
         seen_texts: dict[str, str] = {}
-        for chunk in indexed.chunks:
-            chunk_id = self._chunk_id(chunk)
+
+        for chunk in chunks:
+            chunk_id = cls._chunk_id(chunk)
+
             if chunk_id in seen_ids:
                 raise BenchmarkFixtureError(
                     f"Portfolio '{portfolio.portfolio_id}': duplicate chunk id '{chunk_id}'; "
@@ -532,15 +580,9 @@ class BenchmarkRunner:
                 )
             seen_texts[chunk.text] = chunk_id
 
-            indexed.chunk_dicts.append(
-                {"id": chunk_id, "text": chunk.text, "metadata": dict(chunk.metadata)}
-            )
+            documents.append({"id": chunk_id, "text": chunk.text, "metadata": dict(chunk.metadata)})
 
-        vector_store.add_chunks(
-            list(zip(indexed.chunks, indexed.embeddings, strict=True)),
-            f"profile_{portfolio.portfolio_id}",
-        )
-        return indexed
+        return documents
 
     def _score_query(
         self,
@@ -648,14 +690,16 @@ def write_report(report: BenchmarkReport, output_path: Path = DEFAULT_OUTPUT_PAT
 
     Args:
         report: The report to write
-        output_path: Destination path
+        output_path: Destination path; parent directories are created if needed
 
     Returns:
         The path that was written
+
+    Raises:
+        OSError: If the destination cannot be created or written
     """
     path = Path(output_path)
-    if path.parent != Path(""):
-        path.parent.mkdir(parents=True, exist_ok=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
 
     payload = json.dumps(report.to_dict(), indent=2, sort_keys=True)
     path.write_text(payload + "\n", encoding="utf-8")
