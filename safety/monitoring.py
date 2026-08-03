@@ -72,3 +72,22 @@ class SafetyMonitor:
         except Exception as e:
             logger.error("event_count_error", event_type=event_type, error=str(e))
             return 0
+
+    def get_total_event_count(self, window_hours: int = 1) -> int:
+        """Get the total count of safety events across all event types.
+
+        Sums ``get_event_count`` over every type in ``VALID_EVENT_TYPES``.
+        Individual lookups that fail degrade to 0, so a Redis outage yields a
+        total of 0 rather than raising.
+
+        Args:
+            window_hours: Time window in hours, passed through to
+                ``get_event_count`` (see its note on windowing).
+
+        Returns:
+            Total count of safety events across all known event types.
+        """
+        return sum(
+            self.get_event_count(event_type, window_hours=window_hours)
+            for event_type in self.VALID_EVENT_TYPES
+        )

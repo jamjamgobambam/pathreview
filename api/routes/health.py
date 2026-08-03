@@ -72,12 +72,19 @@ async def health_check(db=Depends(get_db)):
         health_status["dependencies"]["vector_db"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
-    # Count safety events in last hour (placeholder)
+    # Count safety events in the last hour from the safety monitor.
     try:
-        # This would be populated by actual safety event logging
-        health_status["safety_events_last_hour"] = 0
+        import redis
+
+        from core.config import settings
+        from safety.monitoring import SafetyMonitor
+
+        redis_client = redis.from_url(settings.redis_url)
+        monitor = SafetyMonitor(redis_client)
+        health_status["safety_events_last_hour"] = monitor.get_total_event_count()
     except Exception as exc:
         log.error("safety_events_check_failed", error=str(exc))
+        health_status["safety_events_last_hour"] = 0
 
     # Return 503 if any critical dependency is down
     if health_status["status"] == "unhealthy":
