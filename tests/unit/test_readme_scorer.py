@@ -18,34 +18,118 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+
+        A comprehensive project description that explains what this application
+        does, who it's for, and why it exists. This tool was built to help
+        developers streamline their workflow by automating repetitive tasks
+        and providing clear, actionable insights into their codebase health.
+
+        ## Table of Contents
+        - Installation
+        - Usage
+        - Features
+        - Tech Stack
+        - Configuration
+        - Contributing
+        - License
 
         ## Installation
-        ```bash
+
+        To get started, clone the repository and install the dependencies:
+
+```bash
+        git clone https://github.com/example/project.git
+        cd project
         pip install package
-        ```
+```
+
+        Make sure you have Python 3.9 or higher installed before proceeding.
+        You will also need to set up a virtual environment to avoid conflicts
+        with other Python packages on your system.
 
         ## Usage
-        ```python
+
+        Once installed, you can start using the package right away:
+
+```python
         import package
         package.run()
-        ```
+```
+
+        The `run()` method accepts several optional parameters that let you
+        customize its behavior, including verbosity level, output format, and
+        target directory. See the API reference below for full details on
+        each available option and how it affects the resulting output.
+
+        ## API Reference
+
+        The core API surface consists of a small number of well-documented
+        functions and classes. The main entry point accepts a configuration
+        dictionary and returns a result object containing status information,
+        any output data produced, and error details if something went wrong.
+        Advanced users can also import individual submodules directly for
+        finer-grained control over specific parts of the pipeline, such as
+        parsing, validation, or output formatting. Each submodule includes
+        its own docstrings and type hints to make integration straightforward
+        even without consulting external documentation.
 
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+
+        - Feature 1: Automatic detection of common code quality issues
+        - Feature 2: Configurable rules engine for custom validation logic
+        - Feature 3: Detailed reporting with actionable recommendations
+        - Feature 4: Integration with popular CI/CD pipelines
+        - Feature 5: Support for multiple output formats including JSON and HTML
+
+        ## Testing
+
+        This project maintains a comprehensive test suite covering unit tests,
+        integration tests, and end-to-end scenarios. Run the full suite with a
+        single command before submitting any changes, and check the generated
+        coverage report to identify any untested code paths. Continuous
+        integration automatically runs the test suite on every pull request,
+        so contributors get fast feedback on whether their changes introduce
+        regressions. We aim to keep test coverage above ninety percent across
+        the core modules, and new features should include corresponding tests
+        as part of the same change. If you find a bug, adding a failing test
+        that reproduces it before fixing the underlying issue is the preferred
+        workflow, since it documents the problem and prevents regressions.
 
         ## Tech Stack
+
         - Python 3.9
         - FastAPI
         - PostgreSQL
+        - Redis for caching
+        - Docker for containerization
+
+        ## Configuration
+
+        The application can be configured through environment variables or a
+        configuration file. Available options include database connection
+        strings, logging verbosity, and feature flags for experimental
+        functionality. Refer to the `.env.example` file for a complete list
+        of supported configuration values and their default settings.
+
+        ## Contributing
+
+        Contributions are welcome! Please read our contributing guidelines
+        before submitting a pull request. All contributions should include
+        appropriate tests and follow the existing code style. Run the full
+        test suite locally before opening your PR to catch any regressions
+        early in the review process.
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
 
         ## Live Demo
+
         [Try it here](https://demo.example.com)
+
+        ## License
+
+        This project is licensed under the MIT License. See the LICENSE file
+        for more details.
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -53,7 +137,7 @@ class TestReadmeScorer:
         assert result.success is True
         data = result.data
         assert data["has_readme"] is True
-        assert data["word_count"] > 100
+        assert data["word_count"] > 500
         assert data["word_count_category"] == "comprehensive"
         assert data["has_installation_section"] is True
         assert data["has_usage_section"] is True
@@ -157,9 +241,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
