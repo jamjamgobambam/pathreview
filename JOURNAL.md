@@ -45,7 +45,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/ascherj/pathreview/pull/488 (draft, opened for peer/mentor feedback — not yet marked ready for review)
+**PR link:** https://github.com/ascherj/pathreview/pull/488 (open, ready for review)
 
 **Branch:** `feat/50-has-tests-detection`
 
@@ -57,4 +57,4 @@ Added `GitHubTool._has_tests(username, repo_name)`, which fetches the repo's roo
 
 **Self-review confirmation:** [x] make check passes on changed files (`agent/tools/github_tool.py`, `tests/unit/test_github_tool.py` — clean via `ruff`/`mypy`; full-repo `make check` still reports pre-existing failures in unrelated files, unchanged from the Week 8 baseline)  [x] make test-unit passes
 
-**Draft PR feedback received from:** none yet — pending peer/mentor review
+**Draft PR feedback received from:** none — no peer/mentor review came in before the Week 9 deadline
