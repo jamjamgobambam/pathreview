@@ -34,7 +34,7 @@ No Feedback
 [Issue selection, planning, implementation, or process — anything
 you'd change?]
 
-I would change the implementation to try a more advance bias catcher method by using Huggyface to make the bias detector smarter and less rigid. 
+I would change the implementation to try a more advance bias catcher method by using Hugging Face to make the bias detector smarter and less rigid. 
 
 Others that stayed the same: 
 - The issue was scoped perfectly based on my experience and commitment ability
