@@ -79,3 +79,19 @@ Finish filling out the PR template, double-check branch name and commit messages
 
 **Blockers:**
 None.
+
+### Check-in 2 (end of week)
+
+**PR link:** [#707](https://github.com/ascherj/pathreview/pull/707)
+
+**Branch:** `test/88-review-endpoint-test`
+
+**What you built:** `process_review()` now checks whether the ingestion pipeline actually produced any sources for a profile, and if not, sets the review to `status="failed"` with a descriptive `error_message` instead of letting the (hardcoded, placeholder) agent/RAG generation steps fabricate a fake "complete" review. The failure reason is also surfaced on the lightweight `/reviews/{id}/status` polling endpoint, not just the full review fetch.
+
+**Tests added or updated:** `tests/unit/test_review_service.py` — added `TestProcessReviewNoIngestedDocuments` with two tests: one confirms a profile with no `github_username`/`portfolio_url`/`resume_text` ends in `status="failed"` with a non-null `error_message`; the other confirms a profile with at least one source (e.g. `github_username` set) still reaches `status="complete"`, guarding against the new check rejecting valid profiles.
+
+**Self-review confirmation:**
+- [x] `make check` passes — with caveats: 182 pre-existing lint errors and 103 pre-existing mypy errors in the repo, confirmed identical in count and content before and after this change (verified via `git stash` diff on the touched files). No new lint or type errors introduced by this fix.
+- [x] `make test-unit` passes — with caveats: 53 pre-existing test failures in unrelated files (mock-configuration bugs), unchanged by this change. 377 tests pass (up from 375 baseline — the 2 new tests added here, both green).
+
+**Draft PR feedback received from:** none.
