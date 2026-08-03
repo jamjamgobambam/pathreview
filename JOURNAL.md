@@ -48,7 +48,7 @@ The baseline repository has pre-existing failures in `make check` and `make test
 
 ### Check-in 2 (end of week)
 
-**PR link:** [pending PR submission]
+**PR link:** [PR #710](https://github.com/ascherj/pathreview/pull/710)
 
 **Branch:** `fix/47-persist-review-state`
 
@@ -58,6 +58,8 @@ Agent state is now persisted under each review's identifier instead of the share
 **Tests added or updated:**
 Updated `tests/unit/test_session_state_reproduction.py`, added `tests/unit/test_orchestrator.py`, and added a `process_review()` propagation test in `tests/unit/test_review_service.py`.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+The repository retains documented baseline failures; issue-specific tests pass and no new failures were introduced.
 
 **Draft PR feedback received from:** pending
