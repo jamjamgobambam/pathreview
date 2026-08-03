@@ -38,15 +38,21 @@ class FaithfulnessChecker:
         context_text = " ".join([chunk.get("text", "") for chunk in context_chunks])
 
         # Check each claim for support
-        supported = 0
-        for claim in claims:
-            if self._is_supported(claim, context_text):
-                supported += 1
+        # supported = 0
+        # for claim in claims:
+        #     if self._is_supported(claim, context_text):
+        #         supported += 1
 
-        score = supported / len(claims) if claims else 0.0
+        # score = supported / len(claims) if claims else 0.0
+
+        total_support = sum(self._support_score(claim, context_text) for claim in claims)
+        score = total_support / len(claims) if claims else 0.0
 
         logger.info(
-            "faithfulness_checked", claims_count=len(claims), supported_count=supported, score=score
+            "faithfulness_checked",
+            claims_count=len(claims),
+            total_support=total_support,
+            score=score,
         )
 
         return score
@@ -111,3 +117,47 @@ class FaithfulnessChecker:
         meaningful_overlap = overlap - stop_words
 
         return len(meaningful_overlap) >= 2
+
+    @staticmethod
+    def _support_score(claim: str, context: str) -> float:
+        """Score how well a claim is supported by context (partial credit).
+
+        Claims with only 1-2 content words can never reach a flat
+        overlap requirement of 2, even when fully correct. This scales
+        the number of overlaps needed to the claim's own length,
+        capped at 3, so short claims aren't held to the same bar as
+        long ones. Claims with many content words still need several
+        real matches, not just one coincidental shared word, to score
+        highly.
+        """
+        claim_tokens = set(re.findall(r"[a-z0-9']+", claim.lower()))
+        context_tokens = set(re.findall(r"[a-z0-9']+", context.lower()))
+
+        stop_words = {
+            "a",
+            "an",
+            "the",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "and",
+            "or",
+            "but",
+            "in",
+            "of",
+            "to",
+            "for",
+            "that",
+        }
+        meaningful_claim_tokens = claim_tokens - stop_words
+        if not meaningful_claim_tokens:
+            return 0.0
+
+        overlap = claim_tokens & context_tokens
+        meaningful_overlap = overlap - stop_words
+
+        required = min(3, len(meaningful_claim_tokens))
+        return min(1.0, len(meaningful_overlap) / required)
