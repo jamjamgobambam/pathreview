@@ -70,7 +70,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [to be added once the PR is opened]
+**PR link:** https://github.com/ascherj/pathreview/pull/624
 
 **Branch:** `fix/43-clear-agent-session-state`
 
@@ -96,4 +96,4 @@ orchestrator-session tests pass where there was previously 1 xfail), and my
 edited files add no new ruff/black/mypy findings. My change introduces no new
 failures._
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
