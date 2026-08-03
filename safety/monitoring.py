@@ -72,3 +72,24 @@ class SafetyMonitor:
         except Exception as e:
             logger.error("event_count_error", event_type=event_type, error=str(e))
             return 0
+
+    def get_total_event_count(self, window_hours: int = 1) -> int:
+        """Get the total count of safety events across all valid event types.
+
+        Args:
+            window_hours: Time window in hours, forwarded to get_event_count. Note
+                the underlying Redis counters are cumulative with a 24-hour TTL, so
+                this is a best-effort total of recent safety activity rather than a
+                strictly enforced rolling window.
+
+        Returns:
+            Sum of event counts across VALID_EVENT_TYPES. Returns 0 on error.
+        """
+        try:
+            return sum(
+                self.get_event_count(event_type, window_hours)
+                for event_type in self.VALID_EVENT_TYPES
+            )
+        except Exception as e:
+            logger.error("total_event_count_error", error=str(e))
+            return 0
