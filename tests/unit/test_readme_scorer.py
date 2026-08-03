@@ -47,6 +47,9 @@ class TestReadmeScorer:
         ## Live Demo
         [Try it here](https://demo.example.com)
         """
+        # Add 600 words so the fixture exceeds the 500-word comprehensive threshold.
+        additional_detailed_content = "\n\nDetailed project documentation. " * 200
+        readme += additional_detailed_content
 
         result = scorer.execute({"readme_content": readme})
 
@@ -157,9 +160,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +222,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +238,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
