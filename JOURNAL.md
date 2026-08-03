@@ -71,3 +71,35 @@ I increased the number of tests for `review_service.py`, resulting in test cover
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+It took me quite a bit of time to grasp the concepts of Mock and AsyncMock and how to use them with pytest. I struggled understanding exactly what to mock to correctly perform the tests.
+
+**What did you learn about working in a large codebase?**
+I learned that working with lint and type check tools can become quite frustrating, especially if either checks flag errors in the codebase that existed prior to making the changes related to my wn fix.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most helpful in explaining the Mock/AsyncMock in pytest and in writing some of the tests. It fell flat in trying to explain how the tests works without using too much technical language that may be difficult for a non-experienced programmer to understand.
+
+**What would you do differently if you started over?**
+I would have clarified whether the entire file fit within the scope of my responsibility. If this was the case, I would have implemented changes to the tests so that they'd pass the type checks and run correctly.
+
+**What are you most proud of from this module?**
+I am most proud of spending a lot of time getting familiar with a testing package that I've never worked with. It's motivated me to learn more about test-driven development with Python. The only other tests I've truly built were with vitest which do read quite a bit differently.
