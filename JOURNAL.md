@@ -113,3 +113,27 @@ without my fix — unrelated to the None-handling bug.
 None currently. Note: found the identical `chunk.get("text", "")` pattern in three other
 files (`relevance_scorer.py`, `hybrid.py`, `review_generator.py`) — same latent bug likely
 exists there, but staying in scope for #153 and considering a follow-up issue instead.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/414
+
+**Branch:** fix/153-faithfulness-checker-none-text
+
+**What you built:**
+Fixed a bug in `FaithfulnessChecker.check()` where a context chunk with
+`text: None` crashed the checker with a `TypeError`. Changed
+`chunk.get("text", "")` to `chunk.get("text") or ""` so both a missing key
+and an explicit `None` value are handled gracefully.
+
+**Tests added or updated:**
+Updated `tests/unit/test_faithfulness_checker.py`: confirmed
+`test_none_context_chunk_text` and `test_missing_text_key_in_chunk` now pass,
+and added two new tests — `test_mixed_none_and_valid_context_chunks` and
+`test_whitespace_only_context_chunk_text` — for additional edge-case coverage.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(both confirmed to introduce no new failures beyond documented pre-existing
+ones — see PR description for full details)
+
+**Draft PR feedback received from:** none
