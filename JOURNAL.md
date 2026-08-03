@@ -14,3 +14,20 @@ The issue is in the README scoring unit test, where the test data is inconsisten
 **Setup confirmation:** [X] App runs locally at localhost:5173
 
 **Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** (https://github.com/bluecrushangel/pathreview/commit/98ab411949763b24dacf4d1cab1c2c8f21775276)
+
+**Reproduction summary:**
+I reproduced the issue by running the testscript:
+pytest tests/unit/test_readme_scorer.py -q 
+
+I checked the error logs and verified the issue exists.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
+
+**Walkthrough video (recommended):** N/A 
+
+**Blockers or open questions:**
+N/A
