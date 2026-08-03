@@ -52,7 +52,7 @@ The repo still has unrelated pre-existing failures in broader checks such as `ma
 
 ### Check-in 2 (end of week)
 
-**PR link:** [add submitted pull request URL]
+**PR link:** https://github.com/ascherj/pathreview/pull/174
 
 **Branch:** `fix/148-skill-extractor-js-ts-detection`
 
@@ -60,7 +60,7 @@ The repo still has unrelated pre-existing failures in broader checks such as `ma
 I expanded the skill extractor so it detects JavaScript and TypeScript from common syntax patterns like `const`, `let`, `var`, `require(...)`, `export`, `interface`, and type annotations, while still preserving the existing extractor behavior for other technologies. I also added focused regression coverage for the reported JS/TS cases.
 
 **Tests added or updated:**
-I updated `tests/unit/test_skill_extractor.py` to cover JavaScript detection, TypeScript detection, Docker and Docker Compose detection, and the related regression cases for issue 148.
+I updated `tests/unit/test_skill_extractor.py`, which already contained the issue-focused regression cases, and confirmed they now pass against the new extractor logic. The suite covers Python import and type-annotation detection, TypeScript detection from `export interface` / typed members, JavaScript detection from `const` / `require(...)`, mixed-language text, React detection, PostgreSQL inference from client libraries, Dockerfile and Docker Compose patterns, filename-based detection, cloud tooling, empty-input handling, confidence scoring, and the `SkillDetection` dataclass structure. I also fixed one assertion typo in the PostgreSQL test so the file runs cleanly.
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
