@@ -23,16 +23,6 @@ def _repo_chunk(source_id: str, tech_stack: list[str], text: str, score: float =
 class TestFormatContext:
     """Reproduction tests for issue #28: duplicate feedback across same-stack projects."""
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "Issue #28: _format_context concatenates chunks without grouping "
-            "by tech_stack, so same-stack projects are presented to the LLM "
-            "as fully independent blocks and it writes a near-duplicate "
-            "'Python skills' paragraph per project instead of one "
-            "consolidated observation."
-        ),
-    )
     def test_same_stack_chunks_are_grouped_not_repeated(self) -> None:
         chunks = [
             _repo_chunk(
@@ -65,6 +55,69 @@ class TestFormatContext:
             "grouped block; _format_context still emits one independent "
             "numbered block per chunk (see issue #28)."
         )
+
+        # Grouping must not lose the individual project sources/text --
+        # consolidation means "present together", not "discard detail".
+        assert "repo_1_todo-api" in context
+        assert "repo_2_cli-tool" in context
+        assert "repo_3_data-pipeline" in context
+
+    def test_single_project_output_is_unchanged(self) -> None:
+        """A single chunk has nothing to group with -- output must match
+        today's plain per-chunk format exactly (no regressions for the
+        common single-project case)."""
+        chunks = [
+            _repo_chunk("repo_1_todo-api", ["Python", "Flask"], "Flask REST API.", score=0.87),
+        ]
+
+        context = ReviewGenerator._format_context(chunks)
+
+        assert context == "[1] (relevance: 0.87) Source: repo_1_todo-api\nFlask REST API."
+
+    def test_mixed_stack_chunks_are_not_merged(self) -> None:
+        """Projects in genuinely different stacks must stay in separate
+        blocks -- grouping must not erase meaningful differences."""
+        chunks = [
+            _repo_chunk("repo_1_todo-api", ["Python", "Flask"], "Flask REST API."),
+            _repo_chunk("repo_2_dashboard", ["JavaScript", "React"], "React dashboard app."),
+        ]
+
+        context = ReviewGenerator._format_context(chunks)
+
+        assert context.count("[1]") == 1
+        assert context.count("[2]") == 1
+        assert "repo_1_todo-api" in context
+        assert "repo_2_dashboard" in context
+
+    def test_chunks_missing_stack_metadata_degrade_gracefully(self) -> None:
+        """Chunks without primary_language/tech_stack (e.g. resume or README
+        chunks) must not crash and must not be merged with unrelated chunks."""
+        readme_chunk = {
+            "metadata": {"source_id": "readme_chunk"},
+            "score": 0.5,
+            "text": "Personal portfolio site built with love.",
+        }
+        python_chunk = _repo_chunk("repo_1_todo-api", ["Python"], "Flask REST API.")
+
+        context = ReviewGenerator._format_context([readme_chunk, python_chunk])
+
+        assert "readme_chunk" in context
+        assert "repo_1_todo-api" in context
+        assert context.count("[1]") == 1
+        assert context.count("[2]") == 1
+
+    def test_grouping_respects_existing_top_10_chunk_limit(self) -> None:
+        """Grouping happens within the existing top-10 truncation, not
+        before it -- an 11th same-stack chunk must not appear at all."""
+        chunks = [
+            _repo_chunk(f"repo_{i}", ["Python"], f"Project {i} description.") for i in range(11)
+        ]
+
+        context = ReviewGenerator._format_context(chunks)
+
+        assert "repo_10" not in context
+        for i in range(10):
+            assert f"repo_{i}" in context
 
 
 @pytest.mark.unit
