@@ -104,3 +104,64 @@ lint, type-checking, and unit tests. My changes introduce no new failures in the
 modified module, and the targeted tests and checks pass.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback was received during the course period, so no
+changes were made after opening the pull request.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was understanding an unfamiliar codebase well enough to make a
+small, targeted change with confidence. At first I assumed the issue would only
+require changing one function, but after reproducing the bug I realized I also
+needed to understand how claims were extracted, how they were scored, and how
+the existing tests described the intended behavior. Learning how to investigate
+the code before making changes took more time than the implementation itself.
+
+**What did you learn about working in a large codebase?**
+
+I learned that contributing to someone else's project is much more structured
+than building my own. Before writing any code, I had to reproduce the issue,
+create a solution plan, understand the existing tests, and keep the scope of my
+changes limited to the assigned issue. I also learned that repository-wide
+failures are common in active projects and that the goal is to avoid introducing
+new problems rather than trying to fix unrelated parts of the codebase.
+
+**How did AI tools help — and where did they fall short?**
+
+AI was most helpful for understanding unfamiliar code, planning the
+implementation, explaining the purpose of existing functions, and helping me
+navigate Git, testing, and the pull request workflow. However, I still needed to
+verify every suggestion by reading the existing implementation and running the
+tests myself. AI could suggest possible fixes, but it could not determine the
+project's intended behavior without comparing the code, issue description, and
+existing tests.
+
+**What would you do differently if you started over?**
+
+I would spend more time reading the existing implementation and tests before
+writing any code. Early on I focused on solving the bug immediately, but I later
+realized that understanding the surrounding design made the implementation much
+simpler and reduced unnecessary changes. I would also open the pull request
+earlier so there would be more time for feedback.
+
+**What are you most proud of from this module?**
+
+I'm most proud that I completed the full open-source contribution workflow from
+start to finish. Instead of only fixing a bug, I reproduced the issue, planned
+the solution, added a regression test, implemented the fix, verified it with
+tests, and submitted a pull request following the project's contribution
+process.
