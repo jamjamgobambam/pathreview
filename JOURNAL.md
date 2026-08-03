@@ -56,7 +56,7 @@ This issue has no open blockers or dependencies on other unresolved issues.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** <!-- TODO: paste the commit URL after pushing, format: https://github.com/HwaejinChung21/pathreview/commit/<sha> -->
+**Reproduction commit link:** [3a7f303](https://github.com/HwaejinChung21/pathreview/commit/3a7f303f6b92c3e27e3dd568aa7d52156f4e7a8a)
 
 **Reproduction summary:**
 I reproduced the bug at the parser level by running the same resume through `ResumeParser.parse()`
@@ -68,9 +68,9 @@ tests already fail for this reason, and I added `TestSectionDetectionLeadingWhit
 `tests/unit/test_resume_parser.py` to pin the behavior: three tests fail today and two guards
 (flush-left control, no-false-positives) pass, so the suite proves the fix without over-broadening it.
 
-**PLAN.md link:** [PLAN.md](./PLAN.md)
+**PLAN.md link:** [PLAN.md](https://github.com/HwaejinChung21/pathreview/blob/setup/147-resume-whitespace-fail/PLAN.md)
 
-**Walkthrough video (recommended):** <!-- TODO: paste Loom link, or delete this line -->
+**Walkthrough video (recommended):** none
 
 **Blockers or open questions:**
 - The issue as written only names section detection, but an indented *markdown* resume also needs the
@@ -81,4 +81,52 @@ tests already fail for this reason, and I added `TestSectionDetectionLeadingWhit
   unrelated unused imports. Leaving unrelated lint alone unless asked.
 - Not sure whether non-breaking-space indentation from `pypdf` is common enough in real PDFs to be
   worth handling; noted in PLAN.md with the exact pattern I'd use if so.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented both PLAN.md sub-tasks in `ingestion/parsers/resume_parser.py`: whitespace-tolerant
+`_detect_sections()` (`^[ \t]*…`) and indented-header stripping in `_strip_markdown()`. All 16 tests
+in `tests/unit/test_resume_parser.py` pass, including the Week 8 reproduction suite and a new
+compound-header guard (`Professional Experience` must not also match bare `Experience`). Removed
+`scripts/repro_issue_147.py` so the PR stays focused on the fix + unit tests.
+
+**Next steps:**
+Open the PR against `ascherj/pathreview`, request peer/mentor feedback in Slack, and fill Check-in 2
+with the PR link once the PR is ready for review.
+
+**Blockers:**
+`make check` / `make test-unit` still report many pre-existing failures unrelated to this issue
+(repo-wide ruff noise, mypy stub issues, ~48 failing unit tests outside `test_resume_parser.py`).
+Changes introduce no new failures in the resume parser suite (8 → 0 failures there).
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** <!-- filled after PR is opened -->
+
+**Branch:** `setup/147-resume-whitespace-fail`
+
+**What you built:**
+`ResumeParser` now treats leading spaces/tabs before section headers as optional, so indented
+plain-text and PDF-extracted resumes still populate `detected_sections`. Indented markdown headings
+are stripped the same way so `## Experience` can be detected after `_strip_markdown()`.
+
+**Tests added or updated:**
+`tests/unit/test_resume_parser.py` — `TestSectionDetectionLeadingWhitespace` covers flush-left,
+space-indented, tab-indented, indented markdown, mid-line false positives, and compound section
+names. Existing resume-parser tests that previously failed due to indented fixtures now pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+*(Scoped meaning for this repo: no new failures introduced by this change. Full-repo `make check`
+and `make test-unit` still fail on pre-existing issues documented in the PR. `tests/unit/test_resume_parser.py`
+is fully green: 16/16.)*
+
+**Draft PR feedback received from:** none
 
