@@ -184,8 +184,10 @@ class SkillExtractor:
             js_evidence.append("JavaScript keyword found")
         if re.search(r"\b(import|require)\b", text):
             js_evidence.append("CommonJS or ES6 imports")
-        if re.search(r"\b(const|let|var|export|function)\b", text):
-            js_evidence.append("JavaScript keywords (const/let/var/export/function)")
+        if re.search(r"\b(const|let|var|export|function|class|async|await)\b", text):
+            js_evidence.append(
+                "JavaScript keywords (const/let/var/export/function/class/async/await)"
+            )
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
