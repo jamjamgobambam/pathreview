@@ -226,3 +226,69 @@ Observed output summary:
 4. Update frontend API client and Review page Copy link behavior.
 5. Add a public shared review page route/component.
 6. Add tests for token flow and endpoint auth boundaries.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All backend sub-tasks from PLAN.md are done. Implemented `share_token` on the
+Review model (`core/models/review.py`) with a matching Alembic migration
+(`003_add_share_token_to_reviews.py`), added two service functions in
+`core/services/review_service.py` — `create_or_get_share_token` (idempotent,
+cryptographically secure `secrets.token_urlsafe`) and
+`get_review_by_share_token` — plus the API layer: `POST /reviews/{review_id}/share`
+(auth + ownership) and public `GET /reviews/share/{share_token}`, backed by new
+`ShareTokenResponse` / `PublicReviewResponse` schemas that omit owner fields.
+Frontend sub-tasks are also done: `api.ts` client methods, a public
+`/shared/:shareToken` route, a new read-only `SharedReviewPage`, and the
+ReviewPage "Copy link" flow with copied/error states.
+
+**Next steps:**
+Finalize unit tests, run the full self-review (`make check` / `make test-unit`),
+get draft-PR feedback in Slack, and open the PR for review.
+
+**Blockers:**
+None. Noted a pre-existing environment quirk (the project virtualenv and
+`docs/`/`.github/` had been copied into `core/`; restored the layout locally so
+it does not pollute the PR) and heavy pre-existing failures in `make check` and
+`make test-unit` unrelated to this issue (documented below).
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _(opened from branch `feat/101-public-review-sharing` — see PR URL added on submission)_
+
+**Branch:** `feat/101-public-review-sharing`
+
+**What you built:**
+A token-based public review sharing flow. An owner clicks "Copy link" on their
+completed review, which calls an authenticated endpoint that generates (or
+reuses) a unique `share_token` and returns a `/shared/{token}` URL. Anyone with
+that URL can view a sanitized, read-only summary via a public, unauthenticated
+endpoint, while all existing private review endpoints stay auth-protected.
+
+**Tests added or updated:**
+`tests/unit/test_review_service.py` — added a `TestReviewSharing` suite (7 tests)
+covering token idempotency (reuse of an existing token), fresh-token generation
+and persistence, `None` when the review is not owned/found, URL-safe token
+charset, and share-token lookup success / unknown-token / empty-token cases.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+> In this codebase both commands have **documented pre-existing failures**
+> unrelated to issue #101. Baseline before my changes: `make test-unit` = 53
+> failed / 375 passed; `make check` fails at `ruff` (182 errors), `black` (52
+> files), and `mypy` (missing third-party stubs). After my changes:
+> `make test-unit` = 53 failed / **382 passed** (my 7 new tests pass; the same
+> 53 pre-existing failures remain — **no new failures**). My new Python files are
+> black-clean and my two service functions are ruff/mypy-clean; the new route
+> handlers intentionally follow the existing file's FastAPI patterns
+> (`Depends()` defaults, `current_user.id`), so any lint/type notes they produce
+> are the same categories already present on every pre-existing endpoint. Per
+> the Week 9 guidance, "passes" here means my changes introduce no new failures.
+
+**Draft PR feedback received from:** none (draft PR opened for peer review in Slack)
