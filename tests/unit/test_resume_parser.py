@@ -185,12 +185,11 @@ class TestResumeParser:
 
 @pytest.mark.unit
 class TestSectionDetectionLeadingWhitespace:
-    """Reproduction tests for issue #147: section detection fails on leading whitespace.
+    """Regression tests for issue #147: section detection with leading whitespace.
 
-    Every regex in SECTION_HEADERS detection is anchored with `^` or `\\n` immediately
-    followed by the section name, so a header that is indented by even one space or a
-    single tab is never matched. These tests fail on the current implementation and
-    should pass once detection tolerates leading horizontal whitespace.
+    Section headers may be indented after PDF extraction or in pasted markdown.
+    Detection must tolerate spaces/tabs at the start of a line without treating
+    mid-sentence uses of words like "experience" as headers.
     """
 
     @pytest.fixture
@@ -199,7 +198,7 @@ class TestSectionDetectionLeadingWhitespace:
         return ResumeParser()
 
     def test_flush_left_headers_are_detected(self, parser):
-        """Control case: unindented headers work today, and must keep working."""
+        """Control case: unindented headers must keep working."""
         text = (
             "Jane Doe\n\n"
             "Experience:\n"
@@ -239,9 +238,8 @@ class TestSectionDetectionLeadingWhitespace:
     def test_indented_markdown_resume_reports_sections(self, parser):
         """End-to-end: an indented markdown resume should report its sections.
 
-        This also exercises _strip_markdown, whose header pattern (`^#+\\s+`) is
-        line-anchored too, so indented `## Experience` keeps its hash marks and
-        cannot be matched by section detection even after detection is relaxed.
+        Also exercises _strip_markdown, which must strip indented ``##`` headings
+        so section detection can match the remaining bare header text.
         """
         markdown_resume = """
         # Jane Doe
@@ -266,3 +264,12 @@ class TestSectionDetectionLeadingWhitespace:
 
         assert "experience" not in sections
         assert "education" not in sections
+
+    def test_compound_section_does_not_also_match_bare_name(self, parser):
+        """'Professional Experience:' should not also register bare 'Experience'."""
+        text = "  Professional Experience:\n  - Engineer at TechCorp\n"
+
+        sections = {s.lower() for s in parser._detect_sections(text)}
+
+        assert "professional experience" in sections
+        assert "experience" not in sections
