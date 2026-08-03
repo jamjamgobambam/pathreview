@@ -190,6 +190,23 @@ class TestPIIScrubber:
 
         assert "[REDACTED]" in scrubbed
 
+    def test_parenthesized_phone_no_space(self, scrubber):
+       """Test parenthesized phone number with no space before the next digits."""
+       text = "Call (555)123-4567 now"
+       scrubbed = scrubber.scrub(text)
+       assert "[REDACTED]" in scrubbed
+       assert "555" not in scrubbed
+       assert "1234567" not in scrubbed
+
+    def test_detect_parenthesized_phone_value_accurate(self, scrubber):
+        """Test detect() captures the full parenthesized phone number as the matched value."""
+        text = "Call me at (555) 123-4567 today"
+        detected = scrubber.detect(text)
+
+        phone_detections = [d for d in detected if "phone" in d["type"]]
+        assert len(phone_detections) > 0
+        assert "(555) 123-4567" in phone_detections[0]["value"]
+
     def test_address_variations(self, scrubber):
         """Test various street address formats."""
         addresses = [
