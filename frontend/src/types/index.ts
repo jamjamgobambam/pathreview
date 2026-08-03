@@ -41,3 +41,17 @@ export interface AuthResponse {
   access_token: string
   token_type: string
 }
+
+export interface ShareTokenResponse {
+  share_token: string
+  share_url: string
+}
+
+// Sanitized review returned by the public share endpoint (no owner fields).
+export interface PublicReview {
+  id: string
+  status: 'pending' | 'processing' | 'complete' | 'failed'
+  overall_score?: number
+  sections?: FeedbackSection[]
+  created_at: string
+}
