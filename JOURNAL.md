@@ -1,46 +1,46 @@
-## Week 7 — Issue selection
+## Week 9 — Solution building & PR submission
 
-**Issue link:** https://github.com/ascherj/pathreview/issues/153
+### Check-in 1 (mid-week)
 
-**Issue title:** Faithfulness checker crashes when a context chunk has `text: None`
+**Current progress:**
+Implemented the fix from PLAN.md: changed the context-concatenation line in
+`FaithfulnessChecker.check()` from `chunk.get("text", "")` to
+`chunk.get("text") or ""`, so a chunk with `text: None` is coerced to an empty
+string instead of crashing `" ".join()`. All PLAN.md sub-tasks are done — fix
+applied, target test passing, missing-key test still passing, full suite run.
 
-**Tier:** [ X ] Tier 1  [ ] Tier 2  [ ] Tier 3
+**Next steps:**
+Open a draft PR, request peer/mentor feedback, address any comments, then mark
+ready for review and submit.
 
-**Problem summary:**
-The FaithfulnessChecker's `check()` method throws a TypeError whenever a context
-chunk carries an explicit `text: None` value. The cause is a misuse of
-`dict.get()`: its default (`""`) only applies when the key is missing entirely,
-so a chunk like `{'text': None}` returns `None` rather than the intended empty
-string. That `None` then flows into a `" ".join(...)` call, which requires every
-element to be a string and raises `TypeError: sequence item 0: expected str
-instance, NoneType found`. A successful fix makes the context-building step
-defensive against present-but-null text — coercing `None` to `""` — so the
-checker degrades gracefully instead of crashing. The change lives in
-`rag/evaluator/faithfulness_checker.py`, verified by the existing
-`test_none_context_chunk_text` test in `tests/unit/test_faithfulness_checker.py`.
+**Blockers:**
+None.
 
-**Branch name:** fix/153-faithfulness-none-chunk-text
+---
 
-**Setup confirmation:** [ X ] App runs locally at localhost:5173
+### Check-in 2 (end of week)
 
-**Cohort ledger:** [ X ] Issue added to cohort ledger
+**PR link:** [paste your PR URL here]
 
-## Week 8 — Reproduction & solution planning
+**Branch:** fix/153-faithfulness-none-chunk-text
 
-**Reproduction commit link:** [paste link to your reproduction commit here]
+**What you built:**
+A one-line fix in `rag/evaluator/faithfulness_checker.py`. The `check()` method
+built its context with `chunk.get("text", "")`, but `dict.get()`'s default only
+applies to missing keys — so a chunk of `{"text": None}` returned `None` and
+crashed `" ".join()` with a TypeError. Using `chunk.get("text") or ""` coerces
+any null (or otherwise falsy) text value to an empty string before joining.
 
-**Reproduction summary:**
-In an activated venv I ran `python -m pytest tests/unit/test_faithfulness_checker.py::TestFaithfulnessChecker::test_none_context_chunk_text -v`
-against the unmodified source and observed the test fail with
-`TypeError: sequence item 0: expected str instance, NoneType found` raised at
-`rag/evaluator/faithfulness_checker.py:34`, confirming the crash occurs inside
-`check()` when a context chunk has `text: None`.
+**Tests added or updated:**
+No new test files. The fix is validated by the pre-existing
+`test_none_context_chunk_text` in `tests/unit/test_faithfulness_checker.py`,
+which reproduced the crash and now passes; `test_missing_text_key_in_chunk`
+continues to pass.
 
-**PLAN.md link:** [paste link to PLAN.md on your branch here]
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+(codebase has documented pre-existing failures — 52 test failures, 363 check
+errors — present before and after this change; this PR introduces no new
+failures and resolves one: 53→52 test failures, 363→363 check errors. See PR
+description for the full before/after baseline.)
 
-**Walkthrough video (recommended):** [paste Loom link here, or leave blank]
-
-**Blockers or open questions:**
-None — the root cause is confirmed and the fix approach is settled. The actual
-one-line code change is scheduled for a later week per the module sequence.
-
+**Draft PR feedback received from:** [paste reviewer name/Slack handle, or "none"]
