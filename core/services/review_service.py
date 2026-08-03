@@ -1,15 +1,22 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from redis.exceptions import RedisError
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
+from core.redis_client import redis_client
 
 log = structlog.get_logger()
+
+# Rough default, not yet tuned against real (non-stub) pipeline run times --
+# see PLAN.md / IMPLEMENTATION_STEPS.md.
+PROFILE_LOCK_TTL_SECONDS = 60
 
 
 async def create_review(
@@ -79,119 +86,167 @@ async def list_reviews(
     return reviews, total
 
 
+def _profile_lock_key(profile_id: UUID) -> str:
+    """Redis key for the per-profile lock serializing concurrent reviews."""
+    return f"profile-lock:{profile_id}"
+
+
+async def _mark_review_failed(db, review_id: UUID) -> None:
+    """Best-effort: re-fetch a review by id and set status='failed'.
+
+    Re-fetches rather than reusing a `review` object from the caller's scope,
+    since this is called from exception handlers where the failure may have
+    occurred before any such object was successfully assigned.
+    """
+    try:
+        stmt = select(Review).where(Review.id == review_id)
+        result = await db.execute(stmt)
+        review = result.scalars().first()
+        if review:
+            review.status = "failed"
+            review.updated_at = datetime.utcnow()
+            db.add(review)
+            await db.commit()
+    except Exception as e:
+        log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
+
+
 async def process_review(
     db,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
-    """
-    Background task to process a review.
+    """Background task to process a review end to end.
+
     Steps:
-    1. Set status="processing"
-    2. Run ingestion pipeline on profile's sources
-    3. Run agent orchestration
-    4. Run RAG retrieval + generation
-    5. Run safety checks on output
-    6. Set status="complete", store sections in review.sections
-    7. On exception: set status="failed", log error
+        1. Set status="processing"
+        2. Run ingestion pipeline on profile's sources
+        3. Run agent orchestration
+        4. Run RAG retrieval + generation
+        5. Run safety checks on output
+        6. Set status="complete", store sections in review.sections
+        7. On exception: set status="failed", log error
+
+    The whole run is serialized per profile via a Redis lock (issue #82), so
+    two reviews for the same profile never touch its data concurrently. If
+    the lock itself can't be acquired (e.g. Redis is unreachable), the review
+    fails closed rather than running without that protection.
+
+    Args:
+        db: Async SQLAlchemy session used for all reads/writes in this run.
+        review_id: ID of the Review row being processed.
+        profile_id: ID of the Profile the review is for; also the key for
+            the per-profile Redis lock.
+
+    Returns:
+        None. All outcomes (success or failure) are recorded on the Review
+        row itself rather than via a return value.
+
+    Raises:
+        Nothing -- every failure path (lock acquisition, missing review or
+        profile, an exception during processing) is caught internally and
+        results in the review's status being set to "failed".
     """
     try:
-        # Get the review
-        stmt = select(Review).where(Review.id == review_id)
-        result = await db.execute(stmt)
-        review = result.scalars().first()
+        async with redis_client.lock(
+            _profile_lock_key(profile_id), timeout=PROFILE_LOCK_TTL_SECONDS
+        ):
+            try:
+                # Get the review
+                stmt = select(Review).where(Review.id == review_id)
+                result = await db.execute(stmt)
+                review = result.scalars().first()
 
-        if not review:
-            log.error("review_not_found_for_processing", review_id=str(review_id))
-            return
+                if not review:
+                    log.error("review_not_found_for_processing", review_id=str(review_id))
+                    return
 
-        # Get the profile
-        stmt = select(Profile).where(Profile.id == profile_id)
-        result = await db.execute(stmt)
-        profile = result.scalars().first()
+                # Get the profile
+                stmt = select(Profile).where(Profile.id == profile_id)
+                result = await db.execute(stmt)
+                profile = result.scalars().first()
 
-        if not profile:
-            log.error("profile_not_found_for_processing", profile_id=str(profile_id))
-            review.status = "failed"
-            db.add(review)
-            await db.commit()
-            return
+                if not profile:
+                    log.error("profile_not_found_for_processing", profile_id=str(profile_id))
+                    review.status = "failed"
+                    db.add(review)
+                    await db.commit()
+                    return
 
-        # Step 1: Set status to processing
-        review.status = "processing"
-        db.add(review)
-        await db.commit()
-
-        log.info("review_processing_started", review_id=str(review_id), profile_id=str(profile_id))
-
-        # Step 2: Run ingestion pipeline
-        ingestion_results = await _run_ingestion_pipeline(db, profile)
-        log.info(
-            "ingestion_pipeline_completed",
-            review_id=str(review_id),
-            sources_count=len(ingestion_results),
-        )
-
-        # Step 3: Run agent orchestration
-        agent_output = await _run_agent_orchestration(profile, ingestion_results)
-        log.info(
-            "agent_orchestration_completed",
-            review_id=str(review_id),
-            sections_count=len(agent_output.get("sections", [])),
-        )
-
-        # Step 4: Run RAG retrieval + generation
-        rag_output = await _run_rag_retrieval_generation(profile, ingestion_results, agent_output)
-        log.info("rag_retrieval_completed", review_id=str(review_id))
-
-        # Step 5: Run safety checks
-        safety_checks_passed = await _run_safety_checks(rag_output)
-        if not safety_checks_passed:
-            log.warning("safety_checks_failed", review_id=str(review_id))
-            review.status = "failed"
-            db.add(review)
-            await db.commit()
-            return
-
-        # Step 6: Set status to complete and store sections
-        sections_data = rag_output.get("sections", [])
-        sections = [
-            FeedbackSection(
-                section_name=s.get("section_name", ""),
-                content=s.get("content", ""),
-                confidence=s.get("confidence", 0.0),
-                suggestions=s.get("suggestions", []),
-            )
-            for s in sections_data
-        ]
-
-        review.status = "complete"
-        review.sections = [s.model_dump() for s in sections]
-        review.overall_score = rag_output.get("overall_score", None)
-        review.updated_at = datetime.utcnow()
-
-        db.add(review)
-        await db.commit()
-
-        log.info(
-            "review_processing_completed",
-            review_id=str(review_id),
-            overall_score=review.overall_score,
-        )
-
-    except Exception as exc:
-        log.error("review_processing_failed", review_id=str(review_id), error=str(exc))
-        try:
-            stmt = select(Review).where(Review.id == review_id)
-            result = await db.execute(stmt)
-            review = result.scalars().first()
-            if review:
-                review.status = "failed"
-                review.updated_at = datetime.utcnow()
+                # Step 1: Set status to processing
+                review.status = "processing"
                 db.add(review)
                 await db.commit()
-        except Exception as e:
-            log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
+
+                log.info(
+                    "review_processing_started",
+                    review_id=str(review_id),
+                    profile_id=str(profile_id),
+                )
+
+                # Step 2: Run ingestion pipeline
+                ingestion_results = await _run_ingestion_pipeline(db, profile)
+                log.info(
+                    "ingestion_pipeline_completed",
+                    review_id=str(review_id),
+                    sources_count=len(ingestion_results),
+                )
+
+                # Step 3: Run agent orchestration
+                agent_output = await _run_agent_orchestration(profile, ingestion_results)
+                log.info(
+                    "agent_orchestration_completed",
+                    review_id=str(review_id),
+                    sections_count=len(agent_output.get("sections", [])),
+                )
+
+                # Step 4: Run RAG retrieval + generation
+                rag_output = await _run_rag_retrieval_generation(
+                    profile, ingestion_results, agent_output
+                )
+                log.info("rag_retrieval_completed", review_id=str(review_id))
+
+                # Step 5: Run safety checks
+                safety_checks_passed = await _run_safety_checks(rag_output)
+                if not safety_checks_passed:
+                    log.warning("safety_checks_failed", review_id=str(review_id))
+                    review.status = "failed"
+                    db.add(review)
+                    await db.commit()
+                    return
+
+                # Step 6: Set status to complete and store sections
+                sections_data = rag_output.get("sections", [])
+                sections = [
+                    FeedbackSection(
+                        section_name=s.get("section_name", ""),
+                        content=s.get("content", ""),
+                        confidence=s.get("confidence", 0.0),
+                        suggestions=s.get("suggestions", []),
+                    )
+                    for s in sections_data
+                ]
+
+                review.status = "complete"
+                review.sections = [s.model_dump() for s in sections]
+                review.overall_score = rag_output.get("overall_score", None)
+                review.updated_at = datetime.utcnow()
+
+                db.add(review)
+                await db.commit()
+
+                log.info(
+                    "review_processing_completed",
+                    review_id=str(review_id),
+                    overall_score=review.overall_score,
+                )
+
+            except Exception as exc:
+                log.error("review_processing_failed", review_id=str(review_id), error=str(exc))
+                await _mark_review_failed(db, review_id)
+    except RedisError as exc:
+        log.error("profile_lock_acquire_failed", profile_id=str(profile_id), error=str(exc))
+        await _mark_review_failed(db, review_id)
 
 
 async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
