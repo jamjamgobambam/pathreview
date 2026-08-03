@@ -113,7 +113,9 @@ class TestReadmeScorer:
         result = scorer.execute({"readme_content": readme})
 
         data = result.data
-        assert data["word_count"] > 500
+        assert (
+            data["word_count"] > 500
+        )  # Probably shouldn't use it as the main proxy for cohesiveness.
         assert data["word_count_category"] == "comprehensive"
 
     def test_installation_section_detection(self, scorer):
@@ -157,9 +159,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +221,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +237,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
