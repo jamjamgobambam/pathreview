@@ -18,9 +18,9 @@ This isn't actually a crash bug. It's a missing validation gap. `create_review_e
 
 1. Add a lookup in create_review (or right in the endpoint) that checks the profile exists and has at least one of github_username, portfolio_url, resume_text set, or has IngestedSource rows.
 2. If the profile doesn't exist or doesn't belong to the current user, return 404. If it exists but has no ingested content, return 422 with a clear detail message explaining why.
-3. Leave process_review defensive too, so if it ever gets called directly outside the endpoint it still fails safely instead of completing with fake content.
-4. Update the reproduction test in tests/unit/test_review_routes.py so it asserts the new passing behavior, and add a second test confirming a profile that does have content still returns 200 with status "pending" like before.
-5. Check frontend/src/pages/ReviewPage.tsx and frontend/src/hooks/useReviewStatus.ts to see if they assume review creation always succeeds, and update them to handle the new error response if needed.
+3. ~~Leave process_review defensive too~~ Decided against this. Since the endpoint now blocks the request before process_review is ever scheduled for these cases, adding a second defensive check deeper in the pipeline would be speculative, unreachable code. Kept the fix to the one place it's actually needed.
+4. Update the reproduction test in tests/unit/test_review_routes.py so it asserts the new passing behavior, and add a second test confirming a profile that does have content still returns 200 with status "pending" like before. Done, plus a third test for the 404 case.
+5. ~~Check frontend/src/pages/ReviewPage.tsx and frontend/src/hooks/useReviewStatus.ts~~ Checked, no changes needed (see Risks & unknowns).
 
 ### Inputs & outputs
 
@@ -28,7 +28,11 @@ Input stays the same, just profile_id on POST /reviews. What changes is the outp
 
 ### Risks & unknowns
 
-I'm still not sure whether "has content" should be based on the three profile fields directly or on actually counting IngestedSource rows for that profile. Right now they're equivalent since _run_ingestion_pipeline is the only thing that ever creates IngestedSource rows, but ingestion/pipeline.py has placeholder logic hinting at a bigger real ingestion pipeline down the line, so checking IngestedSource directly is probably more future proof. I also don't know if the frontend assumes POST /reviews always succeeds, that needs a quick look before shipping this. And there's no existing DB backed integration test pattern in this repo, everything so far is mocked sessions, so a more realistic end to end test isn't something I can model off an existing example yet.
+Resolved: I went with checking the three profile fields directly instead of counting IngestedSource rows. Counting IngestedSource rows turned out to be circular, those rows only ever get created during process_review, which only runs after a review already exists. So a brand new profile would always show zero IngestedSource rows even if it's about to get real content ingested. The profile fields are the actual raw input the user provided, so that's the right thing to check before a review is ever created.
+
+Resolved: the frontend does not assume POST /reviews always succeeds. frontend/src/services/api.ts already throws on any non 2xx response using the server's error detail, and frontend/src/pages/NewProfilePage.tsx already catches that and redirects to the dashboard. No frontend changes were needed.
+
+Still true: there's no existing DB backed integration test pattern in this repo, everything so far is mocked sessions, so a more realistic end to end test isn't something I could model off an existing example. I stuck with the mocked TestClient approach for consistency with the rest of tests/unit/.
 
 ### Edge cases
 
