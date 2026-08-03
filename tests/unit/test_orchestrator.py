@@ -1,12 +1,14 @@
 """Tests for review-scoped agent orchestration state."""
 
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
-import redis
 
 from agent.memory.session_store import SessionStore
 from agent.orchestrator import Orchestrator
+
+if TYPE_CHECKING:
+    import redis
 
 
 class FakeRedis:
@@ -36,7 +38,7 @@ class FakeTool:
 def test_orchestrator_persists_state_under_review_id() -> None:
     """Separate reviews for one profile write separate session keys."""
     fake_redis = FakeRedis()
-    store = SessionStore(cast(redis.Redis, fake_redis))
+    store = SessionStore(cast("redis.Redis", fake_redis))
     orchestrator = Orchestrator({"fake_tool": FakeTool()}, session_store=store)
 
     from unittest.mock import patch
