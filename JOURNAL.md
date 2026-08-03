@@ -73,23 +73,30 @@ stubs). My changed files pass `ruff`, `black`, and `mypy` individually.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(add after opening the PR)_
+**PR link:** https://github.com/ascherj/pathreview/pull/183
 
 **Branch:** `feat/34-llm-chunk-reranking`
 
 **What you built:**
 An optional LLM re-ranking step for retrieval: when enabled, the LLM scores each
 retrieved chunk for relevance to the query and reorders the candidates before the
-top-k are passed to generation; when disabled (default), retrieval is unchanged.
+top-k are passed to generation; when disabled (default), retrieval is unchanged. A
+`build_hybrid_retriever(settings, ...)` factory consumes the opt-in settings; live
+pipeline wiring is deferred because the RAG pipeline is still a stub.
 
 **Tests added or updated:**
-`tests/unit/test_reranker.py` (9 tests) and `tests/unit/test_hybrid_retriever.py`
-(4 tests) — reorder-by-score, top_k limit, empty input, LLM-failure fallback, tie
-stability, score parsing/clamping, and disabled-vs-enabled paths. All mock the LLM.
+`tests/unit/test_reranker.py` (12 tests) and `tests/unit/test_hybrid_retriever.py`
+(8 tests) — reorder-by-score, top_k limit, empty input, total/partial LLM-failure
+fallback, tie stability, score parsing/clamping, client-boundary path, candidate-pool
+widening, disabled-vs-enabled paths, and the settings factory. All mock the LLM (no
+network). 20 tests total, all passing.
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 (Per the assignment's pre-existing-failure rule: "passes" = my changes introduce no
-new failures. 53 test failures and the `make check` errors pre-exist on `main` and
-are documented in the PR.)
+new failures. After my change the suite is 395 passed / 53 failed — the 53 failures
+and the `make check` errors pre-exist on `main` and are documented in the PR.)
 
-**Draft PR feedback received from:** _(name or Slack handle, or "none")_
+**Draft PR feedback received from:** aishadeveloper — reviewed the draft PR and
+flagged the PR title, unused config, a candidate over-fetch bug, coarse LLM-failure
+handling, and test/nit cleanups. All addressed in commit `4afb8b4` (widened fetch,
+per-chunk fallback, settings factory, removed dead code, client-boundary test).
