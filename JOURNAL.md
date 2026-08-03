@@ -38,6 +38,21 @@ without introducing false positives on neutral text.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 9 — Implementation
+
+### Check-in 1
+
+**Current progress:**
+Implemented the clause-based matching strategy described in PLAN.md and began updating the regex patterns to match protected-category terms and negative framing within the same clause.
+
+**Testing:**
+- Initial unit tests run to verify existing failures.
+- Continued iterating against the failing bias detector tests.
+
+**Blockers:**
+Still refining pattern matching to eliminate remaining failing tests without introducing regressions.
+
 ### Check-in 2
 
 **Current progress:**
