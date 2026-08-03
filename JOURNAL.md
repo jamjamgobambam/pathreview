@@ -64,3 +64,41 @@ the extractor is working, but not covering all the extraction cases.
 **Blockers or open questions:**
 - Should the JS/TS keyword only trigger one of the languages or both?
 - Should I implement the minimum keyword matches before we declare a language skill detected?
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Step 1 of the plan is complete. Added regex-based scanning of text content for `.js`, `.jsx`, `.ts`, `.tsx` file extension mentions in `_detect_languages()` (`skill_extractor.py` lines 178-181). Updated the `lang` determination logic to also consider text-based TypeScript signals, not just the `filename` parameter. Added two new tests: `test_js_extension_in_text` and `test_ts_extension_in_text`.
+
+**Next steps:**
+- Step 2: Expand JS/TS keyword detection to use more of `JS_TS_KEYWORDS` (`const`, `let`, `var`, `export`, `function`) and fix the `require` regex from `\s+` to `\b`.
+- Step 3: Add TypeScript-specific text patterns (`typescript`, `interface`, generic types) for text-based TypeScript detection.
+- Step 4: Add Dockerfile keyword and docker-compose detection to `_detect_tools()`.
+- Step 5: Run all four target tests and verify no regressions.
+
+**Blockers:**
+Leading the capstone project effort for WEB103, which includes implementing features, conducting code reviews, and coordinating with teammates to keep the project on track. This is taking up a significant portion of my available time this week.
+
+**Existing failures:**
+- Aside from the targets in `test_skill_extractor.py`, there's one more failing test: `test_database_technology_detection`
+- 19 mypy errors on function missing a type annotation in `test_skill_extractor.py`
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
