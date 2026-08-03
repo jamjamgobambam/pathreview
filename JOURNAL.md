@@ -50,7 +50,7 @@ The targeted resume parser checks pass locally: `python -m ruff check ingestion/
 
 ### Check-in 2 (end of week)
 
-**PR link:** TODO after opening PR
+**PR link:** https://github.com/ascherj/pathreview/pull/373
 
 **Branch:** fix/147-resume-section-leading-whitespace
 
@@ -60,7 +60,7 @@ I updated resume section detection so known headers are recognized even when PDF
 **Tests added or updated:**
 Updated `tests/unit/test_resume_parser.py` with a regression test for indented section headers and a guard test for normal prose containing section words.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 Targeted check: [x] `.venv/bin/python -m pytest tests/unit/test_resume_parser.py -q` passes.
 
@@ -68,7 +68,7 @@ Targeted lint/format: [x] `python -m ruff check ingestion/parsers/resume_parser.
 
 Project-wide check notes: `make test-unit` and `make check` currently fail on unrelated existing tests/lint outside the resume parser files.
 
-**Draft PR feedback received from:** TODO
+**Draft PR feedback received from:** Requested review, no feedback received before submission
 
 
 
