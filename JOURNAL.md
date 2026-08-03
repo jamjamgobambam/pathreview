@@ -56,7 +56,7 @@ None — implementation is complete and all tests pass.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [to be added upon PR submission]
+**PR link:** https://github.com/ascherj/pathreview/pull/631
 
 **Branch:** `fix/149-structural-chunker-no-headings`
 
