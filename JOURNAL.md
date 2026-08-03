@@ -51,3 +51,60 @@ cumulative sum with a documented caveat (my lean, keeps it Tier 1) or introduce
 time-bucketed keys (larger scope). Separately, `health.py` references
 `settings.redis_host`/`redis_port`, which don't exist on `Settings` (only `redis_url`) —
 a pre-existing bug I'll route around and flag to the maintainer.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the core fix from PLAN.md. Sub-task 1 done: added
+`SafetyMonitor.get_total_event_count()` in `safety/monitoring.py`, which sums the
+per-type counters across `VALID_EVENT_TYPES` and returns 0 on error. Sub-task 2 done:
+wired `api/routes/health.py` to build a Redis client from `settings.redis_url`,
+instantiate `SafetyMonitor`, and set `safety_events_last_hour` to the real total instead
+of the hardcoded `0`. Sub-task 4 done: the Week 8 reproduction test now passes, and I
+added edge-case tests (no events → 0, Redis unavailable → graceful 0).
+
+**Next steps:**
+Run the full `make check` / `make test-unit`, document any pre-existing failures, open a
+draft PR for peer feedback, then mark it ready for review.
+
+**Blockers:**
+None blocking. I verified behavior via the real endpoint in unit tests (fake Redis)
+rather than a full `make run`, since local Docker is still being finalized — the unit
+tests exercise the actual `health_check` code path, so this is sufficient to validate the
+fix.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _(PR opened against `ascherj/pathreview` — URL pasted here on submission)_
+
+**Branch:** `fix/68-health-safety-event-count`
+
+**What you built:**
+The `/health` endpoint now reports `safety_events_last_hour` from the real safety
+subsystem instead of a constant `0`. A new `SafetyMonitor.get_total_event_count()` sums
+the per-type Redis counters, and the endpoint reads it via a client built from
+`settings.redis_url`. The count is best-effort: if Redis is unavailable the endpoint logs
+and reports `0` rather than failing the health check.
+
+**Tests added or updated:**
+`tests/unit/test_health_safety_events.py` (4 tests): the safety layer records counts;
+`/health` surfaces the real summed count; a zero baseline with no events; and graceful
+degradation to `0` when Redis is down. All pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+> In this codebase "passes" means *no new failures* (the suite has documented
+> pre-existing failures — see below). My changed files are clean: `ruff` and `black`
+> report **0 new issues** on my additions (health.py holds its 4 pre-existing ruff
+> findings; monitoring.py its pre-existing black trailing-comma and 3 ruff findings);
+> `mypy` is clean on `safety/monitoring.py` and adds **0 new errors** to `health.py`
+> (11 pre-existing, identical to `origin/main`, including the `settings.redis_host`
+> bug). `make test-unit`: my 4 tests pass and total failures did **not** increase
+> (53 → 52); the ~52 failures / 31 errors are pre-existing in unrelated modules
+> (`test_semantic_chunker`, `test_structural_chunker`, etc.) and no existing test
+> touches the files I changed.
+
+**Draft PR feedback received from:** none
