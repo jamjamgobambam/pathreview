@@ -66,7 +66,7 @@ Added two async tests in `tests/unit/test_review_service.py` that prove the race
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/ascherj/pathreview/pull/new/fix/82-concurrent-review-requests
+**PR link:** https://github.com/ascherj/pathreview/pull/612
 
 **Branch:** fix/82-concurrent-review-requests
 
@@ -76,8 +76,8 @@ Added a per-profile `asyncio.Lock` in `core/services/review_service.py` to seria
 **Tests added or updated:**
 - `tests/unit/test_review_service.py` — added `test_process_review_serializes_same_profile_concurrency` (verifies two concurrent calls for same profile are serialized) and `test_process_review_allows_different_profiles_concurrently` (verifies different profiles run in parallel). Both tests pass.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 - `make check`: pre-existing lint failures exist across the codebase; no new failures in files I modified
 - `make test-unit`: pre-existing test failures in unrelated test modules; my 2 new tests pass and introduce no new failures
 
-**Draft PR feedback received from:** [Not yet — opening early for feedback]
+**Draft PR feedback received from:** Opening PR for early feedback — check-in 2 update pending review
