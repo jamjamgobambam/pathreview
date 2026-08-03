@@ -1,7 +1,7 @@
 """Regression test for issue #82: concurrent reviews for the same profile.
 
 Two concurrent `POST /reviews` for the same profile must not both succeed.
-The second overlapping request must be rejected with HTTPException(400)
+The second overlapping request must be rejected with HTTPException(409)
 while the first is still in flight.
 
 This test FAILS against `main` today (both concurrent calls succeed) and
@@ -115,7 +115,7 @@ async def test_concurrent_creates_for_same_profile_reject_second() -> None:
         f"Regression #82: expected exactly one success across two concurrent "
         f"POST /reviews for the same profile, got outcomes={outcomes}"
     )
-    assert rejects == [400], (
+    assert rejects == [409], (
         f"Regression #82: expected the second concurrent request to be "
-        f"rejected with HTTP 400, got rejects={rejects}"
+        f"rejected with HTTP 409, got rejects={rejects}"
     )

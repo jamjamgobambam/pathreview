@@ -36,7 +36,7 @@ async def create_review_endpoint(
     Triggers ingestion pipeline and agent orchestration asynchronously.
     Returns review with status="pending" immediately.
 
-    Rejects with 400 if another review for the same profile is already in
+    Rejects with 409 if another review for the same profile is already in
     flight (issue #82). Serializes overlapping requests via a Redis lock
     keyed by profile_id, released when the background task finishes.
     """
@@ -48,8 +48,8 @@ async def create_review_endpoint(
             user_id=str(current_user.id),
         )
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A review for this profile is already in progress",
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"A review for profile {data.profile_id} is already in progress",
         )
 
     try:
