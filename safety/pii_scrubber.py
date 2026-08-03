@@ -13,7 +13,9 @@ class PIIScrubber:
     # Regex patterns for common PII
     PII_PATTERNS = {
         "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
-        "phone_us": r"\(?\b(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})\b",
+        "phone_us": (
+            r"\(?\b(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?" r"([0-9]{4})\b"
+        ),
         "phone_intl": r"\+[0-9]{1,3}[-.]?[0-9]{1,14}",
         "ssn": r"\b(?!000|666)[0-9]{3}-(?!00)[0-9]{2}-(?!0000)[0-9]{4}\b",
         "street_address": (
@@ -35,7 +37,7 @@ class PIIScrubber:
         """
         scrubbed = text
 
-        for _, pattern in self.PII_PATTERNS.items():
+        for pattern in self.PII_PATTERNS.values():
             scrubbed = re.sub(pattern, "[REDACTED]", scrubbed, flags=re.IGNORECASE)
 
         return scrubbed
