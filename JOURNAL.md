@@ -72,3 +72,58 @@ While running the full `tests/unit/` suite as a regression check (Plan step 5), 
 `Pl` alternative matches case-insensitively inside unrelated words like "applications". This
 is unrelated to #146 (it's the `street_address` pattern, not `phone_us`) and out of scope
 for this issue, but I've noted it in PLAN.md's Risks section in case it comes up in review.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+The fix itself (Plan steps 1–4: reproduce, extend the `phone_us` separator class to accept
+whitespace, replace the leading `\b` with `(?<!\d)`) was already implemented and committed
+in `06230ad` during Week 8's reproduction work, since the change is a single regex line and
+was small enough to verify alongside reproduction. All four target tests
+(`test_us_phone_number_redaction`, `test_us_phone_formats`, `test_detect_phone_pii`,
+`test_phone_at_start_of_text`) pass.
+
+**Next steps:**
+Run the full `make check` / `make test-unit` regression pass (Plan step 5), document any
+pre-existing failures separately from this change, write the PR description, and open the
+PR.
+
+**Blockers:**
+Docker Desktop wasn't available in Week 7–8; it's now running, but full `make setup`/`make run`
+against Postgres + Redis still hasn't been exercised for this issue since the fix and its
+tests are pure-Python and don't touch the database.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/kneha07/pathreview/pull/1
+
+**Branch:** `fix/146-pii-scrubber-parenthesized-phone`
+
+**What you built:**
+Fixed the `phone_us` regex in `safety/pii_scrubber.py` so `PIIScrubber.scrub()` and
+`.detect()` correctly match space-separated parenthesized US phone numbers (e.g.
+`(555) 123-4567`) and `+1 555 123 4567`, which previously slipped through both methods
+untouched.
+
+**Tests added or updated:**
+No new tests were added — the fix makes four existing tests in
+`tests/unit/test_pii_scrubber.py` pass that were previously failing:
+`test_us_phone_number_redaction`, `test_us_phone_formats`, `test_detect_phone_pii`,
+`test_phone_at_start_of_text`. I also added `scripts/repro_146.py`, a standalone
+reproduction script (not a test) comparing the old and new patterns.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both pass with no *new* failures introduced by this change. `make check` has ~182
+pre-existing lint errors across the codebase — 5 of them in files this PR touches
+(`safety/pii_scrubber.py`, `tests/unit/test_pii_scrubber.py`), all present before this
+branch's commit. `make test-unit` has 49 pre-existing failures, including
+`test_mixed_pii_and_text` in the same file as this fix — I confirmed it fails identically
+on the pre-fix version of `safety/pii_scrubber.py`, so it's caused by an unrelated bug in
+the `street_address` pattern, not this change. Details in the PR's "Notes for Reviewers.")
+
+**Draft PR feedback received from:** none yet — opened ready for review; will request
+feedback in the cohort Slack channel per instructor guidance.
