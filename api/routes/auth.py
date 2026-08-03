@@ -6,6 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.middleware.rate_limit import rate_limit
 from api.schemas.user import Token, UserCreate
 from core.database import get_db
 from core.models.user import User
@@ -67,6 +68,7 @@ async def register(
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[AsyncSession, Depends(get_db)],
+    _rate_limit: Annotated[None, Depends(rate_limit)],
 ) -> Token:
     """
     Login with email and password.
