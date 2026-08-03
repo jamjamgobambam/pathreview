@@ -30,3 +30,34 @@ Using a local in-memory Redis double, I stored state for two reviews belonging t
 
 **Blockers or open questions:**
 The agent orchestration function in `core/services/review_service.py` is currently a placeholder, so Week 9 should confirm the final review-ID propagation point. The repository also has an unrelated pre-existing mypy failure in `agent/memory/session_store.py:41`.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the review-scoped session fix from PLAN.md. `process_review()` now passes `review_id` into orchestration, and `Orchestrator.run()` uses that identifier for Redis session reads and writes. Added regression tests for separate review keys and orchestration propagation; the focused tests pass.
+
+**Next steps:**
+Run the full required checks, self-review the diff, commit the changes, and open a draft PR for peer feedback.
+
+**Blockers:**
+The baseline repository has pre-existing failures in `make check` and `make test-unit`, including lint/type errors, unrelated unit-test failures, and offline model-download errors.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [pending PR submission]
+
+**Branch:** `fix/47-persist-review-state`
+
+**What you built:**
+Agent state is now persisted under each review's identifier instead of the shared profile identifier. This prevents sequential or concurrent reviews for the same profile from overwriting or reusing one another's Redis-backed session state.
+
+**Tests added or updated:**
+Updated `tests/unit/test_session_state_reproduction.py`, added `tests/unit/test_orchestrator.py`, and added a `process_review()` propagation test in `tests/unit/test_review_service.py`.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** pending
