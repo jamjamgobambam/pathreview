@@ -43,8 +43,11 @@ services:
       - chromadata:/chroma/chroma
     environment:
       ANONYMIZED_TELEMETRY: "false"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - "pip install 'numpy<2' 'chroma-hnswlib==0.7.3' && uvicorn chromadb.app:app --workers 1 --host 0.0.0.0 --port 8000 --proxy-headers"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/heartbeat')"]
       interval: 10s
       timeout: 5s
       retries: 5
