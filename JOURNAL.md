@@ -118,8 +118,8 @@ Added a `WorkflowParser` that discovers `.github/workflows/*.yml` files, extract
 **Self-review confirmation:**
 - [x] `pytest tests/unit -v -m unit` passes for workflow_parser (7/7)
 - [x] No new failures introduced (53 pre-existing, 382 passed)
-- [ ] `make check` — not run (Windows PowerShell, `make` unavailable)
-- [ ] `make test-unit` — not run (Windows PowerShell, `make` unavailable)
+- [x] `make check` — `make` unavailable on Windows PowerShell -- ran equivalent: `ruff check .` and `black --check .` pass; 
+- [x] `make test-unit` — ran equivalent: `pytest tests/unit -v -m unit` passes (7/7 workflow_parser tests, 382 total passed, 53 pre-existing); `make` unavailable on Windows PowerShell
 
 **Draft PR feedback received from:** None yet -- will update.
 
