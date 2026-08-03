@@ -49,11 +49,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add rate limit middleware (must be added before RequestIDMiddleware so
-# request IDs still get attached to 429 responses it returns)
+# Add rate limit middleware. Starlette wraps middleware last-added-outermost,
+# so this MUST stay registered before RequestIDMiddleware below, otherwise
+# 429 responses from this middleware never pass back through
+# RequestIDMiddleware and lose their X-Request-ID header. Do not reorder.
 app.add_middleware(RateLimitMiddleware)
 
-# Add request ID middleware
+# Add request ID middleware (must stay registered after RateLimitMiddleware
+# above, see comment there)
 app.add_middleware(RequestIDMiddleware)
 
 

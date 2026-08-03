@@ -1,5 +1,6 @@
 """Tests for api/middleware/rate_limit.py"""
 
+from datetime import timedelta
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -55,6 +56,18 @@ class TestIdentifyRequest:
 
         assert identifier == "user:user-123"
 
+    def test_expired_bearer_token_falls_back_to_ip(self):
+        expired_token = create_access_token(
+            data={"sub": "user-123"}, expires_delta=timedelta(seconds=-1)
+        )
+        request = _fake_request(
+            headers={"Authorization": f"Bearer {expired_token}"}, ip="10.0.0.4"
+        )
+
+        identifier = _identify_request(request)
+
+        assert identifier == "ip:10.0.0.4"
+
     def test_non_bearer_auth_header_falls_back_to_ip(self):
         request = _fake_request(headers={"Authorization": "Basic dXNlcjpwYXNz"}, ip="10.0.0.3")
 
@@ -98,6 +111,17 @@ class TestRateLimitMiddlewareDispatch:
         assert response.status_code == 429
         assert response.headers["X-RateLimit-Limit"] == "60"
         assert response.headers["X-RateLimit-Remaining"] == "0"
+        assert response.headers["Retry-After"] == "60"
+
+    def test_allowed_request_has_no_retry_after_header(self):
+        with patch("api.middleware.rate_limit.RateLimiter") as mock_limiter_cls:
+            mock_limiter_cls.return_value.check_rate_limit.return_value = (True, 42)
+            client = TestClient(_build_app())
+
+            response = client.get("/")
+
+        assert response.status_code == 200
+        assert "Retry-After" not in response.headers
 
     def test_excluded_path_skips_rate_limiting(self):
         with patch("api.middleware.rate_limit.RateLimiter") as mock_limiter_cls:

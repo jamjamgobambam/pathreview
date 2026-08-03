@@ -47,16 +47,17 @@ None right now.
 
 ### Check-in 2 (end of week)
 
-**PR link:** TBD, opening draft PR next
+**PR link:** https://github.com/ascherj/pathreview/pull/480 (draft)
 
 **Branch:** feat/86-rate-limit-headers
 
 **What you built:**
-TBD
+Wired the existing (previously unused) `RateLimiter` into the request pipeline as a new `RateLimitMiddleware`. It identifies each caller by user id or IP, stamps `X-RateLimit-Limit`/`X-RateLimit-Remaining` on every response, and returns a 429 once someone's over their limit, still with a request id attached.
 
 **Tests added or updated:**
-TBD
+`tests/unit/test_rate_limit_middleware.py` (8 tests, mocked `RateLimiter`, covers identifier selection and header/429 behavior) and `tests/integration/test_rate_limit_headers.py` (4 tests against the real app + real Redis: headers present, remaining count decreases, 429 after 60 requests, `/health` excluded).
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(with documented pre-existing exceptions — see the Week 8 baseline note and the PR description: `ruff`/`mypy`/`pytest` all have pre-existing failures unrelated to this change, confirmed via baseline runs and a `git stash` test before committing. My changes introduce zero new failures.)
 
-**Draft PR feedback received from:** TBD
+**Draft PR feedback received from:** none yet

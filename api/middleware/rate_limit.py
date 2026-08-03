@@ -13,6 +13,7 @@ from safety.rate_limiter import RateLimiter
 log = structlog.get_logger()
 
 EXCLUDED_PATHS = {"/health"}
+WINDOW_SECONDS = 60
 
 
 def _identify_request(request: Request) -> str:
@@ -63,13 +64,16 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         identifier = _identify_request(request)
         limit = settings.rate_limit_per_minute
-        allowed, remaining = self.limiter.check_rate_limit(identifier, limit)
+        allowed, remaining = self.limiter.check_rate_limit(
+            identifier, limit, window_seconds=WINDOW_SECONDS
+        )
 
         if not allowed:
             log.warning("rate_limit_blocked", identifier=identifier, path=request.url.path)
             response: Response = JSONResponse(
                 status_code=429,
                 content={"detail": "Rate limit exceeded"},
+                headers={"Retry-After": str(WINDOW_SECONDS)},
             )
         else:
             response = await call_next(request)
