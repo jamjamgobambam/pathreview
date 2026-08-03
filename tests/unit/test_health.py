@@ -5,6 +5,7 @@ from sqlalchemy import text
 from api.routes.health import health_check
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_postgres_health_check_uses_text_wrapped_sql():
     """
@@ -23,6 +24,7 @@ async def test_postgres_health_check_uses_text_wrapped_sql():
     assert result["dependencies"]["postgres"] == "healthy"
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_postgres_health_check_catches_exceptions():
     """Verify that database exceptions are caught and logged."""
