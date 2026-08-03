@@ -36,3 +36,25 @@ and does not change how the application behaves.
 
 **What I did this week:** reproduced the problem on my own machine, then wrote a
 structured plan for the fix in `PLAN.md`.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from `PLAN.md`. Completed sub-tasks 1–4: added a request body
+section for `POST /profiles` to `docs/API.md` — a `multipart/form-data` + Bearer
+auth note, a field table (`github_username`, `portfolio_url`, `resume_file` with
+types, length limits, and allowed file types), the resume file-type rule with its
+exact `422` message, and a runnable `curl` example. Also added a doc-regression
+unit test at `tests/unit/test_api_docs.py` (7 tests, all passing) that guards the
+documented schema. Committed the doc fix and the test separately.
+
+**Next steps:**
+Do the final `make check` / `make test-unit` verification, fill in the PR template,
+and open the pull request into `ascherj/main`, then record the link in Check-in 2.
+
+**Blockers:**
+None. Note: the repo has pre-existing `make check` (182 ruff errors) and
+`make test-unit` (53 failing tests) issues unrelated to this change — I recorded the
+baseline first and confirmed my change adds none. This will be documented in the PR.
