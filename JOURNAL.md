@@ -23,7 +23,7 @@ This issue has a focused scope with a clear expected behavior and appears to be 
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/daregay/pathreview/commit/<commit-hash>
+**Reproduction commit link:**  https://github.com/daregay/pathreview/commit/3ca92ba
 
 **Reproduction summary:**
 
