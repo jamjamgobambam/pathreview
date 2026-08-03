@@ -79,3 +79,80 @@ ready for final review.
 
 **Blockers:**
 None currently.
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review (not a feature in Summer 2026)
+
+**Summary of feedback:**
+No reviewer feedback was available this term, per the course note. PR #1
+remains open as a draft on branch `fix/151-bias-detector-pattern-matching`.
+
+**How you responded:**
+N/A — no feedback arrived to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the local environment stable was harder than the actual bug fix.
+Between Docker container startup, `python` vs `python3` aliasing on macOS,
+a bcrypt/passlib version mismatch throwing warnings on every login, and
+zsh choking on heredocs when paste-buffering split mid-command, I spent
+more real time on environment friction than on writing the regex fix
+itself. I didn't expect terminal mechanics — quoting, heredoc boundaries,
+pre-commit hooks stashing unstaged changes mid-commit — to be where most
+of the debugging happened, rather than the Python logic.
+
+**What did you learn about working in a large codebase?**
+The failing tests told a much more precise story than the issue
+description did. Reading the issue, I expected "the regex needs to be
+broader." Actually tracing each of the 9 failing tests against the real
+`DISMISSIVE_PATTERNS`/`DEMOGRAPHIC_PATTERNS` regexes showed the bug was
+narrower and weirder than that — singular-only nouns ("developer" but not
+"developers"), a required literal "is" before "lacks," a hardcoded
+"person from" phrase that didn't match "developers from." None of that
+was visible from the issue text alone; it only showed up by running the
+actual test suite and reading assertion failures one by one. I also
+learned that a fix which passes the tests you're targeting can quietly
+break tests you weren't looking at — my first version flipped
+`test_self_taught_comparison_detected` from passing to failing because
+I'd only added "not equal/comparable to" and missed "never equal/comparable
+to." Existing test coverage is what caught that regression, not my own
+review of the diff.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful at exactly the step I found least interesting to do by
+hand: tracing 9 failing tests against 7 regex patterns to find the precise
+mismatch in each one, then generalizing that into a single coherent
+matching strategy (category term + negative term co-occurring in the same
+clause) instead of patching each regex individually. It also helped
+structure the reproduction evidence and PLAN.md into something scoped to
+the actual grading rubric rather than a vague restatement of the issue.
+
+Where it fell short: it couldn't see my full test file up front, so its
+first draft of the fix was an educated guess that got one edge case wrong
+(the "never" vs "not" gap) — it took an actual test run to catch that, not
+foresight. It also couldn't run anything in my environment, so every
+heredoc paste failure, pre-commit hook stash, or `sed` quoting issue on
+macOS had to be diagnosed from pasted terminal output after the fact,
+which is slower than debugging it live would have been.
+
+**What would you do differently if you started over?**
+I'd paste and verify the full test file content earlier, before writing
+any fix, instead of tracing failures from pytest output alone — I could
+have skipped one whole round of "fix broke a passing test" if I'd had the
+complete picture up front. I'd also copy multi-line heredocs from a plain
+text buffer instead of relying on terminal scrollback paste, since that's
+what caused the file corruption partway through Week 9.
+
+**What are you most proud of from this module?**
+Root-causing all 9 failures individually before writing any code. It
+would have been faster to just throw a looser regex at the problem and
+see what stuck, but going test-by-test and identifying that each failure
+had a distinct, specific structural cause (missing plural, missing verb
+form, missing connective phrase) is what let the actual fix generalize
+correctly on close to the first try, rather than needing several more
+rounds of regex whack-a-mole.
