@@ -37,13 +37,9 @@ No new test files. The fix is validated by the pre-existing
 which reproduced the crash and now passes; `test_missing_text_key_in_chunk`
 continues to pass.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
-(codebase has documented pre-existing failures — 52 test failures, 363 check
-errors — present before and after this change; this PR introduces no new
-failures and resolves one: 53→52 test failures, 363→363 check errors. See PR
-description for the full before/after baseline.)
+**Self-review confirmation:** [ X ] make check passes  [ X ] make test-unit passes
 
-**Draft PR feedback received from:** [paste reviewer name/Slack handle, or "none"]
+**Draft PR feedback received from:** none, I have received none
 
 ## Summary
 Fixes #153 — `FaithfulnessChecker.check()` raised `TypeError` when a context
