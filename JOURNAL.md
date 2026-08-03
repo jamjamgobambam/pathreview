@@ -67,3 +67,54 @@ Confirm whether the upstream maintainers prefer the service to return `None` or
 raise a domain-specific exception. The current plan follows the existing
 `profile_service.get_profile()` convention and maps `None` to a generic 404 at
 the route.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed the service-level ownership check in `create_review()` and updated
+the route to return 404 before scheduling background processing. Converted the
+Week 8 failing reproduction into a passing regression test and added route-level
+coverage for rejected and successful review creation.
+
+**Next steps:**
+Run the focused and repository-wide checks, document pre-existing failures,
+self-review the diff against `docs/CONTRIBUTING.md`, and submit the upstream PR.
+
+**Blockers:**
+The repository-wide test and quality commands have unrelated pre-existing
+failures. The review service and route tests pass independently.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [ascherj/pathreview#614](https://github.com/ascherj/pathreview/pull/614)
+
+**Branch:** `fix/163-review-profile-ownership`
+
+**What you built:**
+Review creation now verifies that the requested profile belongs to the
+authenticated user before writing anything. Missing or unowned profiles receive
+the same generic 404 response, and rejected requests do not schedule background
+review processing.
+
+**Tests added or updated:**
+Updated `tests/unit/test_review_service.py` to cover the ownership lookup and
+no-write rejection path and to model synchronous SQLAlchemy results correctly.
+Added `tests/unit/test_review_routes.py` to verify the rejected 404/no-task path
+and the successful pending-review/task path; all 22 tests across those two files
+pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+For this repository's documented baseline, "passes" means the contribution
+introduces no new failures. The full unit run reports 39 unrelated failures,
+361 passes, and 31 tokenizer-download setup errors; all changed-module tests
+pass, and this branch removes 13 pre-existing review-service mock failures.
+Repository-wide linting and typing also retain pre-existing errors, while Ruff
+passes for the changed service and test files and Black reports all four changed
+Python files are formatted.
+
+**Draft PR feedback received from:** none
