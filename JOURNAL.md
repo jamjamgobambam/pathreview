@@ -31,3 +31,34 @@ I reproduced the issue by running `pytest tests/unit/test_review_service.py -q` 
 
 **Blockers or open questions:**
 Need to confirm the cleanest shared fixture pattern so execute() remains AsyncMock while scalars(), first(), and all() behave as non-async result methods.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I reproduced the async-mock failure, updated the review-service unit tests so the mocked `execute` return value behaves like a real SQLAlchemy result object, and verified the targeted test file now passes.
+
+**Next steps:**
+I’m finishing the week by running the relevant validation commands, checking the repo’s contribution standards, and preparing the PR summary and submission details.
+
+**Blockers:**
+None at the moment.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** TBD
+
+**Branch:** `fix/158-review-service-async-mock-tests`
+
+**What you built:**
+I fixed the review-service unit tests by changing the mock result setup so `db.execute()` remains async while the returned result chain behaves like a normal SQLAlchemy result object. This removes the coroutine-related `first()` and `all()` failures that were breaking the tests.
+
+**Tests added or updated:**
+Updated [tests/unit/test_review_service.py](tests/unit/test_review_service.py) to use a shared helper for query-result mocking and to assert the intended behavior for pagination/counting paths.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
