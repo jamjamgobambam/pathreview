@@ -58,3 +58,45 @@ Need to confirm during implementation whether `_strip_markdown()` already
 strips leading whitespace before `_detect_sections()` runs on the markdown
 path — if so, the fix may behave differently for PDF vs. markdown input and
 I'll need to test both paths separately.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in `_detect_sections()` — added `\s*` after each regex
+anchor to allow leading whitespace before section headers. All three tests
+named in issue #147 now pass, and no previously-passing tests broke.
+
+**Next steps:**
+Run `make check` and `make test-unit` for a full before/after comparison,
+write the PR description, and open a draft PR for feedback.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/604
+
+**Branch:** fix/147-resume-section-whitespace
+
+**What you built:**
+Fixed section header detection in the resume parser so it correctly finds
+sections (Education, Skills, etc.) in text with leading whitespace, which is
+common in PDF-extracted resumes. The fix adds `\s*` to the regex patterns in
+`_detect_sections()` so headers are matched regardless of indentation.
+
+**Tests added or updated:**
+No new tests were added — the fix makes three existing tests pass
+(`test_parse_single_column_resume_text`, `test_parse_resume_no_work_experience`,
+`test_detect_sections` in `tests/unit/test_resume_parser.py`), with no
+regressions in previously-passing tests.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(both confirmed clean on the changed file; pre-existing unrelated failures
+elsewhere in the codebase documented in the PR description)
+
+**Draft PR feedback received from:** none yet
