@@ -1,27 +1,67 @@
 """Bias detection in generated feedback."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
 
 
 class BiasDetector:
-    """Detect biased language in feedback."""
+    """Detect biased language in feedback.
+    #FIX  UPDATE: the previous patterns were too rigid but after update,
+    they pass more flexible patterns to detect biase.
+    """
 
     # Genuinely dismissive phrases about educational background
     DISMISSIVE_PATTERNS = [
-        r"(?:bootcamp|self-taught|online\s+course)\s+(?:education|training)\s+is\s+(?:insufficient|inadequate|lacks)",
-        r"(?:bootcamp|self-taught)\s+(?:graduates?|developers?)\s+(?:lack|missing)\s+(?:rigor|fundamentals|proper\s+training)",
-        r"(?:bootcamp|coding\s+bootcamp)\s+(?:doesn't|does\s+not)\s+prepare\s+(?:you|developers?)",
-        r"(?:self-taught|bootcamp)\s+is\s+(?:not|never)\s+(?:equal|comparable)\s+to\s+(?:university|traditional|formal)",
+        (
+            r"(?i)\b(?:(bootcamp|self-taught|online course)\b\W+(?:\w+\W+){0,2}"
+            r"(insufficient|inadequate|(lacks rigor|fundamentals|proper\s+training))\b|"
+            r"(insufficient|inadequate|(lacks rigor|fundamentals|proper\s+training))\b"
+            r"\W+(?:\w+\W+){0,2}(bootcamp|self-taught\b))"
+        ),
+        (
+            r"(?i)\b(?:(bootcamp|coding bootcamp)\b\W+(?:\w+\W+){0,6}"
+            r"(doesn't|does not|can not|can't)\b\W+(?:\w+\W+){0,6}(prepare|code)\b"
+            r"\W+(?:\w+\W+){0,6}(developers|you)|(developers|you)\b"
+            r"\W+(?:\w+\W+){0,6}(aren't|are not)\b\W+(?:\w+\W+){0,6}"
+            r"(bootcamp|coding bootcamp|code\b))"
+        ),
+        (
+            r"(?i)\b(?:(bootcamp|coding bootcamp|self-taught)\b\W+(?:\w+\W+){0,6}"
+            r"(is|not)\b\W+(?:\w+\W+){0,6}(equal|comparable)\b\W+(?:\w+\W+){0,6}"
+            r"(university|traditional|formal))"
+        ),
+        (
+            r"(?i)\b(?:(bootcamp)\b\W+(?:\w+\W+){0,6}(graduates|developers|programmers)\b"
+            r"\W+(?:\w+\W+){0,6}(can not|can't|lack)\b\W+(?:\w+\W+){0,6}(code|training)\b)"
+        ),
+        (
+            r"(?i)\b(?:(bootcamp|coding bootcamp)\b\W+(?:\w+\W+){0,6}"
+            r"(graduates|programmers|developers)\b\W+(?:\w+\W+){0,6}"
+            r"(can not|can't|lack)\b\W+(?:\w+\W+){0,6})"
+        ),
     ]
 
     # Demographic assumptions (about age, background, identity)
     DEMOGRAPHIC_PATTERNS = [
-        r"(?:young|old|aged)\s+(?:person|developer|programmer)\s+(?:can't|cannot|won't|will\s+not)",
-        r"(?:person\s+from|coming\s+from)\s+(?:poor|rich|working[\s-]?class)",
-        r"(?:immigrant|international|foreign)\s+developers?.*(?:can't|cannot|won't|struggle)",
+        (
+            r"(?i)\b(?:(young|old|aged)\b\W+(?:\w+\W+){0,6}"
+            r"(graduates|developers|developers|person|programmer)\b"
+            r"\W+(?:\w+\W+){0,6}(can not|can't|won't|will not)\b"
+            r"\W+(?:\w+\W+){0,6}(handle|code|learn)\b)"
+        ),
+        (
+            r"(?i)\b(?:\w+\W+){0,6}(person|developers)\b\W+(?:\w+\W+){0,6}"
+            r"(|from|coming|(coming from))\b\W+(?:\w+\W+){0,6}(poor|working class)\b"
+            r"\W+(?:\w+\W+){0,6}(can't|won't)\b"
+        ),
+        (
+            r"(?i)\b(?:(immigrant|international|foreign)\b\W+(?:\w+\W+){0,6}"
+            r"(struggle|can't|cannot|won't)\b\W+(?:\w+\W+){0,6}"
+            r"(code|coding|codebases))\b"
+        ),
     ]
 
     @staticmethod
