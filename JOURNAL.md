@@ -95,3 +95,36 @@ context, in rag/evaluator/faithfulness_checker.py.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the ownership validation in `create_review()` so reviews can only be created for profiles that belong to the authenticated user. I also added regression tests covering both the happy path and the unauthorized cross-user case.
+
+**Next steps:**
+I’m finalizing verification and preparing the PR description with the reproduction summary and evidence from the test run.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [pending submission]
+
+**Branch:** `fix/152-faithfulness-short-claims`
+
+**What you built:**
+I fixed the IDOR vulnerability in the review creation flow by enforcing that `create_review()` only accepts profiles owned by the authenticated user. This prevents a logged-in user from creating reviews for another user’s profile by supplying an arbitrary `profile_id`.
+
+**Tests added or updated:**
+I updated `tests/unit/test_review_service.py` to add a regression test for unauthorized review creation and to ensure the existing review service behavior remains covered.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
