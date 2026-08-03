@@ -41,9 +41,12 @@ There is no share token, no public endpoint, and no public route anywhere in the
 **Backend (Python / FastAPI + async SQLAlchemy)**
 - `core/models/share_link.py`: a **new** `ShareLink` model holding `id`, `review_id` (FK ->
   `reviews.id`, `ondelete="CASCADE"`), `token` (unique, indexed), `expires_at`, and `created_at`.
-- `core/models/__init__.py`: register `ShareLink` in the imports and `__all__` so
-  `Base.metadata.create_all()` (called by `init_db()` on startup, `core/database.py:42-45`)
-  creates the table. There is no Alembic in this repo, so table creation is import-driven.
+- `core/models/__init__.py`: register `ShareLink` in the imports and `__all__` so it is part of
+  `Base.metadata`. The repo uses **Alembic** for schema management (`alembic/versions/`,
+  migrations `001`/`002`; `make setup` and `make reset-db` run `alembic upgrade head`), so add a
+  new migration `003_add_share_links.py` to create the table. `init_db()`'s
+  `Base.metadata.create_all()` on startup (`core/database.py:42-45`) only fills in *missing* tables
+  as a fallback and is not the authoritative schema path.
 - `core/services/share_service.py`: **new** service functions `create_share_link(db, review_id, user_id)`
   (owner check and token generation) and `get_review_by_share_token(db, token)` (token lookup and
   expiry check, no user scope).
@@ -75,7 +78,8 @@ There is no share token, no public endpoint, and no public route anywhere in the
 ### Plan
 
 1. **Data + service layer.** Add the `ShareLink` model, register it in
-   `core/models/__init__.py`, and write `core/services/share_service.py`.
+   `core/models/__init__.py`, add an Alembic migration (`003_add_share_links.py`) and run
+   `alembic upgrade head`, then write `core/services/share_service.py`.
    `create_share_link` verifies the review belongs to `user_id` (reuse the join in
    `get_review`), generates a token with `secrets.token_urlsafe(32)`, and stores
    `expires_at = datetime.utcnow() + timedelta(days=30)`. If a non-expired link already exists,
@@ -111,10 +115,13 @@ There is no share token, no public endpoint, and no public route anywhere in the
   `ReviewResponse` (which exposes `profile_id`). Risk lives in `api/routes/reviews.py` and the
   new `PublicReviewResponse` in `api/schemas/review.py`, where an over-broad schema would leak
   owner data. Mitigate by whitelisting fields, not blacklisting.
-- **No migration tooling.** The repo has no Alembic. Tables come from `Base.metadata.create_all`
-  at startup (`core/database.py:42-45`), which only creates *missing* tables and never alters
-  existing ones. The new table appears on the next restart, but I'm unsure whether the Postgres
-  volume in `docker compose` persists an old schema, so it may need a restart or a manual `CREATE`.
+- **Migration ordering.** The repo uses Alembic. The new table is created by migration `003`
+  (`down_revision = "002"`), applied with `alembic upgrade head`. `init_db()`'s
+  `Base.metadata.create_all` at startup (`core/database.py:42-45`) is only a fallback that creates
+  *missing* tables (with `checkfirst=True`) and never alters existing ones, so the migration is the
+  source of truth. The `docker compose` Postgres volume persists across restarts, so the table must
+  be added via the migration — a restart alone won't create it unless `create_all` happens to run
+  against a schema that lacks it.
 - **Token expiry only enforced in code.** Expiry is a `datetime` compared at request time, not a
   DB TTL, so old rows do not disappear on their own. `create_share_link` handles this by deleting
   a review's expired rows whenever a new link is generated, which keeps the table bounded without
