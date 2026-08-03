@@ -58,7 +58,7 @@ Still deciding whether "no ingested content" should be checked off the three pro
 
 ### Check-in 2 (end of week)
 
-**PR link:** (to be filled in once I open the PR myself, see the title and description I've drafted in my notes)
+**PR link:** https://github.com/ascherj/pathreview/pull/673
 
 **Branch:** test/88-review-no-ingested-content
 
