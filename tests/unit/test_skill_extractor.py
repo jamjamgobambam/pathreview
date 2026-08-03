@@ -186,6 +186,43 @@ class TestSkillExtractor:
         skill_names = [s.name for s in result]
         assert any("typescript" in s.lower() for s in skill_names)
 
+    def test_js_keywords_in_text(self, extractor):
+        """Test JavaScript detection from keywords in prose."""
+        text = "Used const and let declarations with export functions and var assignments."
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("javascript" in s.lower() for s in skill_names)
+
+    def test_javascript_keyword_in_prose(self, extractor):
+        """Test JavaScript detection from the word 'javascript' in prose."""
+        text = "I have three years of experience with JavaScript development."
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("javascript" in s.lower() for s in skill_names)
+
+    def test_typescript_keyword_in_prose(self, extractor):
+        """Test TypeScript detection from the word 'typescript' in prose."""
+        text = "Migrated the codebase from JavaScript to TypeScript for better type safety."
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("typescript" in s.lower() for s in skill_names)
+
+    def test_typescript_type_annotations(self, extractor):
+        """Test TypeScript detection from type annotation syntax."""
+        text = """
+        function greet(name: string): void {
+            console.log(name);
+        }
+        async function fetch(): Promise<string> {}
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("typescript" in s.lower() for s in skill_names)
+
     def test_javascript_detection(self, extractor):
         """Test JavaScript detection."""
         text = """

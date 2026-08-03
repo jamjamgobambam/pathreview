@@ -180,16 +180,31 @@ class SkillExtractor:
             js_evidence.append("JavaScript file reference (.js/.jsx)")
         if re.search(r"\w+\.tsx?\b", text):
             js_evidence.append("TypeScript file reference (.ts/.tsx)")
-        if re.search(r"\b(import|require)\s+", text):
+        if "javascript" in text_lower:
+            js_evidence.append("JavaScript keyword found")
+        if re.search(r"\b(import|require)\b", text):
             js_evidence.append("CommonJS or ES6 imports")
+        if re.search(r"\b(const|let|var|export|function)\b", text):
+            js_evidence.append("JavaScript keywords (const/let/var/export/function)")
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
-        if js_evidence:
-            confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
+        ts_evidence = []
+        if "typescript" in text_lower:
+            ts_evidence.append("TypeScript keyword found")
+        if re.search(r"\binterface\s+\w+", text):
+            ts_evidence.append("TypeScript interface declaration")
+        if re.search(r":\s*(string|number|boolean|void|never|any)\b", text):
+            ts_evidence.append("TypeScript type annotations")
+        if re.search(r"Promise<|Array<|Record<", text):
+            ts_evidence.append("TypeScript generic types")
+
+        if js_evidence or ts_evidence:
+            confidence = min(0.95, 0.6 + len(js_evidence + ts_evidence) * 0.1)
             ts_signals = (
                 ".ts" in str(filename or "").lower()
                 or "TypeScript file reference (.ts/.tsx)" in js_evidence
+                or bool(ts_evidence)
             )
             lang = "TypeScript" if ts_signals else "JavaScript"
             skills_dict[lang] = SkillDetection(
