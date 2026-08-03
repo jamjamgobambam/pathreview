@@ -64,3 +64,38 @@ No blockers or dependencies on other issues. 3 other students have claimed it; c
 - Confirm if `PyYAML` is already in `requirements.txt`. Should I plan out the dependency addition?
 
 ---
+
+## Week 9 — Solution building & PR submission
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+- Sub-task 1 (dispatch mechanism): Confirmed `__init__.py` is empty and parsers are manually instantiated in `pipeline.py`. `WorkflowParser` will be imported and wired alongside `ResumeParser`/`ReadmeParser`.
+- Sub-task 2 (reproduction): Already completed in Week 8. Reproduction commit confirmed zero CI/CD skills from `.github/workflows/*.yml`.
+- Sub-task 3 (parser implementation): `workflow_parser.py` implemented with `parse()` accepting path strings (heuristic-based routing to `_parse_from_path()`), `yaml.safe_load` parsing, and `_extract_workflow_text()` extracting job names, step names, `uses:` references, and `run:` commands. Emits `"github actions"` header so `SkillExtractor.TOOLS` substring matching fires correctly.
+- Sub-task 4 (keyword expansion): Identified exact insertion point in `skill_extractor.py` — adding `"github actions": 0.90`, `"pytest": 0.85`, `"deployment": 0.85` to `TOOLS`.
+- Sub-task 5 (unit tests): `tests/unit/test_workflow_parser.py` populated with 7 tests covering single workflow, multiple workflows, missing directory, malformed YAML, empty file, action reference extraction, and metadata preservation. All mocks use `pathlib.Path.glob` and `yaml.safe_load` to avoid disk I/O.
+- Dependency resolved: `pyproject.toml` confirmed as dependency source; `PyYAML&gt;=6.0` added to `dependencies` array. `pip install pyyaml` confirmed requirement already satisfied (6.0.3).
+
+**Next steps:**
+- Create `ingestion/parsers/workflow_parser.py` and overwrite `tests/unit/test_workflow_parser.py` with corrected implementation.
+- Modify `skill_extractor.py` TOOLS dict with three new CI/CD keywords.
+- Modify `pipeline.py` with `WorkflowParser` import, instantiation, and `ingest_workflows()` method.
+- Run `pytest tests/unit -v -m unit` to verify workflow_parser tests pass and no new failures introduced.
+- Run `make check` equivalent (or `ruff check .` / `black --check .` if available) for linting/formatting before opening draft PR.
+- Integration smoke test against Week 8 reproduction repo to confirm CI/CD skills now appear.
+
+**Blockers:**
+- `make` command not available in Windows PowerShell; running `pytest` directly as workaround. No other blockers.
+
+**Pre-existing failures observed (baseline):**
+- `test_skill_extractor.py::test_devops_tool_detection`
+- `test_skill_extractor.py::test_javascript_detection`
+- `test_skill_extractor.py::test_docker_compose_detection`
+- `test_structural_chunker.py::test_document_with_no_headings`
+- `test_tech_detector.py::test_node_modules_excluded`
+- `test_tech_detector.py::test_build_directory_excluded`

@@ -10,7 +10,7 @@ from .embeddings.provider import EmbeddingProvider
 from .parsers.readme_parser import ReadmeParser
 from .parsers.repo_analyzer import RepoAnalyzer
 from .parsers.resume_parser import ResumeParser
-
+from .parsers.workflow_parser import WorkflowParser
 
 logger = structlog.get_logger()
 
@@ -51,7 +51,8 @@ class IngestionPipeline:
         self.resume_parser = ResumeParser()
         self.readme_parser = ReadmeParser()
         self.repo_analyzer = RepoAnalyzer()
-
+        self.workflow_parser = WorkflowParser()
+        
     def ingest_resume(
         self,
         profile_id: str,
@@ -265,6 +266,75 @@ class IngestionPipeline:
         except Exception as e:
             logger.error(
                 "Repository ingestion failed",
+                profile_id=profile_id,
+                repo_name=repo_name,
+                error=str(e),
+            )
+            raise
+
+    def ingest_workflows(
+        self,
+        profile_id: str,
+        repo_path: str,
+        repo_name: str,
+    ) -> IngestResult:
+        """
+        Ingest GitHub Actions workflow files from a repository.
+
+        Args:
+            profile_id: ID of the profile owner
+            repo_path: Local filesystem path to the repository
+            repo_name: Name of the repository
+
+        Returns:
+            IngestResult with ingestion status
+        """
+        source_id = f"workflow_{profile_id}_{repo_name}_{self._hash_content(repo_path)}"
+
+        logger.info(
+            "Starting workflow ingestion",
+            profile_id=profile_id,
+            repo_name=repo_name,
+            source_id=source_id,
+        )
+
+        skip_result = self._check_skip(source_id, "workflow")
+        if skip_result:
+            return skip_result
+
+        try:
+            parse_result = self.workflow_parser.parse(repo_path)
+            logger.info(
+                "Workflows parsed successfully",
+                file_count=parse_result.metadata.get("file_count"),
+                workflow_names=parse_result.metadata.get("workflow_names"),
+            )
+
+            metadata = parse_result.metadata.copy()
+            metadata.update({
+                "source_id": source_id,
+                "profile_id": profile_id,
+                "repo_name": repo_name,
+                "source_type": "workflow",
+            })
+
+            chunks = self.strategy_selector.chunk(parse_result.text, metadata)
+            logger.info("Workflows chunked successfully", chunk_count=len(chunks))
+
+            self.batch_processor.process(chunks)
+            logger.info("Workflow embeddings stored", chunk_count=len(chunks))
+
+            self._record_ingested_source(source_id, "workflow", profile_id, len(chunks))
+
+            return IngestResult(
+                source_id=source_id,
+                chunk_count=len(chunks),
+                skipped=False,
+            )
+
+        except Exception as e:
+            logger.error(
+                "Workflow ingestion failed",
                 profile_id=profile_id,
                 repo_name=repo_name,
                 error=str(e),

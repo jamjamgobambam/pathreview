@@ -103,6 +103,9 @@ class SkillExtractor:
         "jenkins": 0.85,
         "terraform": 0.85,
         "ansible": 0.85,
+        "github actions": 0.90,
+        "pytest": 0.85,
+        "deployment": 0.85,
     }
 
     def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
