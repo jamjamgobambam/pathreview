@@ -67,21 +67,19 @@ No blockers or dependencies on other issues. 3 other students have claimed it; c
 
 ## Week 9 — Solution building & PR submission
 
----
-
-## Week 9 — Solution building & PR submission
-
 ### Check-in 1 (mid-week)
 
 **Current progress:**
-- Sub-task 1 (dispatch mechanism): Confirmed `__init__.py` is empty and parsers are manually instantiated in `pipeline.py`. `WorkflowParser` will be imported and wired alongside `ResumeParser`/`ReadmeParser`.
-- Sub-task 2 (reproduction): Already completed in Week 8. Reproduction commit confirmed zero CI/CD skills from `.github/workflows/*.yml`.
-- Sub-task 3 (parser implementation): `workflow_parser.py` implemented with `parse()` accepting path strings (heuristic-based routing to `_parse_from_path()`), `yaml.safe_load` parsing, and `_extract_workflow_text()` extracting job names, step names, `uses:` references, and `run:` commands. Emits `"github actions"` header so `SkillExtractor.TOOLS` substring matching fires correctly.
-- Sub-task 4 (keyword expansion): Identified exact insertion point in `skill_extractor.py` — adding `"github actions": 0.90`, `"pytest": 0.85`, `"deployment": 0.85` to `TOOLS`.
-- Sub-task 5 (unit tests): `tests/unit/test_workflow_parser.py` populated with 7 tests covering single workflow, multiple workflows, missing directory, malformed YAML, empty file, action reference extraction, and metadata preservation. All mocks use `pathlib.Path.glob` and `yaml.safe_load` to avoid disk I/O.
-- Dependency resolved: `pyproject.toml` confirmed as dependency source; `PyYAML&gt;=6.0` added to `dependencies` array. `pip install pyyaml` confirmed requirement already satisfied (6.0.3).
+- *Sub-task 1 (dispatch mechanism):* Confirmed `__init__.py` is empty and parsers are manually instantiated in `pipeline.py`. `WorkflowParser` will be imported and wired alongside `ResumeParser`/`ReadmeParser`.
+- *Sub-task 2 (reproduction):* Already completed in Week 8. Reproduction commit confirmed zero CI/CD skills from `.github/workflows/*.yml`.
+- *Sub-task 3 (parser implementation):* `workflow_parser.py` implemented with `parse()` accepting path strings (heuristic-based routing to `_parse_from_path()`), `yaml.safe_load` parsing, and `_extract_workflow_text()` extracting job names, step names, `uses:` references, and `run:` commands. Emits `"github actions"` header so `SkillExtractor.TOOLS` substring matching fires correctly.
+- *Sub-task 4 (keyword expansion):* Identified exact insertion point in `skill_extractor.py` — adding `"github actions": 0.90`, `"pytest": 0.85`, `"deployment": 0.85` to `TOOLS`.
+- *Sub-task 5 (unit tests):* `tests/unit/test_workflow_parser.py` populated with 7 tests covering single workflow, multiple workflows, missing directory, malformed YAML, empty file, action reference extraction, and metadata preservation. All mocks use `pathlib.Path.glob` and `yaml.safe_load` to avoid disk I/O.
+- *Dependency resolved:* `pyproject.toml` confirmed as dependency source; `PyYAML&gt;=6.0` added to `dependencies` array. `pip install pyyaml` confirmed requirement already satisfied (6.0.3).
+- *Baseline test run:* 54 pre-existing failures across unrelated modules (batch_processor, bias_detector, faithfulness_checker, keyword_search, output_parser, pii_scrubber, prompt_defense, readme_parser, readme_scorer, relevance_scorer, resume_parser, review_service, security, skill_extractor, structural_chunker, tech_detector). All 7 workflow_parser tests pass after parser implementation.
 
 **Next steps:**
+- Commit `workflow_parser.py` + `test_workflow_parser.py` + `pyproject.toml` update as first implementation commit.
 - Create `ingestion/parsers/workflow_parser.py` and overwrite `tests/unit/test_workflow_parser.py` with corrected implementation.
 - Modify `skill_extractor.py` TOOLS dict with three new CI/CD keywords.
 - Modify `pipeline.py` with `WorkflowParser` import, instantiation, and `ingest_workflows()` method.
@@ -99,3 +97,5 @@ No blockers or dependencies on other issues. 3 other students have claimed it; c
 - `test_structural_chunker.py::test_document_with_no_headings`
 - `test_tech_detector.py::test_node_modules_excluded`
 - `test_tech_detector.py::test_build_directory_excluded`
+
+---
