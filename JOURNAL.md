@@ -79,7 +79,7 @@ fix.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(PR opened against `ascherj/pathreview` — URL pasted here on submission)_
+**PR link:** https://github.com/ascherj/pathreview/pull/635
 
 **Branch:** `fix/68-health-safety-event-count`
 
