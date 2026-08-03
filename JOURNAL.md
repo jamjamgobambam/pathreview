@@ -260,7 +260,7 @@ it does not pollute the PR) and heavy pre-existing failures in `make check` and
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(opened from branch `feat/101-public-review-sharing` — see PR URL added on submission)_
+**PR link:** https://github.com/ascherj/pathreview/pull/634
 
 **Branch:** `feat/101-public-review-sharing`
 
