@@ -95,3 +95,22 @@ Running `LLM_PROVIDER=mock python scripts/run_evals.py` exits 0 and prints "Resu
 
 **Blockers or open questions:**
 No implementation blockers remain. Open scope questions include whether actionability scoring is required, whether score thresholds should fail CI, the expected benchmark and report schemas, and whether `eval_results.json` should be committed or treated as a generated artifact.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All six PLAN.md steps are implemented and committed. Step 2 (repair the `Chunk` → `VectorStore` seam) landed first because nothing downstream composes without it: [`f3d6918`](https://github.com/ChariPramod/pathreview-pramod/commit/f3d6918f5126f89b1d763eec4d57b9b9a7f90cc3) makes `VectorStore.add_chunks` read `source_id`/`chunk_index` from `chunk.metadata` and derive ids as `{source_id}_chunk_{chunk_index}`, matching the convention `BatchEmbeddingProcessor._store_embedding` already writes. Step 1 followed in [`c0a9db4`](https://github.com/ChariPramod/pathreview-pramod/commit/c0a9db4a1db1caa795258a624085d595ada0f7cb): `MockReviewGenerator` plus `get_review_generator()`, which is the first code in the repository to read `settings.llm_provider` for generation. Step 3 added four benchmark portfolios in [`7fd944c`](https://github.com/ChariPramod/pathreview-pramod/commit/7fd944c42749a45eedf1c2a1ec44be487d31bf26). Steps 4 and 5 landed as [`a58f625`](https://github.com/ChariPramod/pathreview-pramod/commit/a58f6259132268ff805970e61334aa356c652bee) (`rag/evaluator/benchmark_runner.py`, the composition seam) and [`769409e`](https://github.com/ChariPramod/pathreview-pramod/commit/769409e9e98ef4fa423131ffb2cb3a7bcffae878) (`scripts/run_evals.py` as a thin CLI).
+
+What works now: `LLM_PROVIDER=mock python scripts/run_evals.py` chunks, embeds, indexes, retrieves, generates and scores four portfolios over 11 queries with no database, Redis, Docker service or network call, and writes a 4.8 KB `eval_results.json`. Two consecutive runs produce byte-identical files, and a run under Python 3.11.14 (the version `eval.yml` uses) produces a file byte-identical to one under the local Python 3.14. 87 new unit tests pass.
+
+One mid-flight correction is worth recording: the first `MockReviewGenerator` pooled salient terms across all retrieved chunks, and the benchmark run came back with faithfulness of exactly 0.8000 on all four portfolios — a constant, which is precisely the "measures nothing" failure PLAN.md's risk section predicted a mock could introduce. [`6c2d27a`](https://github.com/ChariPramod/pathreview-pramod/commit/6c2d27adf6bb184fb84b5be38838ba9d15312cdc) reworked it to ground each sentence in a single chunk, so a thin chunk produces a claim the faithfulness checker scores as unsupported. The metric now separates the deliberately sparse portfolio (0.60) from the dense ones (0.80).
+
+**Next steps:**
+Open the draft PR against the upstream repository with the full template completed, request peer review, and respond to whatever comes back. Then mark the PR ready for review and complete Check-in 2. Four scope questions still need a maintainer's answer and are raised in the PR rather than silently decided: whether actionability is in scope, whether the runner should ever exit non-zero on low scores, whether `eval_results.json` should be committed or ignored, and whether the benchmark and report schemas are acceptable.
+
+**Blockers:**
+None blocking implementation. Two pre-existing conditions were measured rather than fixed, so they are not mistaken for regressions later: `make test-unit` fails with 53 pre-existing failures on the base commit (identical failure set before and after this work; 375 passing → 462 passing), and `make lint` reports 182 pre-existing ruff errors, so `make check` exits at its first step and never reaches `black`/`mypy`. Zero of either count comes from files this work adds or edits.
