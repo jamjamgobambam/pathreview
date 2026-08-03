@@ -18,6 +18,7 @@
 **Issue selection notes ("Is this right for me?" checklist):**
 [I chose this issue because it is my first open source contribution and I wanted to start with a manageable Tier 1 bug. I was able to understand the problem, locate the affected ingestion and chunking files, and identify what the expected behavior should be after the fix. The issue has clear reproduction steps and a related test, which makes it a good fit for learning how to contribute to a larger codebase while keeping the scope realistic for the project timeline.]
 
+---
 
 ## Week 8 — Reproduction & solution planning
 
@@ -37,3 +38,17 @@ print(c.chunk(text, {"source": "test"}))
 
 - The test fails because StructuralChunker.chunk() returns an empty list for a document without markdown headings
 - The issue originates in ingestion/chunking/structural_chunker.py, where _extract_sections() only collects content after encountering a markdown heading
+
+**Reproduction commit link:** 
+[(https://github.com/JairVilleda/pathreview/commit/8b851147b6b2d73ee5a711a93f915ca95782afea)] 
+
+**Reproduction summary:**
+I reproduced the issue by running the existing unit test for StructuralChunker and by testing it with a document containing no markdown headings. In both cases, StructuralChunker.chunk() returned an empty list instead of producing at least one chunk.
+
+**PLAN.md link:** 
+[(https://github.com/JairVilleda/pathreview/blob/fix/149-structural-chunker-fallback/PLAN.md)]
+
+**Blockers or open questions:**
+[None at this time.]
+
+---
