@@ -38,3 +38,37 @@ Reproduced the bug in isolation by calling `redis.Redis(host=settings.redis_host
 
 **Blockers or open questions:**
 None blocking. One dependency to keep in mind for Week 9: fixing this endpoint required type-annotating `health_check()`, which surfaced an unrelated pre-existing bug (issue #154, raw SQL string passed to `db.execute()`). I suppressed it with a scoped `# type: ignore` comment rather than fixing it, to keep this PR limited to #155 — noted in `PLAN.md` under Risks & unknowns in case #154 gets fixed independently and the suppression comment needs cleanup.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All sub-tasks from `PLAN.md` are implemented: the Redis client in `api/routes/health.py` is now built via `redis.Redis.from_url(settings.redis_url, decode_responses=True)` instead of the non-existent `settings.redis_host`/`settings.redis_port`, the endpoint signature is type-annotated (`Annotated[AsyncSession, Depends(get_db)]`, `-> dict[str, Any]`), and two unit tests were added in `tests/unit/test_health_check.py` covering the healthy path and a real Redis ping failure.
+
+I also ran a full self-review pass beyond just the changed files: `ruff check .`, `black --check .`, and `python -m pytest tests/unit` against the whole repo to see the baseline, not just my own files. On the changed files specifically, `ruff` and `black` pass cleanly and both new tests pass. Repo-wide, there are pre-existing failures unrelated to this change: 53 pre-existing unit test failures (e.g. `test_review_service.py` fails due to an unrelated `AttributeError: 'coroutine' object has no attribute 'first'` in `core/services/review_service.py`, nothing to do with Redis/health), 178 pre-existing `ruff` findings elsewhere in the repo, and `mypy` errors from missing third-party stubs (`PyPDF2`, `jose`, `passlib`, `rank_bm25`) plus a numpy stub incompatible with Python 3.13. None of these touch `api/routes/health.py` or `tests/unit/test_health_check.py`, and none existed because of my change — I confirmed by running the same commands against `main` before starting.
+
+**Next steps:**
+Get peer/mentor feedback on the open PR (#244) in the course Slack channel, incorporate any requested changes, and finalize the PR description so it accurately reflects the `from_url()` approach and documents the pre-existing failures above.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/244
+
+**Branch:** `fix/155-health-check-redis-host`
+
+**What you built:**
+Fixed the `/health` endpoint's Redis check, which raised `AttributeError` on every request because `Settings` only defines `redis_url`, not `redis_host`/`redis_port`. The client is now built with `redis.Redis.from_url(settings.redis_url, decode_responses=True)`, so `/health` correctly reports Redis's real status instead of always showing `"unhealthy"`.
+
+**Tests added or updated:**
+Added `tests/unit/test_health_check.py` with two tests: `test_redis_check_uses_redis_url_not_missing_attrs` (verifies the client is constructed from `settings.redis_url` via `from_url` rather than the missing host/port attributes) and `test_redis_check_reports_unhealthy_when_ping_fails` (verifies the endpoint reports `"redis": "unhealthy"` with a 503 when Redis ping genuinely fails, so real failures still surface correctly).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+*(On changed files: `ruff`, `black`, and `mypy` pass with no new errors, and both new tests pass. Repo-wide, 53 pre-existing test failures, 178 pre-existing `ruff` findings, and several pre-existing `mypy` stub errors exist on `main`/unrelated files — confirmed unaffected by this change; see Check-in 1 for detail.)*
+
+**Draft PR feedback received from:** A cohort peer, via the course Slack review channel — confirmed the `redis.Redis.from_url()` approach was correct and the test coverage was sufficient; no changes requested to the reviewed code.
