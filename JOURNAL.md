@@ -49,16 +49,17 @@ The codebase has heavy pre-existing failures before I touched anything (53 faili
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/627
 
 **Branch:** feat/101-add-copy-link-button
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+A new "Copy link" button on a completed review that gives the owner a public, no-login URL to a read-only view of the review, which expires 30 days after it's created. The button calls a new authed endpoint that mints a share token, the frontend builds the public URL from it, and a new public endpoint serves a trimmed read-only view (404 for an unknown or malformed token, 410 for an expired one) that leaves out any owner-linking or internal fields. The existing Share button is left untouched.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+Added `tests/unit/test_share_link.py` (9 tests): the `create_share_link`/`get_share_link` service functions, the public view endpoint's 404/410/success paths, and the mint endpoint's ownership check. All pass.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both in the "no new failures vs. the pre-existing baseline" sense — the repo already had 53 failing unit tests, 182 ruff errors, and 103 mypy errors before my changes; after my changes those numbers are unchanged aside from my 9 new passing tests and 2 fewer ruff errors. Documented in the PR.)
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
