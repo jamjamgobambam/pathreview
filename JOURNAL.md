@@ -50,7 +50,7 @@ None on the fix itself. This is a documentation-only issue, so there is no appli
 
 ### Check-in 2 (end of week)
 
-**PR link:** _[to be added when the PR is opened]_
+**PR link:** https://github.com/ascherj/pathreview/pull/714
 
 **Branch:** `docs/36-hybrid-retrieval-scoring`
 
@@ -60,8 +60,8 @@ A new "Hybrid Retrieval Scoring" subsection in `docs/ARCHITECTURE.md` that expla
 **Tests added or updated:**
 None. This is a documentation-only change to `docs/ARCHITECTURE.md`, which is not covered by unit tests. No source code was modified, so no tests were added or updated.
 
-**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+**Self-review confirmation:** [x] make check passes [x] make test-unit passes
 
 > Note on pre-existing failures: before making any change, `make check` reported 182 ruff errors and `make test-unit` reported 53 failed / 375 passed. These failures are all in pre-existing Python source and test files (e.g. `test_pii_scrubber.py`, `test_review_service.py`, `test_resume_parser.py`, `test_tech_detector.py`) and are unrelated to this issue. My change touches only `docs/ARCHITECTURE.md` (zero Python), so it introduces no new failures — the pre-commit hooks confirm no Python files were checked. Per the Week 9 guidance, "passes" here means my changes introduce no new failures.
 
-**Draft PR feedback received from:** _[name or Slack handle, or "none"]_
+**Draft PR feedback received from:** none
