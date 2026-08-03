@@ -63,7 +63,7 @@ None for the core suite. Full-repo `make check` / `make test-unit` still report 
 
 ### Check-in 2 (submission)
 
-**PR link:** [will update after `gh pr create`]
+**PR link:** https://github.com/ascherj/pathreview/pull/640
 
 **Branch:** `test/71-prompt-injection-red-team`
 
