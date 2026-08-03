@@ -39,3 +39,37 @@ I wrote a test that POSTs to /reviews for a profile with no github username, por
 
 **Blockers or open questions:**
 Still deciding whether "no ingested content" should be checked off the three profile fields directly or by counting IngestedSource rows for the profile. They're equivalent today but might not stay that way if ingestion changes later. Also haven't checked yet whether the frontend assumes review creation always succeeds, that needs a look before the actual fix goes in during week 9.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+- I reviewed the tests/unit/ files to understand the pytest structure. I noticed standard patterns like prefixing names with "test", tagging classes with @pytest.mark.unit, and using @pytest.fixture for reusable setup and mocks.
+- I started creating fixtures and getting a better handle on how mocking is implemented while working on test_review_routes.py.
+
+**Next steps:**
+- I have to work on finalizing the test file to ensure all edge cases associated with this issue are covered.
+
+**Blockers:**
+- I'm still getting used to mocks, fixtures, and syntax.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** (to be filled in once I open the PR myself, see the title and description I've drafted in my notes)
+
+**Branch:** test/88-review-no-ingested-content
+
+**What you built:**
+POST /reviews now looks up the profile before creating anything, using the existing get_profile service. If the profile doesn't exist or isn't owned by the current user it returns 404, and if the profile exists but has no github username, portfolio url, or resume text, it returns 422 with a message explaining why. Only after both checks pass does it go on to create the review and schedule the background processing like before.
+
+**Tests added or updated:**
+tests/unit/test_review_routes.py now has three tests instead of the one reproduction test from week 8. One confirms 422 for a profile with no content, one confirms 404 for a profile that doesn't exist, and one is a regression check confirming a profile that does have content still gets back a 200 with status pending.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+Note on what "passes" means here: this codebase already has pre-existing failures unrelated to my change. make lint has 180 pre-existing errors repo wide (my two files went from 14 to 12 since I cleaned up an unused import and import ordering along the way), make typecheck fails early because of a numpy stub compatibility issue in this environment that happens with or without my change, and make test-unit already had 53 failing tests before I touched anything. I confirmed none of that is new. Before my fix, running the full suite gave 54 failed and 375 passed. After my fix it's 53 failed and 378 passed, so the one test I expected to flip did, two more tests got added, and nothing else changed. Scoped mypy on api/ and core/ with --ignore-missing-imports also stayed at exactly 62 errors before and after.
+
+**Draft PR feedback received from:** none
