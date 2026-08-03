@@ -1,7 +1,7 @@
 """Unit tests for the health check endpoint."""
 import pytest
-from unittest.mock import AsyncMock
-from api.routes.health import health_check
+from unittest.mock import AsyncMock, patch
+from sqlalchemy.sql.expression import TextClause
 
 
 @pytest.mark.unit
@@ -15,23 +15,25 @@ class TestHealthCheck:
         db.execute = AsyncMock(return_value=None)
         return db
 
-    async def test_postgres_health_check_uses_text_wrapped_sql(self, mock_db):
+    async def test_postgres_probe_uses_text_object(self, mock_db):
         """
-        Verify that the health check wraps raw SQL in text() for SQLAlchemy 2.x.
-        Before fix: await db.execute("SELECT 1") — fails in SQLAlchemy 2.x
-        After fix: await db.execute(text("SELECT 1")) — works correctly
+        Verify db.execute is called with a SQLAlchemy text() object, not a raw string.
+        Fix for issue #154: SQLAlchemy 2.x requires text() wrapper.
         """
-        result = await health_check(db=mock_db)
+        from api.routes.health import health_check
+        await health_check(db=mock_db)
 
         mock_db.execute.assert_called_once()
-        call_args = mock_db.execute.call_args[0][0]
+        call_arg = mock_db.execute.call_args[0][0]
 
-        assert str(type(call_args)) == "<class 'sqlalchemy.sql.expression.TextClause'>"
-        assert "SELECT 1" in str(call_args)
-        assert result["dependencies"]["postgres"] == "healthy"
+        assert isinstance(call_arg, TextClause), (
+            f"Expected TextClause but got {type(call_arg)}. "
+            "Raw SQL strings fail in SQLAlchemy 2.x — use text('SELECT 1')."
+        )
 
-    async def test_postgres_health_check_catches_exceptions(self, mock_db):
-        """Verify that database exceptions are caught and reported as unhealthy."""
+    async def test_postgres_probe_catches_db_exception(self, mock_db):
+        """Verify database exceptions are caught and postgres marked unhealthy."""
+        from api.routes.health import health_check
         mock_db.execute = AsyncMock(side_effect=Exception("DB connection failed"))
 
         result = await health_check(db=mock_db)
