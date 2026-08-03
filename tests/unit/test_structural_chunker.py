@@ -238,3 +238,61 @@ Content for 3
 
         # Should not crash on empty sections
         assert isinstance(result, list)
+
+    # ---- Edge-case tests for Issue #149 fix ----
+
+    def test_no_headings_metadata_shape(self, chunker):
+        """Test metadata for headingless documents has heading_path and heading_level."""
+        text = "Plain text without any headings."
+        result = chunker.chunk(text, {"source": "test"})
+
+        assert len(result) >= 1
+        for chunk in result:
+            assert chunk.metadata["heading_path"] == ""
+            assert chunk.metadata["heading_level"] == 0
+            assert chunk.metadata["source"] == "test"
+
+    def test_single_line_document(self, chunker):
+        """Test that a single-line plain-text document returns exactly 1 chunk."""
+        text = "Hello world"
+        result = chunker.chunk(text, {"source": "single"})
+
+        assert len(result) == 1
+        assert isinstance(result[0], Chunk)
+        assert result[0].text == "Hello world"
+        assert result[0].metadata["heading_path"] == ""
+        assert result[0].metadata["heading_level"] == 0
+
+    def test_leading_text_before_first_heading(self, chunker):
+        """Test document with plain text before the first heading captures both sections."""
+        text = """This is leading content before any heading.
+It has multiple lines of text.
+
+# First Heading
+Content under the first heading.
+"""
+        result = chunker.chunk(text, {"source": "mixed"})
+
+        assert len(result) >= 2
+
+        # First chunk should be the pre-heading content
+        pre_heading_chunks = [c for c in result if c.metadata.get("heading_path") == ""]
+        assert len(pre_heading_chunks) >= 1
+        assert "leading content" in pre_heading_chunks[0].text
+
+        # Should also have a headed chunk
+        headed_chunks = [c for c in result if c.metadata.get("heading_path") != ""]
+        assert len(headed_chunks) >= 1
+
+    def test_large_no_heading_document_sub_chunked(self, chunker):
+        """Test that a large document with no headings is sub-chunked via SemanticChunker."""
+        # Generate text that exceeds SECTION_TOKEN_LIMIT (800 tokens)
+        text = "This is a fairly long sentence that contributes many tokens. " * 200
+        result = chunker.chunk(text, {"source": "large"})
+
+        # Should produce multiple chunks from semantic sub-chunking
+        assert len(result) > 1
+        for chunk in result:
+            assert isinstance(chunk, Chunk)
+            assert chunk.metadata["heading_path"] == ""
+            assert chunk.metadata["heading_level"] == 0
