@@ -49,3 +49,52 @@ confirming the root cause is simply that the fixture file is missing.
 **PLAN.md:** https://github.com/ujval9/pathreview/blob/test/106-restore-basic-profile-fixture/PLAN.md
 
 **Walkthrough video:** Not recorded.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md. First established a baseline on `main`
+(d5f196d): `make test-unit` = 53 failed / 375 passed and `ruff` = 182 errors,
+both pre-existing and unrelated to this issue. Then completed PLAN sub-tasks 1–5:
+read `ResumeParser._detect_sections` and `RepoAnalyzer.parse` to lock the exact
+shapes, authored `tests/fixtures/sample_profiles/basic_profile.json` (GitHub
+username, multi-section resume, portfolio URL, two GitHub-API-shaped repos), and
+added a `tests/unit/test_sample_profiles.py` schema test. The reproduction
+integration test now passes (`make test-integration` → 3 passed) and
+`make test-unit` is 53 failed / 378 passed — the same 53 pre-existing failures
+plus my 3 new passing unit tests, i.e. no new failures.
+
+**Next steps:**
+Run the full self-review checklist (`make check`, read the diff, verify commit
+and branch conventions), fill in the PR template, and open the PR.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _pending — filled in once the PR is opened_
+
+**Branch:** `test/106-restore-basic-profile-fixture`
+
+**What you built:**
+Restored the missing shared sample-portfolio fixture
+(`tests/fixtures/sample_profiles/basic_profile.json`) as a realistic portfolio —
+a GitHub username, a multi-section resume, and two repositories shaped like the
+GitHub API dicts the ingestion parsers read — plus a `conftest.py` loader and
+unit/integration tests that exercise it.
+
+**Tests added or updated:**
+- `tests/integration/test_sample_profile_fixture.py` — loads the fixture and
+  feeds it through `RepoAnalyzer` and `ResumeParser`.
+- `tests/unit/test_sample_profiles.py` — validates the fixture's schema so
+  `make test-unit` covers the change.
+- `tests/conftest.py` — added the `basic_profile` loader fixture.
+
+**Self-review confirmation:** [x] make check passes (no new failures vs. documented pre-existing baseline)  [x] make test-unit passes (no new failures vs. documented pre-existing baseline)
+
+**Draft PR feedback received from:** none
