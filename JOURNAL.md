@@ -41,3 +41,37 @@ Authored `PLAN.md` in the project root covering the six required sections:
 - `tests/unit/test_orchestrator.py` (reproduction unit test)
 - `PLAN.md` (6-section planning blueprint)
 - `JOURNAL.md` (Week 8 log entry)
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+- Updated `agent/orchestrator.py` to evaluate executed tool results and set a top-level `partial_failure: True/False` boolean flag in the dictionary returned by `Orchestrator.run()`.
+- Created and passed unit tests in `tests/unit/test_orchestrator.py` covering both partial failure (tool crashes) and full success scenarios.
+
+**Next steps:**
+- Push final code changes, open the official Pull Request on GitHub, and submit the working branch URL on the CodePath dashboard.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [(https://github.com/ascherj/pathreview/pull/683#issue-5050947571)]
+
+**Branch:** `fix/44-orchestrator-swallows-tool-exceptions`
+
+**What you built:**
+Added a top-level `partial_failure` boolean key to the output dictionary of `Orchestrator.run()`. This explicitly signals whether any executed tool failed during execution while preserving partial tool output and structured logs for downstream API callers.
+
+**Tests added or updated:**
+- `tests/unit/test_orchestrator.py`: Updated unit tests asserting `partial_failure` evaluates to `True` when any tool throws an exception, and `False` when all tools execute successfully.
+
+**Self-review confirmation:**
+- [x] `make check` / unit tests run (Note: pre-existing linter/unit test failures observed in `test_tech_detector.py`, `test_structural_chunker.py`, and `test_skill_extractor.py` unrelated to orchestrator changes; `test_orchestrator.py` passes 100%).
+- [x] `test_orchestrator.py` passes 100%.
+
+**Draft PR feedback received from:** none
