@@ -55,17 +55,18 @@ The full `make check` and `make test-unit` commands report several pre-existing 
 
 ### Check-in 2 (end of week)
 
-**PR link:** [add after opening the pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/617
 
 **Branch:** `fix/149-headingless-document-chunking`
 
 **What you built:**
-[complete after opening the pull request]
+I fixed Issue #149 by updating the structural chunker to handle non-empty documents without Markdown headings. When no structural sections are found, the chunker now creates a fallback section so the document content is preserved while maintaining the existing behavior for heading-based documents.
 
 **Tests added or updated:**
-[complete after final verification]
+I updated `tests/unit/test_structural_chunker.py` to strengthen the headingless document test by verifying the returned chunk, preserved content, source metadata, `heading_path`, and `heading_level`. I also added assertions to existing heading path tests to satisfy lint requirements.
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
-**Draft PR feedback received from:** [add reviewer name or “none”]
+**Draft PR feedback received from:** none
+
 
