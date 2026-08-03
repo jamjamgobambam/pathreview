@@ -1,0 +1,60 @@
+/private/tmp/pr-venv311/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+usage: pip-audit [-h] [-V] [-l] [-r REQUIREMENT] [--locked] [-f FORMAT]
+                 [-s SERVICE] [-d] [-S] [--desc [{on,off,auto}]]
+                 [--aliases [{on,off,auto}]] [--cache-dir CACHE_DIR]
+                 [--progress-spinner {on,off}] [--timeout TIMEOUT]
+                 [--path PATH] [-v] [--fix] [--require-hashes]
+                 [--index-url INDEX_URL] [--extra-index-url URL]
+                 [--skip-editable] [--no-deps] [-o FILE] [--ignore-vuln ID]
+                 [--disable-pip]
+                 [project_path]
+
+audit the Python environment for dependencies with known vulnerabilities
+
+positional arguments:
+  project_path          audit a local Python project at the given path
+                        (default: None)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program's version number and exit
+  -l, --local           show only results for dependencies in the local
+                        environment (default: False)
+  -r REQUIREMENT, --requirement REQUIREMENT
+                        audit the given requirements file; this option can be
+                        used multiple times (default: None)
+  --locked              audit lock files from the local Python project. This
+                        flag only applies to auditing from project paths
+                        (default: False)
+  -f FORMAT, --format FORMAT
+                        the format to emit audit results in (choices: columns,
+                        json, cyclonedx-json, cyclonedx-xml, markdown)
+                        (default: columns)
+  -s SERVICE, --vulnerability-service SERVICE
+                        the vulnerability service to audit dependencies
+                        against (choices: osv, pypi) (default: pypi)
+  -d, --dry-run         without `--fix`: collect all dependencies but do not
+                        perform the auditing step; with `--fix`: perform the
+                        auditing step but do not perform any fixes (default:
+                        False)
+  -S, --strict          fail the entire audit if dependency collection fails
+                        on any dependency (default: False)
+  --desc [{on,off,auto}]
+                        include a description for each vulnerability; `auto`
+                        defaults to `on` for the `json` format. This flag has
+                        no effect on the `cyclonedx-json` or `cyclonedx-xml`
+                        formats. (default: auto)
+  --aliases [{on,off,auto}]
+                        includes alias IDs for each vulnerability; `auto`
+                        defaults to `on` for the `json` format. This flag has
+                        no effect on the `cyclonedx-json` or `cyclonedx-xml`
+                        formats. (default: auto)
+  --cache-dir CACHE_DIR
+                        the directory to use as an HTTP cache for PyPI; uses
+                        the `pip` HTTP cache by default (default: None)
+  --progress-spinner {on,off}
+                        display a progress spinner (default: on)
+  --timeout TIMEOUT     set the socket timeout (default: 15)
+  --path PATH           restrict to the specified installation path for
+                        auditing packages; this option can be used multiple

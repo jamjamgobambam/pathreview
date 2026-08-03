@@ -1,0 +1,9 @@
+Found 2 known vulnerabilities in 2 packages
+Name     Version ID              Fix Versions
+-------- ------- --------------- ------------
+chromadb 1.5.9   PYSEC-2026-311
+ecdsa    0.19.2  PYSEC-2026-1325
+
+Name       Skip Reason
+---------- -------------------------------------------------------------------------
+pathreview Dependency not found on PyPI and could not be audited: pathreview (0.1.0)

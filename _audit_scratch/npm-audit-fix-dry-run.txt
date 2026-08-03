@@ -1,0 +1,116 @@
+npm warn Unknown env config "devdir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+change ws 8.20.0 => 8.21.1
+change react-router-dom 6.30.3 => 6.30.4
+change react-router 6.30.3 => 6.30.4
+change postcss 8.5.8 => 8.5.25
+change picomatch 2.3.1 => 2.3.2
+change node-releases 2.0.36 => 2.0.51
+change nanoid 3.3.11 => 3.3.17
+change hasown 2.0.2 => 2.0.4
+change form-data 4.0.5 => 4.0.6
+change electron-to-chromium 1.5.321 => 1.5.399
+change caniuse-lite 1.0.30001780 => 1.0.30001806
+change browserslist 4.28.1 => 4.28.7
+change baseline-browser-mapping 2.10.10 => 2.11.12
+change @remix-run/router 1.23.2 => 1.23.3
+change @babel/types 7.29.0 => 7.29.8
+change @babel/traverse 7.29.0 => 7.29.8
+change @babel/template 7.28.6 => 7.29.7
+change @babel/parser 7.29.2 => 7.29.8
+change @babel/helpers 7.29.2 => 7.29.7
+change @babel/helper-validator-option 7.27.1 => 7.29.7
+change @babel/helper-validator-identifier 7.28.5 => 7.29.7
+change @babel/helper-string-parser 7.27.1 => 7.29.7
+change @babel/helper-module-transforms 7.28.6 => 7.29.7
+change @babel/helper-module-imports 7.28.6 => 7.29.7
+change @babel/helper-globals 7.28.0 => 7.29.7
+change @babel/helper-compilation-targets 7.28.6 => 7.29.7
+change @babel/generator 7.29.1 => 7.29.8
+change @babel/core 7.29.0 => 7.29.7
+change @babel/compat-data 7.29.0 => 7.29.7
+change @babel/code-frame 7.29.0 => 7.29.7
+
+changed 30 packages, and audited 324 packages in 8s
+
+84 packages are looking for funding
+  run `npm fund` for details
+
+# npm audit report
+
+@babel/core  <=7.29.0
+@babel/core: Arbitrary File Read via sourceMappingURL Comment - https://github.com/advisories/GHSA-4x5r-pxfx-6jf8
+fix available via `npm audit fix`
+
+
+esbuild  <=0.24.2
+Severity: moderate
+esbuild enables any website to send any requests to the development server and read the response - https://github.com/advisories/GHSA-67mh-4wv8-2f99
+fix available via `npm audit fix --force`
+Will install vite@8.2.0, which is a breaking change
+node_modules/esbuild
+  vite  <=6.4.2
+  Depends on vulnerable versions of esbuild
+  node_modules/vite
+    vite-node  <=2.2.0-beta.2
+    Depends on vulnerable versions of vite
+    node_modules/vite-node
+      vitest  <=3.2.5
+      Depends on vulnerable versions of vite
+      Depends on vulnerable versions of vite-node
+      node_modules/vitest
+
+form-data  4.0.0 - 4.0.5
+Severity: high
+form-data: CRLF injection in form-data via unescaped multipart field names and filenames - https://github.com/advisories/GHSA-hmw2-7cc7-3qxx
+fix available via `npm audit fix`
+
+
+picomatch  <=2.3.1
+Severity: high
+Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching - https://github.com/advisories/GHSA-3v7f-55p6-f55p
+Picomatch has a ReDoS vulnerability via extglob quantifiers - https://github.com/advisories/GHSA-c2c7-rcm5-vvqj
+fix available via `npm audit fix`
+
+
+postcss  <=8.5.22
+Severity: high
+PostCSS has XSS via Unescaped </style> in its CSS Stringify Output - https://github.com/advisories/GHSA-qx2v-qp2m-jg93
+PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments - https://github.com/advisories/GHSA-6g55-p6wh-862q
+PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure - https://github.com/advisories/GHSA-r28c-9q8g-f849
+PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset - https://github.com/advisories/GHSA-fxqj-rqcc-2cmp
+fix available via `npm audit fix`
+
+
+react-router  6.0.0 - 7.17.0
+Severity: moderate
+React Router's same-origin redirect with path starting // causes open redirect via protocol-relative URL reinterpretation - https://github.com/advisories/GHSA-2j2x-hqr9-3h42
+React Router: Open redirect via backslash in <Link> and useNavigate (CVE-2025-68470 bypass) - https://github.com/advisories/GHSA-wrjc-x8rr-h8h6
+React Router: Arbitrary Constructor Injection via deserializeErrors() in React Router SSR Hydration - https://github.com/advisories/GHSA-337j-9hxr-rhxg
+fix available via `npm audit fix`
+
+  react-router-dom  6.6.3-pre.0 - 6.30.4
+  Depends on vulnerable versions of react-router
+  
+
+
+
+
+ws  8.0.0 - 8.20.1
+Severity: high
+ws: Uninitialized memory disclosure - https://github.com/advisories/GHSA-58qx-3vcg-4xpx
+ws: Memory exhaustion DoS from tiny fragments and data chunks - https://github.com/advisories/GHSA-96hv-2xvq-fx4p
+fix available via `npm audit fix`
+
+
+11 vulnerabilities (1 low, 4 moderate, 5 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+npm warn allow-scripts 2 packages have install scripts not yet covered by allowScripts:
+npm warn allow-scripts   esbuild@0.21.5 (postinstall: node install.js)
+npm warn allow-scripts   fsevents@2.3.3 (install: (install scripts present))
+npm warn allow-scripts
+npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
