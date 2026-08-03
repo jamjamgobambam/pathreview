@@ -108,7 +108,7 @@ Changes introduce no new failures in the resume parser suite (8 → 0 failures t
 
 ### Check-in 2 (end of week)
 
-**PR link:** <!-- filled after PR is opened -->
+**PR link:** https://github.com/ascherj/pathreview/pull/680
 
 **Branch:** `setup/147-resume-whitespace-fail`
 
