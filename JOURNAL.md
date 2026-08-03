@@ -37,3 +37,52 @@ The issue-specific null-text and missing-key tests pass. Three existing assertio
 in the complete faithfulness-checker test module still fail because its current
 token-overlap scoring returns `0.0` where those tests expect partial support; they
 are unrelated to the `None`-handling crash and are outside issue #153.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented null-safe context concatenation in `FaithfulnessChecker.check()` and
+verified the focused `None` and missing-key regression cases. The reproduction,
+code mapping, risks, and edge cases in `PLAN.md` are complete.
+
+**Next steps:**
+Strengthen the regression coverage for mixed valid, missing, and null context
+chunks; run the repository checks; self-review the final diff; and submit the pull
+request.
+
+**Blockers:**
+The repository has broad pre-existing lint and unit-test failures unrelated to
+issue #153. Per the course guidance, I am verifying that the changed files and
+focused tests introduce no new failures and documenting the baseline below.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [To be added after the pull request is opened]
+
+**Branch:** `fix/153-none-context-chunk-text`
+
+**What you built:**
+Updated the faithfulness checker so retrieved chunks with missing or `None` text
+contribute an empty string instead of crashing `str.join()`. Valid text from other
+chunks remains available for scoring.
+
+**Tests added or updated:**
+Updated `tests/unit/test_faithfulness_checker.py` to assert the exact score for an
+all-null context and added coverage for a mixed list containing valid, missing,
+and null chunk text.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+Here, “passes” follows the course definition for a codebase with documented
+pre-existing failures: the contribution introduces no new failures. On August 3,
+2026, `make check` reported 181 existing repository-wide Ruff errors. `make
+test-unit` completed with 346 passing tests, 51 existing failures, and 31 errors;
+the errors came from chunker tests attempting to download a tokenizer while
+network access was unavailable. The focused null/missing-text tests pass, and the
+changed Python files pass focused Ruff, Black, and mypy checks.
+
+**Draft PR feedback received from:** none
