@@ -23,11 +23,13 @@ The expected behavior is for the test to compare every `(template name, version)
 
 ### Plan
 
-1. Add an `EXPECTED_TEMPLATE_HASHES` mapping in `tests/unit/test_prompt_templates.py`, keyed by `(template_name, version)`, with a SHA-256 digest for each of the five current `v1` prompts.
-2. Add a helper that accepts a nested prompt mapping and returns the same version-keyed digest mapping using each raw UTF-8 prompt string. Keeping snapshots separate avoids aggregate-hash ambiguity and makes failures identify the exact prompt version that changed.
-3. Replace `test_template_snapshot_content_hash` with assertions that first compare the actual and expected key inventories and then compare each digest. Include failure messages that name the affected template/version and explain that an intentional content change needs a new version and reviewed snapshot.
-4. Add regression tests using a copied prompt mapping to prove that a same-version content mutation fails without modifying the module-level `PROMPT_TEMPLATES`. Also cover a newly added version so an unreviewed inventory change cannot pass silently.
-5. Run the complete prompt-template unit-test module and the repository's standard formatting/type/test checks. Review the diff to ensure the production prompts are unchanged and snapshot values are deterministic across repeated runs.
+1. [x] Add an `EXPECTED_TEMPLATE_HASHES` mapping in `tests/unit/test_prompt_templates.py`, keyed by `(template_name, version)`, with a SHA-256 digest for each of the five current `v1` prompts.
+2. [x] Add a helper that accepts a nested prompt mapping and returns the same version-keyed digest mapping using each raw UTF-8 prompt string. Keeping snapshots separate avoids aggregate-hash ambiguity and makes failures identify the exact prompt version that changed.
+3. [x] Replace `test_template_snapshot_content_hash` with assertions that first compare the actual and expected key inventories and then compare each digest. Include failure messages that name the affected template/version and explain that an intentional content change needs a new version and reviewed snapshot.
+4. [x] Add regression tests using a copied prompt mapping to prove that a same-version content mutation fails without modifying the module-level `PROMPT_TEMPLATES`. Also cover a newly added version so an unreviewed inventory change cannot pass silently.
+5. [x] Run the complete prompt-template unit-test module and the repository's standard formatting/type/test checks. Review the diff to ensure the production prompts are unchanged and snapshot values are deterministic across repeated runs.
+
+**Implementation verification:** All 39 tests in `tests/unit/test_prompt_templates.py` pass, and the changed file passes Ruff, Black, and the repository's pre-commit mypy check. The repository-wide commands retain the same pre-existing failures as untouched `upstream/main`: `make test-unit` reports 53 failures while the branch adds two passing regression tests, and `make check` remains blocked by unrelated existing lint findings.
 
 ### Inputs & outputs
 

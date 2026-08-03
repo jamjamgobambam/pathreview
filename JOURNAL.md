@@ -75,3 +75,32 @@
 **Observed result:** Both runs pass. `test_template_snapshot_content_hash` computes an MD5 digest but only checks that the result is a 32-character string, which is true for every MD5 digest regardless of the prompt content.
 
 **Expected result:** A content change to an existing `(template name, version)` pair should fail the snapshot test and direct the contributor to add a new prompt version and its reviewed snapshot.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:** I completed all five subtasks from `PLAN.md`: added the five reviewed `v1` SHA-256 snapshots, implemented version-keyed hashing and inventory validation, replaced the ineffective MD5 shape check, and added regression tests for same-version edits and unreviewed versions. The changed test module passes Ruff, Black, the repository's pre-commit mypy check, and all 39 focused tests.
+
+**Next steps:** Complete the final self-review, open the upstream pull request with full verification instructions, add its link to this journal and the cohort ledger, and submit the working branch through the course portal.
+
+**Blockers:** No blocker affects issue #37. Untouched `upstream/main` already has repository-wide lint findings and 53 failing unit tests; the branch has the same 53 failures while adding two passing prompt-snapshot regression tests.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** Pending final PR submission
+
+**Branch:** `test/37-prompt-template-snapshots`
+
+**What you built:** I replaced the aggregate MD5 type-and-length assertion with reviewed SHA-256 snapshots keyed by prompt name and version. The new assertions identify inventory changes and same-version content edits, while leaving production prompt text and runtime behavior unchanged.
+
+**Tests added or updated:** Updated `tests/unit/test_prompt_templates.py`. `test_template_snapshot_content_hash` now validates the complete prompt-version inventory and every reviewed digest; `test_template_snapshot_rejects_same_version_content_change` proves an edit to `skills_feedback/v1` fails; and `test_template_snapshot_rejects_unreviewed_version` proves a new `v2` cannot pass without an explicit snapshot.
+
+**Self-review confirmation:**
+
+- [x] `make check` introduces no new failures. The changed file passes Ruff, Black, and pre-commit mypy; the repository-wide command remains blocked by unrelated lint findings already present on `upstream/main`.
+- [x] `make test-unit` introduces no new failures. Untouched `upstream/main` reports 53 failed and 375 passed; this branch reports the same 53 failed and 377 passed, including both new regression tests.
+
+**Draft PR feedback received from:** None. The implementation was completed after the scheduled deadline, so no peer review was received before submission.
