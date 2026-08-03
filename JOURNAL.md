@@ -43,3 +43,20 @@ I wrote unit tests (`tests/unit/test_orchestrator.py`) covering the fix, confirm
 
 **Blockers:**
 None blocking right now. One open question I still want feedback on: whether wiring the real `Orchestrator` into the live API (`review_service.py` currently uses a placeholder) is in scope for this issue, or a separate concern -- I reproduced and fixed the bug directly against the `Orchestrator` class itself.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/663
+
+**Branch:** fix/43-agent-session-state-not-cleared
+
+**What you built:**
+Fixed issue #43 by changing `Orchestrator` to create a fresh `ContextManager` at the start of every `run()` call instead of storing one on `self` for the whole lifetime of the orchestrator. This preserves memoization within a single review while guaranteeing tool results can never leak into a later, separate review request.
+
+**Tests added or updated:**
+Added `tests/unit/test_orchestrator.py` with 5 tests: re-execution across separate reviews for the same profile, no cache sharing between different profiles, intra-review memoization still working, `run()`'s return shape, and graceful handling of an unknown tool in the plan.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both commands were run and confirmed to introduce zero new failures compared to the pre-fix code -- the pre-existing failures/errors in unrelated files are documented in my PR description.)
+
+**Draft PR feedback received from:** none (posted in Slack, but no responses came in before the deadline)
