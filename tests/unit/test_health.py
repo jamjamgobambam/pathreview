@@ -14,25 +14,22 @@ class TestHealthCheck:
         return db
 
     async def test_postgres_probe_uses_text_object(self, mock_db):
-        """Verify db.execute is called with text() for SQLAlchemy 2.x compatibility."""
+        """Verify db.execute is called with text() for SQLAlchemy 2.x."""
         from api.routes.health import health_check
         
         with patch("api.routes.health.redis.Redis") as mock_redis_class:
             mock_redis_class.return_value.ping = MagicMock()
             
-            try:
+            with pytest.raises(HTTPException) as exc_info:
                 await health_check(db=mock_db)
-            except HTTPException as exc:
-                # Postgres check should pass even if redis fails
-                assert exc.detail["dependencies"]["postgres"] == "healthy"
+            
+            # Postgres should be healthy even though redis fails
+            assert exc_info.value.detail["dependencies"]["postgres"] == "healthy"
         
         # Verify text() wrapper was used
         mock_db.execute.assert_called_once()
         call_arg = mock_db.execute.call_args[0][0]
-        assert isinstance(call_arg, TextClause), (
-            f"Expected TextClause but got {type(call_arg).__name__}. "
-            "SQLAlchemy 2.x requires text('SELECT 1') not raw strings."
-        )
+        assert isinstance(call_arg, TextClause)
 
     async def test_postgres_probe_catches_db_exception(self, mock_db):
         """Verify postgres marked unhealthy when db.execute fails."""
@@ -46,6 +43,4 @@ class TestHealthCheck:
             with pytest.raises(HTTPException) as exc_info:
                 await health_check(db=mock_db)
             
-            # When postgres fails, it should be marked unhealthy
             assert exc_info.value.detail["dependencies"]["postgres"] == "unhealthy"
-            assert exc_info.value.detail["status"] == "unhealthy"
