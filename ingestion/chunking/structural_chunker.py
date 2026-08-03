@@ -23,7 +23,7 @@ class StructuralChunker(BaseChunker):
 
     def chunk(self, text: str, metadata: dict) -> list[Chunk]:
         """
-        Chunk markdown on heading boundaries.
+        Chunk markdown on heading boundaries or fall back for headingless text.
 
         Args:
             text: The markdown text to chunk
