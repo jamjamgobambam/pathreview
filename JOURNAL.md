@@ -30,3 +30,16 @@ I wrote a standalone script that creates an Orchestrator with a fake tool that c
 
 **Blockers or open questions:**
 The real orchestration logic isn't wired into the live API yet — `_run_agent_orchestration()` in `review_service.py` is currently a placeholder that returns hardcoded data. I reproduced the bug directly against the `Orchestrator` class instead. I'm not yet sure if wiring the real orchestrator into the API is in scope for my fix, or a separate issue — planning to ask in Slack/office hours.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the core fix for issue #43: `Orchestrator` was creating a single `ContextManager` in `__init__`, which lived for the entire lifetime of the Orchestrator instance and let cached tool results leak across separate review requests. I changed it so a fresh `ContextManager` is created at the start of every `run()` call instead, guaranteeing no tool result can survive from one review into the next. This covers sub-tasks 1-3 from my PLAN.md.
+
+**Next steps:**
+I wrote unit tests (`tests/unit/test_orchestrator.py`) covering the fix, confirmed `make test-unit` shows no new failures compared to before my change, and confirmed `make check` is clean on my two files. Still need to open a draft PR for peer/mentor feedback and write the final PR description documenting the pre-existing, unrelated test/lint failures I found in the codebase.
+
+**Blockers:**
+None blocking right now. One open question I still want feedback on: whether wiring the real `Orchestrator` into the live API (`review_service.py` currently uses a placeholder) is in scope for this issue, or a separate concern -- I reproduced and fixed the bug directly against the `Orchestrator` class itself.
