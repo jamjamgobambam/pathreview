@@ -25,10 +25,16 @@ class WorkflowParser(BaseParser):
         if isinstance(content, bytes):
             content = content.decode("utf-8")
 
-        # Heuristic: treat as filesystem path if no newlines and looks like a path
-        if "\n" not in content and (content.startswith("/") or content.startswith(".")):
-            return self._parse_from_path(Path(content))
-
+        path = Path(content)
+        # If it's a real directory, parse from filesystem
+        if path.is_dir():
+            return self._parse_from_path(path)
+        # If it's a single-line string that doesn't look like YAML, treat as a path
+        # (handles test cases where the path doesn't exist on the real filesystem)
+        if "\n" not in content and not content.strip().startswith(
+            ("name:", "on:", "jobs:", "steps:", "{", "-")
+        ):
+            return self._parse_from_path(path)
         return self._parse_text(content)
 
     def _parse_from_path(self, repo_path: Path) -> ParseResult:
