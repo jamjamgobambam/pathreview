@@ -36,3 +36,18 @@ that's the separate None-context bug already scoped to #153, not this issue.)
 
 **Blockers or open questions:**
 Still deciding whether the fix should scale the overlap threshold by claim length (risk: reintroduces false positives from generic shared words like "developer") or move to a continuous per-claim support score instead of a boolean, since some failing tests expect partial (0.2-0.8) scores rather than strict pass/fail.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+2 of 5 sub-tasks from PLAN.md are done and committed separately:
+1. Stripped punctuation before tokenizing in _is_supported() — fixed a silent bug where "Python," never matched "python" in context
+2. Added _support_score(), which scales the required word-overlap to a claim's own length instead of a flat "always need   2" rule, and updated check() to average these scores. All 3 target tests (test_partial_support_returns_middle_score, test_multiple_context_chunks, test_multiple_claims_varying_support) now pass, along with the other 19 pre-existing tests. Only test_none_context_chunk_text still fails, which is expected — that's #153's bug, not this one's.
+
+**Next steps:**
+Sub-task 5 from PLAN.md: add a dedicated regression test for the punctuation-stripping fix specifically, since none of the 22 existing tests isolate that case on its own. Then run make check across the full project (not just this file) and read through docs/CONTRIBUTING.md to confirm branch naming and commit conventions before opening a draft PR.
+
+**Blockers:**
+None right now, though the punctuation-fixing commit took a few tries to get past ruff's line-length rule on the docstring — resolved, just slower than expected.
