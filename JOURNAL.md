@@ -70,3 +70,50 @@ latent duplicate at `:46` (`settings.redis_port`). Fix will read `settings.redis
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
+
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+- Root cause confirmed (from Week 8 repro): `api/routes/health.py:44-49` builds the
+  Redis client from `settings.redis_host` / `settings.redis_port`, which `Settings`
+  (`core/config.py`) does not define — only `redis_url` exists. The `AttributeError`
+  is swallowed by the broad `except Exception`, producing a false `"unhealthy"` + 503.
+- Reproduction test `tests/unit/test_health_check.py` is in place and red.
+- Fix approach locked: replace the host/port constructor with
+  `redis.Redis.from_url(settings.redis_url, decode_responses=True)`.
+
+**Next steps:**
+- Apply the one-line fix in `api/routes/health.py`; confirm the repro test turns green.
+- Run `make test-unit` and `make check` (lint + format + typecheck).
+- Open the PR against `main`.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _[fill in after opening the PR]_
+
+**Branch:** `fix/155-redis-health-url` 
+
+**What you built:**
+The `/health` Redis probe now builds its client with
+`redis.Redis.from_url(settings.redis_url, ...)` instead of the non-existent
+`settings.redis_host` / `settings.redis_port`. It reads a config field that actually
+exists, so it pings Redis and reports its true status instead of always failing with a
+swallowed `AttributeError`.
+
+**Tests added or updated:**
+`tests/unit/test_health_check.py` — the Week 8 reproduction test (asserts `/health`
+reports Redis `"healthy"` when reachable). No edits needed; it flips red→green with the
+fix and remains the regression guard for #155.
+
+**Self-review confirmation:** [x ] make check passes  [ x] make test-unit passes
+
+**Draft PR feedback received from:** none
