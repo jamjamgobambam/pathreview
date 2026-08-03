@@ -181,3 +181,12 @@ class TestResumeParser:
         assert "John Doe" in result.text
         assert "Software Engineer" in result.text
         assert "Python" in result.text
+        
+    def test_parse_section_with_whitespace(self, parser):
+        """Test resume section detection on text with leading whitespace."""
+        text = '\n    John Smith\n    john@example.com\n\n    Education:\n    - B.S. Computer Science\n\n    Skills: Python\n'
+
+        sections = parser._detect_sections(text)
+        # Section headers should be detected
+        assert "Education" in sections
+        assert "Skills" in sections
