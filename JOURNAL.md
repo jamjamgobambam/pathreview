@@ -20,7 +20,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [paste your PR URL here]
+**PR link:** https://github.com/ascherj/pathreview/pull/495 
 
 **Branch:** fix/153-faithfulness-none-chunk-text
 
