@@ -130,4 +130,16 @@ class StructuralChunker(BaseChunker):
                 }
             )
 
+        # Fix for #149: if the doc has no headings at all,
+        # `sections` is still empty here. Treat the whole doc as a single section
+        # instead of silently dropping it.
+        if not sections:
+            sections.append(
+                {
+                    "content": text.strip(),
+                    "path": [],
+                    "level": 0,
+                }
+            )
+
         return sections
