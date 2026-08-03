@@ -102,4 +102,120 @@ undocumented would be irresponsible; (2) `docs/CONTRIBUTING.md` has no
 `ci` scope or branch-type entry, so the exact commit/branch convention for
 this change is a judgment call rather than a documented standard — see
 PLAN.md Risks section.
+
+
  
+---
+ 
+## Week 10 — Iteration & reflection
+ 
+### Reviewer feedback
+ 
+**Feedback received:** [x] Not a feature in Summer 2026 (per course
+note), and not applicable here as a tf run rather than a graded
+submission.
+ 
+**Summary of feedback:** N/A
+ 
+**How you responded:** N/A
+ 
+---
+
+### Reflection
+ 
+**What was harder than you expected?**
+The real challenge was not the CI or YAML content. Instead, it was staying disciplined about verifying things instead of just trusting what sounded right. This came up twice during the project.
+
+In both cases, an assumption about how a tool worked turned out to be wrong after testing.
+
+The first mistake was assuming that `pip-audit` had a `--fail-on` severity-threshold flag.
+
+It does not have this flag, which I confirmed by testing and then by checking open GitHub issues where people had requested the feature.
+
+The second mistake was assuming that running bare `pip-audit` would only check this project's dependencies.
+
+In reality, it scans the entire installed environment by default.
+
+At first, this showed a long list of unrelated Jupyter and Poetry devcontainer findings.
+
+I only realized the issue after reading through the output carefully.
+
+Neither of these mistakes was technically hard to fix.
+
+The real challenge was building the habit of running the actual command before adding it to a plan or CI file.
+
+running the real command before writing it into a plan or a CI file.
+ 
+**What did you learn about working in a large codebase?**
+Real production repos have real gaps in their own documentation.
+
+`CONTRIBUTING.md` lists `ci` as a valid commit *type* but does not include
+
+scope, and no `ci` branch type at all. There is no clear answer to
+
+look up. You make a reasonable decision, write down why, and report it
+
+to a maintainer instead of choosing one without telling anyone. I also learned that a
+
+"small" issue (one YAML file, no application code) can still reveal
+
+something really serious. `pip-audit` found an unresolved pre-auth
+
+RCE in `chromadb` that is unrelated to what the issue was about.
+
+Deciding what should be fixed now versus what is real but needs to be
+
+reported separately turned out to be a harder decision than the
+
+actual implementation.
+ 
+**How did AI tools help — and where did they fall short?**
+AI (Claude, throughout this project) was genuinely useful for structuring
+
+artifacts quickly, like the JOURNAL/PLAN.md scaffolding and the PR description
+
+draft, catching scope creep once pointed at a real diff (an accidental
+
+`npm test -- --run` → `npm test -- --` regression, a stray `poetry.lock`
+
+that shouldn't have been committed, trivial `package-lock.json` noise).
+
+Where it fell short: it stated the nonexistent `pip-audit --fail-on` flag
+
+with full confidence, and didn't proactively flag the environment-scoping
+
+issue until the actual audit output was pasted in and inspected together.
+
+Both were only caught because the real commands were run and the real
+
+output was checked. AI suggestions about specific CLI behavior needed
+
+verification, not trust, every time.
+
+ 
+**What would you do differently if you started over?**
+Test each CLI flag or tool behavior with the actual installed version.
+
+Do this before adding anything to a plan or workflow file, instead of waiting until later.
+
+This helps you catch any issues early, instead of finding them after the fact. For example, I would have used the right scope for `pip-audit .`
+
+on the first try instead of the second, if I had checked
+
+the tool’s real `--help` output up front, instead of assuming
+
+`--audit-level` flags from `npm audit` would work the same way.
+
+
+**What are you most proud of from this module?**
+I chose not to add the `chromadb` RCE finding to the ignore list just to get
+
+a clean, green CI check. It would have been easy to quietly ignore it
+
+along with the `ecdsa` finding and submit a PR that seemed finished. Instead, I decided to
+
+let the new check fail on `main` on purpose and explained why in the PR
+
+description. That felt like the real point of the exercise: building a
+
+scanner that reports honestly, not one that just stays silent.
