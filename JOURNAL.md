@@ -60,3 +60,51 @@ The original reproduction test passes after the change. The complete `tests/unit
 **Blockers or open questions:**
 
 The issue-specific implementation and focused tests are complete. The repository-wide `make check` reports Ruff violations in files outside the Issue #159 changes. I did not modify those unrelated files because they are outside this issue's scope.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+Please know that this check-in was added at the end of the week. I completed the previous week's assignment later than planned and did not have enough time to submit this check-in or open a draft pull request at the mid-week checkpoint.*
+At the mid-week checkpoint, I was still finishing the Week 8 assignment. PLAN.md steps 1–3 were complete: I had reproduced Issue #159, confirmed that Structlog output was not reaching `caplog`, and reviewed the relevant pytest and logging configuration. The remaining implementation, repository-wide verification, and PR submission work had not yet been completed.
+
+**Current progress:**
+[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+At the mid-week checkpoint, I was still finishing the Week 8 assignment. PLAN.md steps 1–3 were complete: I had reproduced Issue #159, confirmed that Structlog output was not reaching `caplog`, and reviewed the relevant pytest and logging configuration. The remaining implementation, repository-wide verification, and PR submission work had not yet been completed.
+
+**Next steps:**
+[What are you working on for the rest of the week?]
+Complete the pytest-specific Structlog configuration in `tests/conftest.py`, run the targeted and repository-wide unit tests, compare the results against `upstream/main`, run `make check`, review the changes, and submit the pull request.
+
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+
+Completing the previous assignment late reduced the time available for Week 9 and prevented me from opening a draft PR or submitting the mid-week check-in on schedule.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+https://github.com/ascherj/pathreview/pull/646
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+`fix/159-structlog-caplog-capture`
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+I configured Structlog in `tests/conftest.py` to route test logging events through Python's standard logging system. This allows pytest's `caplog` fixture to capture the warning emitted by `BatchEmbeddingProcessor` without changing the production logging configuration.
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+I updated `tests/conftest.py` with the pytest-specific Structlog configuration. No new test function was required because the existing `tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty` test directly covers the broken behavior and now passes.
+
+The complete unit-test comparison produced 376 passed and 52 failed on my branch, compared with 375 passed and 53 failed on `upstream/main`. The remaining 52 failures already exist upstream and are unrelated to Issue #159.
+
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
+none
