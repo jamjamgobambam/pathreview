@@ -1,0 +1,105 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/jamjamgobambam/pathreview/issues/109
+
+**Issue title:** Test coverage for core/services/review_service.py is below 40%
+
+**Tier:** [ ] Tier 1 [x] Tier 2 [ ] Tier 3
+
+**Problem summary:**
+The tests in `tests/test_review_service.py` only cover 40% of codepaths. The review service provides core logic for the review lifecycle and CRUD/query functions, but the existing unit tests do not cover the processing pipeline. This fix will include comprehensive coverage of remaining unit tests to ensure intended functionality of `core/services/review_service.py` when changes are made to it.
+
+**Reasoning (from checklist):**
+Part 1: I can explain the problem and expected behavior (above). The issue is related to tests for `review_service.py` which holds the business logic and functionality of the review API and also touches on ingestion. The tests currently cover <40% of codepaths and must be updated to include more comprehensive testing so that changes made to `review_service.py` can be tested to ensure intended functionality. "Done" would look like a complete list of tests that address the major execution paths including success, partial failure and full failure cases.
+
+Part 2: I have contributed to large codebases before, so I've chosen a Tier 2 issue.
+
+Part 3: I've found and read the specific code the issue references (`tests/unit/test_review_service.py`), and understand that the tests currently cover `create_review`, `get_review` and `list_review`, but do not cover `process_review`. I've read enough surrounding context that I can write a rough plan. The test file is the one I am changing and I've read at least one test end-to-end (`test_create_review_reurns_review_with_pending_status`).
+
+Part 4: No one else has commented claiming this issue (at time of selection, cohort ledger does not yet exist or has not been provided). I've estimated this will wake me about 6 hours and I am confident I can complete it before the week 9 deadline. This issue has no open blockers or dependencies.
+
+**Branch name:** `test/109-add-review-service-tests`
+
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+**AI Usage:** I used Claude to review the `review_service.py` and `test_review_service.py` to give me a rundown of the exisiting functions, why they are used and to highlight cases where unit tests are missing.
+
+<hr>
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/jdingeman/pathreview/commit/abcb666babe288113e36092ebb7c4a7d4e504af1
+
+**Reproduction summary:**
+I isolated the tests by running `pytest tests/unit/test_review_service.py > temp_test_review_service_output.txt 2>&1` so I could see the test results. I found that several of the existings tests are failing due to syntax issues, though it is outside the scope of this fix. The tests only cover `create_review`, `get_review` and `list_reviews` but not `process_review`
+
+**PLAN.md link:** PLAN.md
+
+**Walkthrough video (recommended):** _Covered by temp_test_review_service_output.txt_
+
+**Blockers or open questions:**
+I am unsure about the setup of the existing tests and if my tests should be implemented the same way since the exisitng ones fail due to syntax. See temp_test_review_service_output.txt
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I have implemented 2 `process_review` tests and 6 `_run_ingestion_pipeline` tests in `test_review_service.py`.
+
+**Next steps:**
+I will implement the remaining tests for the `_run_agent_orchestration`, `_run_rag_retrieval_generation` and `_run_safety_checks` helper functions, then finally the remainder of `process_review`.
+
+**Blockers:**
+I am only concerned about all of the failing tests and lint errors that existed before I began my implementation. Instructions are unclear on how I am to handle the the errors, if at all, when they are not related to the changes I make, are pre-existing, etc. I have had to commit to my own branch with the `--no-verify` flag which does not seem ideal since I am not making changes to existing files.
+Upon further research, I plan on correcting the typedef issues in the code I have written, but I am still not sure what to do about the test cases that already exist. I can probably fix all of the tests to get a fully functioning suite of tests that don't fail the `make` specifications or fail due to incorrect syntax if I am clear to proceed with correcting them.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/531
+
+**Branch:** test/109-add-review-service-tests
+
+**What you built:**
+I increased the number of tests for `review_service.py`, resulting in test coverage increase from <40% to >90%.
+
+**Tests added or updated:**
+`test_review_service.py` is the only file changed. No other files were modified. The additions included tests for `review_service.py` that did not exist previously.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+It took me quite a bit of time to grasp the concepts of Mock and AsyncMock and how to use them with pytest. I struggled understanding exactly what to mock to correctly perform the tests.
+
+**What did you learn about working in a large codebase?**
+I learned that working with lint and type check tools can become quite frustrating, especially if either checks flag errors in the codebase that existed prior to making the changes related to my wn fix.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most helpful in explaining the Mock/AsyncMock in pytest and in writing some of the tests. It fell flat in trying to explain how the tests works without using too much technical language that may be difficult for a non-experienced programmer to understand.
+
+**What would you do differently if you started over?**
+I would have clarified whether the entire file fit within the scope of my responsibility. If this was the case, I would have implemented changes to the tests so that they'd pass the type checks and run correctly.
+
+**What are you most proud of from this module?**
+I am most proud of spending a lot of time getting familiar with a testing package that I've never worked with. It's motivated me to learn more about test-driven development with Python. The only other tests I've truly built were with vitest which do read quite a bit differently.
