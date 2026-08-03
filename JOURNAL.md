@@ -51,3 +51,34 @@ Not recorded.
 **Blockers or open questions:**
 
 I want to verify whether changing the query to SQLAlchemy's `text()` function is the only modification required or whether any existing tests should also be updated to reflect the new behavior.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix for issue #154 by updating the PostgreSQL health check to execute `text("SELECT 1")` instead of a raw SQL string. I also created `tests/unit/test_health.py` to verify that the health check passes a SQLAlchemy `TextClause` to the database session.
+
+**Next steps:**
+Finalize the pull request description, run the focused test and code-quality checks, document the repository’s pre-existing failures, and submit the PR for review.
+
+**Blockers:**
+The repository has pre-existing unit-test and lint failures unrelated to issue #154. These failures were documented, and the focused test for this change passes.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/643
+
+**Branch:** `fix/154-health-check-sqlalchemy-text`
+
+**What you built:**
+Updated the PostgreSQL health check to wrap the `SELECT 1` query with SQLAlchemy’s `text()` function for SQLAlchemy 2.x compatibility. This prevents the health endpoint from incorrectly reporting PostgreSQL as unhealthy because of a raw SQL execution error.
+
+**Tests added or updated:**
+Created `tests/unit/test_health.py`. The test verifies that the PostgreSQL probe executes a SQLAlchemy `TextClause`, confirms that the statement is `SELECT 1`, and checks that PostgreSQL is reported as healthy when the dependency checks succeed.
+
+**Self-review confirmation:** [x] make check passes with no new failures  [x] make test-unit passes with no new failures
+
+**Draft PR feedback received from:** none
