@@ -38,3 +38,41 @@ Confirmed the gap locally: `tests/unit/test_review_routes.py` does not exist, an
 
 **Blockers or open questions:**
 Still need to decide exact error contract (400 vs 404) and whether “no ingested content” means zero `IngestedSource` rows at POST time vs. a profile with no resume/github/portfolio fields. May need a small validation change in the route/service so the new test asserts real behavior, not only mocks.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Added a small empty-content check in `create_review_endpoint` (`api/routes/reviews.py`): load the profile with `get_profile`, return 404 if missing/not owned, return 400 if github/resume/portfolio are all empty. Added `tests/unit/test_review_routes.py` with one unit test for that 400 path. Left `review_service.py` / existing service tests unchanged.
+
+**Next steps:**
+Self-review against CONTRIBUTING.md, open a draft PR for peer/mentor feedback, then mark ready for review and paste the PR link into Check-in 2.
+
+**Blockers:**
+none
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** 
+
+**Branch:** `test/88-reviews-no-ingested-documents`
+
+**What you built:**
+`POST /reviews` now returns 400 `"Profile has no ingested content to review"` when the profile has no github username, resume text, or portfolio URL, instead of creating a pending review. Missing/unowned profiles still get 404.
+
+**Tests added or updated:**
+- `tests/unit/test_review_routes.py` — asserts POST `/reviews` returns 400 when the profile has no ingestible content.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
+
+**Notes for checkboxes above:**
+Baseline comparison (stash our changes → run → restore → run again):
+- `make test-unit`: before **53 failed / 375 passed**; after **53 failed / 376 passed** (same failures + our new passing test).
+- `ruff check .`: **182 errors** before and after (unchanged).
+- `mypy` (paths from Makefile): **5 errors** before and after (unchanged; further checking blocked by pre-existing issues).
+Our contribution does not introduce new failures. "Passes" here means no new failures beyond that pre-existing baseline.
