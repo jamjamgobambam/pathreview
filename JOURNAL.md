@@ -49,16 +49,17 @@ None blocking. Open question carried from Week 8: how JS-rendered (SPA) portfoli
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/667
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `feat/11-portfolio-website-ingestion`
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+A `WebParser` that fetches a candidate's portfolio URL over HTTP and extracts its visible text and title (skipping `<script>`/`<style>`/`<noscript>`), replacing the hardcoded placeholder string that `_run_ingestion_pipeline()` previously stored. Real extracted content and a `content_hash` now flow into `IngestedSource` for the portfolio branch, giving downstream RAG/agent steps actual evidence from the candidate's site.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+`tests/unit/test_web_parser.py` (new) — visible-text extraction, title fallback, bytes input, invalid URL, HTTP error propagation. `tests/unit/test_review_service.py` (updated) — asserts `_run_ingestion_pipeline` calls `WebParser` and stores real extracted text/hash for the portfolio source.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(both pass for the code touched in this PR; 40 pre-existing test failures and pre-existing lint/mypy issues elsewhere in the codebase are unrelated and unchanged from before this fix — documented in the PR description)
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
