@@ -272,3 +272,15 @@ class TestFaithfulnessChecker:
         supported = checker._is_supported(claim, context)
 
         assert supported is True
+
+    def test_short_supported_claims_receive_full_score(self, checker):
+        """Test that short factual claims can be supported by matching context."""
+        feedback = "Knows Python. Knows SQL."
+        context_chunks = [
+            {"text": "python expert"},
+            {"text": "sql expert"},
+        ]
+
+        score = checker.check(feedback, context_chunks)
+
+        assert score == 1.0
