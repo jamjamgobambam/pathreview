@@ -52,7 +52,7 @@ Since this is a logic error, there are many places where the error could reside.
 [1–3 sentences summarizing what your fix does and how it works]
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+I touched `hybrid.py` and `keyword_search.py` because the focus on the BM25 scoring which is what the model uses to run.
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
