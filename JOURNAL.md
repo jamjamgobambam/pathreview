@@ -61,7 +61,7 @@ focused tests introduce no new failures and documenting the baseline below.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [To be added after the pull request is opened]
+**PR link:** https://github.com/ascherj/pathreview/pull/657
 
 **Branch:** `fix/153-none-context-chunk-text`
 
