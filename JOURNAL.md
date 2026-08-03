@@ -54,3 +54,53 @@ I still need to determine how short claims should be evaluated without allowing
 generic one-word overlaps to create false positives. I also need to confirm why
 only one of the two short claims was extracted and whether compound claims
 should be split into separately scored claims.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the planned fix for issue #152. Short meaningful claims are now
+preserved during extraction, short claims can be supported by one meaningful
+overlapping token, and longer claims use a stricter proportional overlap rule.
+I also added safe handling for context chunks whose `text` value is missing or
+`None`. The targeted faithfulness checker test suite passes all 23 tests.
+
+**Next steps:**
+I will complete the pull request documentation, perform a final self-review,
+mark the PR as ready for review, and submit the branch URL through the course
+portal.
+
+**Blockers:**
+The repository has pre-existing repository-wide lint, type-checking, and unit
+test failures outside the files changed for this issue. The modified production
+file passes Black, Ruff, and mypy, and all targeted faithfulness checker tests
+pass.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/255
+
+**Branch:** `fix/152-short-claim-faithfulness`
+
+**What you built:**
+I updated the faithfulness checker so short factual claims can be recognized as
+supported when they share a meaningful technical term with the retrieved
+context. I also preserved short claims during extraction, added stricter
+proportional matching for longer claims, and safely handled missing or `None`
+context text.
+
+**Tests added or updated:**
+I updated `tests/unit/test_faithfulness_checker.py` with a regression test for
+the reported short-claim scenario. The full targeted test file passes 23 out of
+23 tests.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+The repository contains documented pre-existing failures in repository-wide
+lint, type-checking, and unit tests. My changes introduce no new failures in the
+modified module, and the targeted tests and checks pass.
+
+**Draft PR feedback received from:** none
