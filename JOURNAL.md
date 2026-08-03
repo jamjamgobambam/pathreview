@@ -55,9 +55,9 @@ None right now.
 Wired the existing (previously unused) `RateLimiter` into the request pipeline as a new `RateLimitMiddleware`. It identifies each caller by user id or IP, stamps `X-RateLimit-Limit`/`X-RateLimit-Remaining` on every response, and returns a 429 once someone's over their limit, still with a request id attached.
 
 **Tests added or updated:**
-`tests/unit/test_rate_limit_middleware.py` (8 tests, mocked `RateLimiter`, covers identifier selection and header/429 behavior) and `tests/integration/test_rate_limit_headers.py` (4 tests against the real app + real Redis: headers present, remaining count decreases, 429 after 60 requests, `/health` excluded).
+`tests/unit/test_rate_limit_middleware.py` (10 tests, mocked `RateLimiter`, covers identifier selection incl. expired/malformed tokens, and header/429/Retry-After behavior) and `tests/integration/test_rate_limit_headers.py` (4 tests against the real app + real Redis: headers present, remaining count decreases, 429 after 60 requests, `/health` excluded).
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 (with documented pre-existing exceptions — see the Week 8 baseline note and the PR description: `ruff`/`mypy`/`pytest` all have pre-existing failures unrelated to this change, confirmed via baseline runs and a `git stash` test before committing. My changes introduce zero new failures.)
 
-**Draft PR feedback received from:** none yet
+**Draft PR feedback received from:** a reviewer on PR #480. Suggestions: a stronger comment protecting the middleware registration order, a test for expired (not just malformed) Bearer tokens, and a `Retry-After` header on 429s. Addressed all three in a follow-up commit.
