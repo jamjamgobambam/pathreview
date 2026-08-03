@@ -1,3 +1,4 @@
+
 ## Week 7 — Issue selection
 
 **Issue link:** https://github.com/ascherj/pathreview/issues/151
@@ -37,3 +38,44 @@ without introducing false positives on neutral text.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+### Check-in 2
+
+**Current progress:**
+Implemented the fix for issue #151 in `safety/bias_detector.py` — replaced
+the exact-phrase regex approach with clause-level matching: a clause is
+flagged only when it contains both a protected-category term (educational
+background, age, or socioeconomic/national background) and a dismissive
+or negative-capability term. This directly addresses the root cause traced
+in PLAN.md (patterns anchored to singular nouns, specific verbs like
+"is"/"lack", and rigid connective phrases like "person from").
+
+Also fixed one regression caught during testing: the original
+`(?:equal|comparable)` negative pattern only matched "not equal/comparable
+to" and missed "never equal/comparable to" — added "never" as an
+alternative.
+
+**Testing:**
+- `pytest tests/unit/test_bias_detector.py -v` — 32/32 passing (all 9
+  originally-failing tests now pass; all 23 originally-passing tests
+  still pass, confirming no regressions)
+- `make check` — passing (ruff, black, mypy all clean)
+- `make test-unit` — passing
+
+**Manual verification:**
+Re-ran the original repro from issue #151:
+> "The candidate only attended a bootcamp, so this project lacks the rigor of a formal CS education"
+
+Previously returned `(False, '')`. Now correctly returns
+`(True, "Dismissive language about educational background")`.
+
+**PR status:**
+Opened as draft: [link to your PR once created]
+Branch: `fix/151-bias-detector-pattern-matching`
+Commit: `fdb1cd7`
+
+**Next steps:**
+Get peer feedback on the draft PR, address any review comments, then mark
+ready for final review.
+
+**Blockers:**
+None currently.
