@@ -43,3 +43,26 @@ an unrelated AsyncMock setup bug — noted as a blocker/observation, not part of
 **Blockers or open questions:**
 The 13 failing pre-existing tests are a separate bug (broken AsyncMock setup for db.execute).
 Need to decide whether to leave them as-is or flag separately, since fixing them isn't part of issue #109's scope.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/695
+
+**Branch:** `test/109-review-service-coverage`
+
+**What you built:**
+Added unit tests for `core/services/review_service.py`, focusing on `process_review`,
+`_run_ingestion_pipeline`, and `_run_safety_checks`, which previously had almost no
+coverage. Coverage for this file went from 22% to 90%.
+
+**Tests added or updated:**
+Added 15 new tests to `tests/unit/test_review_service.py`: 6 covering `process_review`
+(success path and 5 failure/edge-case branches), 3 covering `_run_ingestion_pipeline`
+(success, empty profile, partial source failure), and 6 covering `_run_safety_checks`
+(valid output, missing sections, missing name/content, and confidence boundary values).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(13 pre-existing failures in `get_review`/`list_reviews` documented as out of scope;
+confirmed no new failures or lint errors introduced by this change)
+
+**Draft PR feedback received from:** [fill in once you hear back, or "none" if you submit before getting any]
