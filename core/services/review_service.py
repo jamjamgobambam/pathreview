@@ -1,19 +1,22 @@
-from uuid import UUID
-import structlog
 import json
-from datetime import datetime
-from sqlalchemy import select, and_
+import secrets
+from datetime import datetime, timedelta
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
 
 async def create_review(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
@@ -33,22 +36,22 @@ async def create_review(
 
 
 async def get_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    return result.scalars().first()  # type: ignore[no-any-return]
 
 
 async def list_reviews(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     page: int = 1,
     page_size: int = 20,
@@ -80,7 +83,7 @@ async def list_reviews(
 
 
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
@@ -194,7 +197,47 @@ async def process_review(
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
 
-async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
+async def create_share_token(
+    db: AsyncSession,
+    review_id: UUID,
+    user_id: UUID,
+) -> Review | None:
+    """
+    Generate a share token for a review, valid for 30 days.
+    Returns the updated review, or None if not found / not owned by user.
+    """
+    review = await get_review(db=db, review_id=review_id, user_id=user_id)
+    if not review:
+        return None
+
+    review.share_token = secrets.token_urlsafe(32)
+    review.share_expires_at = datetime.utcnow() + timedelta(days=30)
+    review.updated_at = datetime.utcnow()
+    db.add(review)
+    await db.commit()
+    await db.refresh(review)
+    return review
+
+
+async def get_review_by_share_token(
+    db: AsyncSession,
+    token: str,
+) -> Review | None:
+    """
+    Fetch a review by its share token if the token has not expired.
+    Returns None if the token is invalid or expired.
+    """
+    stmt = select(Review).where(
+        and_(
+            Review.share_token == token,
+            Review.share_expires_at > datetime.utcnow(),
+        )
+    )
+    result = await db.execute(stmt)
+    return result.scalars().first()  # type: ignore[no-any-return]
+
+
+async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[dict]:
     """
     Run ingestion pipeline to extract data from profile sources.
     Returns list of ingested source data.

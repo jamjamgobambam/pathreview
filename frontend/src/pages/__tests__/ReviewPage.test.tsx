@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { ReviewPage } from '../ReviewPage'
 import { Review } from '../../types'
@@ -35,6 +36,14 @@ vi.mock('../../services/api', () => ({
   },
 }))
 
+vi.mock('../../services/shareService', () => ({
+  createShareLink: vi.fn(async () => ({
+    share_token: 'test-token',
+    share_url: 'http://localhost/shared/test-token',
+    expires_at: '2024-02-01T00:00:00Z',
+  })),
+}))
+
 const renderReviewPage = () =>
   render(
     <MemoryRouter initialEntries={['/reviews/review-123']}>
@@ -51,18 +60,24 @@ describe('ReviewPage — Copy link button (issue #101)', () => {
     })
   })
 
-  // REPRODUCTION: This test fails because the "Copy link" button does not exist.
-  // The current Share button uses alert() and has no dedicated "Copy link" label
-  // or inline confirmation. Fix: replace/augment with a proper Copy link button.
   it('renders a "Copy link" button on a completed review', async () => {
     renderReviewPage()
     expect(await screen.findByRole('button', { name: /copy link/i })).toBeInTheDocument()
   })
 
-  it('copies the current URL to clipboard when "Copy link" is clicked', async () => {
+  it('copies the share URL to clipboard when "Copy link" is clicked', async () => {
     renderReviewPage()
     const btn = await screen.findByRole('button', { name: /copy link/i })
     btn.click()
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(window.location.href)
+    await waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('http://localhost/shared/test-token')
+    })
+  })
+
+  it('shows "Copied!" feedback after clicking "Copy link"', async () => {
+    renderReviewPage()
+    const btn = await screen.findByRole('button', { name: /copy link/i })
+    await userEvent.click(btn)
+    expect(await screen.findByRole('button', { name: /copied!/i })).toBeInTheDocument()
   })
 })

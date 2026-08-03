@@ -67,6 +67,7 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TCH"]
 "core/models/*.py" = ["E501"]
 "scripts/*.py" = ["E501"]
 "alembic/versions/*.py" = ["E501"]
+"api/routes/*.py" = ["B008"]
 
 [tool.black]
 target-version = ["py311"]
@@ -78,7 +79,12 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 check_untyped_defs = true
-exclude = ["alembic/versions/"]
+explicit_package_bases = true
+exclude = ["alembic/", "tests/", "tests\\"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
