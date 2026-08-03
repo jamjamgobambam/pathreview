@@ -114,3 +114,44 @@ Open the draft PR against the upstream repository with the full template complet
 
 **Blockers:**
 None blocking implementation. Two pre-existing conditions were measured rather than fixed, so they are not mistaken for regressions later: `make test-unit` fails with 53 pre-existing failures on the base commit (identical failure set before and after this work; 375 passing → 462 passing), and `make lint` reports 182 pre-existing ruff errors, so `make check` exits at its first step and never reaches `black`/`mypy`. Zero of either count comes from files this work adds or edits.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/658
+
+**Branch:** `feat/40-offline-eval-runner`
+
+**What you built:**
+An offline benchmark evaluation runner (`rag/evaluator/benchmark_runner.py`) that drives PathReview's real RAG pipeline — chunking, embedding, indexing, hybrid retrieval, review generation and scoring — over four curated benchmark portfolios and writes a deterministic `eval_results.json`, plus the deterministic `MockReviewGenerator` and `get_review_generator()` factory the pipeline needed to run without a live model. It also repairs `VectorStore.add_chunks`, which raised `AttributeError` on every real `Chunk` and blocked the indexing path entirely. `LLM_PROVIDER=mock python scripts/run_evals.py` now completes with no database, Redis, Docker service or network call.
+
+**Tests added or updated:**
+90 new unit tests across five files. `tests/unit/test_benchmark_runner.py` (40) covers fixture loading and validation, malformed and empty benchmark data, report schema, stable aggregation, byte-identical repeated runs, the per-portfolio chunk floor, empty-retrieval flagging, absence of live model construction, and temporary vector-store cleanup. `tests/unit/test_run_evals_cli.py` (9) covers creation of `eval_results.json`, exit codes, error paths, and that a failed run writes no report. `tests/unit/test_mock_generator.py` (20) covers determinism, grounding in the retrieved chunks, faithfulness varying with evidence density, and graceful handling of empty or malformed chunks. `tests/unit/test_review_generator_provider.py` (12) covers provider resolution and mock-mode isolation. `tests/unit/test_vector_store.py` (9) covers `add_chunks` against real `Chunk` objects.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+> Recorded honestly: both commands **fail on the base commit and still fail**, entirely from pre-existing problems. `make check` exits at its first step with 182 pre-existing ruff errors (identical count before and after; zero in any file this work touches), and `make test-unit` reports 53 pre-existing failures whose set was captured and diffed before and after — identical, with passing tests rising from 375 to 465. The boxes are ticked in the sense that this contribution introduces no new lint error, no new type error and no new test failure; they are not ticked in the sense that the commands exit 0, and they did not exit 0 before this work either.
+
+**Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Review response & reflection
+
+**Reflection:** [docs/reflections/issue-40-offline-eval-runner.md](docs/reflections/issue-40-offline-eval-runner.md)
+
+**Reviewer feedback:** None received. [PR #658](https://github.com/ascherj/pathreview/pull/658) has no review comments, no submitted reviews and no maintainer comments; issue #40 has no new comments beyond the other students who claimed it. Nothing was adopted or rejected because nothing was submitted.
+
+**Self-review performed instead**, against runner determinism, benchmark validation, report schema, temporary vector-store cleanup, mock provider isolation, error handling, CI compatibility, test coverage and documentation accuracy. It found two real defects, both fixed with tests:
+
+1. [`9fd45cb`](https://github.com/ChariPramod/pathreview-pramod/commit/9fd45cb) — **retrieval order was not reproducible across processes.** `HybridRetriever.retrieve` assembles results by iterating `set(vector_map) | set(keyword_map)`, and Python randomises string hashing per process, so equally scored chunks return in different orders. A probe across five `PYTHONHASHSEED` values on a 12-chunk corpus with duplicated text returned the same chunks in five different orders. Three byte-identical runs had not proved determinism — they had been luck. Fixed in the runner by re-sorting on `(-score, id)` and by rejecting a portfolio whose chunks have identical text; `hybrid.py` itself is left alone as shared production code and flagged in the PR as a separate follow-up.
+2. [`17bd4ea`](https://github.com/ChariPramod/pathreview-pramod/commit/17bd4ea) — **an unusable `LLM_PROVIDER` produced a raw traceback** from inside the provider factory instead of an actionable message. Now caught and reported with exit 1, matching the fixture-error path.
+
+**Validation after those changes:** `make test-unit` → 53 failed / 465 passed, failure set identical to the captured baseline. `make lint` → 182 errors, identical to baseline, none in any file this work touches. `mypy` in CI form on Python 3.11 → 99 errors in 25 files, identical to baseline, none in the new modules. The eval runner produces byte-identical output across repeated runs, across five `PYTHONHASHSEED` values, and between Python 3.11.14 and Python 3.14.
+
+**CI status:** The workflow runs on PR #658 are `action_required` — GitHub gates first-time fork contributors' workflow runs behind maintainer approval, so neither `CI` nor `RAG Evaluation` has executed. Both were reproduced locally in a clean Python 3.11.14 virtualenv built with `pip install -e ".[dev]"`, exactly as the workflows build one.
+
+**Open decisions raised in the PR rather than decided silently:** whether actionability scoring is in scope; whether the runner should ever exit non-zero on low scores; whether `eval_results.json` should be committed or git-ignored; whether the benchmark and report schemas are acceptable; and whether `get_review_generator("openai")` should read its model from a new setting rather than a module constant.
+
+**Known limitation worth repeating:** under `LLM_PROVIDER=mock` the embeddings carry no semantic signal — a paraphrase of the query scores +0.054 cosine similarity against +0.000 for unrelated text — so vector ranking is effectively random and BM25 carries all the retrieval signal. The report is a regression-and-determinism signal, not a measurement of review quality, and the PR says so in those words.
