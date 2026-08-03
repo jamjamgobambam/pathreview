@@ -84,7 +84,7 @@ Previously returned `(False, '')`. Now correctly returns
 `(True, "Dismissive language about educational background")`.
 
 **PR status:**
-Opened as draft: https://github.com/arshadshiju/pathreview/pull/1
+Opened as draft: https://github.com/ascherj/pathreview/pull/688
 Branch: `fix/151-bias-detector-pattern-matching`
 Commit: `fdb1cd7`
 
