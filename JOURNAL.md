@@ -164,16 +164,20 @@ For the rest of the week, I'll be working on steps 3, 4, and 5. Steps 3 & 4 add 
 
 ### Check-In 2 (End of Week)
 
-**PR Link:** [link to your submitted pull request]
+**PR Link:** https://github.com/ascherj/pathreview/pull/607
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `test/88-reviews-endpoint-missing-documents`
 
 **What You Built:**
-[1–3 sentences summarizing what your fix does and how it works]
+To fulfill the expected behavior mentioned in the issue description, I added a pre-creation validation check to `create_review_endpoint()` in `api/routes/reviews.py`. 
+
+Before creating a review record or queuing any background work, the endpoint now queries the profile, verifies it belongs to the requesting user, and checks that at least one document field (`github_username`, `resume_text`, `portfolio_url`) is set and non-empty. If the profile is not found it returns HTTP 404; if it exists but has no documents it returns HTTP 422 with a message directing the user to add a document. No review record is created and no background task is queued in either case.
+
+By implementing the validation check, we can properly create the missing test case for profiles with no ingested documents as described in the issue [ascherj#88](https://github.com/ascherj/pathreview/issues/88).
 
 **Tests Added or Updated:**
-[Which test files did you touch? What do they cover?]
+Created `tests/unit/test_review_routes.py` with six tests covering the new validation via `TestClient`: empty profile returns 422, profile not found returns 404, empty string fields return 422, at least one document field set returns 200, 422 detail message mentions documents, and empty profile does not call `create_review`.
 
-**Self-Review Confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-Review Confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR Feedback Received From:** [name or Slack handle, or "none"]
+**Draft PR Feedback Received From:** None
