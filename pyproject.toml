@@ -44,6 +44,7 @@ dev = [
     "pytest-benchmark>=4.0.0",
     "pytest-httpserver>=1.0.8",
     "hypothesis>=6.92.0",
+    "testcontainers[postgres,redis]>=4.0.0",
     "ruff>=0.2.0",
     "black>=24.1.0",
     "mypy>=1.8.0",
