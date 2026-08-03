@@ -6,7 +6,7 @@
 
 When a user's portfolio has multiple projects built with the same tech stack (e.g. three Python projects), the review generator writes a near-identical "Python skills" paragraph for each project instead of noticing the overlap and consolidating it into one observation. Expected: one consolidated skills observation per shared stack, still calling out genuinely distinct feedback between projects. Actual: one repeated paragraph per project.
 
-Root cause, confirmed via `tests/unit/test_review_generator.py::TestFormatContext::test_same_stack_chunks_are_grouped_not_repeated` (currently `xfail`, proving the bug): `ReviewGenerator._format_context` (`rag/generator/review_generator.py:143-160`) concatenates the top 10 retrieved chunks into independent numbered blocks with no grouping by stack, so the LLM sees N same-language chunks side by side and writes a paragraph per chunk. `ReviewGenerator._consolidate_feedback` (`rag/generator/review_generator.py:188-208`) is not a safety net here — confirmed by `test_noop_when_duplicate_content_has_unique_section_names` — it only dedupes by `section_name`, which is already unique across the 5 fixed section names in `generate_full_review`, so it never touches duplicate content *within* a section.
+Root cause, confirmed via `tests/unit/test_review_generator.py::TestFormatContext::test_same_stack_chunks_are_grouped_not_repeated` (currently `xfail`, proving the bug): `ReviewGenerator._format_context` (`rag/generator/review_generator.py:143-160`) concatenates the top 10 retrieved chunks into independent numbered blocks with no grouping by stack, so the LLM sees N same-language chunks side by side and writes a paragraph per chunk. `ReviewGenerator._consolidate_feedback` (`rag/generator/review_generator.py:188-208`) is not a safety net: `test_noop_when_duplicate_content_has_unique_section_names` confirms it only dedupes by `section_name`, which is already unique across the 5 fixed section names in `generate_full_review`, so it never touches duplicate content *within* a section.
 
 ### Map
 
@@ -22,7 +22,7 @@ Not touching: `ingestion/pipeline.py` or `ingestion/parsers/repo_analyzer.py` �
 ### Plan
 
 1. Add a chunk-grouping helper that buckets `context_chunks` by `metadata.tech_stack` (falling back to `primary_language`, then to "ungrouped" if neither is present) before `_format_context` builds the prompt string, so same-stack chunks are presented together with explicit "these N projects share this stack" framing.
-2. Wire that helper into `_format_context`, keeping the existing top-10-chunks limit — grouping happens within that limit, not before it.
+2. Wire that helper into `_format_context`, keeping the existing top-10-chunks limit; grouping happens inside that limit.
 3. Update the `skills_feedback` and `projects_feedback` prompt templates (`prompt_templates.py`) to instruct the model: when multiple projects share a stack, produce one consolidated observation referencing all of them, not one per project.
 4. Re-run `test_same_stack_chunks_are_grouped_not_repeated` and remove its `xfail` marker once it passes for real; add cases for mixed-stack (no incorrect merging) and single-project (unchanged behavior).
 5. If prompt changes alone don't fully eliminate repetition (Tier-3 risk noted below), add the backstop dedup step in `output_parser.py` as defense-in-depth.
@@ -42,7 +42,7 @@ Not touching: `ingestion/pipeline.py` or `ingestion/parsers/repo_analyzer.py` �
 
 ### Edge cases
 
-- A profile with only one project: grouping must be a no-op — single-project output should be unchanged from today's behavior.
+- A profile with only one project: grouping must be a no-op, leaving single-project output exactly as it is today.
 - Chunks with missing or empty `tech_stack` (e.g. `[]` or absent key): must fall back to `primary_language`, then to treating the chunk as its own ungrouped bucket, rather than raising a `KeyError`.
-- Multiple distinct stacks, no overlap (e.g. one Python project, one React project): no grouping should occur — output should look like today's per-project blocks.
+- Multiple distinct stacks, no overlap (e.g. one Python project, one React project): no grouping should occur, and output should still look like today's per-project blocks.
 - More than 10 same-stack chunks retrieved: grouping happens after/within the existing top-10 truncation in `_format_context`, so it must not assume it sees the full unfiltered chunk set.
