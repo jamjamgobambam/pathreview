@@ -25,8 +25,7 @@ pytest tests/unit/test_readme_scorer.py -q
 
 I checked the error logs and verified the issue exists.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
-
+**PLAN.md link:** (https://github.com/bluecrushangel/pathreview/blob/fix/156-README-test-fixture-too-short/PLAN.md)
 **Walkthrough video (recommended):** N/A 
 
 **Blockers or open questions:**
