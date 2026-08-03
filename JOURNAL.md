@@ -67,7 +67,33 @@ Completed sub-task 1 from PLAN.md by updating the phone_us regex in src/safety/p
 Re-run the full test suite to confirm the four previously-failing tests pass along with the false-positive test. Add a new test case for the parenthesized format if it's not already covered, then manually check a few edge cases before opening the PR.
 
 **Blockers:**
-[Anything slowing you down? Or leave blank.]
+<!-- [Anything slowing you down? Or leave blank.] -->
 None currently.
 
 ---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** `fix/146-pii-scrubber-phone-parens`
+
+**Branch Link:** https://github.com/malhiya/pathreview/tree/fix/146-pii-scrubber-phone-parens
+
+**What you built:**
+<!-- [1–3 sentences summarizing what your fix does and how it works] -->
+Fixed the phone_us regex in pii_scrubber.py so it correctly matches parenthesized phone numbers like (555) 123-4567, which previously slipped through scrub() and detect() untouched. The fix replaces the \b word boundary with digit-based lookarounds ((?<!\d) and (?!\d)), since a leading ( broke the original boundary check, and also allows whitespace as a valid separator between digit groups.
+
+**Tests added or updated:**
+<!-- [Which test files did you touch? What do they cover?] -->
+Updated tests/unit/test_pii_scrubber.py. Added two new tests: 
+
+1. test_parenthesized_phone_no_space, which checks a parenthesized phone number with no space before the next digit group
+
+2. test_detect_parenthesized_phone_value_accurate, which confirms detect() captures the full parenthesized phone number as its matched value.
+
+The four pre-existing tests tied to this issue (test_us_phone_number_redaction, test_us_phone_formats, test_detect_phone_pii, test_phone_at_start_of_text) now pass as a result of the regex fix.
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+
+<!-- **Draft PR feedback received from:** [name or Slack handle, or "none"] -->
