@@ -149,10 +149,10 @@ even when all optional fields (`github_username`, `portfolio_url`,
 **Feedback received:** [ ] Yes  [x] No — still awaiting review
 
 **Summary of feedback:**
-[What did reviewers comment on? Or note that no review came in.]
+No review came in.
 
 **How you responded:**
-[What changes did you make, or what did you reply? If no feedback, leave blank.]
+N/A
 
 ---
 
