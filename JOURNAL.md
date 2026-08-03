@@ -101,7 +101,7 @@ None currently.
 **Feedback received:** [ ] Yes  [x] No — still awaiting review (not a feature in Summer 2026)
 
 **Summary of feedback:**
-No reviewer feedback was available this term, per the course note. PR #1
+No reviewer feedback was available this term, per the course note. PR #688
 remains open as a draft on branch `fix/151-bias-detector-pattern-matching`.
 
 **How you responded:**
