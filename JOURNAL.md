@@ -126,7 +126,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** []
+**PR link:** [https://github.com/ascherj/pathreview/pull/626]
 
 **Branch:** `docs/89-api-request-body-schemas`
 
