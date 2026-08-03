@@ -31,6 +31,9 @@ class Review(Base):
     status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="pending"
     )  # "pending", "processing", "complete", "failed"
+    share_token: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, unique=True, index=True
+    )  # Public share token; null until the owner generates a share link
     sections: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Structured review output
     overall_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
