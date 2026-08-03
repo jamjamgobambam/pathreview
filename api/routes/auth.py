@@ -21,6 +21,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def register(
     user_data: UserCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
+    _rate_limit: Annotated[None, Depends(rate_limit)],
 ) -> Token:
     """
     Register a new user and return a JWT access token.
