@@ -99,3 +99,22 @@ Verified no regressions: `make test-unit` baseline (before this work) was 57 fai
 
 **Blockers:**
 None currently — the open question from Week 8 (whether to also fix the broader "pipeline has no caller" gap for resume/readme) resolved itself naturally: completing `_check_skip`/`_record_ingested_source` for real was necessary for portfolio-URL dedup to work at all, so it also benefits the other source types as a side effect, without expanding scope beyond issue #11's route-wiring for `portfolio_url`.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [ascherj/pathreview#506](https://github.com/ascherj/pathreview/pull/506)
+
+**Branch:** `feat/11-add-ingestion-support-for-portfolio-url`
+
+**What you built:**
+Added a `WebPageParser` that fetches a portfolio URL via `httpx` and extracts text with `BeautifulSoup`, wired a new `ingest_portfolio_url` method into `IngestionPipeline`, and called it from the profile create/update routes as a best-effort step so a slow or unreachable portfolio site never fails profile creation. Also completed `_check_skip`/`_record_ingested_source`, which were previously stub methods, so content-hash dedup actually works now.
+
+**Tests added or updated:**
+`tests/unit/test_web_page_parser.py` (8 new tests: HTML stripping, empty/SPA pages, bytes input, invalid content type, missing title, successful fetch, HTTP error, non-HTML content type) and `tests/unit/test_pipeline.py` (4 new tests: happy path, skip-if-already-ingested, fetch failure propagation, no-extractable-text edge case). All 12 pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+<!-- Note: both are "passes" in the course's documented-pre-existing-failures sense, not a literal zero-error run — make test-unit has 53 pre-existing failures on main (387 passed, no new failures); make check has pre-existing ruff (162) and mypy (100) errors repo-wide, unrelated to this change and documented in the PR's Notes for Reviewers (PR #506). -->
+
+**Draft PR feedback received from:** none
