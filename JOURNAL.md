@@ -34,3 +34,34 @@ Not recorded yet. I plan to record it after finalizing my solution plan and revi
 
 **Blockers or open questions:**
 I want to verify whether the project expects JavaScript and TypeScript detection to rely only on explicit keywords or whether it should also recognize language-specific syntax such as `const`, `require()`, `export interface`, and common file extensions while avoiding false positives.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the skill extractor fix for issue 148 in `ingestion/parsers/skill_extractor.py` and added regression coverage in `tests/unit/test_skill_extractor.py`. The extractor now recognizes JavaScript and TypeScript from real-world syntax patterns instead of relying mostly on filenames and imports, and the affected unit tests pass.
+
+**Next steps:**
+Finish the PR submission details, keep the branch scoped to the issue fix, and document the validation status clearly in the PR description and journal.
+
+**Blockers:**
+The repo still has unrelated pre-existing failures in broader checks such as `make test-integration` and `make typecheck`, so I am keeping this PR scoped to the issue-specific fix and its direct validation.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [add submitted pull request URL]
+
+**Branch:** `fix/148-skill-extractor-js-ts-detection`
+
+**What you built:**
+I expanded the skill extractor so it detects JavaScript and TypeScript from common syntax patterns like `const`, `let`, `var`, `require(...)`, `export`, `interface`, and type annotations, while still preserving the existing extractor behavior for other technologies. I also added focused regression coverage for the reported JS/TS cases.
+
+**Tests added or updated:**
+I updated `tests/unit/test_skill_extractor.py` to cover JavaScript detection, TypeScript detection, Docker and Docker Compose detection, and the related regression cases for issue 148.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** none
