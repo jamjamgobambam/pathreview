@@ -41,7 +41,20 @@ async def create_review_endpoint(
     keyed by profile_id, released when the background task finishes.
     """
     lock = ReviewLock(redis, data.profile_id)
-    if not await lock.acquire():
+    try:
+        acquired = await lock.acquire()
+    except Exception as exc:
+        log.error(
+            "review_lock_acquire_error",
+            profile_id=str(data.profile_id),
+            error=str(exc),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to acquire review lock",
+        ) from exc
+
+    if not acquired:
         log.info(
             "review_in_flight_rejected",
             profile_id=str(data.profile_id),

@@ -119,3 +119,42 @@ async def test_concurrent_creates_for_same_profile_reject_second() -> None:
         f"Regression #82: expected the second concurrent request to be "
         f"rejected with HTTP 409, got rejects={rejects}"
     )
+
+
+class _BrokenRedis:
+    """Async fake whose SET raises, simulating a Redis outage."""
+
+    async def set(self, *_args: Any, **_kwargs: Any) -> bool | None:
+        raise ConnectionError("redis is down")
+
+    async def eval(self, *_args: Any, **_kwargs: Any) -> int:
+        raise ConnectionError("redis is down")
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_redis_outage_during_acquire_returns_500() -> None:
+    """
+    If Redis raises during lock.acquire(), the endpoint must return a
+    structured 500 through its own handler (not an unhandled exception).
+    """
+    profile_id = uuid4()
+    user = Mock()
+    user.id = uuid4()
+
+    db = AsyncMock()
+    bg = BackgroundTasks()
+
+    kwargs: dict[str, Any] = dict(
+        data=ReviewCreate(profile_id=profile_id),
+        background_tasks=bg,
+        current_user=user,
+        db=db,
+        redis=_BrokenRedis(),
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await create_review_endpoint(**kwargs)
+
+    assert exc_info.value.status_code == 500
+    assert "review lock" in exc_info.value.detail.lower()
