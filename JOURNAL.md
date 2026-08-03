@@ -66,3 +66,34 @@ tests/unit/test_review_routes.py (new file) — one test verifying current POST 
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Recreating or confirming the issue and also understanding the surrounding codebase definitely took more time than I expected.
+
+**What did you learn about working in a large codebase?**
+When contributing to someone else's codebase, I learned that I need to make sure my code needs to be consistent with the current codebase, whether it's matching the same unit-test style conventions or the docstrings.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful in helping me understand the codebase surrounding my issue.
+
+**What would you do differently if you started over?**
+I think I might have spent a bit more time recreating or confirming the issue in order to have a more solid plan.
+
+**What are you most proud of from this module?**
+I'm most proud of learning how to navigate a larger codebase, especially in identifying the relevant code to my chosen issue, with the help of AI.
