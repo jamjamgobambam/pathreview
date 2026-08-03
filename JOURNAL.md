@@ -112,7 +112,7 @@ instead going forward to avoid repeating that.
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/thisiswhale/pathreview/pull/1
+**PR link:** https://github.com/ascherj/pathreview/pull/625
 
 **Branch:** test/105-review-page-accessibility-tests
 
