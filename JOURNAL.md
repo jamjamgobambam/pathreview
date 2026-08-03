@@ -81,7 +81,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _to be added once the PR is opened_
+**PR link:** https://github.com/ascherj/pathreview/pull/670
 
 **Branch:** `fix/155-health-check-redis-host`
 
