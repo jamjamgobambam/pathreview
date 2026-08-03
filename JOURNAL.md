@@ -24,7 +24,7 @@ I selected this issue because it is labeled Tier 1 and is estimated to take appr
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/k-hetherington/pathreview/commit/9d48bbe)
+**Reproduction commit link:** https://github.com/k-hetherington/pathreview/commit/9d48bbe
 
 **Reproduction summary:**
 
@@ -41,3 +41,50 @@ Not recorded.
 **Blockers or open questions:**
 
 I wanted to determine the best Redis data structure for supporting rolling time-window queries while also automatically removing expired events.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+I completed the main implementation tasks from `PLAN.md`. I updated `SafetyMonitor` to store timestamped events in Redis sorted sets, added support for counting events within a requested time window, and connected that count to the `/health` endpoint through the `safety_events_last_hour` field. I also added focused unit tests for the new aggregation behavior.
+
+**Next steps:**
+
+Finalize the pull request, complete the remaining documentation, verify my implementation against the project requirements, and submit the contribution for review.
+Run the required project checks, review and update the pull request description with clear manual verification steps, document any pre-existing failures, and complete the final Week 9 check-in.
+
+**Blockers:**
+
+The repository has pre-existing test and type-checking failures outside the files changed for Issue #68. I am verifying that my contribution does not introduce any new failures.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/258
+
+**Branch:** `fix/68-safety-event-health-count`
+
+**What you built:**
+
+I added real one-hour safety event reporting to the `/health` endpoint. Safety events are stored with timestamps in Redis sorted sets, and `SafetyMonitor.get_total_event_count()` aggregates recent events across all supported event types.
+
+**Tests added or updated:**
+
+Added `tests/unit/test_safety_monitoring.py`.
+
+The tests verify:
+
+- `test_get_total_event_count_sums_all_event_types()` correctly aggregates counts across every supported safety event type.
+- `test_get_total_event_count_returns_zero_when_no_events()` returns `0` when no safety events have been recorded.
+
+**Self-review confirmation:**
+
+- [ ] make check passes
+- [ ] make test-unit passes
+
+The repository currently contains pre-existing linting and unit test failures unrelated to Issue #68. I verified that my new unit tests pass independently and that my changes did not introduce additional failures.
+
+**Draft PR feedback received from:** none
