@@ -16,6 +16,7 @@ from rag.evaluator.benchmark_runner import (
     run_benchmarks,
     write_report,
 )
+from rag.retriever.hybrid import HybridRetriever
 
 
 def _portfolio_payload(**overrides):
@@ -326,6 +327,57 @@ class TestBenchmarkRunner:
 
         with pytest.raises(BenchmarkFixtureError, match="at least"):
             runner.run(portfolios)
+
+    def test_duplicate_chunk_text_is_rejected(self, runner, fixtures_dir):
+        """Test identical chunks are rejected: they tie exactly and break reproducibility."""
+        section = "## Overview\nA python service exposing rest apis built with fastapi.\n\n"
+        _write_fixture(
+            fixtures_dir,
+            "tied.json",
+            _portfolio_payload(
+                portfolio_id="tied",
+                documents=[
+                    {
+                        "source_id": "readme_tied",
+                        "source_type": "readme",
+                        "text": (
+                            "# Tied\nIntro.\n\n"
+                            + section
+                            + section.replace("## Overview", "## Duplicate")
+                            + "## Testing\nCovered by pytest cases.\n\n"
+                            "## Deployment\nShips as a docker image."
+                        ),
+                    }
+                ],
+            ),
+        )
+        portfolios = load_benchmark_portfolios(fixtures_dir)
+
+        with pytest.raises(BenchmarkFixtureError, match="identical text"):
+            runner.run(portfolios)
+
+    def test_retrieved_chunks_are_sorted_before_scoring(self, runner, portfolios, monkeypatch):
+        """Test the runner re-sorts retrieval output, whose order HybridRetriever cannot promise."""
+        seen = []
+
+        def capture(profile_data, retrieved_chunks):
+            seen.append([chunk["id"] for chunk in retrieved_chunks])
+            return []
+
+        monkeypatch.setattr(runner.generator, "generate_full_review", capture)
+        monkeypatch.setattr(
+            HybridRetriever,
+            "retrieve",
+            lambda *args, **kwargs: [
+                {"id": "b_chunk_0", "text": "beta", "metadata": {}, "score": 0.5},
+                {"id": "a_chunk_0", "text": "alpha", "metadata": {}, "score": 0.5},
+                {"id": "c_chunk_0", "text": "gamma", "metadata": {}, "score": 0.9},
+            ],
+        )
+
+        runner.run(portfolios)
+
+        assert seen[0] == ["c_chunk_0", "a_chunk_0", "b_chunk_0"]
 
     def test_empty_portfolio_list_rejected(self, runner):
         """Test running with no portfolios raises instead of reporting zeros."""

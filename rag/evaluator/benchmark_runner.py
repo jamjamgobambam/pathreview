@@ -484,7 +484,7 @@ class BenchmarkRunner:
         Raises:
             BenchmarkFixtureError: If a document produces no chunks, the
                 portfolio is below MIN_CHUNKS_PER_PORTFOLIO, or two chunks
-                collide on the same id
+                collide on the same id or on identical text
         """
         indexed = _IndexedPortfolio()
 
@@ -508,7 +508,8 @@ class BenchmarkRunner:
 
         indexed.embeddings = self.embedding_provider.embed([c.text for c in indexed.chunks])
 
-        seen_ids = set()
+        seen_ids: set[str] = set()
+        seen_texts: dict[str, str] = {}
         for chunk in indexed.chunks:
             chunk_id = self._chunk_id(chunk)
             if chunk_id in seen_ids:
@@ -517,6 +518,20 @@ class BenchmarkRunner:
                     "upserting it would silently overwrite an earlier chunk"
                 )
             seen_ids.add(chunk_id)
+
+            # Identical text yields an identical mock embedding and an identical
+            # BM25 score, so the two chunks tie exactly. HybridRetriever resolves
+            # its blended results by iterating a set of ids, whose order is not
+            # stable across processes, so a tie spanning the max_chunks boundary
+            # would make which chunk survives depend on PYTHONHASHSEED.
+            if chunk.text in seen_texts:
+                raise BenchmarkFixtureError(
+                    f"Portfolio '{portfolio.portfolio_id}': chunks '{seen_texts[chunk.text]}' "
+                    f"and '{chunk_id}' have identical text, which produces an exact "
+                    "retrieval score tie and makes the benchmark non-reproducible"
+                )
+            seen_texts[chunk.text] = chunk_id
+
             indexed.chunk_dicts.append(
                 {"id": chunk_id, "text": chunk.text, "metadata": dict(chunk.metadata)}
             )
@@ -540,6 +555,11 @@ class BenchmarkRunner:
         chunks while EvalSuite scores every chunk it is handed, and an uncapped
         retrieval would score context the generator never saw.
 
+        Retrieved chunks are re-sorted on ``(-score, id)`` before use.
+        HybridRetriever builds its result list by iterating a set of chunk ids,
+        whose order is not stable across processes, so equally scored chunks can
+        come back in a different order from one run to the next.
+
         Args:
             portfolio: The portfolio being scored
             query: The eval query
@@ -555,6 +575,10 @@ class BenchmarkRunner:
             query_embedding,
             max_chunks=self.max_chunks,
             min_score=self.min_score,
+        )
+        chunks = sorted(
+            chunks,
+            key=lambda chunk: (-float(chunk.get("score", 0.0) or 0.0), str(chunk.get("id", ""))),
         )
 
         sections = self.generator.generate_full_review(portfolio.profile, chunks)
