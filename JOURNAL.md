@@ -111,10 +111,12 @@ None.
 A "Hybrid Retrieval Scoring" subsection in `docs/ARCHITECTURE.md` that documents how `HybridRetriever` ranks chunks: per-method max-normalization, the weighted blend formula with the 0.7/0.3 constructor defaults, the minimum-score filter, and a worked three-chunk example with hand-verified arithmetic. It closes issue #36, where the scoring logic existed only in source code.
 
 **Tests added or updated:**
-Not applicable. This is a docs-only change: it touches only Markdown, alters no code paths, and there is no test framework for prose. I was advised by the instructor and tech fellows (TFs) that for docs-only changes new test cases are not applicable and none are required. Explicitly documenting this, as done here and in the PR, qualifies for full credit on the relevant rubric items. Correctness was verified instead by cross-checking every statement against `HybridRetriever.retrieve()` and recomputing the example arithmetic by hand.
+Added `tests/unit/test_hybrid_retriever.py` (new file, 2 tests). It verifies the `HybridRetriever` interface that the new documentation section describes: the class constructs with the documented default weights (`vector_weight=0.7`, `keyword_weight=0.3` in `HybridRetriever.__init__`), and exposes a callable `retrieve` method. The documentation change itself is Markdown-only with no testable code path.
+
+I was advised by the instructor and tech fellows (TFs) that for docs-only changes new test cases are not applicable and no tests are required. Adding the tests to accompany the docs PR regardless, as it guards the documented defaults against silent drift if they ever change. Correctness of the doc content was verified separately by cross-checking every statement against `HybridRetriever.retrieve()` and recomputing the example arithmetic by hand.
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-Both commands were run before and after the change with identical results. Per the module guidance on codebases with documented pre-existing failures, "passes" means my change introduces no new failures, which the identical before/after outputs confirm.
+Both commands were run before and after my changes. `make check` is unchanged (pre-existing ruff errors, none in files I touched). `make test-unit` shows the same pre-existing failures, with the 2 new tests passing. Per the module guidance on codebases with documented pre-existing failures, "passes" means my changes introduce no new failures, which the before/after comparison confirms.
 
 **Draft PR feedback received from:** none
