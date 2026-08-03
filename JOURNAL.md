@@ -77,7 +77,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _pending — filled in once the PR is opened_
+**PR link:** https://github.com/ascherj/pathreview/pull/711
 
 **Branch:** `test/106-restore-basic-profile-fixture`
 
