@@ -45,3 +45,16 @@ Ran the existing test `test_none_context_chunk_text` in `tests/unit/test_faithfu
 **PLAN.md link:** https://github.com/kacp3rrr/pathreview/blob/fix/153-faithfulness-none-text-crash/PLAN.md
 
 **Blockers or open questions:**
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed all the sub-tasks from PLAN.md: changed line 35 in `rag/evaluator/faithfulness_checker.py` from `chunk.get("text", "")` to `chunk.get("text") or ""`, confirmed `test_none_context_chunk_text` now passes, and ran the full `make test-unit` suite before and after to verify no regressions (53 failed/375 passed before, 52 failed/376 passed after — only that one test changed status). Also ran `make check` and confirmed the 182 pre-existing lint errors are identical before and after my change, so nothing new was introduced.
+
+**Next steps:**
+Opening the PR, filling in the PR template with the fix description, before/after test evidence, and get it marked ready for review
+
+**Blockers:**
+None
