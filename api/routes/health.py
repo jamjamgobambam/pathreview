@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from sqlalchemy import text
 import structlog
 from datetime import datetime, timedelta
 
@@ -25,10 +26,12 @@ async def health_check(db=Depends(get_db)):
         "safety_events_last_hour": 0,
         "timestamp": datetime.utcnow().isoformat(),
     }
-
+# SQLAlchemy 2.x requires raw SQL wrapped in text() (issue #154)
+# Current: await db.execute("SELECT 1")  # Fails in SQLAlchemy 2.0.51
+# Error: CompileError: Textual SQL expression 'SELECT 1' should be explicitly declared as text('SELECT 1')
     try:
         # Check PostgreSQL
-        await db.execute("SELECT 1")
+        await db.execute(text("SELECT 1"))
         health_status["dependencies"]["postgres"] = "healthy"
         log.debug("postgres_health_check_passed")
     except Exception as exc:
