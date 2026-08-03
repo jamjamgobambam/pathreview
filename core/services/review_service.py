@@ -5,6 +5,7 @@ from uuid import UUID
 import structlog
 from redis.exceptions import RedisError
 from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.schemas.review import FeedbackSection
 from core.models.ingested_source import IngestedSource
@@ -91,7 +92,7 @@ def _profile_lock_key(profile_id: UUID) -> str:
     return f"profile-lock:{profile_id}"
 
 
-async def _mark_review_failed(db, review_id: UUID) -> None:
+async def _mark_review_failed(db: AsyncSession, review_id: UUID) -> None:
     """Best-effort: re-fetch a review by id and set status='failed'.
 
     Re-fetches rather than reusing a `review` object from the caller's scope,
@@ -112,7 +113,7 @@ async def _mark_review_failed(db, review_id: UUID) -> None:
 
 
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
