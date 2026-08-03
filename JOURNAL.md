@@ -11,7 +11,15 @@ There is a bug that occurs when the faithfulness checker receives a chunk of tex
 
 **Branch name:** [fix/153-faithfulness-none-text]
 
-**Setup confirmation:** [ ] App runs locally at localhost:5173
-After opening the cloned repo in Git Bash, I attempted to start the Docker services with, `docker compose up -d`, and received the error message `bash: docker: command not found`. When I opened Docker Desktop directly, it reported that virtualization support was not detected.
+**Setup confirmation:** [✓] App runs locally at localhost:5173
 
 **Cohort ledger:** [✓] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [link to commit documenting the reproduced issue]
+
+**Reproduction summary:**
+I created a script that called `FaithfulnessChecker().check()` with a context chunk that contained `{'text': None}`. This raised  `TypeError: sequence item 0: expected str instance, NoneType found`.
+
+**PLAN.md link:** [link to PLAN.md in your fork]
