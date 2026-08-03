@@ -67,3 +67,26 @@ A peer reviewer confirmed that the adaptive overlap threshold correctly addresse
 **How you responded:**
 I clarified that the adaptive threshold for one- and two-token claims was an intentional design decision to better support concise factual resume claims while maintaining a stricter threshold for longer claims. I updated my JOURNAL.md to replace the placeholder reproduction commit link and added the required Week 9 check-in structure before submission.
 
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was understanding a large codebase that I had never seen before. Finding the files related to my issue and tracing how the faithfulness checker worked took much longer than I expected. I also had to learn how the existing tests were structured so that I could add new tests that matched the project's conventions. Another challenge was distinguishing between failures related to my issue and the repository's pre-existing failures. It was important to understand which problems I was responsible for fixing and which ones were outside the scope of my contribution.
+
+**What did you learn about working in a large codebase?**
+
+Working in a large codebase is very different from working on my own projects. Instead of writing code from scratch, most of the work involved understanding existing code, following the project's style and testing patterns, and making the smallest possible change to solve a specific issue. I also learned that reading existing tests is one of the fastest ways to understand how a component is expected to behave.
+
+**How did AI tools help — and where did they fall short?**
+
+AI was very helpful for navigating the unfamiliar codebase, explaining existing functions, suggesting debugging strategies, and helping me understand regular expressions and Git workflows. However, AI could not replace actually reading the code or interpreting the test results. I still had to verify every suggestion against the repository, adjust the implementation to match the project's design, and determine which failures were related to my issue versus unrelated pre-existing problems.
+
+**What would you do differently if you started over?**
+
+If I started over, I would spend more time reading the project structure and existing unit tests before making any code changes. I would also create a small reproduction case earlier in the process because reproducing the issue helped me understand the bug much more quickly. Finally, I would open my draft PR earlier so I could request feedback sooner.
+
+**What are you most proud of from this module?**
+
+I'm most proud that I was able to contribute a real fix to an unfamiliar open source project from start to finish. I reproduced the issue, developed a solution, updated the tests, opened a pull request, and followed the same workflow used in professional software development. This experience gave me much more confidence that I can contribute to larger engineering projects.
