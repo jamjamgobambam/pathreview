@@ -1,11 +1,11 @@
 """Tests for resume_parser.py"""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
+from unittest.mock import Mock, patch
 
-from ingestion.parsers.resume_parser import ResumeParser
+import pytest
+
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.resume_parser import ResumeParser
 
 
 @pytest.mark.unit
@@ -197,10 +197,8 @@ class TestResumeParser:
 
         assert isinstance(sections, list)
         assert len(sections) > 0, "Bug #147: No sections detected due to leading whitespace"
-        
+
         sections_lower = [s.lower() for s in sections]
         assert any("experience" in s for s in sections_lower), "Failed to detect Experience section"
         assert any("education" in s for s in sections_lower), "Failed to detect Education section"
         assert any("skills" in s for s in sections_lower), "Failed to detect Skills section"
-
-
