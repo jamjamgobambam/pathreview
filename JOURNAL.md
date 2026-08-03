@@ -73,7 +73,7 @@ I added real one-hour safety event reporting to the `/health` endpoint. Safety e
 
 **Tests added or updated:**
 
-Added `tests/unit/test_safety_monitoring.py`.
+Added unit tests in `tests/unit/test_safety_monitoring.py`.
 
 The tests verify:
 
