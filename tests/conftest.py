@@ -1,6 +1,33 @@
 """Shared test fixtures for PathReview."""
 
+from collections.abc import Iterator
+
 import pytest
+import structlog
+
+
+@pytest.fixture(autouse=True)
+def configure_structlog_for_caplog() -> Iterator[None]:
+    """Route structlog output through stdlib logging so pytest's caplog
+    fixture can capture it. Without this, structlog uses its own
+    PrintLogger and caplog.text/caplog.records stay empty even though
+    log calls genuinely fire."""
+    structlog.configure(
+        processors=[
+            structlog.stdlib.filter_by_level,
+            structlog.stdlib.add_logger_name,
+            structlog.stdlib.add_log_level,
+            structlog.stdlib.PositionalArgumentsFormatter(),
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.processors.UnicodeDecoder(),
+            structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+        ],
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        cache_logger_on_first_use=False,
+    )
+    yield
 
 
 @pytest.fixture
