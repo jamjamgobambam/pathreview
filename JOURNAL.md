@@ -49,3 +49,22 @@ Run `make check` (ruff/black/mypy) to self-review against CONTRIBUTING.md, open 
 
 **Blockers:**
 None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/691
+
+**Branch:** `fix/159-caplog-structlog-config`
+
+**What you built:**
+An autouse `configure_structlog_for_tests` fixture in `tests/conftest.py` that configures structlog with `structlog.stdlib.LoggerFactory()`, bridging every `structlog.get_logger()` call into the stdlib `logging` module so pytest's `caplog` fixture can see it — fixing the suite-wide gap where structlog output was invisible to `caplog.text`/`caplog.records`.
+
+**Tests added or updated:**
+Added `tests/unit/test_logging_conftest.py` (3 tests: event text in `caplog.text`, correct `levelname` in `caplog.records`, bound context via `.bind()` doesn't break capture). No existing test files were modified — `tests/unit/test_batch_processor.py::test_empty_chunks_list_returns_empty` now passes unchanged, confirming the fix works suite-wide rather than requiring per-test opt-in.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both scoped to files this PR touches — see pre-existing-failures note in the PR description: 52 failed/379 passed unit tests and 182 ruff/mypy errors exist on `main` already, unrelated to this change, and unaffected by it.)
+
+**Draft PR feedback received from:** none
