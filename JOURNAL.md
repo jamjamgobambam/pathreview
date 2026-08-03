@@ -52,3 +52,23 @@ I will run the full project validation commands (`make check` and `make test-uni
 **Blockers:**
 
 None at this time.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/651
+
+**Branch:** `fix/152-short-claim-support`
+
+**What you built:**
+
+I updated the faithfulness checker so short factual claims can be recognized as supported when they share a meaningful keyword with the retrieved context. I also improved claim extraction for compound sentences, normalized tokenization to remove punctuation, and made context processing handle missing or `None` text safely.
+
+**Tests added or updated:**
+
+I did not modify the test file. I used the existing tests in `tests/unit/test_faithfulness_checker.py` to validate the implementation, including short-claim support, multiple context chunks, partial support, and `None` context text handling. All 22 tests in that file passed.
+
+**Self-review confirmation:**  
+[x] `make check` completed with no new failures introduced  
+[x] `make test-unit` completed with no new failures introduced
+
+**Draft PR feedback received from:** none
