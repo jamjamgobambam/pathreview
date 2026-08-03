@@ -74,7 +74,7 @@ None currently.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/621#issue-5045638265
 
 **Branch:** `fix/146-pii-scrubber-phone-parens`
 
