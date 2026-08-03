@@ -102,6 +102,7 @@ All three addressed across 3 follow-up commits (`9651177`, `9f80223`, `133ccb6`)
 ### Check-in 2 (end of week)
 
 **PR link:** [#456](https://github.com/ascherj/pathreview/pull/456)
+(Note: I originally thought PRs should be opened against my own forked copy, so all the original draft review feedback/discussion happened there: [arushibhatia/pathreview#1](https://github.com/arushibhatia/pathreview/pull/1). Retargeted to the actual upstream repo, `ascherj/pathreview`, once I realized that's where it needed to go.)
 
 **Branch:** feat/11-add-support-for-ingesting-portfolio-website-url
 
