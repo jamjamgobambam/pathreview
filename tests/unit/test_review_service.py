@@ -2,13 +2,15 @@
 
 import pytest
 from uuid import uuid4
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import asyncio
 
 from core.services.review_service import (
     create_review,
     get_review,
     list_reviews,
+    create_or_get_share_token,
+    get_review_by_share_token,
 )
 
 
@@ -338,3 +340,139 @@ class TestReviewService:
 
         # Should order by created_at descending
         mock_db_session.execute.assert_called_once()
+
+
+@pytest.mark.unit
+class TestReviewSharing:
+    """Test suite for public share-token generation and lookup (issue #101)."""
+
+    @pytest.fixture
+    def mock_db_session(self):
+        """Create a mock async database session."""
+        session = AsyncMock()
+        session.add = Mock()
+        session.commit = AsyncMock()
+        session.refresh = AsyncMock()
+        session.execute = AsyncMock()
+        return session
+
+    def _result_with_first(self, value):
+        """Build a synchronous execute() result whose scalars().first() == value.
+
+        The service calls ``result.scalars().first()`` synchronously, so the
+        result object must be a MagicMock (not AsyncMock) to avoid returning a
+        coroutine from ``scalars()``.
+        """
+        result = MagicMock()
+        result.scalars.return_value.first.return_value = value
+        return result
+
+    @pytest.mark.asyncio
+    async def test_create_share_token_returns_existing_token(self, mock_db_session):
+        """An already-shared review returns its existing token (idempotent)."""
+        review = Mock()
+        review.share_token = "existing-token"
+
+        with patch(
+            "core.services.review_service.get_review",
+            new=AsyncMock(return_value=review),
+        ):
+            token = await create_or_get_share_token(
+                mock_db_session, uuid4(), uuid4()
+            )
+
+        assert token == "existing-token"
+        # No new token should be persisted when one already exists.
+        mock_db_session.commit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_create_share_token_generates_new_token(self, mock_db_session):
+        """A never-shared review gets a fresh token persisted to the DB."""
+        review = Mock()
+        review.share_token = None
+
+        with patch(
+            "core.services.review_service.get_review",
+            new=AsyncMock(return_value=review),
+        ), patch(
+            "core.services.review_service.get_review_by_share_token",
+            new=AsyncMock(return_value=None),
+        ):
+            token = await create_or_get_share_token(
+                mock_db_session, uuid4(), uuid4()
+            )
+
+        assert isinstance(token, str)
+        assert len(token) >= 20  # secrets.token_urlsafe(32) is ~43 chars
+        assert review.share_token == token
+        mock_db_session.add.assert_called_once_with(review)
+        mock_db_session.commit.assert_awaited_once()
+        mock_db_session.refresh.assert_awaited_once_with(review)
+
+    @pytest.mark.asyncio
+    async def test_create_share_token_returns_none_when_not_owned(self, mock_db_session):
+        """No token is created when the review is missing or not owned."""
+        with patch(
+            "core.services.review_service.get_review",
+            new=AsyncMock(return_value=None),
+        ):
+            token = await create_or_get_share_token(
+                mock_db_session, uuid4(), uuid4()
+            )
+
+        assert token is None
+        mock_db_session.commit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_create_share_token_is_url_safe(self, mock_db_session):
+        """Generated tokens use only URL-safe characters."""
+        review = Mock()
+        review.share_token = None
+
+        with patch(
+            "core.services.review_service.get_review",
+            new=AsyncMock(return_value=review),
+        ), patch(
+            "core.services.review_service.get_review_by_share_token",
+            new=AsyncMock(return_value=None),
+        ):
+            token = await create_or_get_share_token(
+                mock_db_session, uuid4(), uuid4()
+            )
+
+        allowed = set(
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+        )
+        assert set(token) <= allowed
+
+    @pytest.mark.asyncio
+    async def test_get_review_by_share_token_returns_review(self, mock_db_session):
+        """A known token resolves to its review without any auth check."""
+        review = Mock()
+        mock_db_session.execute = AsyncMock(
+            return_value=self._result_with_first(review)
+        )
+
+        result = await get_review_by_share_token(mock_db_session, "some-token")
+
+        assert result is review
+        mock_db_session.execute.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_get_review_by_share_token_returns_none_for_unknown(self, mock_db_session):
+        """An unknown token resolves to None."""
+        mock_db_session.execute = AsyncMock(
+            return_value=self._result_with_first(None)
+        )
+
+        result = await get_review_by_share_token(mock_db_session, "nope")
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_get_review_by_share_token_empty_token_short_circuits(self, mock_db_session):
+        """An empty token returns None without querying the database."""
+        result = await get_review_by_share_token(mock_db_session, "")
+
+        assert result is None
+        mock_db_session.execute.assert_not_called()
