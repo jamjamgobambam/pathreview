@@ -89,3 +89,60 @@ Small one: `api/routes/profiles.py` also accepts plain text uploads, but the
 docstring says only PDF/Markdown. I'm not sure yet whether the new docs should
 mention plain text or just match the PDF/Markdown intent.
 
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+I implemented the fix in `docs/API.md`. Working from PLAN.md, I added a request
+body section under both endpoints:
+
+- `POST /profiles` — noted it's `multipart/form-data` (not JSON), added a field
+  table for `github_username`, `portfolio_url`, and `resume_file` with types and
+  required/optional, plus a `curl -F` example.
+- `POST /reviews` — noted it's a JSON body, added a field table with `profile_id`
+  (UUID, required), plus a `curl` JSON example.
+
+I double-checked every field name and type against the code (`api/routes/` and
+`api/schemas/`) so the docs match reality. On my open question — the route also
+accepts plain text uploads — I documented "PDF or Markdown" to match the docstring
+and the 422 error message users actually see, rather than an incidental accepted
+type.
+
+**Next steps:**
+
+Open a draft PR, get peer/mentor feedback, then mark it ready for review and fill
+in the PR template. Run `make check` and `make test-unit` to confirm no new
+failures (docs-only change, so no code tests to add).
+
+**Blockers:**
+
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** []
+
+**Branch:** `docs/89-api-request-body-schemas`
+
+**What you built:**
+
+Added the request body schemas for `POST /profiles` and `POST /reviews` to
+`docs/API.md` — field tables (name, type, required/optional) and copy-paste
+`curl` examples — so a developer can call either endpoint without reading the
+backend code.
+
+**Tests added or updated:**
+
+None — this is a docs-only change to `docs/API.md`. No runtime behavior changes,
+so there is nothing to unit-test.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** [ none ]
+
