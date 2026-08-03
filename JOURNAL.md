@@ -37,3 +37,34 @@ Reproducing the issue was done as described above, the unit tests were ran and t
 
 **Blockers or open questions:**
 
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+So far, the code fixes in parts 1, 2, and 3 of the plan were implemented by making sure content is saved even if a header is not present. For plan step 4, I decided chunk() should handle metadata for headerless content by making heading_path become "" (empty string), and heading_level becomes 0 for any section that has no heading above it (either a fully headerless document, or content sitting before the first heading). This works naturally with the code rather than needing a special case. I then ran the structural chunker against its bespoke tests and found that it passed the test that was broken before.
+
+**Next steps:**
+Next steps are to verify that state of the tests is unchanged throughout the program as a whole other than the one that was fixed to make sure there are no residual effects. Then, I will run the linter to verify that code conventions are maintained.
+
+**Blockers:**
+
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** `fix/149-chunker-drops-docs-with-noheading`
+
+**What you built:**
+In _extract_sections, content lines are now always collected into the current section when they were previously only collected once a heading had been seen. Both places that save a finished section, the mid-document and the very end, now save it as long as it has non-empty content, instead of requiring a heading to exist first. In chunk(), a guard was added to skip creating a Chunk for any section whose content turns out empty, and sections with no heading now simply get heading_path="" and heading_level=0.
+
+**Tests added or updated:**
+No additional tests were needed. Current test in test_structural_chunker.py called test_document_with_no_headings() was sufficient and passed following the fix. Status of all other tests remained the same.
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+
+**Draft PR feedback received from:** "none"
