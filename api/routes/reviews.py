@@ -1,12 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from redis.asyncio import Redis
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
 from core.database import get_db
+from core.models.user import User
+from core.redis_client import get_redis_client
+from core.services.review_lock import ReviewLock
 from core.services.review_service import (
     create_review,
     get_review,
@@ -24,50 +28,86 @@ async def create_review_endpoint(
     data: ReviewCreate,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis_client),
+) -> ReviewResponse:
     """
     Create a new review for a profile.
     Triggers ingestion pipeline and agent orchestration asynchronously.
     Returns review with status="pending" immediately.
+
+    Rejects with 409 if another review for the same profile is already in
+    flight (issue #82). Serializes overlapping requests via a Redis lock
+    keyed by profile_id, released when the background task finishes.
     """
+    lock = ReviewLock(redis, data.profile_id)
     try:
-        # Create review with status="pending"
+        acquired = await lock.acquire()
+    except Exception as exc:
+        log.error(
+            "review_lock_acquire_error",
+            profile_id=str(data.profile_id),
+            error=str(exc),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to acquire review lock",
+        ) from exc
+
+    if not acquired:
+        log.info(
+            "review_in_flight_rejected",
+            profile_id=str(data.profile_id),
+            user_id=str(current_user.id),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"A review for profile {data.profile_id} is already in progress",
+        )
+
+    try:
         review = await create_review(
             db=db,
             profile_id=data.profile_id,
             user_id=current_user.id,
         )
-
-        # Add background task for processing
-        background_tasks.add_task(process_review, db, review.id, data.profile_id)
-
-        log.info(
-            "review_created",
-            review_id=str(review.id),
-            profile_id=str(data.profile_id),
-            user_id=str(current_user.id),
-        )
-
-        return ReviewResponse.model_validate(review)
-
     except HTTPException:
+        await lock.release()
         raise
     except Exception as exc:
+        await lock.release()
         log.error("review_creation_error", error=str(exc))
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create review",
-        )
+        ) from exc
+
+    async def _process_and_release() -> None:
+        try:
+            await process_review(db, review.id, data.profile_id)
+        finally:
+            await lock.release()
+
+    background_tasks.add_task(_process_and_release)
+
+    log.info(
+        "review_created",
+        review_id=str(review.id),
+        profile_id=str(data.profile_id),
+        user_id=str(current_user.id),
+    )
+
+    response: ReviewResponse = ReviewResponse.model_validate(review)
+    return response
 
 
 @router.get("/{review_id}", response_model=ReviewResponse)
 async def get_review_endpoint(
     review_id: UUID,
     current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    db: AsyncSession = Depends(get_db),
+) -> ReviewResponse:
     """
     Get a review by ID.
     Returns 404 if not found or not owned by current user.
@@ -86,7 +126,8 @@ async def get_review_endpoint(
                 detail="Review not found",
             )
 
-        return ReviewResponse.model_validate(review)
+        response: ReviewResponse = ReviewResponse.model_validate(review)
+        return response
 
     except HTTPException:
         raise
@@ -95,7 +136,7 @@ async def get_review_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve review",
-        )
+        ) from exc
 
 
 @router.get("", response_model=ReviewListResponse)
@@ -103,8 +144,8 @@ async def list_reviews_endpoint(
     page: int = 1,
     page_size: int = 20,
     current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    db: AsyncSession = Depends(get_db),
+) -> ReviewListResponse:
     """
     List reviews for current user with pagination.
     """
@@ -133,15 +174,15 @@ async def list_reviews_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to list reviews",
-        )
+        ) from exc
 
 
 @router.get("/{review_id}/status")
 async def get_review_status(
     review_id: UUID,
     current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     """
     Get review status and progress.
     Returns {review_id, status, progress_pct}
@@ -173,4 +214,4 @@ async def get_review_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve review status",
-        )
+        ) from exc
