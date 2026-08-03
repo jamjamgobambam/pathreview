@@ -1,0 +1,46 @@
+{
+  "github_username": "janedoe",
+  "portfolio_url": "https://janedoe.dev",
+  "resume_text": "Jane Doe\nSoftware Engineer\njane.doe@example.com | github.com/janedoe\n\nSummary:\nBackend-leaning full-stack engineer with two years of experience building\nPython APIs and TypeScript front-ends.\n\nExperience:\n- Software Engineer at TechCorp (2022-2024): Built and maintained REST APIs\n  using Python and FastAPI, backed by PostgreSQL. Added CI with GitHub Actions.\n- Software Engineering Intern at DataWorks (2021): Built internal dashboards in\n  React and TypeScript.\n\nEducation:\n- B.S. Computer Science, State University (2022)\n\nSkills:\nPython, FastAPI, JavaScript, TypeScript, React, PostgreSQL, Docker, Git",
+  "repositories": [
+    {
+      "name": "portfolio-analyzer",
+      "description": "A CLI that analyzes a GitHub profile and scores portfolio readiness.",
+      "language": "Python",
+      "stargazers_count": 47,
+      "forks_count": 8,
+      "open_issues_count": 3,
+      "pushed_at": "2026-06-15T14:23:00Z",
+      "html_url": "https://github.com/janedoe/portfolio-analyzer",
+      "readme_content": "# Portfolio Analyzer\n\nAnalyze a GitHub profile and score portfolio readiness.\n\n## Features\n- Fetches public repositories via the GitHub API\n- Scores README quality, test coverage signals, and activity\n- Outputs a JSON report\n\n## Tech Stack\n- Python 3.11\n- FastAPI\n- pytest\n",
+      "file_structure": [
+        ".github/workflows/ci.yml",
+        "src/analyzer/__init__.py",
+        "src/analyzer/scoring.py",
+        "tests/test_scoring.py",
+        "requirements.txt",
+        "README.md"
+      ]
+    },
+    {
+      "name": "weather-dashboard",
+      "description": "A responsive weather dashboard with a 5-day forecast.",
+      "language": "TypeScript",
+      "stargazers_count": 23,
+      "forks_count": 4,
+      "open_issues_count": 1,
+      "pushed_at": "2026-05-02T09:10:00Z",
+      "html_url": "https://github.com/janedoe/weather-dashboard",
+      "readme_content": "# Weather Dashboard\n\nA responsive weather dashboard built with React and TypeScript.\n\n## Features\n- Current conditions and 5-day forecast\n- Location search\n- Light/dark theme\n\n## Tech Stack\n- React 18\n- TypeScript\n- Vite\n- Tailwind CSS\n",
+      "file_structure": [
+        "package.json",
+        "tsconfig.json",
+        "vite.config.ts",
+        "src/App.tsx",
+        "src/components/Forecast.tsx",
+        "__tests__/App.test.tsx",
+        "README.md"
+      ]
+    }
+  ]
+}
