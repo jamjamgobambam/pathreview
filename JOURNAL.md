@@ -79,4 +79,39 @@ Wrapped the raw SQL string `"SELECT 1"` in SQLAlchemy's `text()` function inside
 
 **Self-review confirmation:** [x] make check passes (1 pre-existing B008 warning unrelated to fix)  [x] make test-unit passes (53 pre-existing failures unrelated to fix, 0 failures in health.py)
 
-**Draft PR feedback received from:** none
+**Draft PR feedback received from:** unable to read test file in integration folder, even though `test_health.py` is in the integration folder. 
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+Reviewer praised the SQLAlchemy 2.x fix but noted that the integration test file wasn't included in the submission. Requested a proper unit test (with mocks) that directly validates the `text()` wrapper is being used, rather than relying on external dependencies.
+
+**How you responded:**
+- Created `tests/unit/test_health.py` with two unit tests
+- Test 1: Verifies `db.execute()` is called with a `TextClause` object (the text() wrapper)
+- Test 2: Verifies postgres is correctly marked unhealthy when `db.execute()` raises an exception
+- Added `asyncio_mode = "auto"` to `pyproject.toml` to enable async test support
+- Both tests now pass ✅
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the unit tests to work required understanding mocking in pytest. The biggest challenge was figuring out where to patch `redis.Redis` (I had to patch at module level, not within the health route, for the test kept failing). Windows/Git Bash also made some tasks harder than expected due to path and file saving issues with VS Code.
+
+**What did you learn about working in a large codebase?**
+Tests for a particular issue requires real understanding of the codebase, especially when dependencies are involved. I learned the difference between unit tests (mocked, fast) and integration tests (need real services). For a production fix, unit tests that isolate the specific behavior change are much more valuable. Also learned that the test infrastructure (pytest config, fixtures, markers) matters a lot.
+
+**How did AI tools help — and where did they fall short?**
+AI was great for understanding the test framework, explaining mock/patch strategies, and debugging error messages. It fell short when VS Code saved the files, but Git Bash was unable to read from merged VS code. Consequently, AI couldn't directly debug filesystem issues. Therefore, I used bash to create files instead of the editor was the workaround.
+
+**What would you do differently if you started over?**
+I'd write the unit tests as I was working on the fix, not afterwards, for it would have helped in catching any issues and whether the fix actually worked. In terms of similar projects, I won't rely only on VS Code for file creation, for bash tools seemed more reliable in this environment, especially when writing the accompanying test file for the project.
+
+**What are you most proud of from this module?**
+Successfully debugging a real SQLAlchemy 2.x compatibility issue and writing tests that validate the fix works. The complete workflow (reproduce → plan → implement → test) mirrors what real open-source contributions as explained in class.
