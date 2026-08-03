@@ -45,6 +45,36 @@ jobs:
         env:
           LLM_PROVIDER: mock
 
+  test-security:
+    # Issue #71: red-team suite for prompt injection defense.
+    # Runs whenever safety/, security tests, or injection fixtures change.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event_name == 'pull_request'
+        with:
+          filters: |
+            safety:
+              - 'safety/**'
+              - 'tests/security/**'
+              - 'tests/fixtures/injection_attempts/**'
+              - '.github/workflows/ci.yml'
+      - uses: actions/setup-python@v5
+        if: github.event_name != 'pull_request' || steps.filter.outputs.safety == 'true'
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        if: github.event_name != 'pull_request' || steps.filter.outputs.safety == 'true'
+        run: pip install -e ".[dev]"
+      - name: Run security / red-team tests
+        if: github.event_name != 'pull_request' || steps.filter.outputs.safety == 'true'
+        run: pytest tests/security -v -m security --tb=short
+        env:
+          LLM_PROVIDER: mock
+
   test-integration:
     runs-on: ubuntu-latest
     services:

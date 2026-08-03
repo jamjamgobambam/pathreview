@@ -47,3 +47,38 @@ Added failing `@pytest.mark.security` tests in `tests/security/test_prompt_injec
 
 **Blockers or open questions:**
 Whether Week 9 should stay regex-only in `PromptDefense` or add light normalization (e.g. strip XML-ish tags / decode trivial Base64) to catch obfuscated jailbreaks without false-positiving normal resume text.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed PLAN sub-tasks 1–3 locally: curated `tests/fixtures/injection_attempts/corpus.json`, implemented `tests/security/test_prompt_injection.py`, and extended `PromptDefense.INJECTION_PATTERNS` so previously missed jailbreak / Base64 / developer-mode / XML-tag payloads are blocked. Retired the Week 8 reproduction-only failing tests.
+
+**Next steps:**
+Wire CI `test-security` path filter, run unit + security verification, open PR against `ascherj/pathreview`, and fill Check-in 2 with the PR link.
+
+**Blockers:**
+None for the core suite. Full-repo `make check` / `make test-unit` still report many pre-existing failures unrelated to `safety/` (documented in the PR).
+
+### Check-in 2 (submission)
+
+**PR link:** [will update after `gh pr create`]
+
+**Branch:** `test/71-prompt-injection-red-team`
+
+**What you built:**
+Added an automated red-team suite for prompt injection defense: a JSON attack/benign corpus, security-marked pytest coverage that asserts every curated attack is blocked, stronger regex detection in `PromptDefense`, and a CI job that runs `-m security` when `safety/` or the suite/fixtures change.
+
+**Tests added or updated:**
+- `tests/security/test_prompt_injection.py` — corpus existence, attack blocked, benign not flagged, sanitize XML tags
+- `tests/fixtures/injection_attempts/corpus.json` — 10 attacks + 5 benign controls
+- `tests/unit/test_prompt_defense.py` — existing unit tests still pass (no regressions on prior patterns)
+- Removed `tests/security/test_prompt_injection_reproduction.py` (Week 8 failing repro)
+
+**Self-review confirmation:**
+- [x] `make check` — no new failures in changed files (`ruff`/`black`/`mypy` clean on `safety/prompt_defense.py` + new security tests). Full-repo `make lint` still has pre-existing F841/etc. elsewhere.
+- [x] `make test-unit` — no new failures from this change; `tests/unit/test_prompt_defense.py` all pass. Repo-wide unit run still has pre-existing failures in unrelated modules (skill extractor, structural chunker, tech detector, etc.).
+- [x] Security suite: `pytest tests/security -m security` → 18 passed
+
+**Draft PR feedback received from:** none

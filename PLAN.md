@@ -2,6 +2,8 @@
 
 **Issue:** [Implement a red-teaming test suite for the prompt injection defense](https://github.com/ascherj/pathreview/issues/71)
 
+**Status (Week 9):** Implemented — corpus + `tests/security/test_prompt_injection.py`, hardened `PromptDefense`, CI `test-security` job with path filter.
+
 ### Understand
 
 **Root cause:** Issue #71 is a feature gap plus a coverage gap. `safety/prompt_defense.py` only matches a small set of regex patterns (separators, role labels, template delimiters, “Ignore/Forget/…”, and `execute|run|eval(`). Unit tests in `tests/unit/test_prompt_defense.py` only exercise those same patterns. There is no curated attack corpus, no `tests/security/test_prompt_injection.py`, and CI (`.github/workflows/ci.yml`) never runs `-m security` — so PRs that touch `safety/` are not gated by a red-team suite.
