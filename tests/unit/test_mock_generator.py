@@ -127,6 +127,47 @@ class TestMockReviewGenerator:
 
         assert checker.check(rich_feedback, rich) > checker.check(thin_feedback, thin)
 
+    def test_thin_chunks_lower_faithfulness_than_dense_chunks(self, generator, profile_data):
+        """Test per-chunk grounding keeps faithfulness from saturating on any corpus."""
+        dense = [
+            {
+                "id": f"dense_chunk_{i}",
+                "text": f"python fastapi postgresql docker redis {i}00",
+                "score": 0.9 - i / 10,
+            }
+            for i in range(4)
+        ]
+        thin = [
+            {"id": f"thin_chunk_{i}", "text": f"Notes. Todo{i}.", "score": 0.9 - i / 10}
+            for i in range(4)
+        ]
+
+        checker = FaithfulnessChecker()
+        dense_feedback = "\n\n".join(
+            s.content for s in generator.generate_full_review(profile_data, dense)
+        )
+        thin_feedback = "\n\n".join(
+            s.content for s in generator.generate_full_review(profile_data, thin)
+        )
+
+        assert checker.check(dense_feedback, dense) > checker.check(thin_feedback, thin)
+
+    def test_sections_cite_different_chunks(self, generator, profile_data):
+        """Test sections start at different offsets into the ranked chunk list."""
+        chunks = [
+            {
+                "id": f"c_chunk_{i}",
+                "text": f"alpha{i} beta{i} gamma{i} delta{i}",
+                "score": 0.9 - i / 10,
+            }
+            for i in range(5)
+        ]
+
+        sections = generator.generate_full_review(profile_data, chunks)
+
+        assert "alpha0" in sections[0].content
+        assert "alpha1" in sections[1].content
+
     def test_feedback_is_not_verbatim_copy_of_context(self, generator, chunks, profile_data):
         """Test feedback recombines evidence rather than echoing chunk text."""
         section = generator.generate_section("skills_feedback", chunks, profile_data)
