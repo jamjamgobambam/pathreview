@@ -153,4 +153,4 @@ sections.
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 *(Scoped to files touched by this PR: `ruff check`, `black --check`, and `mypy` all pass clean on `ingestion/parsers/resume_parser.py` and `tests/unit/test_resume_parser.py`. The repo has pre-existing, unrelated failures in both `make test-unit` — 50 failing tests across ~15 other modules — and `make typecheck` — 5 errors from missing/incompatible type stubs — that predate this PR and are unaffected by it; documented in the PR description. Ran individual check-mode commands rather than literal `make check`, since its `format` step runs bare `black .` — no `--check` — which would have reformatted unrelated files repo-wide.)*
 
-**Draft PR feedback received from:** [none yet — PR was moved from draft to ready for review from my own account before peer/mentor feedback was requested in Slack]
+**Draft PR feedback received from:** [none yet — PR was moved from draft to ready for review from my own account after peer/mentor feedback was requested in Slack and no one reviewed it]
