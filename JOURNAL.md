@@ -108,7 +108,7 @@ There is no blocker in the Issue #146 implementation. The current branch still c
 
 **PR link:** Not submitted yet
 
-**Branch:** `fix/146-parenthesized-us-phone`
+**Branch:** [`fix/146-parenthesized-us-phone`](https://github.com/shishkebab/pathreview/tree/fix/146-parenthesized-us-phone)
 
 **What you built:**
 I updated the shared `phone_us` regular expression so `scrub()` and `detect()` recognize complete parenthesized US phone numbers, including `(555) 123-4567`, without consuming surrounding text. The pattern retains the existing dashed, dotted, spaced, and compact formats and rejects embedded identifiers and unbalanced area-code parentheses.
