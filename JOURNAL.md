@@ -55,7 +55,7 @@ Next steps are to verify that state of the tests is unchanged throughout the pro
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [\[link to your submitted pull request\]](https://github.com/ascherj/pathreview/pull/693)
 
 **Branch:** `fix/149-chunker-drops-docs-with-noheading`
 
