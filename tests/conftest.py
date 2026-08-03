@@ -2,6 +2,15 @@
 
 import pytest
 
+from core.logging import configure_logging
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _configure_logging_for_tests() -> None:
+    """Ensure structlog is configured to propagate into stdlib logging,
+    so pytest's caplog fixture can capture log output during tests."""
+    configure_logging()
+
 
 @pytest.fixture
 def sample_resume_text() -> str:
