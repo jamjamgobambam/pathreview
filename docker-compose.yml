@@ -12,7 +12,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pathreview"]
+      test: ["CMD-SHELL", "pg_isready -U pathreview -d pathreview_dev"]
       interval: 5s
       timeout: 5s
       retries: 5
