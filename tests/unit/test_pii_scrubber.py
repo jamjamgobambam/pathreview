@@ -36,8 +36,7 @@ class TestPIIScrubber:
         text = "Call me at (555) 123-4567"
         scrubbed = scrubber.scrub(text)
 
-        assert "[REDACTED]" in scrubbed
-        assert "555" not in scrubbed or "1234567" not in scrubbed
+        assert scrubbed == "Call me at [REDACTED]"
 
     def test_us_phone_formats(self, scrubber):
         """Test various US phone number formats."""
@@ -51,7 +50,7 @@ class TestPIIScrubber:
         for phone in formats:
             text = f"Contact: {phone}"
             scrubbed = scrubber.scrub(text)
-            assert "[REDACTED]" in scrubbed
+            assert scrubbed == "Contact: [REDACTED]"
 
     def test_international_phone_redaction(self, scrubber):
         """Test international phone number is redacted."""
@@ -124,8 +123,16 @@ class TestPIIScrubber:
         text = "Phone: (555) 123-4567"
         detected = scrubber.detect(text)
 
-        phone_detections = [d for d in detected if "phone" in d["type"]]
-        assert len(phone_detections) > 0
+        phone_detections = [d for d in detected if d["type"] == "phone_us"]
+        assert phone_detections == [
+            {
+                "type": "phone_us",
+                "value": "(555) 123-4567",
+                "start": 7,
+                "end": 21,
+            }
+        ]
+        assert text[phone_detections[0]["start"] : phone_detections[0]["end"]] == "(555) 123-4567"
 
     def test_detect_ssn_pii(self, scrubber):
         """Test detect() finds SSN PII."""
@@ -181,7 +188,26 @@ class TestPIIScrubber:
         text = "(555) 123-4567 is my phone number."
         scrubbed = scrubber.scrub(text)
 
-        assert "[REDACTED]" in scrubbed
+        assert scrubbed == "[REDACTED] is my phone number."
+
+    def test_multiple_us_phone_formats_redacted(self, scrubber):
+        """Test parenthesized and dashed numbers are fully redacted together."""
+        text = "Call me at (555) 123-4567 or 555-123-4567"
+
+        assert scrubber.scrub(text) == "Call me at [REDACTED] or [REDACTED]"
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "ref555-123-4567code",
+            "(555 123-4567",
+            "555) 123-4567",
+        ],
+    )
+    def test_us_phone_rejects_embedded_or_unbalanced_values(self, scrubber, text):
+        """Test partial identifiers and unbalanced phone values are not matched."""
+        assert scrubber.scrub(text) == text
+        assert not [item for item in scrubber.detect(text) if item["type"] == "phone_us"]
 
     def test_phone_at_end_of_text(self, scrubber):
         """Test phone number at end of text."""
@@ -201,7 +227,7 @@ class TestPIIScrubber:
         for addr in addresses:
             text = f"Address: {addr}"
             scrubbed = scrubber.scrub(text)
-            # Should attempt to redact addresses
+            assert addr not in scrubbed
 
     def test_empty_text(self, scrubber):
         """Test with empty text."""
@@ -250,5 +276,4 @@ class TestPIIScrubber:
         text = "The project uses version 1.2.3. It's available at https://example.com"
         detected = scrubber.detect(text)
 
-        # Should be minimal or no detections
-        # (version number shouldn't be flagged as SSN)
+        assert detected == []
