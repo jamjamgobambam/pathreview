@@ -79,3 +79,36 @@ Update PR description to document the pre-existing failures and the
 
 **Blockers:**
 None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/528
+
+**Branch:** `fix/153-faithfulness-checker-none-context-text`
+
+**What you built:**
+`FaithfulnessChecker.check()` was crashing with `TypeError` whenever a
+retrieved context chunk had `"text": None` instead of a real string or a
+missing key, because `chunk.get("text", "")` only falls back to `""` for an
+absent key, not an explicit `None`. Changed the lookup to
+`chunk.get("text") or ""` so a `None` value is coerced to empty the same way a
+missing key already was, and a single malformed chunk no longer takes down the
+whole evaluation run.
+
+**Tests added or updated:**
+No new test file — `tests/unit/test_faithfulness_checker.py` already had
+`test_none_context_chunk_text` (previously failing, now passing) and
+`test_missing_text_key_in_chunk` (already passing, confirmed unaffected)
+encoding the expected behavior.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+*(both pass in the sense required for this codebase: 52 pre-existing failures
+in `make test-unit` and 181 pre-existing `ruff` errors in `make check` are
+unchanged with the fix in vs. out — documented in the PR description — and
+this change introduces no new failures.)*
+
+**Draft PR feedback received from:** none — posted in Slack for mentor/peer
+review and waited a couple of days with no response. Marking ready for review
+and submitting to meet the hard deadline.
