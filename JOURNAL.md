@@ -68,3 +68,36 @@ Modified `tests/unit/test_review_service.py` — all 13 previously failing tests
 **Self-review confirmation:** [x] make check passes (pre-existing failures only, no new failures introduced)  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback received. Per the Summer 2026 course note, reviewer feedback is not a feature this term.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the local environment running took much longer than I expected. Docker wasn't installed, then `npm` wasn't installed, and each blocker required its own fix before `make setup` would complete. I assumed setup would be a five-minute step — it ended up taking most of Week 7. The other thing that surprised me was the pre-commit hook. I thought fixing 13 failing tests would mean changing one line per test, but the hook enforced ruff, black, and mypy across every file I touched. Adding `MagicMock` to one import line pulled in a chain of pre-existing type annotation errors in `review_service.py` that I also had to fix before the commit would go through.
+
+**What did you learn about working in a large codebase?**
+In my own projects I can make a change and just run the tests. Here, every commit goes through linting, formatting, and type checking enforced at the hook level — and those checks run across the whole project, not just the files I changed. I also learned that "the tests are broken" and "the code is broken" are different problems. The service logic in `review_service.py` was correct the whole time; only the test setup was wrong. Reading the error message carefully (`AttributeError: 'coroutine' object has no attribute 'first'`) and tracing it back to `AsyncMock` vs `MagicMock` behavior was a different kind of debugging than I was used to.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for navigating unfamiliar parts of the codebase quickly — finding the right files, understanding what `AsyncMock` does under the hood, and drafting the PR description. Where it fell short was in predicting the pre-commit hook behavior. The first commit attempt failed because of pre-existing errors in files I had touched, which required several rounds of fixes I hadn't planned for. AI could help me fix each error once I knew it existed, but it couldn't anticipate that touching the test file would surface mypy errors in `review_service.py` too.
+
+**What would you do differently if you started over?**
+I would run `make check` and `make test-unit` on the unmodified codebase before writing a single line, and write down exactly which errors already exist. That way I'd know which failures are mine and which are pre-existing, and I wouldn't be surprised when the commit hook blocks me for errors I didn't introduce. I'd also open the PR earlier in the week as a draft — not to get feedback necessarily, but to force myself to write the PR description while my understanding of the change is fresh.
+
+**What are you most proud of from this module?**
+Getting through the full contribution cycle on a real open-source repo for the first time. I went from not having Docker installed to having a merged-ready PR with a clean commit history, passing hooks, and a fully filled-in PR template. The fix itself was small, but understanding exactly why `AsyncMock` caused the failure — not just what to change — felt like a real debugging win.
