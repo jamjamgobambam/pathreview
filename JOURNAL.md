@@ -53,7 +53,7 @@ Running `make check` on the whole repo still fails, but it is 180 pre-existing l
 
 ### Check-in 2 (end of week)
 
-**PR link:** not submitted yet, want to commit and push first
+**PR link:** https://github.com/ascherj/pathreview/pull/697
 
 **Branch:** fix/148-skill-extractor-js-ts
 
