@@ -1,0 +1,33 @@
+{
+  "portfolio_id": "bench01",
+  "description": "Backend-leaning junior portfolio with a detailed resume and two well documented services",
+  "profile": {
+    "github_username": "jordanellis",
+    "projects": [
+      { "name": "invoice-service", "language": "Python" },
+      { "name": "rate-limiter", "language": "Python" }
+    ]
+  },
+  "documents": [
+    {
+      "source_id": "resume_bench01",
+      "source_type": "resume",
+      "text": "Jordan Ellis\nBackend Software Engineer\n\nExperience:\n- Backend Engineer at Northwind Labs (2023-2025)\n  Designed and shipped rest apis in python using fastapi and sqlalchemy.\n  Owned postgresql schema design and alembic migrations for a billing service.\n  Added redis caching that halved median response latency under load.\n- Software Engineering Intern at Cobalt Systems (2022)\n  Wrote pytest suites for the payments module and containerised local development with docker compose.\n\nEducation:\n- B.S. Computer Science, State University (2023)\n\nSkills: python fastapi sqlalchemy postgresql redis docker pytest github actions"
+    },
+    {
+      "source_id": "readme_bench01_invoice",
+      "source_type": "readme",
+      "text": "# Invoice Service\nA billing and invoicing backend service.\n\n## Overview\nThe service exposes rest apis built with python and fastapi for creating, listing and voiding invoices.\nEvery endpoint is validated with pydantic models before it reaches the domain layer.\n\n## Architecture\nRequests enter through a fastapi router, are handled by a service layer, and persist through sqlalchemy.\nThe postgresql schema is versioned with alembic migrations and every migration is reversible.\nA redis cache fronts the invoice lookup path to keep median latency low.\n\n## Testing\nUnit tests run under pytest with fixtures for the database session and the redis client.\nCoverage is enforced at eighty percent and the suite runs in continuous integration on every pull request.\n\n## Deployment\nThe service ships as a docker image and is deployed through github actions.\nHealth checks and structured logging are wired in before the container is marked ready."
+    },
+    {
+      "source_id": "readme_bench01_ratelimiter",
+      "source_type": "readme",
+      "text": "# Rate Limiter\nA reusable token bucket rate limiter.\n\n## Overview\nA small python library that applies per client request limits to any fastapi application.\nLimits are configured declaratively and enforced as middleware.\n\n## Usage\nInstall the package, register the middleware, and declare a limit per route.\nThe limiter stores counters in redis so that limits hold across multiple application processes.\n\n## Benchmarks\nThe limiter adds under one millisecond of overhead per request in local benchmarks.\nBenchmarks are reproducible through a pytest benchmark suite committed alongside the library."
+    }
+  ],
+  "queries": [
+    "python fastapi rest apis backend service",
+    "postgresql schema alembic migrations",
+    "pytest testing coverage continuous integration"
+  ]
+}
