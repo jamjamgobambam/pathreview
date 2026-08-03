@@ -106,7 +106,7 @@ There is no blocker in the Issue #146 implementation. The current branch still c
 
 ### Check-in 2 (end of week)
 
-**PR link:** Not submitted yet
+**PR link:** https://github.com/ascherj/pathreview/pull/632
 
 **Branch:** [`fix/146-parenthesized-us-phone`](https://github.com/shishkebab/pathreview/tree/fix/146-parenthesized-us-phone)
 
