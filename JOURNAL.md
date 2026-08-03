@@ -58,6 +58,6 @@ Updated `tests/unit/test_relevance_scorer.py` so `test_query_with_partial_overla
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Verification note:** Per the documented pre-existing-failure policy, the checked boxes mean this contribution introduces no new failures. GNU Make was unavailable on this Windows host, so I ran its exact underlying commands: Ruff reports 182 pre-existing errors, Black would reformat 52 pre-existing files, and mypy reports five pre-existing dependency/type errors. The full unit-suite baseline comparison confirms this branch removes issue #157's one failure and otherwise matches `origin/main`.
+**Verification note:** Per the documented pre-existing-failure policy, the checked boxes mean this contribution introduces no new failures. GNU Make was unavailable on this Windows host, so I ran the target commands directly, using Black's non-mutating `--check` mode to avoid rewriting unrelated files: Ruff reports 182 pre-existing errors, Black would reformat 52 pre-existing files, and mypy reports five pre-existing dependency/type errors. The full unit-suite baseline comparison confirms this branch removes issue #157's one failure and otherwise matches `origin/main`.
 
 **Draft PR feedback received from:** none
