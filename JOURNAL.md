@@ -116,3 +116,35 @@ Slack before marking it ready.
 
 **Blockers:**
 None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/399
+
+**Branch:** docs/36-hybrid-retrieval-scoring-formula
+
+**What you built:**
+Added a "Hybrid Retrieval Scoring" subsection to `docs/ARCHITECTURE.md`
+explaining how `HybridRetriever` blends vector and BM25 keyword scores: the
+formula, the default weights (`vector_weight=0.7`, `keyword_weight=0.3`),
+the max-normalization step applied before blending, and a worked two-chunk
+example showing how the ranking comes out. Documentation-only change — no
+code behavior was modified.
+
+**Tests added or updated:**
+None — this is a documentation-only fix with no code behavior change, so no
+new tests apply. Baselined `make lint`/`make typecheck`/`make test-unit`
+before and after the edit: 182 pre-existing lint errors, 5 pre-existing
+mypy errors (missing type stubs), and 53 pre-existing failing unit tests,
+all identical before and after — none touch `docs/` or
+`rag/retriever/hybrid.py`, so this change introduces no new failures.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+*(both confirmed against the pre-existing baseline — no new failures introduced by this change; see Testing section of the PR description for counts)*
+
+**Draft PR feedback received from:** none — opened as a draft and posted in
+the cohort Slack channel for review, but no response came in before the
+Sunday deadline. Marked ready for review to submit on time; open to
+addressing feedback after the fact if any comes in.
