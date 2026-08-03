@@ -1,6 +1,7 @@
 """Check if generated feedback is supported by retrieved context."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -31,9 +32,9 @@ class FaithfulnessChecker:
             return 0.5  # Default to neutral if no extractable claims
 
         # Concatenate context text
-        context_text = " ".join([
-            chunk.get("text", "") for chunk in context_chunks
-        ])
+        context_text = " ".join(
+            (chunk.get("text") or "") for chunk in context_chunks
+        )
 
         # Check each claim for support
         supported = 0
@@ -74,15 +75,21 @@ class FaithfulnessChecker:
         Returns:
             True if claim is supported
         """
-        # Tokenize and check for keyword overlap
-        claim_tokens = set(claim.lower().split())
-        context_tokens = set(context.lower().split())
+        claim_tokens = set(re.findall(r"\b\w+\b", claim.lower()))
+        context_tokens = set(re.findall(r"\b\w+\b", context.lower()))
 
-        # Require at least some meaningful overlap
-        overlap = claim_tokens & context_tokens
-        # Filter out common stop words
-        stop_words = {'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been',
-                     'and', 'or', 'but', 'in', 'of', 'to', 'for', 'that'}
-        meaningful_overlap = overlap - stop_words
+        stop_words = {
+            "a", "an", "the", "is", "are", "was", "were", "be", "been",
+            "and", "or", "but", "in", "of", "to", "for", "that",
+        }
 
-        return len(meaningful_overlap) >= 2
+        meaningful_claim_tokens = claim_tokens - stop_words
+
+        if not meaningful_claim_tokens:
+            return False
+
+        meaningful_overlap = meaningful_claim_tokens & context_tokens
+
+        required_overlap = 1 if len(meaningful_claim_tokens) <= 2 else 2
+
+        return len(meaningful_overlap) >= required_overlap
