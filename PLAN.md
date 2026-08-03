@@ -45,3 +45,5 @@
 - Very short headless document (a few words) — should yield exactly 1 chunk
 - Long headless document exceeding `SECTION_TOKEN_LIMIT` (800 tokens) — should sub-chunk via `SemanticChunker` rather than produce one oversized chunk
 - A line that looks like a heading but doesn't match the regex (e.g. `#nospace`) — must not be mistaken for a real heading; current regex `^(#{1,6})\s+(.+)$` already requires a space after `#`, so this should already be safe — worth a regression test
+- **Known limitation, kept out of scope:** a document that is only a heading with no body content (e.g. just `# Title`) falls through to the no-headings fallback too, since `_extract_sections()` never populates `sections` for it either way — its heading gets treated as `path=[]` instead of preserved, and raw `#` syntax leaks into the chunk text. Documented in the PR rather than fixed, since real READMEs virtually always have body content under headings and this is a distinct case from "no headings at all".
+
