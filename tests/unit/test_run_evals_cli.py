@@ -122,6 +122,24 @@ class TestRunEvalsCLI:
         assert exit_code == 1
         assert "broken.json" in capsys.readouterr().err
 
+    def test_unusable_provider_exits_non_zero_without_traceback(
+        self, cli, fixtures_dir, tmp_path, capsys, monkeypatch
+    ):
+        """Test a bad LLM_PROVIDER reports an actionable message rather than a traceback."""
+        monkeypatch.setattr("core.config.settings.llm_provider", "not-a-provider")
+
+        exit_code = cli.main(
+            [
+                "--fixtures-dir",
+                str(fixtures_dir),
+                "--output",
+                str(tmp_path / "eval_results.json"),
+            ]
+        )
+
+        assert exit_code == 1
+        assert "Evaluation failed" in capsys.readouterr().err
+
     def test_repeated_runs_write_identical_bytes(self, cli, fixtures_dir, tmp_path):
         """Test running the CLI twice produces the same file byte for byte."""
         first = tmp_path / "first.json"

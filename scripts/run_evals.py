@@ -95,8 +95,8 @@ def main(argv: list[str] | None = None) -> int:
     are: no score thresholds, golden outputs or baselines exist anywhere in this
     repository, so failing the build against an invented threshold would turn a
     quality signal into an arbitrary merge block. A non-zero exit means the
-    evaluation could not run at all — missing or malformed fixtures, or an error
-    part-way through the pipeline.
+    evaluation could not run at all — missing or malformed fixtures, an
+    unusable LLM_PROVIDER, or an error part-way through the pipeline.
 
     Args:
         argv: Command line arguments; defaults to sys.argv[1:]
@@ -111,6 +111,12 @@ def main(argv: list[str] | None = None) -> int:
     try:
         report = run_benchmarks(fixtures_dir=args.fixtures_dir)
     except BenchmarkFixtureError as exc:
+        print(f"Evaluation failed: {exc}", file=sys.stderr)
+        return 1
+    except ValueError as exc:
+        # Raised by the provider factories for an unrecognised LLM_PROVIDER, or
+        # for a live provider selected without its API key. A traceback would
+        # bury a message the operator can act on directly.
         print(f"Evaluation failed: {exc}", file=sys.stderr)
         return 1
 
