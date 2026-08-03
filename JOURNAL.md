@@ -44,3 +44,19 @@ Open a draft PR, get a quick peer review, then mark it ready for review.
 
 **Blockers:**
 
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/347
+
+**Branch:** docs/89-post-profiles-schema
+
+**What you built:**
+Added request body schemas (field tables and example requests) for POST /profiles and POST /reviews to docs/API.md, which previously only documented response shapes for these endpoints.
+
+**Tests added or updated:**
+None - documentation-only change, no code paths affected. Verified make test-unit, make lint, and make typecheck all show only pre-existing failures unrelated to this change.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** Aayush
