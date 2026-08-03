@@ -125,7 +125,7 @@ my change, and out of scope — I'll document it in the PR.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _pending — will add once the PR is opened_
+**PR link:** https://github.com/ascherj/pathreview/pull/431
 
 **Branch:** `fix/155-health-check-redis-host-setting`
 
@@ -139,10 +139,10 @@ reporting `unhealthy`.
 `tests/unit/test_health_route.py` — a happy-path test (reachable Redis → `healthy`
 → 200) and a failure-path test (unreachable Redis → `unhealthy` → 503).
 
-**Self-review confirmation:** [ ] make check passes [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes [x] make test-unit passes
 _(Codebase has documented pre-existing failures — see PR description. "Passes"
 here means my change introduces no new failures: unit failures unchanged at 53,
 ruff errors reduced 182 → 179, and two `redis_host`/`redis_port` mypy errors
 removed.)_
 
-**Draft PR feedback received from:** _pending_
+**Draft PR feedback received from:** none
