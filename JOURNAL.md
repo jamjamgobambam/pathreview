@@ -90,7 +90,7 @@
 
 ### Check-in 2 (end of week)
 
-**PR link:** Pending final PR submission
+**PR link:** https://github.com/ascherj/pathreview/pull/698
 
 **Branch:** `test/37-prompt-template-snapshots`
 
