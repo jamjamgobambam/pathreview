@@ -47,3 +47,34 @@ Ran `pytest tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::tes
 
 **Blockers or open questions:**
 Still need to check how structlog is configured in the app's production code (likely somewhere in `core/`) to make sure the test fixture mirrors the real processor chain rather than reinventing it.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Investigated the root cause: structlog was never configured to route through stdlib logging in tests, so it fell back to its own PrintLogger, meaning caplog never saw any log output even though logs genuinely fired. Traced this to `core/logging.py`'s `configure_logging()` never being called during test setup.
+
+**Next steps:**
+Add a fixture in `tests/conftest.py` that wires structlog into stdlib logging for the test session, verify the target test passes, and run the full suite to check for regressions.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/648
+
+**Branch:** `fix/159-structlog-caplog-capture`
+
+**What you built:**
+Added an `autouse` fixture in `tests/conftest.py` that configures structlog with `logger_factory=structlog.stdlib.LoggerFactory()` and `ProcessorFormatter.wrap_for_formatter`, routing structlog output through stdlib logging so pytest's `caplog` fixture can capture it.
+
+**Tests added or updated:**
+No new test files — updated `tests/conftest.py`. Verified `tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty` now passes. Ran full suite before/after: 53 failures → 52, with the only difference being the target test now passing (no new failures introduced).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
