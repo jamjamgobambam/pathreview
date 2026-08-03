@@ -37,3 +37,35 @@ I reproduced issue #149 by running the existing `test_document_with_no_headings`
 
 I still need to determine the best way to preserve headingless documents while maintaining the existing behavior for documents that already contain headings. I also want to confirm what metadata should be assigned to chunks that do not have a heading path.
 
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the fix for Issue #149 in `ingestion/chunking/structural_chunker.py`. When a non-empty document contains no Markdown headings, the structural chunker now creates a fallback section containing the document text instead of returning an empty list. The existing heading-based chunking behavior remains unchanged.
+
+**Next steps:**
+I will finish verifying the implementation, document the repository’s pre-existing lint and unit-test failures, commit and push my changes, open a pull request, and complete the final Week 9 check-in with the PR link.
+
+**Blockers:**
+The full `make check` and `make test-unit` commands report several pre-existing failures in unrelated parts of the repository. The focused structural chunker test suite passes all 15 tests, including the headingless-document case.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [add after opening the pull request]
+
+**Branch:** `fix/149-headingless-document-chunking`
+
+**What you built:**
+[complete after opening the pull request]
+
+**Tests added or updated:**
+[complete after final verification]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [add reviewer name or “none”]
+
