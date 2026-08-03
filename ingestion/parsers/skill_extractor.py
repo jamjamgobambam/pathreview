@@ -297,3 +297,19 @@ class SkillExtractor:
                         confidence=confidence,
                         evidence=[f"Found '{tool}' reference in content"],
                     )
+
+        docker_evidence = []
+        if re.search(r"\b(FROM|RUN|EXPOSE|CMD|ENTRYPOINT|COPY|ADD)\b", text):
+            docker_evidence.append("Dockerfile instructions detected")
+        if re.search(r"\bservices\s*:", text) and re.search(r"\b(build|image|ports)\s*:", text):
+            docker_evidence.append("docker-compose structure detected")
+        if "dockerfile" in text_lower or "docker-compose" in text_lower:
+            docker_evidence.append("Docker filename reference found")
+
+        if docker_evidence and "Docker" not in skills_dict:
+            skills_dict["Docker"] = SkillDetection(
+                name="Docker",
+                category="Tool",
+                confidence=min(0.95, 0.6 + len(docker_evidence) * 0.1),
+                evidence=docker_evidence,
+            )

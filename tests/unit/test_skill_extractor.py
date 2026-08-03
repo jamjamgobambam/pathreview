@@ -250,6 +250,14 @@ class TestSkillExtractor:
         skill_names = [s.name for s in result]
         assert any("docker" in s.lower() for s in skill_names)
 
+    def test_docker_filename_in_prose(self, extractor):
+        """Test Docker detection from Dockerfile or docker-compose mention in prose."""
+        text = "Containerized the app by writing a Dockerfile and a docker-compose.yml."
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("docker" in s.lower() for s in skill_names)
+
     def test_aws_gcp_azure_detection(self, extractor):
         """Test cloud platform detection."""
         text = """
