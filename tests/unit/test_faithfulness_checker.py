@@ -254,6 +254,29 @@ class TestFaithfulnessChecker:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
+    def test_mixed_none_missing_and_valid_chunks(self, checker):
+        """Test a mix of None, missing-key, and valid chunks does not crash.
+
+        Regression for issue #153: a single None/missing ``text`` value used to
+        raise ``TypeError`` during the context join and abort the whole check.
+        With the fix, valid chunks still contribute and the score stays in range.
+        """
+        # Claim and valid chunk share two meaningful tokens ("python", "django")
+        # so the claim is supported; the None/missing chunks must not abort it.
+        feedback = "Python Django skills."
+        context_chunks = [
+            {"text": "Python Django expertise shown in projects."},
+            {"text": None},  # would crash before the fix
+            {"content": "Python skills"},  # missing 'text' key
+        ]
+
+        score = checker.check(feedback, context_chunks)
+
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+        # The valid chunk still provides support, so score should be positive.
+        assert score > 0.0
+
     def test_score_consistency(self, checker):
         """Test that same input produces same score."""
         feedback = "The developer has strong Python skills."

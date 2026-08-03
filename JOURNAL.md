@@ -56,3 +56,72 @@ Three pre-existing unit test failures (`test_partial_support_returns_middle_scor
 `test_multiple_context_chunks`, `test_multiple_claims_varying_support`) are unrelated to
 this issue — they stem from the stop-word filtering logic in `_is_supported()`. These
 should not block the PR for #153 but may need separate issues filed.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+The fix from Week 7 (`chunk.get("text") or ""` in `rag/evaluator/faithfulness_checker.py`,
+line 38) is in place and verified. This week I added a new regression test
+`test_mixed_none_missing_and_valid_chunks` to `tests/unit/test_faithfulness_checker.py`
+covering the PLAN.md mixed-chunk edge case (a `None` chunk, a missing-`text`-key chunk,
+and a valid chunk in the same call) — confirming the valid chunk still contributes a
+positive score while the malformed chunks no longer crash the join. All three
+issue-#153 regression tests pass. Sub-tasks 1–3 from PLAN.md (reproduce, verify with
+tests, lint/type-check) are done; sub-task 4 (open PR) is in progress.
+
+**Next steps:**
+Run the full `make check` and `make test-unit` to confirm no new failures versus the
+documented pre-existing baseline, write the PR description from the repo template, open
+a draft PR for peer/mentor feedback, then mark it ready for review and submit the branch
+URL.
+
+**Blockers:**
+None. The codebase has 52 pre-existing unit-test failures and 181 pre-existing ruff
+errors unrelated to this issue; I confirmed my changes add no new failures.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [paste PR link once opened]
+
+**Branch:** `fix/153-faithfulness-none-text`
+
+**What you built:**
+A one-line fix in `FaithfulnessChecker.check()` that coerces `None`/missing `text`
+values to `""` before the context-string join (`chunk.get("text") or ""`), so a chunk
+with `{"text": None}` no longer raises `TypeError: sequence item 0: expected str
+instance, NoneType found` and instead yields a valid faithfulness score (0.0 when no
+context is available). Added a regression test for the mixed None/missing/valid chunk
+case.
+
+**Tests added or updated:**
+- `tests/unit/test_faithfulness_checker.py` — added
+  `test_mixed_none_missing_and_valid_chunks` (mixed `None` + missing-key + valid chunk
+  call does not crash and the valid chunk still contributes). Existing
+  `test_none_context_chunk_text` and `test_missing_text_key_in_chunk` continue to pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+*(In a codebase with documented pre-existing failures, "passes" means my changes
+introduce no new failures — confirmed above.)*
+
+**Draft PR feedback received from:** none
+
+**Notes on pre-existing failures (for reviewers):**
+`make check` and `make test-unit` do not fully pass on `main` independent of this change.
+I confirmed my changes introduce **no new** failures:
+- `make test-unit`: 52 pre-existing failures across 16 files
+  (`test_review_service.py` 13, `test_bias_detector.py` 9, `test_skill_extractor.py` 5,
+  `test_resume_parser.py` 5, `test_pii_scrubber.py` 5, `test_faithfulness_checker.py` 3,
+  others 12). The 3 `test_faithfulness_checker.py` failures
+  (`test_partial_support_returns_middle_score`, `test_multiple_context_chunks`,
+  `test_multiple_claims_varying_support`) are caused by the stop-word overlap threshold
+  in `_is_supported()`, not by this fix. My new test passes.
+- `make check` (lint): 181 pre-existing ruff errors across the codebase; the only one in
+  the file I touched (`F841` unused `supported` in `test_common_words_filtered_in_overlap`)
+  predates this change. `black --check` flags pre-existing multi-line dict formatting in
+  the test file (none of my added lines are flagged). `mypy` on
+  `rag/evaluator/faithfulness_checker.py` passes clean.
