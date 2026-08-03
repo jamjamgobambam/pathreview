@@ -44,3 +44,37 @@ failures and resolves one: 53→52 test failures, 363→363 check errors. See PR
 description for the full before/after baseline.)
 
 **Draft PR feedback received from:** [paste reviewer name/Slack handle, or "none"]
+
+## Summary
+Fixes #153 — `FaithfulnessChecker.check()` raised `TypeError` when a context
+chunk had `text: None`.
+
+## Root cause
+`check()` built context via `chunk.get("text", "")`. A `dict.get()` default only
+applies to *missing* keys, so a chunk of `{"text": None}` returned `None`, which
+flowed into `" ".join(...)` and raised
+`TypeError: sequence item 0: expected str instance, NoneType found`.
+
+## Fix
+Changed the expression to `chunk.get("text") or ""`, coercing any falsy value
+(including `None`) to an empty string. One-line change in
+`rag/evaluator/faithfulness_checker.py`; covers the `None` case, the missing-key
+case, and empty strings in one expression.
+
+## Testing
+- `test_none_context_chunk_text` (reproduces the bug) now passes.
+- `test_missing_text_key_in_chunk` continues to pass.
+- Full unit suite before: 53 failed, 375 passed. After: 52 failed, 376 passed.
+- `make check` before and after: 363 errors, unchanged.
+
+My change resolves exactly one test (the target) and introduces no new failures
+or check errors.
+
+## Pre-existing failures (unrelated to this PR)
+The codebase has 52 pre-existing unit-test failures and 363 pre-existing
+`make check` errors, all unrelated to this issue and present both before and
+after my change. Within `test_faithfulness_checker.py`, three tests remain
+failing before and after — `test_partial_support_returns_middle_score`,
+`test_multiple_context_chunks`, `test_multiple_claims_varying_support` — all in
+the claim-extraction/support-matching logic (`_extract_claims` /
+`_is_supported`), a code path this PR does not touch.
