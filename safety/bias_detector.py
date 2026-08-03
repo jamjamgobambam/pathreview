@@ -10,26 +10,24 @@ logger = structlog.get_logger()
 class BiasDetector:
     """Detect biased language in feedback."""
 
-    # TODO (Issue #151): 9 unit tests are failing and reproduce_bias.py fails to detect bias
-    # due to strict regex pattern constraints:
-    # 1. DISMISSIVE_PATTERNS requires the word 'is' before 'lacks' (a structural typo) and
-    #    fails to match negative capability verbs (e.g., "can't write") or terms like "programmers".
-    # 2. DEMOGRAPHIC_PATTERNS fails on plural nouns ("developers", "programmers") and misses
-    #    phrasings using the verb "lack" (e.g., "immigrant developers lack...").
-
     # Genuinely dismissive phrases about educational background
     DISMISSIVE_PATTERNS = [
-        r"(?:bootcamp|self-taught|online\s+course)\s+(?:education|training)\s+is\s+(?:insufficient|inadequate|lacks)",
-        r"(?:bootcamp|self-taught)\s+(?:graduates?|developers?)\s+(?:lack|missing)\s+(?:rigor|fundamentals|proper\s+training)",
-        r"(?:bootcamp|coding\s+bootcamp)\s+(?:doesn't|does\s+not)\s+prepare\s+(?:you|developers?)",
+        # Educational source + cohort/subject + a deficiency or negative-capability phrase
+        r"(?:(?:coding\s+)?bootcamp|self-taught|online\s+course)\s+"
+        r"(?:graduates?|developers?|programmers?|education|training|attendance)\s+"
+        r"(?:can'?t|cannot|won'?t|lacks?|means\s+(?:insufficient|inadequate)|"
+        r"are\s+not\s+(?:equal|comparable)|is\s+(?:insufficient|inadequate))",
+        # Direct comparison claim against formal education
         r"(?:self-taught|bootcamp)\s+is\s+(?:not|never)\s+(?:equal|comparable)\s+to\s+(?:university|traditional|formal)",
+        # Explicit "doesn't prepare" dismissal
+        r"(?:bootcamp|coding\s+bootcamp)\s+(?:doesn't|does\s+not)\s+prepare\s+(?:you|developers?)",
     ]
 
     # Demographic assumptions (about age, background, identity)
     DEMOGRAPHIC_PATTERNS = [
-        r"(?:young|old|aged)\s+(?:person|developer|programmer)\s+(?:can't|cannot|won't|will\s+not)",
-        r"(?:person\s+from|coming\s+from)\s+(?:poor|rich|working[\s-]?class)",
-        r"(?:immigrant|international|foreign)\s+developers?.*(?:can't|cannot|won't|struggle)",
+        r"(?:young|old|aged)\s+(?:persons?|people|developers?|programmers?)\s+(?:can'?t|cannot|won'?t|will\s+not)",
+        r"(?:(?:person|people|developers?|programmers?)\s+from|coming\s+from)\s+(?:poor|rich|working[\s-]?class)",
+        r"(?:immigrant|international|foreign)\s+developers?.*(?:can'?t|cannot|won'?t|struggle|lack)",
     ]
 
     @staticmethod
