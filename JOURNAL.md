@@ -44,10 +44,31 @@ Still deciding whether the fix should scale the overlap threshold by claim lengt
 **Current progress:**
 2 of 5 sub-tasks from PLAN.md are done and committed separately:
 1. Stripped punctuation before tokenizing in _is_supported() — fixed a silent bug where "Python," never matched "python" in context
-2. Added _support_score(), which scales the required word-overlap to a claim's own length instead of a flat "always need   2" rule, and updated check() to average these scores. All 3 target tests (test_partial_support_returns_middle_score, test_multiple_context_chunks, test_multiple_claims_varying_support) now pass, along with the other 19 pre-existing tests. Only test_none_context_chunk_text still fails, which is expected — that's #153's bug, not this one's.
+2. Added _support_score(), which scales the required word-overlap to a claim's own length instead of a flat "always need 2" rule, and updated check() to average these scores. All 3 target tests (test_partial_support_returns_middle_score, test_multiple_context_chunks, test_multiple_claims_varying_support) now pass, along with the other 19 pre-existing tests. Only test_none_context_chunk_text still fails, which is expected — that's #153's bug, not this one's.
 
 **Next steps:**
 Sub-task 5 from PLAN.md: add a dedicated regression test for the punctuation-stripping fix specifically, since none of the 22 existing tests isolate that case on its own. Then run make check across the full project (not just this file) and read through docs/CONTRIBUTING.md to confirm branch naming and commit conventions before opening a draft PR.
 
 **Blockers:**
 None right now, though the punctuation-fixing commit took a few tries to get past ruff's line-length rule on the docstring — resolved, just slower than expected.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/630
+
+**Branch:** fix/152-faithfulness-short-claims
+
+**What you built:**
+Fixed the faithfulness checker's overlap threshold so short claims (1-2 content words) can score as supported instead of always scoring 0.0, while also fixing a punctuation-stripping bug found during reproduction that was silently breaking real word matches.
+
+**Tests added or updated:**
+tests/unit/test_faithfulness_checker.py —> added
+test_punctuation_does_not_break_overlap_matching to specifically regression-test the punctuation fix. Full suite: 22 passed, 1 pre-existing failure (test_none_context_chunk_text, scoped to #153, unrelated to this PR).
+
+**Self-review confirmation:** 
+[x] make check passes (except one pre-existing mypy annotation issue in this file, predating this PR and documented in the PR description)  
+[x] make test-unit passes
+
+**Draft PR feedback received from:** none yet — requested in course Slack on the submission deadline, but marked ready for review without waiting on a response due to the submission deadline.
