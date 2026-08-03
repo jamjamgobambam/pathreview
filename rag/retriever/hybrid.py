@@ -1,14 +1,12 @@
 """Hybrid retriever combining vector and keyword search."""
 
-from typing import TYPE_CHECKING
+from typing import Any
 
 import structlog
 
 from .keyword_search import KeywordSearcher
+from .reranker import LLMReranker
 from .vector_store import VectorStore
-
-if TYPE_CHECKING:
-    from .reranker import LLMReranker
 
 logger = structlog.get_logger()
 
@@ -22,7 +20,7 @@ class HybridRetriever:
         keyword_searcher: KeywordSearcher,
         vector_weight: float = 0.7,
         keyword_weight: float = 0.3,
-        reranker: "LLMReranker | None" = None,
+        reranker: LLMReranker | None = None,
         rerank_candidate_multiplier: int = 3,
     ):
         """Initialize hybrid retriever.
@@ -68,13 +66,18 @@ class HybridRetriever:
         """
         collection_name = f"profile_{profile_id}"
 
+        # When re-ranking, fetch a wider candidate pool so the LLM has more
+        # than the final top-k to reorder; otherwise keep the original 2x pool.
+        use_rerank = bool(rerank and self.reranker)
+        fetch_k = max_chunks * (self.rerank_candidate_multiplier if use_rerank else 2)
+
         # Vector search
         vector_results = self.vector_store.query(
-            query_embedding, collection_name, n_results=max_chunks * 2
+            query_embedding, collection_name, n_results=fetch_k
         )
 
         # Keyword search
-        keyword_results = self.keyword_searcher.search(query, top_k=max_chunks * 2)
+        keyword_results = self.keyword_searcher.search(query, top_k=fetch_k)
 
         # Create id-to-chunk mapping for both approaches
         vector_map = {r["id"]: r for r in vector_results}
@@ -124,12 +127,10 @@ class HybridRetriever:
         results = [r for r in blended.values() if r["score"] >= min_score]
         results.sort(key=lambda x: x["score"], reverse=True)
 
-        # Optionally re-rank a wider candidate pool by LLM relevance, otherwise
-        # return the top max_chunks by blended score (unchanged behavior).
-        reranked = bool(rerank and self.reranker)
-        if reranked:
-            candidates = results[: max_chunks * self.rerank_candidate_multiplier]
-            final_results = self.reranker.rerank(query, candidates, top_k=max_chunks)
+        # Optionally re-rank the fetched candidate pool by LLM relevance,
+        # otherwise return the top max_chunks by blended score (unchanged).
+        if use_rerank:
+            final_results = self.reranker.rerank(query, results, top_k=max_chunks)
         else:
             final_results = results[:max_chunks]
 
@@ -140,27 +141,48 @@ class HybridRetriever:
             keyword_results=len(keyword_results),
             blended_count=len(blended),
             filtered_count=len(results),
-            reranked=reranked,
+            reranked=use_rerank,
             final_count=len(final_results),
         )
 
         return final_results
 
-    def _get_all_chunks(self, collection_name: str) -> list[dict]:
-        """Fetch all chunks in a collection (for keyword indexing).
 
-        Args:
-            collection_name: Collection name
+def build_hybrid_retriever(
+    vector_store: VectorStore,
+    keyword_searcher: KeywordSearcher,
+    settings: Any,
+    client: Any = None,
+) -> HybridRetriever:
+    """Construct a HybridRetriever with re-ranking wired from settings.
 
-        Returns:
-            List of chunk dicts
-        """
-        collection = self.vector_store.get_collection(collection_name)
-        all_docs = collection.get(include=["documents", "metadatas"])
+    Consumes the opt-in re-ranking settings: attaches an ``LLMReranker`` only
+    when ``settings.enable_reranking`` is True, and passes through
+    ``settings.rerank_candidate_multiplier``. When disabled, the returned
+    retriever behaves exactly as the non-reranking path.
 
-        chunks = []
-        for doc_id, text, metadata in zip(
-            all_docs["ids"], all_docs["documents"], all_docs["metadatas"], strict=False
-        ):
-            chunks.append({"id": doc_id, "text": text, "metadata": metadata})
-        return chunks
+    Note: the production RAG pipeline is currently a stub
+    (``core/services/review_service._run_rag_retrieval_generation``), so no
+    live call site builds the retriever yet. This factory is the intended
+    integration point once that pipeline is implemented; callers still opt in
+    per request via ``retrieve(..., rerank=settings.enable_reranking)``.
+
+    Args:
+        vector_store: VectorStore instance.
+        keyword_searcher: KeywordSearcher instance.
+        settings: Settings exposing enable_reranking, rerank_model,
+            rerank_candidate_multiplier, and OpenRouter credentials.
+        client: Optional pre-built OpenAI-style client (injected in tests).
+
+    Returns:
+        A configured HybridRetriever.
+    """
+    reranker = (
+        LLMReranker.from_settings(settings, client=client) if settings.enable_reranking else None
+    )
+    return HybridRetriever(
+        vector_store,
+        keyword_searcher,
+        reranker=reranker,
+        rerank_candidate_multiplier=settings.rerank_candidate_multiplier,
+    )

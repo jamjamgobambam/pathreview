@@ -41,11 +41,37 @@ class LLMReranker:
         self.model = model
         self.temperature = temperature
 
+    @classmethod
+    def from_settings(cls, settings: Any, client: Any = None) -> "LLMReranker":
+        """Build a reranker from application settings.
+
+        Constructs an OpenRouter/OpenAI client from ``settings`` when one is
+        not supplied, mirroring how ``ReviewGenerator`` builds its client.
+
+        Args:
+            settings: Settings object exposing ``openrouter_api_key``,
+                ``openrouter_base_url``, and ``rerank_model``.
+            client: Optional pre-built OpenAI-style client (injected in tests).
+
+        Returns:
+            A configured ``LLMReranker``.
+        """
+        if client is None:
+            import openai
+
+            client = openai.OpenAI(
+                api_key=settings.openrouter_api_key,
+                base_url=settings.openrouter_base_url,
+            )
+        return cls(client=client, model=settings.rerank_model)
+
     def rerank(self, query: str, chunks: list[dict], top_k: int = 10) -> list[dict]:
         """Score each chunk with the LLM and return the top_k, best first.
 
-        On any LLM failure the original hybrid ordering is preserved (truncated
-        to ``top_k``) so re-ranking can never drop the pipeline.
+        Scoring is per-chunk and fault-tolerant: if the LLM call for a single
+        chunk fails, that chunk falls back to its existing hybrid ``score``
+        instead of discarding the successfully scored chunks. If every chunk
+        fails, the original hybrid ordering is therefore preserved.
 
         Args:
             query: The user query.
@@ -59,17 +85,31 @@ class LLMReranker:
         if not chunks:
             return []
 
-        try:
-            scored = [(self._score_chunk(query, c), i, c) for i, c in enumerate(chunks)]
-            # Sort by score descending; ties keep original hybrid order (stable).
-            scored.sort(key=lambda t: (-t[0], t[1]))
-            reranked = [dict(chunk, rerank_score=score) for score, _, chunk in scored]
+        scored = [(self._safe_score(query, c), i, c) for i, c in enumerate(chunks)]
+        # Sort by score descending; ties keep original hybrid order (stable).
+        scored.sort(key=lambda t: (-t[0], t[1]))
+        reranked = [dict(chunk, rerank_score=score) for score, _, chunk in scored]
 
-            logger.info("rerank_complete", candidates=len(chunks), returned=min(top_k, len(chunks)))
-            return reranked[:top_k]
+        logger.info("rerank_complete", candidates=len(chunks), returned=min(top_k, len(chunks)))
+        return reranked[:top_k]
+
+    def _safe_score(self, query: str, chunk: dict) -> float:
+        """Score a single chunk, falling back to its hybrid score on failure.
+
+        Args:
+            query: The user query.
+            chunk: A single candidate chunk dict.
+
+        Returns:
+            The LLM relevance score, or the chunk's existing hybrid ``score``
+            (default 0.0) if the LLM call fails.
+        """
+        try:
+            return self._score_chunk(query, chunk)
         except Exception as e:
-            logger.error("rerank_failed_fallback_to_hybrid", error=str(e))
-            return chunks[:top_k]
+            fallback = float(chunk.get("score", 0.0))
+            logger.warning("rerank_chunk_scoring_failed", error=str(e), fallback=fallback)
+            return fallback
 
     def _score_chunk(self, query: str, chunk: dict) -> float:
         """Ask the LLM for a single relevance score in ``[0, 1]``.

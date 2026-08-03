@@ -4,11 +4,13 @@ Focus: the optional LLM re-ranking path. When re-ranking is disabled (the
 default) the retriever must behave exactly as before.
 """
 
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
 
-from rag.retriever.hybrid import HybridRetriever
+from rag.retriever.hybrid import HybridRetriever, build_hybrid_retriever
+from rag.retriever.reranker import LLMReranker
 
 
 @pytest.mark.unit
@@ -81,3 +83,64 @@ class TestHybridRetrieverReranking:
 
         _, kwargs = reranker.rerank.call_args
         assert kwargs.get("top_k") == 2
+
+    def test_rerank_widens_candidate_fetch(self, vector_store, keyword_searcher):
+        """With rerank=True the actual fetch grows to max_chunks * multiplier."""
+        reranker = Mock()
+        reranker.rerank.return_value = []
+        retriever = HybridRetriever(
+            vector_store, keyword_searcher, reranker=reranker, rerank_candidate_multiplier=3
+        )
+
+        retriever.retrieve("query", "p1", [0.1, 0.2], max_chunks=4, min_score=0.0, rerank=True)
+
+        _, kwargs = vector_store.query.call_args
+        assert kwargs["n_results"] == 12  # 4 * 3, not the default 4 * 2
+        keyword_searcher.search.assert_called_with("query", top_k=12)
+
+    def test_disabled_fetch_is_unchanged(self, vector_store, keyword_searcher):
+        """With rerank=False the fetch stays at the original max_chunks * 2."""
+        retriever = HybridRetriever(
+            vector_store, keyword_searcher, reranker=Mock(), rerank_candidate_multiplier=3
+        )
+
+        retriever.retrieve("query", "p1", [0.1, 0.2], max_chunks=4, min_score=0.0, rerank=False)
+
+        _, kwargs = vector_store.query.call_args
+        assert kwargs["n_results"] == 8  # 4 * 2, unchanged
+
+
+@pytest.mark.unit
+class TestBuildHybridRetriever:
+    """Test suite for the settings-driven build_hybrid_retriever factory."""
+
+    def test_disabled_attaches_no_reranker(self):
+        """enable_reranking=False -> no reranker, multiplier passed through."""
+        settings = SimpleNamespace(
+            enable_reranking=False,
+            rerank_model="m",
+            rerank_candidate_multiplier=4,
+            openrouter_api_key="k",
+            openrouter_base_url="http://example",
+        )
+
+        retriever = build_hybrid_retriever(Mock(), Mock(), settings)
+
+        assert retriever.reranker is None
+        assert retriever.rerank_candidate_multiplier == 4
+
+    def test_enabled_attaches_reranker_from_settings(self):
+        """enable_reranking=True -> reranker built from settings."""
+        settings = SimpleNamespace(
+            enable_reranking=True,
+            rerank_model="my/rerank-model",
+            rerank_candidate_multiplier=5,
+            openrouter_api_key="k",
+            openrouter_base_url="http://example",
+        )
+
+        retriever = build_hybrid_retriever(Mock(), Mock(), settings, client=Mock())
+
+        assert isinstance(retriever.reranker, LLMReranker)
+        assert retriever.reranker.model == "my/rerank-model"
+        assert retriever.rerank_candidate_multiplier == 5

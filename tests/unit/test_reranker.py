@@ -1,5 +1,6 @@
 """Tests for the LLM-based chunk re-ranker (issue #34)."""
 
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
@@ -68,14 +69,53 @@ class TestLLMReranker:
         assert result == []
         mock_client.chat.completions.create.assert_not_called()
 
-    def test_llm_failure_falls_back_to_hybrid_order(self, mock_client, candidate_chunks):
-        """If the LLM call raises, preserve the original hybrid ordering."""
+    def test_total_llm_failure_falls_back_to_hybrid_order(self, mock_client, candidate_chunks):
+        """If every LLM call fails, chunks fall back to their hybrid order."""
         reranker = LLMReranker(client=mock_client, model="test-model")
         reranker._score_chunk = Mock(side_effect=RuntimeError("LLM down"))
 
         result = reranker.rerank("query", candidate_chunks, top_k=3)
 
         assert [c["id"] for c in result] == ["c1", "c2", "c3"]
+
+    def test_partial_failure_keeps_successful_scores(self, mock_client, candidate_chunks):
+        """A single failed chunk falls back to its hybrid score; others still
+        use their LLM scores (no discarding of successful work)."""
+
+        def score(query, chunk):
+            if chunk["id"] == "c2":
+                raise RuntimeError("boom")
+            return {"c1": 0.1, "c3": 0.2}[chunk["id"]]
+
+        reranker = LLMReranker(client=mock_client, model="test-model")
+        reranker._score_chunk = Mock(side_effect=score)
+
+        result = reranker.rerank("query", candidate_chunks, top_k=3)
+
+        # c2 falls back to its hybrid score (0.88, highest), then c3 (0.2), c1 (0.1)
+        assert [c["id"] for c in result] == ["c2", "c3", "c1"]
+
+    def test_reorders_through_client_boundary(self, candidate_chunks):
+        """Full path: drive scoring through the mocked LLM client (not by
+        patching the private _score_chunk method)."""
+
+        def fake_create(**kwargs):
+            prompt = kwargs["messages"][1]["content"]
+            if "RAG pipeline" in prompt:
+                content = "0.95"
+            elif "weather" in prompt:
+                content = "0.1"
+            else:
+                content = "0.2"
+            return Mock(choices=[Mock(message=Mock(content=content))])
+
+        client = Mock()
+        client.chat.completions.create.side_effect = fake_create
+        reranker = LLMReranker(client=client, model="test-model")
+
+        result = reranker.rerank("query", candidate_chunks, top_k=3)
+
+        assert [c["id"] for c in result] == ["c2", "c3", "c1"]
 
     def test_ties_keep_original_order(self, mock_client, candidate_chunks):
         """Equal scores preserve the incoming hybrid order (deterministic)."""
@@ -112,3 +152,16 @@ class TestLLMReranker:
 
         assert score == 0.6
         mock_client.chat.completions.create.assert_called_once()
+
+    def test_from_settings_uses_rerank_model(self, mock_client):
+        """from_settings reads rerank_model and honors an injected client."""
+        settings = SimpleNamespace(
+            rerank_model="my/rerank-model",
+            openrouter_api_key="k",
+            openrouter_base_url="http://example",
+        )
+
+        reranker = LLMReranker.from_settings(settings, client=mock_client)
+
+        assert reranker.model == "my/rerank-model"
+        assert reranker.client is mock_client
