@@ -44,7 +44,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [to be added]
+**PR link:** [#447](https://github.com/ascherj/pathreview/pull/447)
 
 **Branch:** `feat/68-health-safety-metrics`
 
@@ -54,7 +54,7 @@ The `/health` endpoint now reports a real `safety_events_last_hour` count, read 
 **Tests added or updated:**
 `tests/unit/test_health_route.py` — verifies `/health` surfaces the total event count from an injected monitor.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** [to be added]
+**Draft PR feedback received from:** [Did not recieve on time]
 
