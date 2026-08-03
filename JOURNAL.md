@@ -89,7 +89,7 @@ Leading the capstone project effort for WEB103, which includes implementing feat
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [Fix JavaScript and TypeScript skill detection in SkillExtractor](https://github.com/ascherj/pathreview/pull/649)
 
 **Branch:** `fix/148-javascript-and-typescript-failed-skill-parser`
 
