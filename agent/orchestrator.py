@@ -62,16 +62,19 @@ class Orchestrator:
                 results[tool_name] = {"error": str(e), "success": False}
 
         # Persist state
-        if self.session_store:
-            session_state.update(results)
-            self.session_store.set(profile_id, session_state)
+        # Check if any executed tool failed
+        partial_failure = any(
+            isinstance(res, dict) and res.get("success") is False
+            for res in results.values()
+        )
 
         logger.info("orchestrator_complete", profile_id=profile_id,
-                   tools_executed=len(results))
+                    tools_executed=len(results), partial_failure=partial_failure)
 
         return {
             "profile_id": profile_id,
             "tool_results": results,
+            "partial_failure": partial_failure,
             "cached_results": self.context_manager.get_all_results()
         }
 
