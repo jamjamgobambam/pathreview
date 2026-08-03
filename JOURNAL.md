@@ -149,5 +149,4 @@ I also added a new unit test, `test_phone_number_partially_formatted_redaction`,
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 NOTE: both of these checks pass in relation to my bug fix. There were existing failures for both checks that pre-date my fix. This is documented in my PR.
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
-none
+**Draft PR feedback received from:** @Divergent-Code
