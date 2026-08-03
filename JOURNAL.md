@@ -47,3 +47,61 @@ username, resume, two repos" wording, but a reviewer may expect different field 
 Separately, `IngestedSource` (the model repos map to) has no `name`/`description` fields, so
 my `repos` shape doesn't correspond 1:1 to any existing DB model — flagging this in case it
 should be reconciled before merging.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the full solution from PLAN.md. Restored
+`tests/fixtures/sample_profiles/basic_profile.json` with a fake portfolio (GitHub username,
+resume text, two repos), but revised the shape partway through to match what the ingestion
+parsers actually consume rather than an arbitrary guess: resume text now uses section
+headings (`Summary`, `Technical Skills`, `Experience`, `Education`) matching
+`ResumeParser.SECTION_HEADERS`, and each repo entry uses GitHub API-style fields
+(`html_url`, `language`, `stargazers_count`, `forks_count`, `open_issues_count`, `pushed_at`,
+`readme_content`) matching what `RepoAnalyzer.parse()` reads. Added a `sample_profile_data`
+fixture to `tests/conftest.py` and a new test file, `tests/unit/test_fixtures.py`, that loads
+the fixture and asserts on its shape.
+
+Before starting, I ran `make test-unit` and `make check` on `main` to record a baseline: 53
+pre-existing test failures (376 passing) and 182 pre-existing lint errors, all unrelated to
+this issue. After my changes, both commands show the same pre-existing counts plus my new
+test passing — confirmed by stashing my changes and re-running both commands to verify the
+baseline numbers matched exactly.
+
+**Next steps:**
+Open a draft PR using the repo's PR template, share it in the cohort Slack channel for peer
+review, and address any feedback before marking it ready for review.
+
+**Blockers:**
+None currently. (One snag along the way: the local pre-commit hook's `mypy` check caught two
+missing type annotations — `disallow_untyped_defs = true` — in the new test function and the
+`sample_profile_data` fixture. `make check`'s `typecheck` target doesn't cover `tests/`, so
+this wasn't visible until commit time; fixed by adding explicit annotations.)
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/669
+
+**Branch:** `test/106-restore-basic-profile-fixture`
+
+**What you built:**
+Restored the missing `basic_profile.json` test fixture with a realistic fake portfolio shaped
+to match the actual ingestion parsers (resume section headers, GitHub-style repo metadata),
+and wired it up via a `sample_profile_data` pytest fixture plus a test proving it loads
+correctly.
+
+**Tests added or updated:**
+`tests/unit/test_fixtures.py` (new) — asserts `sample_profile_data` has the expected
+top-level profile fields and exactly two repo entries, each with `name`, `html_url`, and
+`readme_content`.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+(Both pass in the sense that my changes introduce zero new failures beyond the documented
+53 pre-existing test failures and 182 pre-existing lint errors — see PR description for the
+before/after comparison.)
+
+**Draft PR feedback received from:** none [to be filled in after peer review, posted in Slack already]
