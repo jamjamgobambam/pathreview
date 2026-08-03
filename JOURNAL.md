@@ -32,3 +32,36 @@ Since this is a documentation gap rather than a runtime bug, I reproduced it by 
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix. From PLAN.md: read `hybrid.py`, `keyword_search.py`, and `vector_store.py` to confirm the exact scoring behavior (step 1 done), then added a new "Hybrid Retrieval Scoring" subsection to `docs/ARCHITECTURE.md` (steps 2–5 done). The section documents the blended formula `blended = vector_weight * norm(vector_score) + keyword_weight * norm(keyword_score)`, the default `0.7` / `0.3` weights, the per-set 0–1 normalization, the `min_score` (0.3) filter and top-`max_chunks` ranking, a worked numeric example, and the edge cases the code already handles. Committed as `docs(rag): document hybrid retrieval scoring formula`.
+
+**Next steps:**
+Self-review against CONTRIBUTING.md (done), then open the PR against pathreview using the template, request peer/mentor feedback, and finalize.
+
+**Blockers:**
+None on the fix itself. This is a documentation-only issue, so there is no application code to unit-test — the change adds no new tests by design.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _[to be added when the PR is opened]_
+
+**Branch:** `docs/36-hybrid-retrieval-scoring`
+
+**What you built:**
+A new "Hybrid Retrieval Scoring" subsection in `docs/ARCHITECTURE.md` that explains how `HybridRetriever.retrieve()` combines vector similarity and BM25 keyword scores: normalize each score set to 0–1, blend with default weights of 0.7 (vector) and 0.3 (keyword), filter by a 0.3 `min_score`, and return the top `max_chunks`. Includes a worked numeric example and documents single-searcher, empty-set, and all-filtered edge cases. No runtime behavior was changed.
+
+**Tests added or updated:**
+None. This is a documentation-only change to `docs/ARCHITECTURE.md`, which is not covered by unit tests. No source code was modified, so no tests were added or updated.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+> Note on pre-existing failures: before making any change, `make check` reported 182 ruff errors and `make test-unit` reported 53 failed / 375 passed. These failures are all in pre-existing Python source and test files (e.g. `test_pii_scrubber.py`, `test_review_service.py`, `test_resume_parser.py`, `test_tech_detector.py`) and are unrelated to this issue. My change touches only `docs/ARCHITECTURE.md` (zero Python), so it introduces no new failures — the pre-commit hooks confirm no Python files were checked. Per the Week 9 guidance, "passes" here means my changes introduce no new failures.
+
+**Draft PR feedback received from:** _[name or Slack handle, or "none"]_
