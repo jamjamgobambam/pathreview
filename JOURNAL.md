@@ -85,7 +85,7 @@ errors unrelated to this issue; I confirmed my changes add no new failures.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [paste PR link once opened]
+**PR link:** https://github.com/ascherj/pathreview/pull/655
 
 **Branch:** `fix/153-faithfulness-none-text`
 
