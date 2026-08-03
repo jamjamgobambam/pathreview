@@ -224,6 +224,10 @@ class TestResumeParser:
                 parser.parse(b"invalid pdf bytes")
 
             assert "Failed to parse PDF" in str(exc_info.value)
+            # The original exception must be chained (raise ... from e) so the
+            # underlying cause is preserved for debugging.
+            assert exc_info.value.__cause__ is not None
+            assert str(exc_info.value.__cause__) == "Invalid PDF format"
 
     def test_parse_preserves_text_content(self, parser: ResumeParser) -> None:
         """Test that parsing preserves actual content text."""

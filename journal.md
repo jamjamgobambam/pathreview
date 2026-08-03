@@ -35,30 +35,37 @@ In order to reproduce my bug I ran the test cases written for resume_parser.py a
 
 **Current progress:**
 [What have you implemented so far? Which sub-tasks from PLAN.md are done?]
-I've gone through the test file and understand where all of the exact issues are arrising. I still have not made any code changes. 
+- I've gone through the test file and understand where all of the exact issues are arrising. I still have not made any code changes. 
 
 **Next steps:**
 [What are you working on for the rest of the week?]
-I am working on rewriting the code in resume_parser.py
+- I am working on rewriting the code in resume_parser.py
 
 **Blockers:**
 [Anything slowing you down? Or leave blank.]
-Not understanding the regex functionality completely in resume_parser.py
+- Not understanding the regex functionality completely in resume_parser.py
 
 ---
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/516
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** fix/147-resume-section-detection-error
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+ingestion/parsers/resume_parser.py
+_detect_sections: added [ \t]* after the ^ anchor so indented headers are
+detected; collapsed the four patterns to two (the \n-anchored pair was
+redundant under re.MULTILINE, which already matches every line start).
+_strip_markdown: same fix (r"^[ \t]*#+\s+") so indented Markdown headers
+(  ## Experience) get their # markers stripped.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+I changed test_resume_parser.py. 
+Added test_detect_sections_with_leading_whitespace — asserts indented input (spaces and tabs) detects the same section set as flush input.
+Added test_strip_markdown_headers_with_leading_whitespace — asserts indented Markdown headers are stripped while header text is preserved.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** Marina Moreira Tribolet
