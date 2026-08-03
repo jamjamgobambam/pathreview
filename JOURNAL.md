@@ -49,3 +49,21 @@ I created a test in test_resume_parser.py that had extra whitespace added in a v
 
 **PLAN.md link:** https://github.com/LaurenM64/pathreview/blob/fix/147-resume-whitespace/PLAN.md
 
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+**Current progress:** Implemented the fix for Issue #147 in `resume_parser.py`. I updated the regular expressions in both `_detect_sections()` and `_strip_markdown()` to include `[ \t]*`, allowing the parser to correctly identify headers and markdown syntax even if they are indented with spaces or tabs.
+**Next steps:** Run the test suite to confirm the fix, check for linting errors, and open a pull request.
+**Blockers:** None.
+
+---
+
+### Check-in 2 (end of week)
+**PR link:** https://github.com/ascherj/pathreview/pull/690
+**Branch:** `fix/147-resume-whitespace`
+**What you built:** I updated the regex patterns in the resume parser to tolerate leading spaces and tabs. This ensures that sections like "Experience:" or "Education:" are still detected and properly parsed even if the text extraction includes random indentation formatting.
+**Tests added or updated:** I updated `tests/unit/test_resume_parser.py` by adding `test_detect_sections_with_leading_whitespace` to reproduce the bug. My fix caused this test, and 5 other pre-existing tests in that file, to turn green.
+**Self-review confirmation:** 
+[x] `make check` passes (Note: Pre-existing failures exist in unrelated modules)
+[x] `make test-unit` passes (Note: Pre-existing failures exist in unrelated modules)
+**Draft PR feedback received from:** none
