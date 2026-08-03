@@ -265,3 +265,26 @@ class TestPIIScrubber:
         assert "[REDACTED]" in scrubbed
         assert "800" not in scrubbed
         assert any(d["type"] == "phone_us" for d in detected)
+
+    def test_email_containing_phone_number_in_local_part(self, scrubber: PIIScrubber) -> None:
+        """Test that emails with phone-like numbers in the local part are fully redacted.
+
+        Ensures email matching takes precedence over phone pattern matching so that
+        partial email fragments (like 'john.') are not left exposed.
+        """
+        text = "Contact john.5551234567@example.com for details."
+        scrubbed = scrubber.scrub(text)
+
+        # The entire email should be replaced by a single [REDACTED] tag
+        assert scrubbed == "Contact [REDACTED] for details."
+        assert "john." not in scrubbed
+        assert "5551234567" not in scrubbed
+
+    def test_email_with_hyphenated_phone_in_local_part(self, scrubber: PIIScrubber) -> None:
+        """Test emails with formatted phone numbers in the username are redacted completely."""
+        text = "Send feedback to alice-8005550199@mail.co immediately."
+        scrubbed = scrubber.scrub(text)
+
+        assert scrubbed == "Send feedback to [REDACTED] immediately."
+        assert "alice-" not in scrubbed
+        assert "8005550199" not in scrubbed
