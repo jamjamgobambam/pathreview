@@ -96,7 +96,7 @@ pass `mypy --ignore-missing-imports` cleanly.
 
 ### Check-in 2 (end of week)
 
-**PR link:** <!-- REPLACE after opening the PR: paste the pull request URL -->
+**PR link:** https://github.com/ascherj/pathreview/pull/638
 
 **Branch:** `fix/155-health-check-redis-host`
 
