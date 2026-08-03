@@ -58,3 +58,33 @@ and open the pull request into `ascherj/main`, then record the link in Check-in 
 None. Note: the repo has pre-existing `make check` (182 ruff errors) and
 `make test-unit` (53 failing tests) issues unrelated to this change — I recorded the
 baseline first and confirmed my change adds none. This will be documented in the PR.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/659
+
+**Branch:** `docs/89-post-profiles-request-body`
+
+**What you built:**
+A request body section for `POST /profiles` in `docs/API.md`. It documents that the
+endpoint takes a `multipart/form-data` upload with three optional fields
+(`github_username`, `portfolio_url`, `resume_file`), their length limits and accepted
+resume file types, the required Bearer token (`401` if missing), the `422` returned for
+an invalid file type, and a runnable `curl` example — so the doc alone is enough to call
+the endpoint correctly.
+
+**Tests added or updated:**
+Added `tests/unit/test_api_docs.py` — 7 unit tests that read `docs/API.md` and assert it
+documents the `multipart/form-data` content type, all three request fields, the
+Bearer-auth/`401` requirement, the accepted resume MIME types (including `text/plain`),
+the exact `422` detail message, and a `curl` example. This guards the #89 fix so the
+schema can't silently disappear again.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(In this repo "passes" means *no new failures*: my changed files are ruff/black/mypy
+clean and my 7 new tests pass; the pre-existing 182 ruff / 5 mypy / 53 test failures are
+documented in the PR and unchanged by this PR.)
+
+**Draft PR feedback received from:** none (opened ready for review)
