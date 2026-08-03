@@ -40,3 +40,35 @@ silently caught and reported as an unhealthy status.
 None currently. One thing I noted in PLAN.md: fixing this surfaced an
 unrelated pre-existing bug (issue #154, raw SQL string not wrapped in
 `text()`), which I intentionally left out of scope for this fix.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Fix, tests, PLAN.md, and reproduction were already completed in Weeks 7-8. This week's focus was running the full make check/make test-unit suite to document pre-existing failures, then opening the PR.
+
+**Next steps:**
+Open the PR and fill in the full template, including documenting pre-existing failures unrelated to my change.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/628
+
+**Branch:** fix/155-health-check-redis-host
+
+**What you built:**
+Fixed the `/health` endpoint's Redis check, which referenced nonexistent `settings.redis_host`/`settings.redis_port` fields, causing an `AttributeError` that made the health check always report Redis as unhealthy regardless of its real status. Replaced it with `redis.Redis.from_url(settings.redis_url)`, using the connection field that actually exists on the `Settings` model.
+
+**Tests added or updated:**
+Added `tests/unit/test_health.py` with two tests: one confirming Redis reports "healthy" on a successful mocked connection, one confirming a genuine connection failure is still correctly reported as "unhealthy."
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both pass for my changed files specifically; the full suite has 178 pre-existing lint errors and 53 pre-existing test failures in unrelated modules, documented in the PR description — my changes introduce no new failures.)
+
+**Draft PR feedback received from:** none
