@@ -52,7 +52,7 @@ Finalize tests, run `make check` and `make test-unit`, open draft PR, and reques
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to be added after PR is opened]
+**PR link:** https://github.com/ascherj/pathreview/pull/675
 
 **Branch:** `feat/101-copy-link-button`
 
@@ -60,6 +60,7 @@ Finalize tests, run `make check` and `make test-unit`, open draft PR, and reques
 Added a "Copy link" button to the completed review page that generates a 30-day expiring share token via `POST /reviews/{review_id}/share`, copies the public share URL to the clipboard, and shows inline "Copied!" feedback for 2 seconds. The share URL resolves to a new public `GET /reviews/shared/{token}` endpoint and a read-only `SharedReviewPage` that is accessible without login and expires after 30 days.
 
 **Tests added or updated:**
+
 - `frontend/src/pages/__tests__/ReviewPage.test.tsx` — updated the two reproduction tests (renders "Copy link" button, copies share URL to clipboard) to pass with the new implementation; added a third test asserting the button label changes to "Copied!" after click; mocked `shareService.createShareLink` to return a fixed share URL
 - `tests/unit/test_review_service.py` — added `TestShareToken` class with 6 tests: `create_share_token` returns `None` when the review is not found; sets a non-empty token string on the review; sets `share_expires_at` within a 29–31 day window from now; calls `db.commit`; `get_review_by_share_token` returns the review for a valid token; returns `None` for an expired or unknown token
 
