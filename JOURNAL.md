@@ -80,6 +80,59 @@ blockers — the fix is already implemented and passing on this branch.
 
 ---
 
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md — rewrote `_should_skip_file()` in
+`agent/tools/tech_detector.py` to match on path segments instead of slash-wrapped
+substrings (PLAN "Plan" sub-tasks 1–4 done). The two acceptance tests
+(`test_node_modules_excluded`, `test_build_directory_excluded`) now pass and the
+issue's manual repro returns `Python`. Added two edge-case unit tests (top-level
+`dist/` exclusion; full exclusion of `node_modules` JS). Captured a baseline vs.
+after comparison: my changes introduce **no new** `make check` / `make test-unit`
+failures and reduce test failures by two.
+
+**Next steps:**
+Open a draft PR, request peer/mentor review in Slack, address any feedback I
+agree with, then mark it ready for review and confirm the PR template is complete.
+
+**Blockers:**
+None on the code. (Tooling note: `gh` CLI is not authenticated in my local
+environment, so the PR is opened via the GitHub web UI rather than the command
+line.)
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** <!-- TODO: paste the ready-for-review (not draft) PR URL here after opening it -->
+
+**Branch:** `fix/150-exclude-vendored-build-files`
+
+**What you built:**
+`tech_detector`'s directory-skip helper now matches vendor/build directories by
+path *segment* (`filepath.split("/")`), so top-level `node_modules/`, `build/`,
+`dist/`, etc. are excluded from language detection as well as nested ones. This
+stops third-party/bundled files from skewing a repo's detected primary language.
+
+**Tests added or updated:**
+`tests/unit/test_tech_detector.py` — added `test_dist_directory_excluded` and
+`test_top_level_vendored_files_fully_excluded`. Both assert the vendored language
+(`JavaScript`) is fully absent from `all_languages`, not just that the primary
+language is correct. The two pre-existing acceptance tests now pass as well.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+<!-- "passes" per the documented pre-existing-failures rule = my changes introduce
+     NO new failures. Baseline on main: test-unit 53 failed / ruff 86 / black 52
+     files / mypy 103 errors. After my changes: test-unit 51 failed (2 fewer) /
+     ruff 86 / black 52 / mypy 103 — all unrelated pre-existing failures unchanged. -->
+
+**Draft PR feedback received from:** <!-- TODO: reviewer's name / Slack handle, or "none" -->
+
+---
+
 ## Working notes
 
 ### 2026-07-17 — Environment setup
