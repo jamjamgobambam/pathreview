@@ -69,16 +69,18 @@ None blocking. The open scope question (whether wiring into `core/services/revie
 
 ### Check-in 2 (end of week)
 
-**PR link:** _pending — not yet opened_
+**Due:** originally Sun 2026-08-02; submitting within the 2-day grace period, targeting Tue 2026-08-04.
+
+**PR link:** _pending — push + open PR on 2026-08-04, then drop the link in here_
 
 **Branch:** `feat/69-feedback-tone-check`
 
 **What you built:**
-_pending — fill in alongside PR link_
+Added a tone check to the feedback-generation pipeline so discouraging or vague sections no longer ship to users unchanged. `ContentFilter.filter()` now flags discouraging tone via a new `DISCOURAGING_PATTERNS` list; a new `ToneChecker` class (heuristic — length + vagueness checks plus reuse of `ContentFilter`, matching the no-real-LLM-call pattern already used by `ContentFilter`/`BiasDetector`/`FaithfulnessChecker`) classifies each generated section; `ReviewGenerator.generate_section()` gates on it, regenerating up to 2 times before falling back to a safe placeholder rather than looping forever.
 
 **Tests added or updated:**
-_pending — fill in alongside PR link_
+27 new tests: `tests/unit/test_content_filter.py` (+8, covers the discouraging patterns, harsh-but-fair edge case, empty input), `tests/unit/test_tone_checker.py` (new, 14, covers vagueness/length/discouraging classification), `tests/unit/test_review_generator.py` (new, 5, mocks the OpenAI client to cover constructive-first-try, discouraging-then-regenerate, vague-then-regenerate, and exhausted-retries-returns-fallback).
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes (no new failures vs. baseline — ruff 182→176, black 52→49 files, mypy unchanged at 5 pre-existing errors)  [x] make test-unit passes (no new failures vs. baseline — 54→53 failed, 375→403 passed)
 
-**Draft PR feedback received from:** none (peer review step skipped this week)
+**Draft PR feedback received from:** none (peer review step skipped this week — time constraints)
