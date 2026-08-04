@@ -94,3 +94,49 @@ locally due to a pre-existing bug — `api/routes/health.py` reads
 `core/config.py` only defines `redis_url` as a combined URL. This is unrelated
 to issue #117 but the curl example for /health will need a note clarifying the
 discrepancy so it doesn't confuse new developers. No other blockers.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implementation complete. Updated `docs/API.md` with working curl examples for
+all 11 endpoints — 9 that were described but had no examples, plus 2 that were
+implemented in the route files but missing from the doc entirely
+(`PUT /profiles/{profile_id}` and `GET /reviews/{review_id}/status`). Added an
+auth explanation section and a callout on the login endpoint's OAuth2 form data
+requirement, which silently 422s if a developer sends JSON instead. Added
+`tests/unit/test_api_docs.py` with 6 regression tests. All 6 pass. The existing
+suite has 53 pre-existing failures across unrelated modules — none introduced by
+this change.
+
+**Next steps:**
+Open the PR, fill out the template, mark ready for review, submit.
+
+**Blockers:**
+None. `make check` reports 182 pre-existing lint errors in unrelated files —
+none in files touched by this PR.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [will add after opening PR]
+
+**Branch:** `docs/117-api-curl-examples`
+
+**What you built:**
+Added working curl examples to `docs/API.md` for all 11 API endpoints, including
+an auth section, a warning about the login endpoint's OAuth2 form data
+requirement, and documentation for two routes (`PUT /profiles/{profile_id}` and
+`GET /reviews/{review_id}/status`) that were implemented but not listed in the
+original doc.
+
+**Tests added or updated:**
+Added `tests/unit/test_api_docs.py` — 6 tests verifying the doc file exists,
+all endpoint sections are present including the two newly documented routes,
+curl examples are included, and the form-data warning is documented.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
