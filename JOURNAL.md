@@ -83,7 +83,7 @@ None. Note: the repo has pre-existing, unrelated failures (`make check` fails at
 
 ### Check-in 2 (end of week)
 
-**PR link:** _pending — will be added once the PR is opened_
+**PR link:** https://github.com/ascherj/pathreview/pull/775
 
 **Branch:** `test/129-migration-validation`
 
@@ -94,7 +94,7 @@ A CI safeguard for database migrations: `scripts/validate_migrations.sh` applies
 - `tests/unit/test_user_model.py` — asserts the `User` model declares the `uq_users_email` unique constraint (guards the schema reconciliation; runs in `make test-unit`).
 - `tests/integration/test_migration_validation.py` — drives `scripts/validate_migrations.sh` end-to-end against a real Postgres and asserts it exits 0, i.e. all migrations apply cleanly, the downgrade round-trip works, and there is no schema/model drift.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 _(In this codebase with documented pre-existing failures, "passes" = my changes introduce no new failures; see the Blockers note above.)_
 
 **Draft PR feedback received from:** _pending_
