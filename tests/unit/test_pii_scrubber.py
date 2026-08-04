@@ -53,6 +53,16 @@ class TestPIIScrubber:
             scrubbed = scrubber.scrub(text)
             assert "[REDACTED]" in scrubbed
 
+    def test_fully_space_separated_phone_number(self, scrubber: PIIScrubber) -> None:
+        """Test phone number with spaces as the only separator (no dashes/parens)."""
+        text = "Contact: +1 555 123 4567"
+        scrubbed = scrubber.scrub(text)
+        assert "[REDACTED]" in scrubbed
+
+        detected = scrubber.detect(text)
+        phone_detections = [d for d in detected if "phone" in d["type"]]
+        assert len(phone_detections) > 0
+
     def test_international_phone_redaction(self, scrubber):
         """Test international phone number is redacted."""
         text = "Reach me at +44 20 7946 0958"
@@ -200,7 +210,7 @@ class TestPIIScrubber:
 
         for addr in addresses:
             text = f"Address: {addr}"
-            scrubbed = scrubber.scrub(text)
+            scrubber.scrub(text)
             # Should attempt to redact addresses
 
     def test_empty_text(self, scrubber):
@@ -248,7 +258,6 @@ class TestPIIScrubber:
     def test_detect_no_false_positives(self, scrubber):
         """Test that detect doesn't flag legitimate text as PII."""
         text = "The project uses version 1.2.3. It's available at https://example.com"
-        detected = scrubber.detect(text)
-
+        scrubber.detect(text)
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
