@@ -1,6 +1,37 @@
 """Shared test fixtures for PathReview."""
 
 import pytest
+import structlog
+
+
+@pytest.fixture(autouse=True)
+def route_structlog_to_stdlib():
+    """Make structlog records visible to pytest's ``caplog`` fixture.
+
+    By default structlog uses a ``PrintLogger`` that writes straight to stdout,
+    bypassing the standard-library ``logging`` handlers that ``caplog`` installs.
+    Any test asserting on logs via ``caplog`` therefore captures nothing, which
+    fails log assertions suite-wide (issue #159).
+
+    Configuring structlog to use the stdlib ``LoggerFactory`` routes every record
+    through ``logging`` so ``caplog.records`` / ``caplog.text`` see them.
+    ``cache_logger_on_first_use=False`` ensures module-level loggers (bound at
+    import time, before this fixture runs) pick up this configuration rather than
+    a stale cached default. Defaults are restored after each test.
+    """
+    structlog.configure(
+        processors=[
+            structlog.stdlib.add_log_level,
+            structlog.stdlib.PositionalArgumentsFormatter(),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.dev.ConsoleRenderer(colors=False),
+        ],
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        cache_logger_on_first_use=False,
+    )
+    yield
+    structlog.reset_defaults()
 
 
 @pytest.fixture
