@@ -10,7 +10,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pathreview"]
+      test: ["CMD-SHELL", "pg_isready -U pathreview -d pathreview_dev"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -21,6 +21,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    platform: linux/amd64
     ports:
       - "6379:6379"
     healthcheck:
@@ -34,7 +35,7 @@ services:
           memory: 256M
 
   vector-db:
-    image: chromadb/chroma:0.4.22
+    image: chromadb/chroma:0.5.23
     ports:
       - "8001:8000"
     volumes:

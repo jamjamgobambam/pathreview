@@ -67,6 +67,8 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TCH"]
 "core/models/*.py" = ["E501"]
 "scripts/*.py" = ["E501"]
 "alembic/versions/*.py" = ["E501"]
+# FastAPI requires Depends() in default args (B008); B904 is pre-existing style in route handlers.
+"api/routes/*.py" = ["B008", "B904"]
 
 [tool.black]
 target-version = ["py311"]
@@ -78,7 +80,7 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 check_untyped_defs = true
-exclude = ["alembic/versions/"]
+exclude = ["alembic/versions/", "tests/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
