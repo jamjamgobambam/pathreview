@@ -94,7 +94,7 @@ All five sub-tasks from [PLAN.md](PLAN.md) are implemented, in `tests/unit/test_
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/ascherj/pathreview/pull/PENDING <!-- TODO: replace with the real PR URL -->
+**PR link:** https://github.com/ascherj/pathreview/pull/776
 
 **Branch:** `test/37-prompt-template-snapshot-tests`
 
