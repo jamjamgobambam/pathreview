@@ -48,6 +48,20 @@ async def get_profile(
     return result.scalars().first()
 
 
+def profile_has_ingested_content(profile: Profile) -> bool:
+    """Check whether a profile has any content sources available to review.
+
+    Args:
+        profile: The profile to inspect.
+
+    Returns:
+        True if the profile has a non-blank github_username, portfolio_url,
+        or resume_text, False otherwise.
+    """
+    sources = (profile.github_username, profile.portfolio_url, profile.resume_text)
+    return any(source and source.strip() for source in sources)
+
+
 async def update_profile(
     db,
     profile_id: UUID,
