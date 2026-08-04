@@ -29,7 +29,7 @@ from ingestion.parsers.resume_parser import ResumeParser
 r = ResumeParser()
 res = r.parse('\n    John Smith\n    john@example.com\n\n    Education:\n    - B.S. Computer Science\n\n    Skills: Python\n')
 print(res.metadata['detected_sections'])
-# observed: []  (expected: Education, Skills)
+observed: []  (expected: Education, Skills)
 
 ## Week 8 — Reproduction & solution planning
 
@@ -44,3 +44,35 @@ I reproduced the owner-provided case locally with `.venv/bin/python`; parsing an
 
 **Blockers or open questions:**
 Need to confirm whether the final fix should preserve the current nondeterministic `list(set(...))` behavior or make section order deterministic while touching this parser.
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md step 1: `_strip_markdown()` in `ingestion/parsers/resume_parser.py` now allows leading spaces/tabs before `#` headers (`^[ \t]*#+\s+`), fixing markdown header stripping on indented input. The `_detect_sections()` whitespace handling from the earlier reproduction commit was verified working, so I removed the now-stale `xfail(strict=True)` marker on `test_detect_sections_with_leading_whitespace_reproduction` in `tests/unit/test_resume_parser.py` — that test now passes for real instead of being expected to fail.
+
+**Next steps:**
+Run `make check` and `make test-unit` for a final self-review, then open the PR against `ascherj/pathreview` and request review.
+
+**Blockers:**
+None currently.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [TODO: add link once PR is opened]
+
+**Branch:** `fix/146-whitespace-detection`
+
+**What you built:**
+Fixed indented resume/markdown text losing its section headers: `_strip_markdown()` previously required `#` headers to start at column 0, so indented markdown (common in extracted PDF/triple-quoted text) never got its headers stripped; the regex now tolerates leading whitespace. Also confirmed the earlier `_detect_sections()` whitespace fix works and cleaned up the test that was still marked as an expected failure for it.
+
+**Tests added or updated:**
+`tests/unit/test_resume_parser.py` — removed the stale `xfail` marker on `test_detect_sections_with_leading_whitespace_reproduction`; `test_parse_markdown_resume` and `test_strip_markdown_syntax` now pass against the corrected regex.
+
+**Self-review confirmation:** [✓] make check passes  [✓] make test-unit passes
+
+**Draft PR feedback received from:** none
