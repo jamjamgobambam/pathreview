@@ -81,7 +81,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [ADD AFTER OPENING PR]
+**PR link:** https://github.com/ascherj/pathreview/pull/443
 
 **Branch:** fix/150-vendored-build-output-detection
 
@@ -99,6 +99,9 @@ for root-relative paths.
 `test_filename_containing_skip_word_not_excluded` to guard against false-positive substring
 matches (e.g. `vendor_utils.py`).
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both commands report pre-existing failures unrelated to this change — 181 lint errors and 51
+test failures, confirmed identical on `main` via `git stash` comparison. My change introduces
+no new failures.)
 
-**Draft PR feedback received from:** [ADD AFTER REVIEW]
+**Draft PR feedback received from:** none
