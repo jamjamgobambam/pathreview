@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     vector_db_url: str = Field(default="http://localhost:8001")
     # The health endpoint currently expects separate Redis host and port settings.
     # Supplying the complete Redis URL as the host causes DNS resolution to fail.
-    # redis_host: str = Field(default="localhost")
-    # redis_port: int = Field(default=6379)
+    redis_host: str = Field(default="localhost")
+    redis_port: int = Field(default=6379)
 
     # LLM Configuration
     llm_provider: str = Field(default="mock")
