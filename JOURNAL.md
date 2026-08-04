@@ -22,13 +22,13 @@ lives entirely in `docs/API.md` and doesn't require modifying any application co
 
 ---
 
-### "Is this issue right for me?" – Checklist & Reasoning
+### "Is this issue right for me?" — Checklist & Reasoning
 
 #### Part 1 — Understanding the Issue
 - [X] I can explain the problem and the expected behavior in 2–3 sentences without reading the issue.  
   *The API docs are incomplete; they describe endpoints but don't show how to call them with `curl`. Adding examples will make it easier for anyone to test the API locally.*
 - [X] I've located the relevant files and confirmed they exist in the codebase.  
-  *The file is `docs/API.md` – I found it in the repo root.*
+  *The file is `docs/API.md` — I found it in the repo root.*
 - [X] I can describe a concrete before-and-after.  
   *Before: the docs show endpoint paths and descriptions, but no `curl` commands. After: each endpoint has a working `curl` example that can be copied and run immediately.*
 
@@ -53,6 +53,8 @@ lives entirely in `docs/API.md` and doesn't require modifying any application co
 
 **Verdict:** I'm ready to claim this issue.
 
+---
+
 ## Week 8 — Reproduction & solution planning
 
 **Reproduction commit link:** https://github.com/tsh594/pathreview/commit/cddf3a6
@@ -61,8 +63,46 @@ lives entirely in `docs/API.md` and doesn't require modifying any application co
 
 **PLAN.md link:** https://github.com/tsh594/pathreview/blob/docs/117-api-curl-examples/PLAN.md
 
-**Walkthrough video (recommended):** [Not recorded yet – I'll record one before Week 9 if needed]
+**Walkthrough video (recommended):** Not recorded yet — I'll record one before Week 9 if needed.
 
 **Blockers or open questions:**
 - Need to confirm the exact format for OAuth2 login with `curl` (form data vs JSON)
 - Need to verify how to get a valid profile UUID for the `GET /profiles/{profile_id}` example
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+- Completed sub-tasks 1-3 from PLAN.md:
+  - Read `docs/API.md` to understand the current structure
+  - Visited Swagger UI at `http://localhost:8000/docs` to see all endpoints
+  - Wrote `curl` commands for all 9 endpoints in `docs/API.md`
+
+**Next steps:**
+- Test each `curl` command against the local API to verify they work
+- Run `make check` and `make test-unit`
+- Open the PR
+
+**Blockers:**
+- None
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/tsh594/pathreview/pull/777
+
+**Branch:** docs/117-api-curl-examples
+
+**What you built:**
+Added copy-pasteable `curl` examples for all 9 documented API endpoints in `docs/API.md`. Each example includes the full command, required headers, sample payloads, and expected responses. The documentation now helps developers quickly test the API when setting up the project locally.
+
+**Tests added or updated:**
+N/A — This is a documentation-only change. No application code was modified, so no new tests were required. The existing test suite (`make test-unit`) passes without changes.
+
+**Self-review confirmation:** [X] `make check` passes  [X] `make test-unit` passes
+
+**Draft PR feedback received from:** None (I reviewed against the pre-submission checklist and confirmed the PR meets all standards)
