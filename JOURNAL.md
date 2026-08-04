@@ -44,3 +44,41 @@ Whether wiring the fix into the live pipeline is in scope for #69. Traced every 
 **Reproduction steps (detail):**
 1. Fed a clearly dismissive/discouraging (but not "harmful") piece of feedback text directly into `ContentFilter.filter()`. Result: `was_filtered=False`, text returned byte-for-byte unchanged. It only regex-matches specific harmful patterns (self-harm, hate speech, illegal activity) — dismissive tone isn't one of them.
 2. Mocked the OpenAI client inside `ReviewGenerator` (no API key needed — confirmed `.env` has no `OPENROUTER_API_KEY` set) to return that same discouraging text as if it were real LLM output, then called `generate_section()`. Result: the returned `FeedbackSection.content` was identical to the raw mocked LLM output — `generate_section()` goes straight from LLM response to `parse_review_output()` with no classification step in between.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Ahead of schedule as of Monday 2026-08-03 — all 5 sub-tasks from PLAN.md are implemented and committed on `feat/69-feedback-tone-check`:
+1. Design decision: surveyed the existing safety/evaluator checkers (`ContentFilter`, `BiasDetector`, `FaithfulnessChecker`) and found all three are heuristic-only, no real LLM call — followed that precedent instead of PLAN.md's original LLM-as-judge sketch. Recorded in PLAN.md.
+2. `ContentFilter.filter()` extended with `DISCOURAGING_PATTERNS` — flags discouraging tone (without redacting it in place, unlike harmful content). Fixes the Week 8 reproduction test (`test_discouraging_feedback_is_flagged`), now passing.
+3. New `ToneChecker` class (`safety/tone_checker.py`) — heuristic classifier combining a minimum-length check, generic-praise/vagueness patterns, and reuse of `ContentFilter` for discouraging-language detection.
+4. `ReviewGenerator.generate_section()` gated by `ToneChecker` with a bounded regenerate-on-fail loop (max 2 retries, 3 total generation attempts) before falling back to a safe placeholder section.
+5. Found and fixed one incidental pre-existing bug (dead unused variable in `output_parser.py`, blocking the local mypy pre-commit hook transitively) — committed separately from the tone-check work since it's unrelated to #69.
+
+27 new tests added across `tests/unit/test_content_filter.py` (+8), `tests/unit/test_tone_checker.py` (new, 14), `tests/unit/test_review_generator.py` (new, 5). Verified against a clean baseline (git worktree at the pre-Week-9 commit): `make test-unit` went from 54 failed/375 passed to 53 failed/403 passed — zero regressions, target test now passes. `make check` numbers also only improved (ruff 182→176 errors, black 52→49 files needing reformat, mypy unchanged at 5 pre-existing errors in 4 files — missing type stubs and a numpy/mypy version conflict, all environment issues unrelated to this change).
+
+**Next steps:**
+Push the 5 commits to my fork and open the PR — not done yet as of this check-in.
+
+**Blockers:**
+None blocking. The open scope question (whether wiring into `core/services/review_service.py`'s live pipeline belongs in #69) still has no TA/Slack answer — proceeding with the safe default of leaving it out of scope, per the decision recorded in PLAN.md, rather than waiting on it. Skipping the optional draft-PR peer review step this week due to time constraints.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _pending — not yet opened_
+
+**Branch:** `feat/69-feedback-tone-check`
+
+**What you built:**
+_pending — fill in alongside PR link_
+
+**Tests added or updated:**
+_pending — fill in alongside PR link_
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** none (peer review step skipped this week)
