@@ -103,7 +103,13 @@ lives entirely in `docs/API.md` and doesn't require modifying any application co
 Added copy-pasteable `curl` examples for all 9 documented API endpoints in `docs/API.md`. Each example includes the full command, required headers, sample payloads, and expected responses. The documentation now helps developers quickly test the API when setting up the project locally.
 
 **Tests added or updated:**
-N/A — This is a documentation-only change. No application code was modified, so no new tests were required.
+N/A — no automated tests were added, since this is a documentation-only change. Manually ran three of the nine documented commands against the local API at `http://localhost:8000`:
+
+- `POST /auth/register` — returned an `access_token`, confirming the JSON body shape in the docs
+- `POST /auth/login` — returned an `access_token`, confirming the endpoint takes OAuth2 form-data rather than JSON (this resolved one of my Week 8 open questions)
+- `GET /health` — returned JSON, though my local instance reported `"status": "unhealthy"` rather than the healthy example shown in the docs
+
+The remaining six endpoints (`POST /profiles`, `GET` and `DELETE /profiles/{profile_id}`, `POST /reviews`, `GET /reviews/{review_id}`, `GET /reviews`) were written from the Swagger schema at `/docs` and were not executed end-to-end — they require an uploaded resume file and a seeded profile UUID that I did not create locally.
 
 **Self-review confirmation:** [X] `make check` run  [X] `make test-unit` run
 
