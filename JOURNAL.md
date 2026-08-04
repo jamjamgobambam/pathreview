@@ -74,7 +74,7 @@ module).
 
 ### Check-in 2 (end of week)
 
-**PR link:** [add after opening the PR against ascherj/pathreview]
+**PR link:** https://github.com/ascherj/pathreview/pull/757
 
 **Branch:** `fix/146-parenthesized-phone-redaction`
 
@@ -91,6 +91,6 @@ separators to also accept a single literal space fixes both `scrub()` and
 phone tests (`test_us_phone_number_redaction`, `test_us_phone_formats`,
 `test_detect_phone_pii`, `test_phone_at_start_of_text`) now pass as well.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
