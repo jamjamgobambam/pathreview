@@ -145,16 +145,43 @@ loop step I can't complete on my own.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _pending — added once opened_
+**PR link:** https://github.com/ascherj/pathreview/pull/753 — **currently a
+draft**, opened to request peer/mentor feedback in Slack before finalizing.
+Still needs to be marked "Ready for review" before the deadline; this is not
+yet the final submission state.
 
 **Branch:** `fix/150-tech-detector-vendored-files`
 
 **What you built:**
-_pending_
+Fixed `TechDetector._should_skip_file` in `agent/tools/tech_detector.py` so
+it matches vendored/build directories (`node_modules`, `vendor`, `dist`,
+`build`, `.git`, `__pycache__`, `.venv`, `venv`) by exact path segment
+instead of a slash-anchored substring — this catches root-level paths like
+`node_modules/lib/index.js` that the old substring check missed, while
+keeping already-working nested paths (`src/vendor/lib.js`) working and
+avoiding a false positive for a file whose name merely matches a skip-dir
+name.
 
 **Tests added or updated:**
-_pending_
+`tests/unit/test_tech_detector.py` — added a real assertion to
+`test_vendor_files_excluded` (previously asserted nothing), and added 4 new
+tests exercising `_should_skip_file` directly (root-level dirs, nested dirs,
+filename/directory-name collision, substring-vs-exact matching). Also
+cleaned up 7 pre-existing unused-variable lint errors elsewhere in the same
+file that were blocking any commit touching it (documented as a separate
+concern in the commit message and PR description, not part of the #150
+fix itself).
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+— in the "introduces no new failures" sense defined by this week's
+instructions: baseline captured before any change (53 failed/375 passed on
+test-unit, 182 ruff errors, 52 files needing black, 99 mypy errors) vs. after
+(51 failed/381 passed, 173 ruff errors, 51 files needing black, 99 mypy
+errors unchanged) — every number improved or stayed flat, none regressed.
+Full table is in the PR description. Neither command exits zero overall,
+because of pre-existing repo-wide issues outside files this PR touches.
+
+**Draft PR feedback received from:** none yet — PR was just opened as a
+draft; posting it in Slack for review is my next step.
 
 **Draft PR feedback received from:** _pending_
