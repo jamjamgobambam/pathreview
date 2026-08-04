@@ -1,47 +1,32 @@
-"""Reproduction test for issue #68.
+"""Tests for safety event counting in the /health endpoint (issue #68).
 
-The /health endpoint should surface how many safety events were recorded in the
-last hour so operators can monitor safety activity from the health check alone.
-
-Today `api/routes/health.py` hardcodes `safety_events_last_hour` to 0 (see the
-placeholder block at the end of `health_check`) and never calls
-`safety.monitoring.SafetyMonitor.get_event_count`. This test records real safety
-events through `SafetyMonitor` and asserts the health check reflects them.
-
-It is expected to FAIL against the current code (health reports 0 instead of the
-real count). The `xfail(strict=True)` marker documents the gap while keeping the
-suite green; remove the marker once the fix wires SafetyMonitor into health.py.
+`/health` should report the total number of safety events recorded by
+`SafetyMonitor`, rather than the hardcoded 0 it returned before the fix.
 """
 
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from fastapi import HTTPException
 
 from api.routes.health import health_check
 from safety.monitoring import SafetyMonitor
 
 
 def _fake_redis() -> Mock:
-    """A minimal in-memory stand-in for the Redis counters SafetyMonitor uses."""
+    """In-memory stand-in for the Redis counters SafetyMonitor uses."""
     store: dict[str, int] = {}
-    r = Mock()
-    r.incr = lambda key: store.__setitem__(key, store.get(key, 0) + 1)
-    r.expire = Mock()
-    r.get = lambda key: store.get(key)
-    r.ping = Mock(return_value=True)
-    return r
+    client = Mock()
+    client.incr = lambda key: store.__setitem__(key, store.get(key, 0) + 1)
+    client.expire = Mock()
+    client.get = lambda key: store.get(key)
+    client.ping = Mock(return_value=True)
+    return client
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    strict=True,
-    reason="issue #68: /health hardcodes safety_events_last_hour=0 and never "
-    "queries SafetyMonitor. Remove this marker when the fix lands.",
-)
-async def test_health_surfaces_recorded_safety_events() -> None:
-    # Arrange: eight safety events have been recorded in the monitoring system.
+async def test_health_reports_total_safety_event_count() -> None:
+    """/health sums recorded safety events across all event types."""
     redis_client = _fake_redis()
     monitor = SafetyMonitor(redis_client)
     for _ in range(5):
@@ -49,19 +34,23 @@ async def test_health_surfaces_recorded_safety_events() -> None:
     for _ in range(3):
         monitor.log_event("injection_attempt", {})
 
-    expected = sum(
-        monitor.get_event_count(event_type) for event_type in SafetyMonitor.VALID_EVENT_TYPES
-    )
-    assert expected == 8, "sanity check: SafetyMonitor is the source of truth"
-
-    # Act: hit the health check. Read the payload whether it returns 200 or
-    # raises 503 (dependency health is irrelevant to this field).
     db = Mock()
     db.execute = AsyncMock(return_value=None)
-    try:
-        result = await health_check(db=db)
-    except HTTPException as exc:
-        result = exc.detail
 
-    # Assert: the health check surfaces the real count, not a hardcoded 0.
-    assert result["safety_events_last_hour"] == expected
+    result = await health_check(db=db, redis_client=redis_client)
+
+    assert result["safety_events_last_hour"] == 8
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_health_reports_zero_when_no_safety_events() -> None:
+    """/health reports 0 safety events when none have been recorded."""
+    redis_client = _fake_redis()
+
+    db = Mock()
+    db.execute = AsyncMock(return_value=None)
+
+    result = await health_check(db=db, redis_client=redis_client)
+
+    assert result["safety_events_last_hour"] == 0
