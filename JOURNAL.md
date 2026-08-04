@@ -43,3 +43,30 @@ it still passed, proving no protection existed.
 **Walkthrough video (recommended):** [skipping — will do office hours if needed]
 
 **Blockers or open questions:** None. PR #301 is already open and passing tests locally.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Fix is fully implemented. Both new tests
+(`test_template_content_matches_snapshot` and
+`test_every_template_version_has_a_snapshot`) are passing, and the
+placeholder `test_template_snapshot_content_hash` has been removed.
+All 38 tests in `tests/unit/test_prompt_templates.py` pass locally.
+The PR is open at #301 and I'm treating this week as review + polish
+rather than new implementation, since sub-tasks 1–5 in PLAN.md are
+already complete.
+
+**Next steps:**
+Run the full `make check` and `make test-unit` suites, document any
+pre-existing failures in the PR description, request peer feedback in
+Slack, and address any review comments before the deadline.
+
+**Blockers:**
+None right now. Only open question is whether reviewers will want me
+to also fix the pre-existing ruff/mypy violations in
+`test_prompt_templates.py`. I've left those alone to keep the diff
+scoped, but I'll fold them in if requested.
+
+---
