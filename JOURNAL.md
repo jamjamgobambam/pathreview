@@ -61,3 +61,34 @@ Wired the existing (previously unused) `RateLimiter` into the request pipeline a
 (with documented pre-existing exceptions — see the Week 8 baseline note and the PR description: `ruff`/`mypy`/`pytest` all have pre-existing failures unrelated to this change, confirmed via baseline runs and a `git stash` test before committing. My changes introduce zero new failures.)
 
 **Draft PR feedback received from:** a reviewer on PR #480. Suggestions: a stronger comment protecting the middleware registration order, a test for expired (not just malformed) Bearer tokens, and a `Retry-After` header on 429s. Addressed all three in a follow-up commit.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+Got one round of review on the draft PR (#480). All three points were framed as optional polish, not blockers: (1) the middleware-ordering rationale in the PR description was clear but easy to accidentally break in a future refactor, so a comment right at the registration site would help protect it; (2) the description said the identifier falls back to IP on an invalid token, but it wasn't clear whether that also held for an *expired* token specifically, and whether a test already covered it; (3) since the 429 already carries rate-limit headers, a `Retry-After` header would be a natural addition for clients if the window length was readily available.
+
+**How you responded:**
+Addressed all three in a follow-up commit: strengthened the comments around `app.add_middleware(RateLimitMiddleware)`/`app.add_middleware(RequestIDMiddleware)` in `api/main.py` to explicitly say why the order matters and not to reorder them; added `test_expired_bearer_token_falls_back_to_ip` (the existing malformed-token test didn't specifically cover expiry); and added a `Retry-After` header (using the same rolling window as the rate limiter) to 429 responses, with a test confirming it's present on 429s and absent on 200s. Re-ran the full unit + integration suite after — no regressions, 2 new tests. Then marked the PR ready for review.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Setting up docker was quite a bit harder than i thought it would be, the instructions in  the module didnt quite cover everything so i ended up doing some external research on docker, what it's used for and how to set it up so I could get started on the project. 
+
+**What did you learn about working in a large codebase?**
+I learned how important it is to spend time familarizing yourself with the codebase and understanding teh conventions and guidelines for the project. it can make a huge difference in whether your pr gets accepted or not. A good example of this was when I found that health.py's Redis check was silently broken the whole time, it references settings.redis_host redis_port which don't even exist on the settings class, so it always fails and gets swallowed by a try/except. Nobody would catch that without actually reading through how the pieces connect. 
+
+**How did AI tools help — and where did they fall short?**
+They were very helpfull in famililarizing myself with the codebase, it was a bit overwhelimg at first but they were able to give a quick summary anf suggestions for how to trace through everything. Sometimes they would fall short in knowing how to best implement things and looking at the big picture and all the factors, which is where I came in. For example, when it came time to reproduce the issue, Claude wanted to jump straight to writing an automated failing test, but I just wanted to run the app myself and see the bug happen with my own eyes first, which honestly gave me a better sense of the problem. 
+
+**What would you do differently if you started over?**
+I would start planning earlier and give myself more time to actually implement the fixes. I turned in my planning assignments a bit later and then felt rushed with the implementation part of the project. 
+
+**What are you most proud of from this module?**
+I'm proud of making an open source contribution. I've always been scared and overwhlemed and never had the courage to contribute to open source projects, but now I feel much more comfortable with the process and would be much more likely to do so in the future. 
