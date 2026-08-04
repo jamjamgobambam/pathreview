@@ -41,8 +41,7 @@ None.
 ---
 
 ### Check-in 2 (end of week)
-**PR link:** https://github.com/ascherj/pathreview/pull/YOUR_PR_NUMBER_HERE
->Note: This is draft for now
+**PR link:** https://github.com/ascherj/pathreview/pull/817
 **Branch:** fix/156-readme-scorer-fixture-length
 **What you built:**
 Expanded the mock README fixture string inside `test_readme_with_all_quality_signals` in `tests/unit/test_readme_scorer.py` to >500 words. This resolves the failing `word_count` and `word_count_category` assertions without changing any underlying scoring algorithm logic in `agent/tools/readme_scorer.py`.
