@@ -36,3 +36,15 @@ Read `docs/ARCHITECTURE.md`'s RAG System section end to end and confirmed it nev
 
 **Blockers or open questions:**
 `rag/retriever/hybrid.py` fetches all chunks for keyword search but I don't see where `KeywordSearcher.index()` actually gets called before `retrieve()` uses it — need to confirm where/whether the BM25 index is built (likely during ingestion) before finalizing the doc's description of the keyword-search step. This looks like a separate, unrelated bug and is out of scope for issue #36.
+
+## Week 9 — Implementation
+
+**Implementation commit link:** https://github.com/shanhe2/pathreview/commit/fdf8c1a
+
+**Open-question follow-up:** Grepped the repo for `.index(` calls on `KeywordSearcher` — the only call site is in `tests/unit/test_keyword_search.py`; nothing in the ingestion or retrieval code path builds the BM25 index before `HybridRetriever.retrieve()` calls `keyword_searcher.search()`. Confirms this is a real, separate bug (the keyword-search branch appears unreachable in practice) but it's out of scope for issue #36's doc-only fix, so the new section describes the scoring formula as designed without asserting the BM25 half is currently wired up end-to-end.
+
+**What changed:** Replaced the issue #36 reproduction comment in `docs/ARCHITECTURE.md` with a full "Hybrid Retrieval Scoring" subsection: the two normalized inputs, the min-max-per-result-set caveat, the weighted-sum formula, default weights (`vector_weight=0.7`, `keyword_weight=0.3`) with a one-line rationale, the `min_score` filter step, a note on missing-side chunks scoring 0, and the worked A/B example from `PLAN.md` as a table. No code changes — matches the issue's docs-only scope.
+
+**Testing:** No unit tests apply (docs-only change). Ran `make test-unit` and `make check` before and after; both show the same 53 pre-existing test failures and 182 pre-existing lint errors, none in files this change touches (`docs/ARCHITECTURE.md` is the only file modified) — confirming this change introduces no new failures.
+
+**Self-review:** Re-read `rag/retriever/hybrid.py` line by line against the new doc section to confirm the formula, defaults, and normalization order match exactly; proofread the worked example arithmetic.
