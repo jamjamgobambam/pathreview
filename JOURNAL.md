@@ -78,3 +78,67 @@ divides each score by the max of its own result set (max-normalization, no `min`
 subtracted). My plan is to document the code's real behavior; I'll confirm with
 the maintainer whether the code or the issue wording is the intended one before
 Week 9.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix. I re-read `rag/retriever/hybrid.py`, `vector_store.py`, and
+`keyword_search.py` to confirm the exact behavior, then added a new
+"Hybrid Retrieval Scoring" subsection under RAG System in `docs/ARCHITECTURE.md`.
+It documents the two-retriever pipeline (each fetches `max_chunks * 2`
+candidates), the max-normalization step, the blending formula
+(`blended = vector_weight * vector_norm + keyword_weight * keyword_norm`) with
+defaults 0.7 / 0.3, the `min_score = 0.3` cutoff, and a worked example. This
+completes sub-tasks 1–5 from PLAN.md.
+
+I also resolved the Week 8 open question: rather than reproduce the issue's
+"min-max normalized" wording, I documented what the code actually does
+(max-normalization — divide by max, no min subtracted) and explicitly flagged
+the distinction in the doc, since that is the behavior a reader will observe.
+
+**Next steps:**
+Finalize the wording, run `make check` / `make test-unit` to record the baseline
+vs. post-change state, then open the PR against upstream and fill in the template.
+
+**Blockers:**
+None on the fix itself. Note: the local `.venv` is broken (no `pip`, no
+`_pytest`, no `pre_commit`), so `make test-unit` and the pre-commit hook can't
+run locally — this is a pre-existing environment issue, unrelated to a
+docs-only change. Documented in Check-in 2.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _(fill in after opening the PR — https://github.com/ascherj/pathreview/pull/XXX)_
+
+**Branch:** `docs/36-hybrid-retrieval-scoring-formula`
+
+**What you built:**
+A new "Hybrid Retrieval Scoring" subsection in `docs/ARCHITECTURE.md` that
+explains how `HybridRetriever` blends vector-similarity and BM25 keyword scores
+into a single ranked list: the candidate-fetch pipeline, the max-normalization
+of each retriever's scores to 0–1, the weighted blending formula with default
+weights (0.7 / 0.3), the `min_score = 0.3` cutoff, and a worked example with
+concrete numbers. No application code changes — the behavior was already
+implemented; only the documentation gap is closed.
+
+**Tests added or updated:**
+None. This is a documentation-only change to a Markdown file; there is no
+runtime behavior to test. `ruff` and `pytest` do not cover `.md` files
+(confirmed: `ruff check docs/ARCHITECTURE.md` reports "No Python files found").
+The worked-example numbers were hand-verified against the formulas in
+`rag/retriever/hybrid.py`.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+_"Passes" here means my change introduces no new failures, per the pre-existing-failure
+guidance. Baseline (before my change): `make check` fails with 182 pre-existing `ruff`
+errors in existing Python/test files; `make test-unit` cannot run because the local
+`.venv` is broken (`ModuleNotFoundError: No module named '_pytest'`, and `pip` is
+absent). My change touches only `docs/ARCHITECTURE.md`, which is outside the scope of
+`ruff`/`mypy`/`pytest`, so it introduces zero new failures in either command._
+
+**Draft PR feedback received from:** none
