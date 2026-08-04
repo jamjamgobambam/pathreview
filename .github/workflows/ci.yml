@@ -82,6 +82,34 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           LLM_PROVIDER: mock
 
+  migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: pathreview
+          POSTGRES_PASSWORD: pathreview
+          POSTGRES_DB: pathreview_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U pathreview"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: Validate migrations apply cleanly and match models
+        run: bash scripts/validate_migrations.sh
+        env:
+          DATABASE_URL: postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_test
+          LLM_PROVIDER: mock
+
   frontend:
     runs-on: ubuntu-latest
     steps:
