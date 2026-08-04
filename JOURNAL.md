@@ -13,7 +13,7 @@ would accomplish. Naming the part of the codebase it affects is helpful context.
 
 `session_store.py` manages a per-user session object with methods to initialize, store, retrieve, and delete cached state. The bug suggests the retrieval path returns cached tool results without checking whether the underlying input (the user's portfolio) has changed since the cache was populated - likely a missing invalidation step, either in store (not overwriting/versioning on update) or in the orchestrator's login or deciding when to reuse vs. re-run tools. 
 
-The issue attributes tale results to `session_store` caching by user ID. Tracing the code, that mechanism isn't present: the orchestrator always re-runs every tool in the plan and never consults `session_store` to skip execution (orchestrator.py:53-62); the only cache checked is the in-memory `ContextManager`. The loaded session state is merged via `session_state.update(results)` and re-saved, but `run()` returns the freshly computed `results`. so stale state is never actually served. `session_store.delete()` is never called, so no reset ever happens. Since the state isn't use to gate execution, that doesn't cause the described symptom. 
+The issue attributes stale results to `session_store` caching by user ID. Tracing the code, that mechanism isn't present: the orchestrator always re-runs every tool in the plan and never consults `session_store` to skip execution (orchestrator.py:53-62); the only cache checked is the in-memory `ContextManager`. The loaded session state is merged via `session_state.update(results)` and re-saved, but `run()` returns the freshly computed `results`.`session_store.delete()` is never called, so no reset ever happens. Since the state isn't used to gate execution, that doesn't cause the described symptom. 
 The issue's root casue is misattributed; the fix cannot live purely in `session_store.py`. The genuine staleness risks live elsewhere (the constant `market_analyzer` input at orchestrator.py:130, and the accumulating merge at orchestrator.py:66).
 
 A successful fix ensures that when the same user requests a second review after changing their portfolio, the results reflect the new portfolio rather than any prior session. Concretely, cached state must be invalidated when the input changes either by keying session state to a portfolio content/version has (so a changed portfolio misses the cache) or by resetting the session (`session_store.delete`) at the start of each review. It must also remain safe for the intended case: an identical re-review may reuse the cache, and no orphaned per-tool entries from a previous review should linger in the merged state. 
@@ -72,14 +72,15 @@ Nothing currently blocking but that may change as I write the corrected code.
 
 **PR link:** [link to your submitted pull request]
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** [fix/43-Agent-session-not-resetting]
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+
+I fixed the stale-result bug by addressing its actual root cause in the caching layer rather than `session_store.py`. First, I replaced the constant `{"detected_skills": {}}` passed to `market_analyzer` with the real skills detected earlier in the plan, so its cache key now varies per portfolio instead of being identical every review. Second, I reset `ContextManager` at the start of `Orchestrator.run()` (via a new clear() method) so a reused Orchestrator instance can no longer replay a prior review's cached results.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+`tests/unit/test_orchestrator.py` was newly created (no test file existed for the orchestrator previously). It contains two tests: `test_second_review_reflects_updated_portfolio`, which shows the issue as originally written doesn't reproduce with a fresh per-request orchestrator; and `test_reused_orchestrator_reruns_with_real_skills`, which guards the actual fix — asserting that a reused orchestrator re-runs `market_analyzer` on a second review and passes it real, portfolio-derived detected skills rather than the empty placeholder. The earlier bug-reproduction test that demonstrated the stale-replay behavior was retired once the fix landed; it's preserved in git history at the reproduction commit.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [ X ] make check passes  [ X ] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** ["none"]
