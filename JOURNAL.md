@@ -59,7 +59,7 @@ None right now. The main open question is still the "space vs. `[REMOVED]` vs. d
 
 ### Check-in 2 (end of week)
 
-**PR link:** _to be added once the upstream PR is open_
+**PR link:** https://github.com/ascherj/pathreview/pull/795
 
 **Branch:** `fix/64-prompt-defense-newline-sanitizer`
 
