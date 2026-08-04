@@ -22,3 +22,20 @@ coercing a `None` text value to an empty string before concatenation.
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger 
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [will fill in after next commit]
+
+**Reproduction summary:** Ran `FaithfulnessChecker().check('Knows Python.',
+[{'text': None}])` locally and confirmed it raises `TypeError: sequence
+item 0: expected str instance, NoneType found`, matching the issue. Also
+confirmed `test_none_context_chunk_text` in the existing test suite
+currently fails with the same error.
+
+**PLAN.md link:** [will fill in after push]
+
+**Blockers or open questions:**
+None currently — the fix is a small, well-scoped one-line change.
