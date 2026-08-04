@@ -42,12 +42,12 @@ I will complete the last two steps I've outlined in PLAN.md
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [link to the submitted pull request](https://github.com/ascherj/pathreview/pull/788)
 
 **Branch:** docs/36-update-architecture
 
 **What you built:**
-I added a section under "subsystem details" (Hybrid Retrieval Scoring Logic) which details the scoring logic for the retrieval system. There were two subsections under that section detailing the normalization process as well as what would happen if a chunk is missing from a vector or keyword evaluation set. 
+I added a subsection under "subsystem details" -> "Rag System" (Hybrid Retrieval Scoring Logic) which details the scoring logic for the retrieval system. There were two subsections under that section detailing the normalization process as well as what would happen if a chunk is missing from a vector or keyword evaluation set. 
 
 **Tests added or updated:**
 No tests were added as this was a documentation revision. 
