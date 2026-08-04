@@ -112,7 +112,7 @@ docs-only change. Documented in Check-in 2.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(fill in after opening the PR — https://github.com/ascherj/pathreview/pull/XXX)_
+**PR link:** https://github.com/yic04/pathreview/pulls
 
 **Branch:** `docs/36-hybrid-retrieval-scoring-formula`
 
@@ -141,4 +141,4 @@ errors in existing Python/test files; `make test-unit` cannot run because the lo
 absent). My change touches only `docs/ARCHITECTURE.md`, which is outside the scope of
 `ruff`/`mypy`/`pytest`, so it introduces zero new failures in either command._
 
-**Draft PR feedback received from:** none
+**Draft PR feedback received from:** Shanhe
