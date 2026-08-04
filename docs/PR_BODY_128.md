@@ -1,23 +1,3 @@
-# PR draft for ascherj/pathreview#128
-
-Push from a machine with working GitHub auth, then open against **upstream** `ascherj/pathreview` `main`:
-
-```bash
-cd m3/w7/pathreview
-git push -u origin HEAD
-# if gh works:
-gh pr create --repo ascherj/pathreview \
-  --base main \
-  --head speculaas:chore/128-add-dependency-vulnerability-scans \
-  --title "ci: add dependency vulnerability scans (#128)" \
-  --body-file docs/PR_BODY_128.md
-```
-
-Course portal branch URL after push:
-https://github.com/speculaas/pathreview/tree/chore/128-add-dependency-vulnerability-scans
-
----
-
 ## Summary
 
 Adds blocking CI jobs that scan Python runtime dependencies with pinned `pip-audit` and frontend production dependencies with `npm audit --omit=dev --audit-level=high`. This closes the missing security gate described in #128 without forcing a Vite/Vitest major upgrade into the same PR.
@@ -38,11 +18,11 @@ Closes #128
 - [x] Local: `pip-audit --ignore-vuln PYSEC-2026-311 --ignore-vuln PYSEC-2026-1325` → exit 0 (2 ignored)
 - [x] Local: `npm audit --omit=dev --audit-level=high` → exit 0 (2 moderate `react-router` findings only; non-blocking under `--audit-level=high`)
 - [ ] GitHub Actions: confirm both new jobs appear and pass on this PR
-- [ ] Unit tests / linter: **pre-existing noise** on this tree (~182 ruff issues; unit suite previously noisy with failures/errors). This PR only changes CI YAML and docs — it does not modify application code. Please treat “passes” as “introduces no new application failures.”
+- Pre-existing baseline noise (unchanged by this PR; docs/CI only): local `ruff check` reported ~182 issues; `pytest tests/unit` previously showed many failures/errors on this tree. This PR does not modify application Python/TS source. “Passes” here means no new application-suite failures introduced by the change set.
 
 ## Screenshots / Demo
 
-N/A — CI configuration change. Evidence: `_audit_scratch/option-e-verified.txt`, `_audit_scratch/npm-audit-omit-dev.txt`.
+N/A — CI configuration change. Evidence on branch: `_audit_scratch/option-e-verified.txt`, `_audit_scratch/npm-audit-omit-dev.txt`.
 
 ## Notes for Reviewers
 
