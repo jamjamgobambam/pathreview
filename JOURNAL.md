@@ -46,3 +46,51 @@ Main open question is how loose to make the regex without introducing false
 positives (e.g. version numbers like `1.2.3` or spaced digit runs in prose). I
 need to confirm the guard tests `test_text_with_no_pii` and
 `test_detect_no_false_positives` still pass after widening the separator.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md. Widened the `phone_us` regex separator in
+`safety/pii_scrubber.py` from `[-.]?` (dash/dot only) to `[-. ]?` (dash, dot, or
+a single literal space). PLAN sub-tasks 1–4 are done: separator widened,
+parenthesized branch re-checked, phone tests pass, and the guard tests
+(`test_text_with_no_pii`, `test_detect_no_false_positives`) still pass — the
+scrubber test file went from 6 failing to 1 failing, and that remaining failure
+(`test_mixed_pii_and_text`) is a pre-existing, unrelated `street_address` bug
+that also failed before my change.
+
+**Next steps:**
+Run `make check` and `make test-unit` in a full dev environment, open a draft PR
+early for peer/mentor feedback, then fill in the PR template and mark it ready.
+
+**Blockers:**
+None on the fix itself. Still need to run the full `make check` / `make test-unit`
+in a complete environment (my local venv only has the deps needed for the safety
+module).
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [add after opening the PR against ascherj/pathreview]
+
+**Branch:** `fix/146-parenthesized-phone-redaction`
+
+**What you built:**
+Fixed a PII-redaction bug where the US phone-number regex only allowed dashes or
+dots between number groups, so space-separated and parenthesized formats like
+`(555) 123-4567` and `+1 555 123 4567` were never redacted. Widening the three
+separators to also accept a single literal space fixes both `scrub()` and
+`detect()`, since they share the same pattern.
+
+**Tests added or updated:**
+`tests/unit/test_pii_scrubber.py` — added `test_repro_issue_146_parenthesized_phone`
+(Week 8) which now passes and acts as the regression test. The four existing
+phone tests (`test_us_phone_number_redaction`, `test_us_phone_formats`,
+`test_detect_phone_pii`, `test_phone_at_start_of_text`) now pass as well.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
