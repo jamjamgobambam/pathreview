@@ -202,14 +202,20 @@ class TestFaithfulnessChecker:
         assert isinstance(supported, bool)
 
     def test_minimum_overlap_required(self, checker):
-        """Test that minimum meaningful overlap is required for support."""
+        """A 2-token claim still needs both tokens; one overlap is not enough.
+
+        "Python expertise" has two meaningful tokens, so the length-aware
+        threshold requires min(2, 2) = 2 overlaps. The context "Python" only
+        supplies one, so the claim is not supported. This documents that the
+        #152 fix stays conservative for multi-token claims and does not
+        over-credit a single incidental word match.
+        """
         claim = "Python expertise"
-        context = "Python"  # Only one word match
+        context = "Python"  # Only one meaningful token matches
 
         supported = checker._is_supported(claim, context)
 
-        assert isinstance(supported, bool)
-        # Need at least 2 meaningful tokens for support
+        assert supported is False
 
     def test_none_context_chunk_text(self, checker):
         """Test handling of None in context chunk text."""
@@ -253,27 +259,25 @@ class TestFaithfulnessChecker:
         assert supported is True
 
     # ------------------------------------------------------------------
-    # Reproduction of issue #152: "Faithfulness checker can never mark
-    # short claims as supported."
+    # Regression tests for issue #152: "Faithfulness checker can never
+    # mark short claims as supported."
     #
-    # _is_supported() requires an *absolute* minimum of 2 meaningful
-    # (non-stop-word) overlapping tokens. A short claim can carry fewer
-    # than 2 meaningful tokens, so it can never reach the threshold even
-    # when its key term is present verbatim in the context.
-    #
-    # These two tests assert the *correct* (post-fix) behavior, so they
-    # FAIL against the current code and will pass once the threshold is
-    # made length-aware in Week 9.
+    # The old _is_supported() required an *absolute* minimum of 2 meaningful
+    # (non-stop-word) overlapping tokens, so a short claim with fewer than 2
+    # meaningful tokens could never be supported even when its key term
+    # appeared in the context verbatim. The fix scales the required overlap
+    # with the claim's length (capped at 2). The first two tests were added
+    # as failing reproductions in Week 8 and now guard the fixed behavior;
+    # the remaining three cover edge cases from PLAN.md.
     # ------------------------------------------------------------------
 
     def test_short_grounded_claim_is_supported_issue_152(self, checker):
-        """REPRODUCES #152: a short claim is unsupported even when its only
-        meaningful token appears verbatim in the context.
+        """#152: a short, grounded claim must be marked supported.
 
         claim "Is scalable" -> meaningful tokens {"scalable"} (1 token, since
-        "is" is a stop word). "scalable" is literally present in the context,
-        so the claim is grounded and should be marked supported. Today
-        _is_supported returns False because 1 < 2.
+        "is" is a stop word). "scalable" is present verbatim in the context, so
+        the claim is grounded. With the length-aware threshold the required
+        overlap is min(2, 1) = 1, so this is now supported.
         """
         claim = "Is scalable"
         context = "The architecture is scalable and well-tested."
@@ -281,15 +285,49 @@ class TestFaithfulnessChecker:
         assert checker._is_supported(claim, context) is True
 
     def test_check_scores_grounded_short_feedback_above_zero_issue_152(self, checker):
-        """REPRODUCES #152 at the check() level: feedback whose single claim is
-        a short but grounded statement scores 0.0.
+        """#152 at the check() level: feedback whose single claim is a short but
+        grounded statement now scores above 0.0.
 
         The identical wording, when long enough to contain >= 2 overlapping
-        meaningful tokens, scores 1.0 -- proving the score depends on claim
-        length rather than on whether the claim is actually grounded.
+        meaningful tokens, already scored 1.0 -- proving the old score depended
+        on claim length rather than on whether the claim was grounded.
         """
         context_chunks = [{"text": "The architecture is scalable and well-tested."}]
 
         short_score = checker.check("Is scalable.", context_chunks)
 
         assert short_score > 0.0
+
+    def test_short_ungrounded_claim_not_supported_issue_152(self, checker):
+        """#152: a short claim whose key term is absent stays unsupported.
+
+        The length-aware threshold must not degrade into "any single word match
+        is enough" -- a short claim is only supported when its meaningful token
+        actually appears in the context.
+        """
+        claim = "Is scalable"
+        context = "The service handles authentication and billing."
+
+        assert checker._is_supported(claim, context) is False
+
+    def test_all_stop_words_claim_not_supported_issue_152(self, checker):
+        """#152 edge case: a claim made entirely of stop words is unsupported.
+
+        After stop-word filtering the claim has no meaningful tokens, so it must
+        return False without dividing by zero or raising.
+        """
+        claim = "the is and of"
+        context = "The project is well documented and of high quality."
+
+        assert checker._is_supported(claim, context) is False
+
+    def test_long_claim_single_overlap_not_supported_issue_152(self, checker):
+        """#152: a long claim with only one overlapping token stays unsupported.
+
+        Longer claims still require two overlapping meaningful tokens, so a
+        weakly grounded long claim is not over-credited by the fix.
+        """
+        claim = "Deep expertise in distributed systems and databases"
+        context = "The candidate mentions databases once."
+
+        assert checker._is_supported(claim, context) is False
