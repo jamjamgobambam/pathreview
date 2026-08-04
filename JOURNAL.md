@@ -193,6 +193,8 @@ observed: 0  (a ~1000-char document produces no chunks)
 
 The fix worked for the intended headingless-text tests, but the full module still has three unrelated failures: exact newline preservation for semantic bullet-list chunks, heading-path assertion ordering, and an empty structural-section chunk.
 
+![alt text](<images/3 remaining failed tests.png>)
+
 To fix these failing tests, I had to trace each failure to its owning behavior: semantic text normalization for the list, the misplaced test assertion, and structural extraction emitting an empty section. The failures have three local causes: the semantic splitter trims away newline delimiters, two heading-path tests assert too early inside their loops, and _extract_sections() saves whitespace-only content between consecutive headings. 
 
 The semantic tests impose no normalization contract, so preserving delimiters is compatible and fixes the list regression at the source. I retained split-boundary whitespace and concatenated semantic segments, skipped whitespace-only structural sections, and moved both heading-path assertions after their loops.
@@ -211,7 +213,7 @@ I strengthened the existing test test_large_document_with_no_headings_uses_seman
 
 
 **Next steps:**
-I will work on Check-in 2 and submit it by Sunday. 
+I will work on Check-in 2 and submit it by Monday. 
 
 **Blockers:**
 N/A
@@ -222,15 +224,19 @@ N/A
 
 **PR link:** [link to your submitted pull request]
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** [fix/149-structural-chunker-silently-drops-documents-with-no-headings](https://github.com/mardisworld/pathreview/tree/fix/149-structural-chunker-silently-drops-documents-with-no-headings)
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+I fixed the branch so that it would fall back to semantic-chunker.py if there were no headings found in the document. I also created several test cases around the edge cases that AI documented in my PLAN.md document. 
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+File test_structural_chunker.py:
+    Fixed/Hardened: test_document_with_no_headings
+    Added: test_large_document_with_no_headings_uses_semantic_chunks
+    Added: test_headingless_bullet_list_falls_back_to_semantic_chunking
+    Added: test_hashtag_without_space_is_not_treated_as_heading
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
 

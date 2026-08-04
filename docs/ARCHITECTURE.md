@@ -53,6 +53,8 @@ FastAPI application serving REST endpoints. Handles authentication (JWT), reques
 ### Ingestion Pipeline (`ingestion/`)
 Processes user-submitted documents into vector embeddings. Parsers implement `BaseParser` and extract structured text. Chunkers split text for embedding. The pipeline orchestrates: parse → chunk → embed → store.
 
+README content uses `StructuralChunker`, which creates chunks on valid Markdown headings (`#` through `######` followed by a space) and adds heading-path metadata. If non-empty README content has no valid headings, it falls back to `SemanticChunker` so content is retained with its supplied metadata and without heading-specific fields. This includes plain text, headingless bullet lists, and `#hashtag` text; empty or whitespace-only content produces no chunks.
+
 ### Agent System (`agent/`)
 A plan-execute orchestrator that coordinates multiple analysis tools. Each tool implements `BaseTool` with `name`, `description`, and `execute()`. The orchestrator builds a plan based on available profile data, executes tools with retry and timeout policies, and synthesizes results.
 

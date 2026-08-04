@@ -11,7 +11,9 @@ class StructuralChunker(BaseChunker):
     Chunk markdown on heading boundaries while preserving hierarchy.
 
     Splits on h1, h2, h3 headings, preserves heading context,
-    and uses semantic sub-chunking for large sections.
+    and uses semantic sub-chunking for large sections. Non-empty input without
+    valid Markdown headings falls back to SemanticChunker without adding
+    heading metadata.
     """
 
     SECTION_TOKEN_LIMIT = 800
@@ -25,12 +27,20 @@ class StructuralChunker(BaseChunker):
         """
         Chunk markdown on heading boundaries.
 
+        Valid headings use the ATX form `#` through `######` followed by a
+        space. When no structural sections are found, such as for plain text,
+        headingless lists, or `#hashtag` text, semantic chunking preserves the
+        content and provided metadata. Empty or whitespace-only input returns
+        no chunks.
+
         Args:
             text: The markdown text to chunk
             metadata: Document metadata
 
         Returns:
-            List of Chunk objects with heading_path in metadata
+            List of Chunk objects. Structurally chunked content includes
+            heading_path and heading_level metadata; semantic fallback chunks
+            do not.
         """
         if not text or not text.strip():
             return []
