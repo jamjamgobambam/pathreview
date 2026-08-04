@@ -36,7 +36,7 @@ services:
           memory: 256M
 
   vector-db:
-    image: chromadb/chroma:0.4.22
+    image: chromadb/chroma:1.0.0
     ports:
       - "8001:8000"
     volumes:
@@ -44,7 +44,7 @@ services:
     environment:
       ANONYMIZED_TELEMETRY: "false"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8000 && printf 'GET /api/v2/heartbeat HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q 'heartbeat' <&3"]
       interval: 10s
       timeout: 5s
       retries: 5
