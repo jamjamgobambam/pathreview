@@ -149,16 +149,18 @@ reimplementation of the blend from `rag/retriever/hybrid.py`.
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 _"Passes" here means my change introduces no new failures, per the pre-existing-failure
-guidance. Baseline (before my change): `make check` fails with 182 pre-existing `ruff`
-errors in existing Python/test files, and `make test-unit` cannot run locally because
-the `.venv` is broken — a system Python upgrade (3.12 → 3.14) left `.venv/bin/python`
-pointing at 3.14 while the installed packages live in `.venv/lib/python3.12/`, so
-`_pytest`, `pip`, and `pre_commit` are all unimportable. The new
-`tests/unit/test_hybrid.py` only stubs the retriever backends and asserts pure
-arithmetic, so its expected values were verified against a standalone
-reimplementation of the blend rather than by running pytest in the broken venv. The
-doc change touches `docs/ARCHITECTURE.md`, outside the scope of `ruff`/`mypy`. I will
-rebuild the venv (`rm -rf .venv && make setup`) and run `make test-unit` to confirm
-the new suite passes before final submission._
+guidance. I rebuilt the `.venv` (a system Python upgrade 3.12 → 3.14 had broken the
+old one) and ran the full suite on both branches:_
+
+- _`make test-unit` on `main`: **53 failed, 375 passed** (pre-existing failures across
+  ~10 unrelated files — `test_pii_scrubber`, `test_resume_parser`,
+  `test_review_service`, `test_skill_extractor`, etc.)._
+- _`make test-unit` on this branch: **53 failed, 381 passed** — the same 53
+  pre-existing failures, plus my 6 new `test_hybrid.py` tests all passing. **Zero new
+  failures introduced.**_
+- _`tests/unit/test_hybrid.py` passes `ruff` and `black --check`; `mypy` in `make check`
+  scopes to `api/ core/ ingestion/ rag/ agent/ safety/`, not `tests/`, so the test file
+  is out of its scope. `make check` still reports its pre-existing `ruff`/`mypy` errors
+  in existing files, none of them from my changes._
 
 **Draft PR feedback received from:** Shanhe

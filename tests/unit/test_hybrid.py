@@ -9,8 +9,9 @@ with per-result-set max-normalization, default weights 0.7 / 0.3, and a
 `min_score` cutoff applied before ranking and truncation to `max_chunks`.
 """
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
 
 from rag.retriever.hybrid import HybridRetriever
 
@@ -19,8 +20,9 @@ from rag.retriever.hybrid import HybridRetriever
 class TestHybridRetrieverScoring:
     """Test suite for HybridRetriever blend/normalize/filter behavior."""
 
-    def _make_retriever(self, vector_results, keyword_results,
-                        vector_weight=0.7, keyword_weight=0.3):
+    def _make_retriever(
+        self, vector_results, keyword_results, vector_weight=0.7, keyword_weight=0.3
+    ):
         """Build a HybridRetriever with stubbed vector/keyword backends.
 
         Args:
@@ -38,15 +40,19 @@ class TestHybridRetrieverScoring:
         # but the blend does not use its return value, so an empty collection
         # is sufficient here.
         vector_store.get_collection.return_value.get.return_value = {
-            "ids": [], "documents": [], "metadatas": [],
+            "ids": [],
+            "documents": [],
+            "metadatas": [],
         }
 
         keyword_searcher = Mock()
         keyword_searcher.search.return_value = keyword_results
 
         return HybridRetriever(
-            vector_store, keyword_searcher,
-            vector_weight=vector_weight, keyword_weight=keyword_weight,
+            vector_store,
+            keyword_searcher,
+            vector_weight=vector_weight,
+            keyword_weight=keyword_weight,
         )
 
     def test_worked_example_matches_documentation(self):
@@ -67,7 +73,9 @@ class TestHybridRetrieverScoring:
         retriever = self._make_retriever(vector_results, keyword_results)
 
         results = retriever.retrieve(
-            query="q", profile_id="p", query_embedding=[0.1, 0.2],
+            query="q",
+            profile_id="p",
+            query_embedding=[0.1, 0.2],
         )
 
         assert [r["id"] for r in results] == ["B", "A", "C"]
@@ -83,7 +91,9 @@ class TestHybridRetrieverScoring:
         retriever = self._make_retriever(vector_results, keyword_results)
 
         results = retriever.retrieve(
-            query="q", profile_id="p", query_embedding=[0.1],
+            query="q",
+            profile_id="p",
+            query_embedding=[0.1],
         )
         by_id = {r["id"]: r for r in results}
 
@@ -109,7 +119,10 @@ class TestHybridRetrieverScoring:
 
         # A=0.700, B=0.525, C=0.300. A cutoff of 0.5 keeps only A and B.
         results = retriever.retrieve(
-            query="q", profile_id="p", query_embedding=[0.1], min_score=0.5,
+            query="q",
+            profile_id="p",
+            query_embedding=[0.1],
+            min_score=0.5,
         )
 
         ids = [r["id"] for r in results]
@@ -119,13 +132,15 @@ class TestHybridRetrieverScoring:
     def test_max_chunks_truncates_to_top_scoring(self):
         """No more than max_chunks results are returned, highest scores first."""
         vector_results = [
-            {"id": f"v{i}", "score": 1.0 - i * 0.01, "text": "t", "metadata": {}}
-            for i in range(6)
+            {"id": f"v{i}", "score": 1.0 - i * 0.01, "text": "t", "metadata": {}} for i in range(6)
         ]
         retriever = self._make_retriever(vector_results, [])
 
         results = retriever.retrieve(
-            query="q", profile_id="p", query_embedding=[0.1], max_chunks=3,
+            query="q",
+            profile_id="p",
+            query_embedding=[0.1],
+            max_chunks=3,
         )
 
         assert len(results) == 3
@@ -136,7 +151,9 @@ class TestHybridRetrieverScoring:
         retriever = self._make_retriever([], [])
 
         results = retriever.retrieve(
-            query="q", profile_id="p", query_embedding=[0.1],
+            query="q",
+            profile_id="p",
+            query_embedding=[0.1],
         )
 
         assert results == []
@@ -148,12 +165,16 @@ class TestHybridRetrieverScoring:
         # Both signals normalize to 1.0 (single item per set), so blended
         # equals vector_weight + keyword_weight regardless of raw magnitudes.
         retriever = self._make_retriever(
-            vector_results, keyword_results,
-            vector_weight=0.4, keyword_weight=0.6,
+            vector_results,
+            keyword_results,
+            vector_weight=0.4,
+            keyword_weight=0.6,
         )
 
         results = retriever.retrieve(
-            query="q", profile_id="p", query_embedding=[0.1],
+            query="q",
+            profile_id="p",
+            query_embedding=[0.1],
         )
 
         assert results[0]["score"] == pytest.approx(1.0)
