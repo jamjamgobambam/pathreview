@@ -80,3 +80,30 @@ orchestrator executes a dependent tool on empty input with no prerequisite check
 - The repo already fails `make typecheck` (~103 pre-existing mypy errors), so `make check`
   is red independent of my change; my new files will be kept mypy-clean and I'll note the
   baseline in the PR.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the core of the fix (PLAN.md sub-tasks 1–4):
+- Added `agent/tools/tool_dependencies.py` — `TOOL_DEPENDENCIES` DAG, `validate_plan()`
+  (cycle + ordering), `find_cycle()`, `unmet_prerequisites()`, `PlanValidationError`.
+- Wired validation into `Orchestrator.run()` (raises `PlanValidationError` on a
+  mis-ordered/cyclic plan) and added run-time prerequisite gating (skips a tool whose
+  prerequisites failed, with a recorded reason).
+- Added `_resolve_inputs()` so upstream outputs flow downstream. Re-running
+  `scripts/repro_issue_54.py` now shows `market_analyzer.market_alignment_score` at
+  ~0.68 (was 0.0).
+
+**Next steps:**
+Finish/expand unit tests (sub-task 5), re-run `make check` + `make test-unit` against the
+recorded baseline to confirm no new failures, open a draft PR for peer feedback, and fill
+in the PR template.
+
+**Blockers:**
+- Open scope question for the maintainer: validation only, or also the data propagation
+  that fixes the empty market analysis? (Included both, kept `_resolve_inputs` separable.)
+- `make check` / `make test-unit` have large pre-existing failures (53 failing tests, 103
+  mypy errors) unrelated to this issue; tracking a before/after baseline to prove my change
+  adds none.
