@@ -25,6 +25,30 @@ class TestTechDetector:
             f"but received {actual_result!r}"
         )
 
+    @pytest.mark.parametrize(
+        ("filepath", "expected_result"),
+        [
+            ("frontend/node_modules/pkg/index.js", True),
+            (r"frontend\build\bundle.js", True),
+            ("/workspace/project/dist/bundle.js", True),
+            ("src/build_tools/helper.js", False),
+            ("src/node_modules_backup/index.js", False),
+        ],
+    )
+    def test_ignored_directory_path_boundaries(
+        self,
+        detector: TechDetector,
+        filepath: str,
+        expected_result: bool,
+    ) -> None:
+        """Test ignored directories across path formats and boundaries."""
+        actual_result = detector._should_skip_file(filepath)
+
+        assert actual_result is expected_result, (
+            f"Expected _should_skip_file({filepath!r}) to return "
+            f"{expected_result!r}, but received {actual_result!r}"
+        )
+
     def test_single_language_repo(self, detector):
         """Test single-language repo correctly identifies primary_language."""
         files = [
@@ -135,23 +159,20 @@ class TestTechDetector:
             "app.py",
             "main.py",
         ]
-
         result = detector.execute({"files": files})
 
-        # Should detect Python as primary language
-
+    # Should detect Python as primary language
     def test_github_actions_detection(self, detector):
         """Test GitHub Actions detection."""
         files = [
             ".github/workflows/test.yml",
             "main.py",
         ]
-
         result = detector.execute({"files": files})
 
         data = result.data
-        # Should detect both Python and CI/CD
 
+    # Should detect both Python and CI/CD
     def test_makefile_detection(self, detector):
         """Test Makefile detection."""
         files = [
