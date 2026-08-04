@@ -22,11 +22,14 @@ Files expected to touch:
 
 ### Plan
 
-1. Add a tone-classification method to `safety/content_filter.py` (or a new `ToneChecker` class) that returns `(is_constructive: bool, reason: str)`, mirroring the existing `BiasDetector.detect_bias()` interface for consistency.
-2. Add a prompt template for tone classification (constructive vs. discouraging/vague/dismissive) via `prompt_templates.get_template()`.
-3. Hook the check into `ReviewGenerator`: after `generate_section()` produces a section, classify it; on failure, regenerate with a bounded retry count (e.g. max 2 attempts) before falling back to a safe default rather than looping indefinitely.
-4. Expand test coverage: more classifier test cases (constructive text not flagged, multiple discouraging phrasings flagged) plus tests for the regenerate-on-fail path, mocking the LLM client to return discouraging text first and constructive text on retry.
-5. Confirm with a TA/on Slack whether wiring this into the live pipeline (`core/services/review_service.py`, currently entirely stubbed — see Week 8 JOURNAL note) is in scope for #69, and update this plan based on the answer.
+**Week 9 update (design decision):** surveyed every existing safety/evaluator checker in the codebase — `ContentFilter` (regex), `BiasDetector` (regex), `FaithfulnessChecker` (keyword-overlap scoring) — and found all three are heuristic-only; none make a real LLM call, even `FaithfulnessChecker`, which is conceptually LLM-judge territory. Decided to follow that precedent rather than the LLM-as-judge approach originally sketched below: `ToneChecker` is a heuristic, pattern/signal-based class (discouraging phrases, absolute negative judgments about the person vs. the work, lack of actionable content), not an LLM call. This keeps the checker deterministic, dependency-free (no `OPENROUTER_API_KEY` needed), and consistent with the rest of `safety/`. Dropped the tone-classification prompt-template sub-task (step 2 below) as a result — no LLM call means no prompt to template.
+
+1. Add discouraging-tone regex patterns to `safety/content_filter.py`'s `filter()` (flag-only, no text mangling — unlike the harmful-content patterns, which redact) so the existing reproduction test (`test_discouraging_feedback_is_flagged`) passes synchronously with no mocking required.
+2. ~~Add a prompt template for tone classification via `prompt_templates.get_template()`~~ — dropped, no LLM call (see decision above).
+3. Add `safety/tone_checker.py` with a `ToneChecker` class (`check_tone(text) -> (is_constructive: bool, reason: str)`, mirroring `BiasDetector.detect_bias()`'s interface) for more nuanced heuristic classification than the fast regex flag in `ContentFilter`.
+4. Hook `ToneChecker` into `ReviewGenerator.generate_section()`: after a section is generated, classify it; on failure, regenerate with a bounded retry count (max 2 regeneration attempts, 3 total generation calls) before falling back to a safe default rather than looping indefinitely.
+5. Expand test coverage: more `ContentFilter`/`ToneChecker` cases (constructive text not flagged, multiple discouraging phrasings flagged, harsh-but-fair edge cases) plus tests for the regenerate-on-fail path in `ReviewGenerator`, mocking the LLM client to return discouraging text first and constructive text on retry — same mocking approach as the Week 8 reproduction.
+6. Scope question resolved for now (2026-08-03): have not yet gotten a TA/Slack answer on whether wiring into the live pipeline (`core/services/review_service.py`) is in scope. Proceeding with the safest default — leave `review_service.py` untouched this pass, keep this question open, revisit once an answer comes in.
 
 ### Inputs & outputs
 
