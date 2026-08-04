@@ -99,7 +99,7 @@ failures — the count of failing tests went down by exactly one.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(to add once the PR is opened)_
+**PR link:** https://github.com/ascherj/pathreview/pull/790
 
 **Branch:** `fix/157-relevance-scorer-fixture`
 
@@ -113,8 +113,10 @@ only three of the four words, so it now exercises genuine partial overlap and sc
 `tests/unit/test_relevance_scorer.py` — updated the fixture in `test_query_with_partial_overlap`.
 No production code changed; the scorer in `rag/evaluator/relevance_scorer.py` was already correct.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
-<!-- Per the pre-existing-failures guidance: "passes" here means my change introduces no NEW
-failures. Baseline 53 failed -> 52 failed after my change; ruff passes on the changed file. -->
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Note: this codebase has many pre-existing failures unrelated to my issue, so "passes" here means
+my change introduces no NEW failures. Baseline `pytest tests/unit` was 53 failed / 375 passed;
+after my change it is 52 failed / 376 passed — exactly one fewer failure and none added. `ruff`
+passes on the file I changed.)
 
-**Draft PR feedback received from:** _(add Slack handle once you get feedback, or "none")_
+**Draft PR feedback received from:** none
