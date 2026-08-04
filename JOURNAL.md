@@ -46,7 +46,7 @@ None. `make check` and `make test-unit` both surface a large number of pre-exist
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/716
 
 **Branch:** `test/37-snapshot-tests-prompt-templates`
 
