@@ -71,3 +71,51 @@ Added `tests/unit/test_health.py` to verify that the PostgreSQL health probe exe
 [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] No — still awaiting review
+
+**Summary of feedback:**
+
+No reviewer feedback was received on my PR during this module. Since reviewer feedback was not provided for Summer 2026, I reviewed my own changes using the contribution guidelines, PR checklist, and project standards.
+
+**How you responded:**
+
+Not applicable.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+One part that was harder than I expected was navigating an unfamiliar codebase and understanding how a small issue fit into the larger application structure. Although issue #154 had a clearly defined fix, I still needed to inspect `api/routes/health.py`, understand how the database dependency was being used, and verify that the change would not affect the Redis or Vector DB health checks. I also learned that even a one-line code change, such as replacing `db.execute("SELECT 1")` with `db.execute(text("SELECT 1"))`, requires careful testing and documentation when contributing to an existing project.
+
+Another challenging part was working through the project workflow rather than only writing code. Creating a branch, following the commit conventions, writing a focused test, updating `JOURNAL.md`, and preparing a complete pull request required more attention to process than I expected.
+
+**What did you learn about working in a large codebase?**
+
+I learned that contributing to a large codebase is very different from building a project from scratch because the goal is not just to make something work, but to make a change that fits the existing structure and expectations of the project. For PathReview, I needed to follow existing patterns in the API layer, understand the purpose of the health endpoint, and make sure my changes stayed within the scope of issue #154.
+
+I also learned the importance of making small, isolated changes. Since the issue was specifically about SQLAlchemy 2.x compatibility in the PostgreSQL health probe, I avoided modifying unrelated Redis and Vector DB checks. This made the fix easier to review and reduced the risk of introducing unintended behavior.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools were especially helpful for exploring the repository, understanding unfamiliar code, and troubleshooting errors during the contribution process. For example, AI assistance helped me interpret the SQLAlchemy error message, identify that the raw SQL string needed to be wrapped with `text()`, and think through what type of unit test would demonstrate that the fix worked.
+
+However, AI tools could not replace the process of validating changes against the actual repository conventions. I still needed to inspect existing test patterns, run pytest locally, understand pre-existing failures from `make check` and `make test-unit`, and make decisions about what changes were appropriate for the scope of the issue. The final implementation required my own judgment about keeping the fix minimal and aligned with the project's contribution standards.
+
+**What would you do differently if you started over?**
+
+If I started over, I would spend more time at the beginning exploring the repository structure and running the available project checks before making any changes. While the issue itself was straightforward, having an earlier understanding of the existing test setup and potential pre-existing failures would have made the process more efficient.
+
+I would also open the draft PR even earlier during the implementation process. Although I completed the PR workflow successfully, getting feedback earlier in a real open-source environment would provide more opportunities to improve the contribution before the final submission.
+
+**What are you most proud of from this module?**
+
+I am most proud of successfully completing my first contribution workflow to a larger codebase from issue selection through pull request submission. I was able to identify an appropriate issue, reproduce the bug, create a focused fix, add relevant test coverage in `tests/unit/test_health.py`, and document the entire process through my journal entries.
+
+I am also proud that the final change was intentionally small and maintainable. Instead of making unnecessary modifications, I focused on solving the SQLAlchemy 2.x compatibility problem in the PostgreSQL health probe while preserving the existing behavior of the rest of the health check system.
