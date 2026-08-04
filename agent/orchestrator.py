@@ -43,10 +43,7 @@ class Orchestrator:
         # Build execution plan
         plan = self._build_plan(profile_data)
 
-        # Load previous session state if available
         session_state = {}
-        if self.session_store:
-            session_state = self.session_store.get(profile_id) or {}
 
         # Execute plan
         results = {}
