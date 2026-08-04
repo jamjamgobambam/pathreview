@@ -59,3 +59,51 @@ upload), not issue #159. Needs to be rewritten (or a separate plan added) for
   `structlog.testing.capture_logs`.
 - Whether the fix should touch the global logging config in `core/logging.py`
   (affects production output) or be isolated to the test harness only.
+
+
+  ## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+
+**Next steps:**
+[What are you working on for the rest of the week?]
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+fix/159-structlog-output-issue-with-pytest
+**What you built:**
+Added an autouse pytest fixture in `tests/conftest.py` that reconfigures
+structlog to log through Python's standard-library `logging`
+(`structlog.stdlib.LoggerFactory`) instead of its default `PrintLogger`, which
+had been writing straight to stdout and bypassing the handlers `caplog` installs.
+With records now flowing through stdlib logging, `caplog.records` / `caplog.text`
+capture them, so log assertions work suite-wide. The fix is isolated to the test
+harness and leaves production logging behaviour unchanged.
+
+**Tests added or updated:**
+Added `tests/unit/test_logging_caplog.py` covering warning capture, info capture
+via `caplog.set_level`, and rendering of bound key/value context. The
+pre-existing `tests/unit/test_batch_processor.py::test_empty_chunks_list_returns_empty`
+now passes unmodified; the full unit suite went from 377 to 378 passing with zero
+regressions (verified by diffing the failure set before/after).
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+Honest status: my changes are ruff- and black-clean and add no new mypy errors,
+but repo-wide `make check` (mypy) and `make test-unit` still report failures that
+**pre-date this branch** and are unrelated to #159 — 52 pre-existing failing
+tests, plus mypy typing debt (missing third-party stubs, untyped legacy code).
+So neither box is ticked for the repo as a whole, though the #159 change itself
+passes all three checks.
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
