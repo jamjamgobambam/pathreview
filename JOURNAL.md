@@ -30,3 +30,15 @@ https://github.com/sandhya8109/pathreview/blob/fix/155-health-check-redis-host/P
 
 **Blockers or open questions:**
 Need to confirm whether other files in the codebase also reference `settings.redis_host`/`settings.redis_port` besides `health.py`, and haven't yet located the test file for this route.
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the core fix for issue #155: replaced the broken `redis.Redis(host=settings.redis_host, port=settings.redis_port, ...)` call in `api/routes/health.py` with `redis.from_url(settings.redis_url, decode_responses=True)`, using the config field that actually exists. Verified locally in both directions — with Redis running, `/health` correctly reports `"redis": "healthy"`; with Redis stopped, it reports `"redis": "unhealthy"` for a genuine connection error rather than the old `AttributeError`. Also wrote a full test suite (`tests/unit/test_health.py`, 7 tests) covering the Redis healthy/unhealthy paths, a regression test confirming `redis_url` is used instead of the undefined fields, and the Postgres/vector_db checks and overall response shape. Cleaned up a pre-existing unused `timedelta` import and import ordering in `health.py` while I was in the file. This covers sub-tasks 1–4 of my `PLAN.md` (grep for other references, locate test file, implement the fix, verify both healthy/unhealthy cases) plus sub-task 5 (write tests).
+
+**Next steps:**
+Run `make check` and `make test-unit` against the full suite to confirm no new failures (done — confirmed 53 pre-existing failures unrelated to my change, `test_health.py` passes 7/7 clean). Open a draft PR on `pathreview` for early feedback, fill in the PR template, and get peer/mentor review before finalizing.
+
+**Blockers:**
+None currently. One open question I noted in `PLAN.md`: whether `redis.from_url()` handles every option the old `host`/`port` approach implicitly assumed (e.g. auth/TLS) — not an issue for this local setup, but worth a mentor's eyes on the PR in case it matters for other environments.
