@@ -90,7 +90,7 @@ scope and are unaffected by my change.
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/jamjamgobambam/pathreview/pull/PR_NUMBER
+**PR link:** https://github.com/jamjamgobambam/pathreview/pull/785
 
 **Branch:** `fix/153-faithfulness-none-chunk`
 
