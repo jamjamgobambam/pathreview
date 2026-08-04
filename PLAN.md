@@ -1,7 +1,7 @@
 # Solution Plan
 
 **Issue:** Issue #47 - Agent state isn't persisted across API restarts
-(Link: <PASTE_GITHUB_ISSUE_LINK>)
+Link: https://github.com/ascherj/pathreview/issues/47
 
 ## Understand
 
