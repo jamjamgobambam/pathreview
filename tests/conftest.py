@@ -1,6 +1,26 @@
 """Shared test fixtures for PathReview."""
 
+import json
+from pathlib import Path
+from typing import Any
+
 import pytest
+
+_FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+
+@pytest.fixture
+def sample_profile() -> dict[str, Any]:
+    """Return the shared sample profile dict loaded from basic_profile.json.
+
+    The returned dict mirrors the Profile ORM fields (id, user_id,
+    github_username, resume_filename, resume_text, portfolio_url) plus a
+    supplemental 'repos' list that is not stored in the Profile table.
+    """
+    fixture_path = _FIXTURES_DIR / "sample_profiles" / "basic_profile.json"
+    with fixture_path.open() as f:
+        data: dict[str, Any] = json.load(f)
+    return data
 
 
 @pytest.fixture

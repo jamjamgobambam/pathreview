@@ -28,3 +28,30 @@ Added `tests/integration/test_shared_profile_fixture.py` which tries to open `te
 
 **Blockers or open questions:**
 The `repos` field in the planned fixture JSON has no corresponding column in the `Profile` ORM model — repos live in `IngestedSource`. Need to decide whether the fixture should include `repos` purely as supplemental test data (a plain dict field) or whether the fixture should omit it and let individual tests supply repo data separately.
+
+## Week 9 — Mid-week check-in
+
+**What's done:**
+- Created `tests/fixtures/sample_profiles/basic_profile.json` with realistic data covering all nullable Profile model fields (`github_username`, `resume_filename`, `resume_text`, `portfolio_url`) plus a supplemental `repos` array with two sample repositories. Stored UUIDs as strings to match `UUID(as_uuid=False)` column config.
+- Added a `sample_profile` fixture to `tests/conftest.py` that loads and returns the JSON dict. Any test can request it by name without duplicating the data.
+- Removed the now-redundant local `mock_profile` fixture from `tests/unit/test_review_service.py`.
+- All three reproduction tests in `tests/integration/test_shared_profile_fixture.py` pass (was 1 fail + 2 skip before the fix).
+- Ran the full unit suite to check for regressions — the 13 pre-existing failures in `test_review_service.py` are caused by an unrelated `AsyncMock.scalars()` mock setup bug and were already failing on this branch before my changes.
+
+**Decision made on the `repos` blocker:** included `repos` in the fixture JSON as supplemental test data only; the `conftest.py` docstring makes clear it is not a direct DB mapping. Tests that need real `IngestedSource` rows should construct those separately.
+
+**What's left:** submit the pull request.
+
+## Week 9 — Submission
+
+**PR link:** <!-- add PR URL here after opening -->
+
+**What the PR does:**
+Adds the missing shared profile fixture described in issue #106. The change is self-contained: one new JSON file, one new pytest fixture in `conftest.py`, and one cleanup in `test_review_service.py`. No production code was touched.
+
+**Testing:**
+- `pytest tests/integration/test_shared_profile_fixture.py -v` → 3 passed, 0 failed
+- Full unit suite shows no new failures introduced by this change
+
+**Anything you'd do differently next time:**
+I'd check earlier whether the `mock_profile` fixture in `test_review_service.py` was actually used by any test before planning to migrate it — it turned out to be completely unused, so the "migration" was just a deletion.
