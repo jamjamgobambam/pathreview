@@ -60,9 +60,37 @@ Issue #128 is a missing CI security gate rather than a runtime app bug. I reprod
 
 ---
 
-## Week 9 — Implementation and PR
+## Week 9 — Solution building & PR submission
 
-*(To be filled in next week.)*
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I already had draft Python and frontend dependency-audit jobs on this branch from earlier weeks. This week I reproduced the real local scanner behavior: `pip audit` is not a valid built-in pip command here (CI must install and run `pip-audit`), the frontend full-tree `npm audit --audit-level=high` fails on existing high/critical findings (including Vite/Vitest), and `pip-audit` reports two Python advisories with no listed fix versions (`chromadb`, `ecdsa`). I captured the evidence under `_audit_scratch/`, wrote an M365 handoff/bundles for policy review, and locked a mergeable policy after verifying commands locally: pin `pip-audit==2.10.1` against runtime deps with two explicit `--ignore-vuln` IDs, and run `npm audit --omit=dev --audit-level=high` so the blocking gate covers production frontend deps without forcing a Vite major upgrade into this PR.
+
+**Next steps:**
+Commit the corrected CI jobs, update reproduction notes, open the PR against upstream, capture Actions results, finish Check-in 2 with the ready-for-review PR link, and submit the `/tree/chore/128-add-dependency-vulnerability-scans` branch URL via the course portal.
+
+**Blockers:**
+Existing dependency advisories make a naive “fail on every finding” gate immediately red. Remaining Vite/Vitest remediation and React Router moderate findings are follow-ups. Local `gh` auth was previously invalid and may need `gh auth login` before opening the PR.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** *(pending — fill after the PR is marked ready for review)*
+
+**Branch:** `chore/128-add-dependency-vulnerability-scans`
+
+**What you built:**
+*(pending final verification after CI lands)*
+
+**Tests added or updated:**
+N/A for application unit tests — this change is CI workflow / security-gate configuration. Validation is local `pip-audit` / `npm audit --omit=dev --audit-level=high` plus GitHub Actions job results.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes  
+*(document pre-existing failures if present; confirm this PR adds no new application-suite failures)*
+
+**Draft PR feedback received from:** *(pending)*
 
 ---
 

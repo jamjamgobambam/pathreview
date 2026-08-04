@@ -53,18 +53,28 @@ git show main:.github/workflows/ci.yml | rg -n "^  [a-z].*:$"
 
 ## Local verification path (for Week 9)
 
-On a machine with the project venv and Node installed, contributors can preview the same checks CI should run:
+On a machine with the project venv and Node installed, contributors can preview the same checks the finalized CI jobs run:
 
 ```bash
-# Python (after make setup / pip install -e ".[dev]")
+# Python runtime deps + pinned scanner
 python -m pip install --upgrade pip
-pip audit
+python -m pip install -e .
+python -m pip install "pip-audit==2.10.1"
+pip-audit \
+  --ignore-vuln PYSEC-2026-311 \
+  --ignore-vuln PYSEC-2026-1325
 
-# Frontend
-cd frontend && npm ci && npm audit --audit-level=high
+# Frontend production deps (high/critical gate)
+cd frontend && npm ci && npm audit --omit=dev --audit-level=high
 ```
 
-These commands are **not** required to prove the gap exists (the missing CI steps already prove it), but they are the intended local parity for refining severity policy in Week 9.
+Notes:
+
+- `pip audit` is **not** a built-in pip subcommand in this environment; install/run the `pip-audit` package.
+- The two Python `--ignore-vuln` IDs are temporary: local scans on 2026-08-03 reported no fix versions for `chromadb` / `ecdsa`.
+- Full-tree `npm audit --audit-level=high` (including devDependencies) still fails today due to Vite/Vitest — tracked as follow-up, not required for the production-focused gate.
+
+These commands are **not** required to prove the original gap (missing CI steps already prove it). They are local parity for the Week 9 policy.
 
 ---
 

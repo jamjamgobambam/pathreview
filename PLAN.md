@@ -102,3 +102,11 @@ Concrete sub-tasks for Week 9 implementation / PR:
 ## Living document
 
 This plan will be updated in Week 9 as CI runs reveal real advisory counts and as PR review feedback arrives. Supporting diagrams: [`docs/issue-128-context.md`](docs/issue-128-context.md).
+
+### Week 9 policy decision (2026-08-03)
+
+Accepted **Option E** after M365 review + local verification:
+
+- Python: `pip install -e .`, pin `pip-audit==2.10.1`, ignore only `PYSEC-2026-311` and `PYSEC-2026-1325` (no fix versions reported).
+- Frontend: `npm audit --omit=dev --audit-level=high` (production deps; Vite/Vitest majors are follow-up).
+- Do **not** use `continue-on-error`, `|| true`, or `npm audit fix --force` in this PR.

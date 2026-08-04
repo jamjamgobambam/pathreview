@@ -3,7 +3,7 @@
 **Repo path:** `docs/HANDOFF_W9_M365.md`  
 **Branch:** `chore/128-add-dependency-vulnerability-scans`  
 **Issue:** [#128 — Add a dependency vulnerability scan to the CI pipeline](https://github.com/ascherj/pathreview/issues/128)  
-**Status:** Implementation paused pending M365 policy advice. Draft CI jobs already on the branch; local audits show they would fail / mis-fire today.
+**Status:** M365 Prompt A accepted as Option E and verified locally (`pip-audit==2.10.1`, `npm audit --omit=dev --audit-level=high` exit 0). CI + JOURNAL Check-in 1 updated after that advice.
 
 Companion facts (shorter): [`WEEK9_HANDOFF.md`](WEEK9_HANDOFF.md)  
 Upload packs + prompts: [`m365-bundles/`](m365-bundles/)
