@@ -61,3 +61,63 @@ login vs. commit email) or how to keep pagination bounded on a very active
 repo without an arbitrary cap. Also need to decide whether `GITHUB_TOKEN`
 should be required (vs. optional) for this feature given the 60/hour
 unauthenticated rate limit.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All sub-tasks from PLAN.md are implemented. Added `_fetch_commit_dates()`
+(paginated `GET /repos/{owner}/{repo}/commits?author=...`, bounded to the
+last 365 days via `since` and capped at 20 pages as a backstop) and
+`_compute_contribution_streak()` (pure function, dedupes same-day commits
+and walks sorted dates for the longest consecutive run) in
+`agent/tools/github_tool.py`. Wired both into `_fetch_repo_metadata()`,
+adding `contribution_streak` to the returned dict. Resolved the two open
+questions from Week 8: used author date (not committer date, documented
+in the docstring) and made the commits fetch degrade to a streak of `0`
+on any failure (rate limit, 404, malformed response) rather than failing
+the whole tool, so a GitHub hiccup doesn't discard the repo metadata that
+already succeeded. Rewrote `tests/unit/test_github_tool.py` — the
+original reproduction test now passes and acts as a regression guard,
+plus 10 new tests covering: 0 commits, 1 commit, non-consecutive commits,
+same-day dedup, a streak spanning a pagination boundary, the
+commits-call-fails path, and direct unit tests of the pure streak
+calculation (empty list, unsorted input, multiple runs).
+
+**Next steps:**
+Push the branch, open a draft PR, and request review in the course Slack
+channel before marking it ready for review.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** TBD — see Check-in 1 next steps
+
+**Branch:** `feat/52-contribution-streak`
+
+**What you built:**
+Added a `contribution_streak` field to `GitHubTool`'s output: the longest
+run of consecutive calendar days on which the given GitHub user made at
+least one commit to the given repo, computed from paginated commit
+history filtered by author and bounded to the last 12 months.
+
+**Tests added or updated:**
+`tests/unit/test_github_tool.py` — 13 tests total covering the full
+tool (`execute()` with mocked `httpx`) and the pure streak-computation
+helper directly: field presence, zero/one/multiple commits, gaps,
+same-day dedup, pagination boundaries, and graceful degradation when the
+commits API call fails.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(53 pre-existing failures unrelated to this change remain — same count
+as the documented baseline minus the one github_tool test this fix now
+makes pass; no new failures introduced, confirmed by diffing against a
+`git stash` baseline run. `ruff check .` reports the same 181
+pre-existing errors before and after this change.)
+
+**Draft PR feedback received from:** [pending]
