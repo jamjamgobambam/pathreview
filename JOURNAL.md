@@ -83,7 +83,7 @@ annotating ~24 unrelated test functions, to keep the bugfix diff focused).
 
 ### Check-in 2 (end of week)
 
-**PR link:** <!-- TODO: paste PR URL after opening -->
+**PR link:** https://github.com/ascherj/pathreview/pull/385
 
 **Branch:** `test/156-readme-scorer-fixture-word-count`
 
@@ -111,5 +111,7 @@ threshold tests (`minimal`/`adequate`/`comprehensive`) were left untouched.
 > check`'s ruff/mypy counts are unchanged. Per the Week 9 guidance, "passes"
 > here means my changes introduce no new failures — confirmed.
 
-**Draft PR feedback received from:** <!-- TODO: name or Slack handle, or "none" -->
+**Draft PR feedback received from:** none — opened the PR for review and posted
+it to the cohort Slack channel, but did not receive peer/mentor feedback before
+the submission deadline.
 
