@@ -1,11 +1,13 @@
 from uuid import UUID
+
 import structlog
 from sqlalchemy import select
 
+from api.schemas.profile import ProfileCreate, ProfileUpdate
+from core.models.ingested_source import IngestedSource
 from core.models.profile import Profile
 from core.models.review import Review
-from core.models.ingested_source import IngestedSource
-from api.schemas.profile import ProfileCreate, ProfileUpdate
+from rag.retriever.vector_store import VectorStore
 
 log = structlog.get_logger()
 
@@ -41,9 +43,7 @@ async def get_profile(
     """
     Get a profile by ID, checking ownership.
     """
-    stmt = select(Profile).where(
-        (Profile.id == profile_id) & (Profile.user_id == user_id)
-    )
+    stmt = select(Profile).where((Profile.id == profile_id) & (Profile.user_id == user_id))
     result = await db.execute(stmt)
     return result.scalars().first()
 
@@ -86,6 +86,12 @@ async def delete_profile(
         return False
 
     try:
+
+        vector_store = VectorStore()
+
+        # Delete a profile's embeddings from vector database
+        vector_store.delete_collection(f"profile_{profile_id}")
+
         # Delete related reviews
         stmt = select(Review).where(Review.profile_id == profile_id)
         result = await db.execute(stmt)
