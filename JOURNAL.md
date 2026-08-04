@@ -71,3 +71,61 @@ change (tracked in FAILING_TESTS.md); the fix introduces no new failures
 
 ---
 
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/771
+
+**Branch:** `fix/149-structural-chunker-drops-headingless-docs`
+
+**What you built:**
+Fixed `StructuralChunker` silently dropping documents that contain no markdown
+headings. `_extract_sections` previously only created a section as a side effect
+of matching a heading, so a headingless document had every content line discarded
+and returned zero chunks; it now collects content unconditionally and a new
+`_build_section` helper emits a headingless section (empty `path`, `level` 0) when
+no heading has been seen. Heading-free documents and pre-heading preambles are now
+chunked as their own units — one chunk, or semantic sub-chunks past the 800-token
+`SECTION_TOKEN_LIMIT` — while documents with headings chunk exactly as before.
+
+**Tests added or updated:**
+`tests/unit/test_structural_chunker.py` (the only test file touched). The
+pre-existing `test_document_with_no_headings`, which was failing on `main` with
+`assert 0 >= 1`, now passes. Added four edge-case tests:
+
+- `test_headingless_doc_over_token_limit` — a headingless document larger than
+  `SECTION_TOKEN_LIMIT` (800 tokens) routes through the semantic chunker and
+  yields multiple non-empty chunks, confirming the fix isn't limited to short docs.
+- `test_preamble_before_first_heading_preserved` — content before the first heading
+  survives as its own chunk with `heading_path == ""`, *and* the following heading
+  section is still emitted with `heading_path == "First Heading"`, so the preamble
+  is not mis-attributed to the first heading.
+- `test_whitespace_only_preamble_emits_no_empty_chunk` — a whitespace-only preamble
+  is dropped rather than emitted as an empty chunk, guarding against the new
+  fallback over-firing now that content collection is unconditional.
+- `test_single_heading_no_body` — a lone heading line with no body neither crashes
+  nor produces an empty-text chunk.
+
+Also completed two pre-existing tests, `test_heading_path_format` and
+`test_heading_path_breadcrumb`, which computed a `found_path` / `found_full_path`
+flag but never asserted it — they would have passed even if `heading_path` had
+disappeared entirely. Full file: 19 passed.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+Both boxes reflect the pre-existing-failure standard documented in
+FAILING_TESTS.md: `main` already fails 53 unit tests and reports repo-wide
+`ruff`/`mypy` errors in modules unrelated to issue #149. After my changes the unit
+suite is 52 failed / 380 passed — no test that passed on `main` fails on this
+branch — and the two files I touched are clean in isolation (`ruff check` passes,
+`black --check` reports both unchanged, and `structural_chunker.py` itself is
+`mypy`-clean; the 4 remaining `mypy` errors are inside the imported
+`semantic_chunker.py` and are present on `main`).
+
+**Draft PR feedback received from:** Cohort tech fellows and my Week 9 breakout
+room group. They reviewed the draft PR description and advised (1) keeping the
+supporting files — `PLAN.md`, `FAILING_TESTS.md`, `JOURNAL.md` — in the PR since
+the plan is part of why the code changes happened, rather than stripping them out,
+and (2) that CONTRIBUTING.md's "squash fixup commits" guidance applies to
+superficial/debugging commits, not to real work commits, so my three conventional
+commits should stay separate. Both points are reflected in the submitted PR.
+
