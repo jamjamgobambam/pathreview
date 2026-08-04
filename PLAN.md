@@ -1,6 +1,5 @@
 
-
-## Solution plan
+### Solution plan
 
 **Issue:**
 <!-- [issue title and link] -->
@@ -50,7 +49,7 @@ What could go wrong? What are you still unsure about?
 
 What inputs or states should your fix handle gracefully?
 
-The fix should handle nonexistent profile_id, whitespace-only and blank string values gracefully. The profile-fetch step must handle both a profile_id that doesn't resolve to any Profile 
+The fix should handle nonexistent profile_id, whitespace-only and blank string values gracefully. The profile-fetch step must handle both a profile_id that doesn't resolve to any Profile
 
 - should 404, not the 400 "no documents" message
 
