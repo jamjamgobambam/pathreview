@@ -59,6 +59,28 @@ A plan-execute orchestrator that coordinates multiple analysis tools. Each tool 
 ### RAG System (`rag/`)
 Hybrid retrieval (vector similarity + BM25 keyword) fetches relevant context from the user's ingested documents. The generator uses prompt templates to produce structured, evidence-based feedback. The evaluator scores retrieval relevance and generation faithfulness.
 
+#### Hybrid Retrieval Scoring Logic
+The retrieval system utilizes a hybrid scoring method for chunks by summing both normalized (0-1) vector and keyword scores multiplied by their respective weights, with vector being 0.7 and keyword being 0.3. Scores will range from 0 - 1, with 0 corresponding to a chunk having no relevance and 1 having the most relevance. 
+
+##### Normalization
+Each chunk's keyword and vector is normalized as the proportion of the raw score to the max raw score of each result set. 
+
+Ex: If a keyword raw score is 3, and the max keyword score is 5, then the normalized raw score for that individual keyword is 3/5 = 0.6
+
+##### What if a chunk is missing from result sets?
+The chunk does not need to appear in both vector and keyword sets. If it is missing from either one, that side will have a score of 0, and the score will reflect that absence. 
+
+Example:
+| Chunk | Vector Score | Keyword Score | Normalized Vector | Normalized Keyword | Blended (0.7v + 0.3k) |
+|---------|---------|---------|---------|---------|---------|
+A | 0.3 | 0.0 | 0.500| 0.000 | 0.350 
+B | 0.0 | 4.0 | 0.000 | 1.000 | 0.300| 
+C | 0.6 | 1.0 | 1.000 | 0.250 | 0.775| 
+A | 0.2 | 2.0 | 0.333 | 0.500 | 0.381| 
+
+
+
+
 ### Safety Layer (`safety/`)
 Middleware wrapping the generation pipeline. Components run in sequence: prompt injection defense → content filter → bias detector → PII scrubber. All safety events are logged with structured metadata for monitoring.
 

@@ -7,7 +7,7 @@
 **Tier:** [X] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-The issue of ARCHITECTURE.md is that its description of the hybrid retrieval is too vague. It doesn't provide additional details regarding how the hybrid retrieval scores the retrieval relevance and generation faithfulness of its chunks. Updating this file provides more clarity and context of rag/retriever/hybrid.py for contributors in the repository who are working on the RAG, especially the hybridg retrieval system.
+The issue of ARCHITECTURE.md is that its description of the hybrid retrieval is too vague. It doesn't provide additional details regarding how the hybrid retrieval scores its chunks. Updating this file provides more clarity and context of rag/retriever/hybrid.py for contributors in the repository who are working on the RAG, especially the hybridg retrieval system.
 
 **Branch name:** docs/36-update-architecture
 
@@ -44,14 +44,14 @@ I will complete the last two steps I've outlined in PLAN.md
 
 **PR link:** [link to your submitted pull request]
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** docs/36-update-architecture
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+I added a section under "subsystem details" (Hybrid Retrieval Scoring Logic) which details the scoring logic for the retrieval system. There were two subsections under that section detailing the normalization process as well as what would happen if a chunk is missing from a vector or keyword evaluation set. 
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+No tests were added as this was a documentation revision. 
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** None
