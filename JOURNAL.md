@@ -103,13 +103,24 @@ lives entirely in `docs/API.md` and doesn't require modifying any application co
 Added copy-pasteable `curl` examples for all 9 documented API endpoints in `docs/API.md`. Each example includes the full command, required headers, sample payloads, and expected responses. The documentation now helps developers quickly test the API when setting up the project locally.
 
 **Tests added or updated:**
-N/A — no automated tests were added, since this is a documentation-only change. Manually ran three of the nine documented commands against the local API at `http://localhost:8000`:
+N/A for automated tests — this is a documentation-only change, so no application code was modified and no test files were created or updated. Instead I verified the documentation by executing all 9 `curl` examples against the local API at `http://localhost:8000`, chaining the real JWT token, profile UUID, and review UUID through the sequence exactly as a reader following the docs would:
 
-- `POST /auth/register` — returned an `access_token`, confirming the JSON body shape in the docs
-- `POST /auth/login` — returned an `access_token`, confirming the endpoint takes OAuth2 form-data rather than JSON (this resolved one of my Week 8 open questions)
-- `GET /health` — returned JSON, though my local instance reported `"status": "unhealthy"` rather than the healthy example shown in the docs
+| Endpoint | Observed result |
+| --- | --- |
+| `GET /health` | HTTP 503, `"status": "unhealthy"` (see note below) |
+| `POST /auth/register` | HTTP 200, returned an `access_token` |
+| `POST /auth/login` | HTTP 200, returned an `access_token` — confirms OAuth2 form-data, not JSON |
+| `POST /profiles` | HTTP 200, created profile `9a9725ee-d5d8-441c-85f3-eedba6bcb659` |
+| `GET /profiles/{profile_id}` | HTTP 200, returned that same profile |
+| `DELETE /profiles/{profile_id}` | HTTP 204 No Content; a follow-up `GET` returned 404, confirming deletion |
+| `POST /reviews` | HTTP 200, created review `8635bb7f-d1d0-4955-8f18-749b110ac2c9` with `"status": "pending"` |
+| `GET /reviews/{review_id}` | HTTP 200, `"status": "complete"` with populated `sections` and `overall_score` |
+| `GET /reviews?page=1&page_size=10` | HTTP 200, returned `items` plus `total` / `page` / `page_size` |
 
-The remaining six endpoints (`POST /profiles`, `GET` and `DELETE /profiles/{profile_id}`, `POST /reviews`, `GET /reviews/{review_id}`, `GET /reviews`) were written from the Swagger schema at `/docs` and were not executed end-to-end — they require an uploaded resume file and a seeded profile UUID that I did not create locally.
+Two discrepancies this testing surfaced, both left as-is because resolving them belongs to a separate issue rather than this docs PR:
+
+- `GET /health` returns HTTP 503 on my machine because postgres and redis report unhealthy, and the real payload is wrapped in a `detail` object rather than being top-level as documented. The example in `docs/API.md` shows the healthy success case.
+- `resume` is optional on `POST /profiles` — the request succeeded with `github_username` alone and returned `resume_filename: null`, even though the documented example passes `-F "resume=@/path/to/resume.pdf"`.
 
 **Self-review confirmation:** [X] `make check` run  [X] `make test-unit` run
 
