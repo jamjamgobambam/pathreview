@@ -60,3 +60,54 @@ signal once the fix wires the two files together.
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All PLAN.md sub-tasks are implemented:
+- Added `core/redis.py` with a `get_redis()` FastAPI dependency (shared client from
+  `settings.redis_url`), following the `Depends()` provider convention used by `get_db`.
+- Added `SafetyMonitor.get_total_event_count()` in `safety/monitoring.py`, which sums
+  `get_event_count()` across all `VALID_EVENT_TYPES`.
+- Wired it into `api/routes/health.py`: `safety_events_last_hour` is now populated from
+  `SafetyMonitor` instead of the hardcoded `0`. This also fixed the Redis health check,
+  which was building a client from the nonexistent `settings.redis_host`/`redis_port`.
+- Updated `tests/unit/test_health_safety_events.py`: removed the `xfail` reproduction
+  marker and replaced it with two passing tests (total count = 8, and 0 when no events).
+
+I recorded the pre-existing `make check` / `make test-unit` failures before starting and
+confirmed my changes introduce none (details in the PR description below).
+
+**Next steps:**
+Open a draft PR, request peer/mentor feedback in Slack, and address any feedback before
+marking it ready for review.
+
+**Blockers:**
+Open question for the maintainer: whether fixing the broken `settings.redis_host`
+construction belongs in this PR or a separate issue (I fixed it here since the safety
+count needs a working Redis client).
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** `feat/68-Add-a-safety-event-count-to-the-health-check-endpoint`
+
+**What you built:**
+The `/health` endpoint now reports a real `safety_events_last_hour` count, summed from
+`SafetyMonitor` across all safety event types, instead of a hardcoded `0`. The Redis
+client is provided via a new `get_redis()` dependency, which also fixed the endpoint's
+previously-broken Redis health check.
+
+**Tests added or updated:**
+`tests/unit/test_health_safety_events.py` — two unit tests covering the health endpoint's
+safety count: one asserting the total of recorded events, one asserting `0` when none exist.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
