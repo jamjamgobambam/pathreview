@@ -22,9 +22,36 @@ The issue of ARCHITECTURE.md is that its description of the hybrid retrieval is 
 **Reproduction summary:**
 [1–2 sentences: How did you reproduce the issue? What did you observe?]
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** https://raw.githubusercontent.com/unsunnysideup/pathreview/refs/heads/docs/36-update-architecture/docs/PLAN.md
 
-**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+## Week 9 — Solution building & PR submission
 
-**Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank]
+### Check-in 1 (mid-week)
+
+**Current progress:**
+The following subtasks are complete. No coding commits is needed; just comprehension of the root issue and files needed for the revision:
+1. Understanding where in the ARCHITECTURE.md I need to revise and add resolution to the issue
+2. Read and understand the hybrid retrieval scoring formula in rag/retriever/hybrid.py
+
+**Next steps:**
+I will complete the last two steps I've outlined in PLAN.md
+3. Write a cohesive and concise statement about the hybrid retrieval scoring formula in ARCHITECTURE.md
+4. Proofread and submit
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
