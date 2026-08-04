@@ -112,3 +112,70 @@ this change introduces no new failures.)*
 **Draft PR feedback received from:** none — posted in Slack for mentor/peer
 review and waited a couple of days with no response. Marking ready for review
 and submitting to meet the hard deadline.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback arrived. Posted PR #528 in Slack for peer/mentor review in Week 9
+and waited several days before the Week 9 deadline; also checked again this
+week (`gh pr view 528 --repo ascherj/pathreview` shows 0 comments, 0 reviews,
+0 review requests) — still nothing as of this check-in.
+
+**How you responded:**
+N/A — no comments to respond to. No code changes made this week.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The bug itself wasn't hard — I picked a Tier 1 issue, and once the existing
+repro test made the failure obvious, the fix was a one-line change. What I
+didn't expect was how much of the actual effort went into things that weren't
+the fix: this codebase has other developers depending on it, so a change that
+would take five minutes on my own project turned into a slower, more careful
+process. I had to prove the fix didn't break anything for anyone else — run
+the full suite and the lint/type checks before and after, diff the failure
+counts, and document which failures were already there — rather than just
+trusting "the tests I touched look green."
+
+**What did you learn about working in a large codebase?**
+Collaboration is what makes it slow, not the code. On my own project I'd just
+fix the bug and move on. Here, "done" meant provably safe for other people's
+work — existing tests, other contributors' in-flight PRs, mentors who'd
+eventually review it — so I couldn't just eyeball a green checkmark. I had to
+treat "did I break anything" as a question with a rigorous answer: stash the
+fix out, run `make test-unit`/`make check`, stash it back in, and diff the
+exact failure counts, so I could say precisely which failures were pre-existing
+and unrelated instead of just assuming.
+
+**How did AI tools help — and where did they fall short?**
+AI helped me figure out the codebase faster and filled in knowledge gaps I
+didn't have — for example, understanding exactly why `chunk.get(key, default)`
+only falls back for a *missing* key and not an explicit `None`, and catching
+during planning that `relevance_scorer.py` had the same bug pattern before I
+would have thought to check for it. Where it fell short: it can only close
+gaps I know how to ask about. Whether the fix was actually acceptable, and
+whether scoping the `relevance_scorer.py` bug out was the right call, still
+needed a human reviewer's judgment — and that review never came, which is
+exactly the part AI can't substitute for.
+
+**What would you do differently if you started over?**
+I'd get the PR in front of a reviewer earlier in the week instead of near the
+deadline, and follow up directly with a specific mentor or classmate instead
+of posting a link in Slack and waiting. The whole point of the draft-PR step
+was the feedback loop, and that's the one part of the four weeks that never
+actually closed — waiting longer wasn't going to fix that; asking more
+directly might have.
+
+**What are you most proud of?**
+Not the fix itself — it's one line. I'm more proud of the discipline around
+it: instead of assuming the test suite and linter were clean, I stashed the
+change out and back in to get an exact before/after diff on both
+`make test-unit` and `make check`, so the PR could state precisely which of
+the pre-existing failures were unrelated to my change rather than just
+asserting it. That's the habit from this module I'd keep on a real team.
