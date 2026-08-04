@@ -47,12 +47,9 @@ class TestRelevanceScorer:
     def test_query_with_partial_overlap(self, scorer):
         """Test query with partial overlap returns score between 0 and 1."""
         query = "Python Django web framework"
-        # Reproduction note: this fixture currently includes every query token,
-        # so RelevanceScorer.score computes full overlap (4/4 = 1.0), not a
-        # middle-range partial match.
         chunks = [
             {
-                "text": "Django is a Python web framework for rapid development"
+                "text": "Django is a Python backend toolkit for rapid development"
             },
         ]
 
@@ -60,7 +57,7 @@ class TestRelevanceScorer:
 
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
-        assert 0.3 < score < 0.9  # Partial overlap should be in middle range
+        assert score == 0.5  # Only "python" and "django" overlap with the query
 
     def test_empty_chunks_list_returns_zero(self, scorer):
         """Test empty chunks list returns 0.0."""

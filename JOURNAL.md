@@ -34,3 +34,32 @@ I reproduced the issue by tracing `test_query_with_partial_overlap` against `Rel
 
 **Blockers or open questions:**
 I still need the local Python test environment available to run the focused unit test and confirm the exact post-fix score in code, but the root cause of the current failure is clear from the existing test data and scoring logic.
+
+## Week 9 - Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the test fix in `tests/unit/test_relevance_scorer.py` by replacing the full-overlap fixture with a true partial-overlap fixture. I also tightened the assertion so the test now checks the expected partial-overlap score directly (`0.5`) instead of relying on a broad middle-range check.
+
+**Next steps:**
+My next steps are to run the relevant unit tests, confirm `make test-unit` and `make check` do not introduce any new failures, and then open a PR to `pathreview` with the completed template and issue context.
+
+**Blockers:**
+As of Tuesday, August 4, 2026, I still cannot run Python from this Codex workspace because the local interpreter is not available through the sandboxed shell, so test verification needs to be completed from my local development terminal.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** 
+
+**Branch:** `fix/157-relevance-scorer-partial-overlap-fixture`
+
+**What you built:**
+
+**Tests added or updated:**
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** 
