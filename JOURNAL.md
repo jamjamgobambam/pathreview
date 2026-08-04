@@ -72,3 +72,43 @@ A single new file, `tests/integration/test_rag_pipeline.py`, with 11 integration
 
 **What I learned:**
 The trickiest part was getting the mock chain right for `HybridRetriever`. It calls `vector_store.get_collection()` to build the keyword index, and the returned collection object also needs to support `.get()` with a specific return shape. Getting that wrong would have caused the keyword indexing step to fail silently rather than raising an error, which would have been hard to debug. Reading the source carefully before writing the mocks saved a lot of time.
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback came in before the end of the week. The PR is open at https://github.com/ascherj/pathreview/pull/[UPDATE WITH PR NUMBER].
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the mocks right was harder than I expected. I assumed mocking the vector store would just mean swapping out `query()`, but `HybridRetriever._get_all_chunks()` also calls `get_collection()` and then calls `.get()` on the returned collection object to build the keyword index. That second layer of the mock chain was not obvious from reading the public interface — I had to trace through the source to find it. If I had missed it, the keyword indexer would have silently indexed nothing and the test would have passed for the wrong reason.
+
+The other thing that caught me was the environment issue. Running pytest outside the project's virtualenv pulled in a completely different Python environment and the import failed immediately on `structlog`. That kind of setup problem is easy to overlook when you're focused on the code itself.
+
+**What did you learn about working in a large codebase?**
+You can't just read the public interface and assume you know what a class does. The real behavior is in the private methods, and those are what you have to understand before you can write a test that actually exercises the code rather than just passing around it. In my own projects I know every line, so I never have to do that kind of tracing. Here I had to read `hybrid.py`, `keyword_search.py`, `vector_store.py`, and `output_parser.py` carefully before I could write a single assertion with confidence.
+
+I also noticed that the existing unit tests had a lot of pre-existing lint errors that nobody had fixed. In a real open source project that would be a signal to not introduce new ones, but also not to take on fixing unrelated issues in the same PR. Keeping the scope tight matters.
+
+**How did AI tools help — and where did they fall short?**
+AI was useful for moving fast on things I already understood — structuring the test classes, writing the fixture data, and drafting the PR description. It was also helpful for catching the `collections.abc` import issue before I pushed.
+
+Where it fell short was anywhere that required actually understanding the codebase. The mock chain for `HybridRetriever` required reading the source and reasoning about what would happen at runtime. AI can suggest a pattern but it can't tell you whether that pattern matches what the real code actually does. I had to verify that myself.
+
+**What would you do differently if you started over?**
+I would read the source files for all three pipeline stages before writing any test code, not partway through. I started writing the retrieval tests before I fully understood how `HybridRetriever` used the vector store internally, and I had to go back and fix the mock setup. Reading first would have saved that back-and-forth.
+
+I would also confirm the virtualenv situation on day one. The wrong environment issue was a simple fix but it was confusing in the moment.
+
+**What are you most proud of from this module?**
+The edge case tests. It would have been easy to write one happy path test and call it done. Instead the test suite covers empty retrieval, malformed JSON from the LLM, and zero scores when there are no chunks to evaluate. Those cases are the ones that actually catch regressions, and writing them required understanding the fallback behavior in `output_parser.py` and `EvalSuite` well enough to know what to assert. That felt like real contribution work, not just going through the motions.
