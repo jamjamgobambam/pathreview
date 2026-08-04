@@ -3,16 +3,20 @@ Week 8 reproduction for issue #6: Duplicate embeddings generated when
 re-ingesting the same repository.
 https://github.com/ascherj/pathreview/issues/6
 
-This test asserts the CORRECT behavior (identical content ingested twice
-should skip the second time). It is expected to FAIL against the current
-code on this branch -- that failure is the reproduction. It documents
-exactly where the bug lives: ingestion/pipeline.py, _check_skip() and
-_record_ingested_source(). Once issue #6 is fixed (Week 9), this test
-should pass without modification.
+This test originally asserted the CORRECT behavior (identical content
+ingested twice should skip the second time) and was expected to FAIL
+against the pre-fix code -- that failure was the Week 8 reproduction.
+
+Week 9 update: ingestion/pipeline.py has been fixed (_check_skip() and
+_record_ingested_source() now use the real async ORM API instead of the
+broken sync .query() call). The pipeline methods are now async, so this
+test has been updated to await them and to mock db_session.execute()
+instead of db_session.query(). The assertions are otherwise unchanged
+from the Week 8 version. This test now passes.
 """
 
 from typing import Any
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,7 +46,21 @@ class TestIngestionPipelineDuplicateReingestion:
         pipeline.vector_db = Mock()
         pipeline.embedding_provider = Mock()
         pipeline.embedding_provider.embed = Mock(return_value=[[0.1] * 1536])
+
         pipeline.db_session = Mock(spec=AsyncSession)
+
+        # First _check_skip() call: no existing row found -> proceed.
+        no_existing_result = Mock()
+        no_existing_result.scalars.return_value.first.return_value = None
+
+        # Second _check_skip() call: existing row found -> skip.
+        existing_result = Mock()
+        existing_result.scalars.return_value.first.return_value = Mock()
+
+        pipeline.db_session.execute = AsyncMock(side_effect=[no_existing_result, existing_result])
+        pipeline.db_session.add = Mock()
+        pipeline.db_session.commit = AsyncMock()
+
         pipeline.strategy_selector = Mock()
         pipeline.strategy_selector.chunk = Mock(return_value=[Mock(text="chunk 1", metadata={})])
         pipeline.batch_processor = Mock()
@@ -56,13 +74,14 @@ class TestIngestionPipelineDuplicateReingestion:
         )
         return pipeline
 
-    def test_reingesting_identical_content_should_skip(self, pipeline: Any) -> None:
-        result_1 = pipeline.ingest_resume(
+    @pytest.mark.asyncio
+    async def test_reingesting_identical_content_should_skip(self, pipeline: Any) -> None:
+        result_1 = await pipeline.ingest_resume(
             profile_id="profile-123",
             content=SAMPLE_RESUME_MD,
             filename="jane_doe_resume.md",
         )
-        result_2 = pipeline.ingest_resume(
+        result_2 = await pipeline.ingest_resume(
             profile_id="profile-123",
             content=SAMPLE_RESUME_MD,
             filename="jane_doe_resume.md",
@@ -70,11 +89,13 @@ class TestIngestionPipelineDuplicateReingestion:
 
         assert result_1.skipped is False, "first ingestion should proceed"
         assert result_2.skipped is True, (
-            "BUG (issue #6): second identical ingestion should skip, but "
-            "_check_skip() silently fails (AsyncSession has no .query()) "
-            "and always returns None, so ingestion always proceeds."
+            "second identical ingestion should skip: _check_skip() should "
+            "find the row recorded by the first call and return early."
         )
         assert pipeline.batch_processor.process.call_count == 1, (
-            "BUG (issue #6): embeddings should only be generated once for "
-            "identical content, but were generated on every call."
+            "embeddings should only be generated once for identical " "content, not on every call."
+        )
+        assert pipeline.db_session.commit.call_count == 1, (
+            "the database record should only be committed once, on the "
+            "first (non-skipped) ingestion."
         )
