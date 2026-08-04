@@ -31,6 +31,10 @@ class PromptDefense:
     def sanitize(text: str) -> str:
         """Sanitize user input to prevent injection.
 
+        Neutralizes every pattern in ``INJECTION_PATTERNS`` by replacing it
+        with a single space, so ``is_injection_attempt(sanitize(x))`` is
+        always False.
+
         Args:
             text: User input text
 
@@ -38,12 +42,10 @@ class PromptDefense:
             Sanitized text
         """
         sanitized = text
+        for pattern in PromptDefense.INJECTION_PATTERNS:
+            sanitized = re.sub(pattern, " ", sanitized, flags=re.IGNORECASE)
 
-        # Strip template delimiters
-        sanitized = sanitized.replace("{{", "").replace("}}", "")
-        sanitized = sanitized.replace("{%", "").replace("%}", "")
-
-        # Remove angle brackets
+        # Remove angle brackets (defense-in-depth against HTML-like tags)
         sanitized = sanitized.replace("<", "").replace(">", "")
 
         return sanitized
