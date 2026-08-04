@@ -31,4 +31,35 @@ Since this is a documentation gap rather than a runtime bug, "reproducing" it me
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
 **Blockers or open questions:**
-Need to decide whether fixing the cosine/Euclidean similarity discrepancy in `vector_store.py` is in scope for this PR, or whether to document current behavior as-is and file it as a separate follow-up issue.
+Resolved: decided to fix the cosine/Euclidean similarity discrepancy in `vector_store.py` as part of this PR rather than deferring it, since documenting a formula that doesn't match its own collection config would just enshrine the bug. This PR is now docs + a one-line scoring fix, not docs-only. Added `tests/unit/test_vector_store.py` to cover the corrected formula (all 7 tests passing) — no longer a blocker.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All PLAN.md sub-tasks are done: added the "Hybrid Retrieval Scoring" subsection to `docs/ARCHITECTURE.md` (formula, default weights, normalization, worked example), fixed the cosine/Euclidean similarity discrepancy in `rag/retriever/vector_store.py`, and added `tests/unit/test_vector_store.py` to cover the corrected formula.
+
+**Next steps:**
+Push the branch, open the PR, and note in the PR description that the 53 pre-existing failing tests and `make check` lint/format/mypy issues in the repo predate this branch (verified by re-running the suite with this diff stashed out) so reviewers don't mistake them for regressions.
+
+**Blockers:**
+None from this diff. The repo has pre-existing, unrelated test and lint/format/mypy debt (53 failing unit tests, unformatted files, a numpy/mypy stub incompatibility on Python 3.13) that `make check`/`make test-unit` will surface regardless of this branch.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [not yet opened — push branch and open PR]
+
+**Branch:** docs/36-hybrid-retrieval-scoring-formula
+
+**What you built:**
+Documented the hybrid retrieval scoring formula (normalize → weighted blend → threshold filter, with default weights and a worked numeric example) in `docs/ARCHITECTURE.md`, and fixed a bug found while tracing the formula: `VectorStore.query()` was converting ChromaDB distances with the Euclidean similarity formula on a collection configured for cosine space, now corrected to `max(0.0, 1 - distance)`.
+
+**Tests added or updated:**
+`tests/unit/test_vector_store.py` (new) — 7 tests covering the corrected cosine similarity conversion: distance 0 → score 1.0, distance 1 → score 0.0, distance > 1 clamps to 0.0 instead of going negative, the doc's 0.35 → 0.65 worked example, score ordering across multiple results, empty results, and result dict shape.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none

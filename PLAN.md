@@ -19,9 +19,9 @@ No runtime code changes are expected to be in scope for this issue (it's a docs 
 
 ### Plan
 1. Confirm the end-to-end formula by re-reading `hybrid.py`, `vector_store.py`, and `keyword_search.py` (done — see Understand/Map).
-2. Decide how to handle the cosine-vs-Euclidean discrepancy in `vector_store.py` before writing docs: (a) document current behavior as-is with a caveat, (b) fix the formula in this PR and document the corrected version, or (c) document as-is and file a separate follow-up issue. Needs a decision — see Risks.
-3. Draft a new "Hybrid Retrieval Scoring" subsection in `docs/ARCHITECTURE.md`: state the formula (`score = vector_weight * norm(vector_score) + keyword_weight * norm(keyword_score)`), the default weights, and the max-score normalization step in words.
-4. Add one worked numeric example: a raw vector distance → similarity → normalized value, a raw BM25 score → normalized value, blend them, and compare the result against the 0.3 cutoff to show why a chunk is kept or dropped.
+2. ~~Decide how to handle the cosine-vs-Euclidean discrepancy~~ — **Decided: fix in this PR.** Changed `VectorStore.query()` in `rag/retriever/vector_store.py` from `similarity = 1 / (1 + distance)` (Euclidean form) to `similarity = max(0.0, 1 - distance)` (correct cosine form, clamped non-negative for the blend). This PR is no longer docs-only.
+3. Draft a new "Hybrid Retrieval Scoring" subsection in `docs/ARCHITECTURE.md`: state the formula, the default weights, and the max-score normalization step in words. (Done.)
+4. Add one worked numeric example: a raw vector distance → similarity → normalized value, a raw BM25 score → normalized value, blend them, and compare the result against the 0.3 cutoff to show why a chunk is kept or dropped. (Done, using the corrected cosine formula.)
 5. Proofread the new section against the actual source line-by-line for accuracy, then open the PR for review.
 
 ### Inputs & outputs
@@ -29,7 +29,7 @@ Input: current `docs/ARCHITECTURE.md` content plus the retrieval source in `rag/
 Output: an updated `docs/ARCHITECTURE.md` with a formula section, default weight values, and one worked example. No behavioral/runtime changes unless the cosine-formula fix is bundled in (pending the decision in step 2).
 
 ### Risks & unknowns
-- Whether to fix the cosine/Euclidean similarity bug in `vector_store.py` as part of this PR, or just document current behavior and file it separately — affects whether this PR touches code at all.
+- ~~Whether to fix the cosine/Euclidean similarity bug~~ — resolved: fixed in `vector_store.py` as part of this PR (see Plan step 2). Covered by `tests/unit/test_vector_store.py` (distance 0 → score 1.0, distance 1 → score 0.0, distance > 1 clamps to 0.0, the doc's 0.35 → 0.65 worked example, ordering across multiple results, empty results, and result shape).
 - The default weights (0.7/0.3) don't appear to be justified/tuned anywhere in the repo (no comments, tests, or benchmarks referencing why); the doc should present them as defaults, not as an empirically validated choice.
 - `min_score=0.3` filters the *blended* score, not either individual sub-score — easy to misstate in prose, need to be precise.
 
