@@ -38,7 +38,7 @@ The repository's `make` shell wrapper is not available in this Windows environme
 ### Check-in 2 (end of week)
 
 **PR link:**
-https://github.com/ascherj/pathreview/pull/PR_NUMBER
+https://github.com/ascherj/pathreview/pull/758
 
 **Branch:**
 `feature/portfolio-url-ingestion`
