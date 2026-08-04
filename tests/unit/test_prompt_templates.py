@@ -1,9 +1,137 @@
 """Tests for prompt_templates.py - Snapshot tests"""
 
-import pytest
 import hashlib
 
+import pytest
+
 from rag.generator.prompt_templates import PROMPT_TEMPLATES, get_template
+
+# ---------------------------------------------------------------------------
+# Snapshot fixtures
+#
+# ``EXPECTED_TEMPLATES`` locks the exact, verbatim body of every prompt
+# template version. Any accidental edit to
+# ``rag/generator/prompt_templates.py`` will fail the snapshot tests below with
+# a readable diff, so prompt wording can only change intentionally.
+#
+# To change a template on purpose:
+#   1. Edit the template in ``rag/generator/prompt_templates.py``.
+#   2. Copy the new body verbatim into the matching entry here.
+#   3. Update ``EXPECTED_CONTENT_HASH`` (see ``test_template_snapshot_content_hash``).
+# Treat every update to these fixtures as a deliberate, reviewable change.
+# ---------------------------------------------------------------------------
+
+EXPECTED_TEMPLATES = {
+    "skills_feedback": {
+        "v1": """Analyze the skills demonstrated in the provided portfolio context.
+
+Portfolio Context:
+{context}
+
+GitHub Username: {github_username}
+Project Count: {project_count}
+
+Based on the portfolio evidence above, provide structured feedback on:
+1. Demonstrated technical skills (with specific examples from projects)
+2. Depth of expertise in key areas
+3. Programming language proficiency
+4. Framework and tool mastery
+
+Format your response as JSON with these fields:
+- key_skills: list of demonstrated skills with evidence
+- language_proficiency: dict mapping languages to proficiency level
+- framework_expertise: list of mastered frameworks
+- tool_proficiency: list of tools used effectively
+"""
+    },
+    "projects_feedback": {
+        "v1": """Evaluate the quality and presentation of projects in the portfolio.
+
+Portfolio Context:
+{context}
+
+GitHub Username: {github_username}
+Project Count: {project_count}
+
+Assess:
+1. Project scope and complexity
+2. Code quality indicators
+3. Documentation and README quality
+4. Completeness and polish
+
+Format as JSON:
+- standout_projects: list of exemplary projects
+- project_quality_score: overall 0-1 score
+- complexity_level: beginner/intermediate/advanced
+- presentation_notes: suggestions for improvement
+"""
+    },
+    "presentation_feedback": {
+        "v1": """Evaluate the overall presentation quality of the portfolio.
+
+Portfolio Context:
+{context}
+
+GitHub Username: {github_username}
+Project Count: {project_count}
+
+Review:
+1. README quality and completeness
+2. Profile information accessibility
+3. Project organization
+4. Visual presentation
+
+Format as JSON:
+- readme_quality: 0-1 score
+- profile_completeness: percentage
+- organization_score: 0-1
+- presentation_suggestions: list of improvements
+"""
+    },
+    "gaps_feedback": {
+        "v1": """Identify skill gaps relative to job market demands.
+
+Portfolio Context:
+{context}
+
+GitHub Username: {github_username}
+Project Count: {project_count}
+
+Analyze:
+1. High-demand skills not demonstrated
+2. Underrepresented areas
+3. Market alignment
+4. Growth opportunities
+
+Format as JSON:
+- missing_high_demand_skills: list with market demand info
+- underrepresented_areas: areas with low portfolio coverage
+- market_alignment_score: 0-1
+- recommended_learning_areas: prioritized list
+"""
+    },
+    "first_impression": {
+        "v1": """Provide a 2-3 sentence overall first impression of this portfolio.
+
+Portfolio Context:
+{context}
+
+GitHub Username: {github_username}
+Project Count: {project_count}
+
+Write a concise, professional summary capturing:
+- Overall skill level and trajectory
+- Most impressive aspects
+- Immediate opportunities for growth
+
+Provide only the summary text, no JSON formatting needed.
+"""
+    },
+}
+
+# MD5 of every template body concatenated in sorted (name, version) order.
+# Update deliberately whenever a template in EXPECTED_TEMPLATES changes.
+EXPECTED_CONTENT_HASH = "3e79f974f8c1b6d8d1481dfc42e949ca"
 
 
 @pytest.mark.unit
@@ -172,8 +300,40 @@ class TestPromptTemplates:
 
         assert template_default == template_v1
 
+    def test_template_registry_matches_snapshot_names(self):
+        """Snapshot test: the set of template names/versions is locked.
+
+        Catches templates that are added, removed, or renamed without an
+        explicit update to EXPECTED_TEMPLATES.
+        """
+        actual = {
+            (name, version) for name, versions in PROMPT_TEMPLATES.items() for version in versions
+        }
+        expected = {
+            (name, version) for name, versions in EXPECTED_TEMPLATES.items() for version in versions
+        }
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ("name", "version"),
+        [(name, version) for name, versions in EXPECTED_TEMPLATES.items() for version in versions],
+    )
+    def test_template_body_matches_snapshot(self, name, version):
+        """Snapshot test: each template body matches its locked snapshot exactly.
+
+        Any wording, formatting, or placeholder change to a template body fails
+        here with a readable diff. Update EXPECTED_TEMPLATES intentionally when
+        the change is deliberate.
+        """
+        assert PROMPT_TEMPLATES[name][version] == EXPECTED_TEMPLATES[name][version]
+
     def test_template_snapshot_content_hash(self):
-        """Snapshot test: verify template content hash."""
+        """Snapshot test: verify template content hash matches the committed value.
+
+        Locks the concatenated content of every template against
+        EXPECTED_CONTENT_HASH. If a template body changes, update the snapshot in
+        EXPECTED_TEMPLATES and regenerate EXPECTED_CONTENT_HASH deliberately.
+        """
         # Create hash of all template content
         template_content = ""
         for name in sorted(PROMPT_TEMPLATES.keys()):
@@ -182,10 +342,9 @@ class TestPromptTemplates:
 
         content_hash = hashlib.md5(template_content.encode()).hexdigest()
 
-        # Expected hash - update if templates intentionally change
-        # This helps detect unintended changes to templates
-        assert isinstance(content_hash, str)
-        assert len(content_hash) == 32  # MD5 hash length
+        # Expected hash - update deliberately if templates intentionally change.
+        # This detects unintended changes to any template body.
+        assert content_hash == EXPECTED_CONTENT_HASH
 
     def test_skills_feedback_requests_json_format(self):
         """Test skills_feedback requests JSON output."""
