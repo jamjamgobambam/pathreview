@@ -47,3 +47,68 @@ end-to-end and even pairwise.
 **Walkthrough video (recommended):**
 
 **Blockers or open questions:**
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All five PLAN.md sub-tasks are complete. I created
+`tests/integration/test_safety_middleware.py` with a `run_safety_chain` helper
+(returns a `SafetyChainResult` dataclass of per-layer `LayerResult`s) encoding
+the four-layer ordering (prompt defense → content filter → bias detector → PII
+scrubber) and the short-circuit / passthrough semantics. The 16-test suite
+covers per-layer pass/fail cases (including reuse of the shared
+`sample_resume_text` / `sample_readme_text` fixtures), cross-layer ordering
+the unit tests can't express (injection short-circuit over PII, content-filter
+placeholder not tripping downstream layers, bias + PII both reported
+independently, chain idempotency), and edge cases (empty / whitespace-only /
+unicode / large input). All 16 pass; the file is clean under `ruff`, `black`,
+and the pre-commit `mypy` hook (fully annotated — `SafetyChain` callable alias,
+`-> None` on every test method, `str | None` narrowing asserts). Baseline
+`make check` / `make test-unit` numbers recorded before and after the change
+and are identical — no new failures introduced.
+
+**Next steps:**
+Final self-review pass — re-read `docs/CONTRIBUTING.md` to confirm branch name
+(`feat/75-safety-middleware-integration-tests`) and commit message follow
+Conventions — then open the PR with the `PR.md` body, request a draft review,
+and fold in any feedback before the Sunday deadline.
+
+**Blockers:**
+None. (One noted out-of-scope pre-existing bug: `PIIScrubber.phone_us` does
+not redact the parenthesized `(555) 123-4567` format — the `pii_text` fixture
+uses the hyphenated form so the integration test stays focused on chain
+behavior; fixing that regex would be a separate `fix(safety):` issue.)
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/759
+
+**Branch:** feat/75-safety-middleware-integration-tests
+
+**What you built:**
+Added the first integration test for the `safety/` package
+(`tests/integration/test_safety_middleware.py`) — a 16-test suite that runs a
+representative text through the four safety layers in the order required by
+the issue via a `run_safety_chain` helper, asserting the per-layer verdicts
+plus the cross-layer ordering (injection short-circuits downstream PII,
+content-filter placeholder doesn't trip bias/PII, bias is non-fatal so PII
+still scrubs, chain is idempotent). No runtime code touched — purely
+additive test coverage that makes `make test-integration` collect 16 items
+(was 0).
+
+**Tests added or updated:**
+- `tests/integration/test_safety_middleware.py` (new, 16 tests):
+  `run_safety_chain` chain helper + `SafetyChainResult` / `LayerResult`
+  dataclasses; per-layer pass/fail cases for prompt defense, content filter,
+  bias detector, and PII scrubber (incl. reuse of `sample_resume_text` /
+  `sample_readme_text` from `tests/conftest.py`); cross-layer ordering tests
+  (injection-over-PII, placeholder coupling, bias + PII, idempotency); and
+  edge-case smoke tests (empty, whitespace, unicode, large input,
+  harmful + PII).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
