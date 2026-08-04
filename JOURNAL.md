@@ -47,3 +47,38 @@ and my fix approach are in [PLAN.md](PLAN.md).
 specification, and risks/edge cases.
 
 **Loom walkthrough:** [ ] Recorded (not yet — recommended but not graded)
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in `api/routes/health.py`: swapped the broken `redis.Redis(host=settings.redis_host, port=settings.redis_port, ...)` call for `redis.Redis.from_url(settings.redis_url, decode_responses=True)`, matching the "use the existing `redis_url` field" direction from `PLAN.md`. Wrote the first test coverage for `/health` in `tests/unit/test_health.py` — 4 tests covering the healthy, unreachable, and malformed-URL cases, plus a regression guard that `redis_host`/`redis_port` don't reappear. All sub-tasks from `PLAN.md`'s Plan section are done.
+
+**Next steps:**
+Run `make check`/`make test-unit`, self-review against `CONTRIBUTING.md`, and open the PR.
+
+**Blockers:**
+`make check`'s `mypy` step follows imports transitively — since `api/main.py` imports the health router, getting `health.py` to typecheck meant the whole reachable graph (`api/routes/reviews.py`, `api/routes/profiles.py`, `core/services/review_service.py`, `core/services/profile_service.py`, `api/main.py`, `api/middleware/request_id.py`) needed missing type annotations added too — none of that was in scope for #155 itself, but was unavoidable to get a clean typecheck. Documented this in the PR description rather than treating it as scope creep I chose unprompted. Separately, `mypy` on the full `api/ core/ ingestion/ rag/ agent/` target still fails on a pre-existing `numpy`/mypy version incompatibility inside `rag/`/`agent/` that I confirmed is unrelated to this change (reproduces identically with nothing touched in those directories) — noted as a pre-existing failure rather than something I attempted to fix.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/754
+
+**Branch:** `fix/155-health-check-redis-host`
+
+**What you built:**
+Fixed `/health`'s Redis probe to use `settings.redis_url` (which exists) instead of `settings.redis_host`/`settings.redis_port` (which don't), via `redis.Redis.from_url()`. The real bug wasn't a crash — the `AttributeError` was already caught by an existing `except` block — it was that `/health` silently reported Redis as unhealthy regardless of Redis's actual status; the fix makes it report real status.
+
+**Tests added or updated:**
+`tests/unit/test_health.py` (new) — 4 tests: Redis healthy → 200, Redis unreachable → clean 503 (not a crash), malformed `REDIS_URL` → clean 503, and a regression guard on `Settings` no longer having `redis_host`/`redis_port`. Mounts a minimal `FastAPI()` app with just the health router (not the full `api.main` app) to avoid pulling in unrelated `auth`/`profiles`/`reviews` dependencies.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+*(Both pass in the sense the assignment defines for a codebase with documented pre-existing failures: `make test-unit` shows the identical 53 pre-existing failures before and after my change — zero new failures, 4 new passing tests. `make check`'s `ruff`/`black`/`mypy` all pass on every file this PR touches, confirmed via the actual pre-commit hook; the full-repo `mypy` target still fails on an unrelated, pre-existing `numpy` version incompatibility in `rag/`/`agent/` that I verified predates and is unaffected by this PR. Both are documented in the PR description.)*
+
+**Draft PR feedback received from:** none
