@@ -36,3 +36,38 @@ Added `tests/unit/test_reranker.py` with 6 failing tests that document the expec
 
 **Blockers or open questions:**
 Need to confirm whether the project has a shared LLM client factory in `agent/orchestrator.py` that `LLMReranker` should reuse, or whether it should accept a raw `openai.OpenAI` client like `ReviewGenerator` does.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All sub-tasks from PLAN.md are complete. `LLMReranker` is implemented in `rag/retriever/reranker.py` with a `rerank()` method that prompts a Groq-hosted LLM to score each chunk 0.0–1.0 and returns them sorted descending. `build_reranker()` factory wires it into `HybridRetriever` via the optional `reranker` parameter added to `hybrid.py`. All 9 unit tests in `tests/unit/test_reranker.py` pass.
+
+**Next steps:**
+Finalize the PR description, mark as ready for review, and update JOURNAL.md with Check-in 2.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/TianxinS/pathreview/pull/1
+
+**Branch:** `feat/34-llm-reranker`
+
+**What you built:**
+Added `LLMReranker` in `rag/retriever/reranker.py` that prompts a Groq LLM (via the OpenAI-compatible SDK) to score each retrieved chunk's relevance to the query on a 0.0–1.0 scale and re-sorts results before the final slice. A `build_reranker()` factory returns `None` when `GROQ_API_KEY` is unset, making the feature fully opt-in. `HybridRetriever` in `hybrid.py` was updated to accept and call the optional reranker after blending vector and BM25 scores.
+
+**Tests added or updated:**
+`tests/unit/test_reranker.py` — 9 tests covering: module existence, `rerank()` return type, `rerank_score` field added to chunks, empty-input handling, descending sort order, `HybridRetriever` accepting the optional reranker parameter, and `build_reranker()` returning `None` without an API key, returning an `LLMReranker` with one set, and using the configured Groq model.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+Note: `make check` has pre-existing ruff violations in `agent/`, `api/`, `core/`, and `ingestion/` unrelated to this PR. `make test-unit` has 53 pre-existing failures in unrelated test files. My changes introduce no new failures in either command.
+
+**Draft PR feedback received from:** none
