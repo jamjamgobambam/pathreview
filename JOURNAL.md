@@ -99,7 +99,7 @@ correctly.
 top-level profile fields and exactly two repo entries, each with `name`, `html_url`, and
 `readme_content`.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 (Both pass in the sense that my changes introduce zero new failures beyond the documented
 53 pre-existing test failures and 182 pre-existing lint errors — see PR description for the
 before/after comparison.)
