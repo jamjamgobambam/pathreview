@@ -28,3 +28,34 @@ Ran `.venv/bin/pytest tests/unit/test_bias_detector.py -v` and confirmed 9 of 32
 
 **Blockers or open questions:**
 None currently — candidate regex patterns for both `DISMISSIVE_PATTERNS` and `DEMOGRAPHIC_PATTERNS` were hand-validated against all 32 test assertions in a scratch script (0 mismatches) before writing PLAN.md, so the approach is de-risked going into implementation in Week 9. Still need to apply the patterns to `safety/bias_detector.py` itself and confirm against the real `pytest` run (scratch validation isn't a substitute for that).
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented PLAN.md steps 1–3: rewrote `DISMISSIVE_PATTERNS` and `DEMOGRAPHIC_PATTERNS` in `safety/bias_detector.py` to accept plural subjects (`developers`/`programmers`/`graduates`), broader verb phrasings (`can't`/`lacks?`/`missing`), and looser subject-verb ordering. Captured a `make check`/`make test-unit` baseline before the change, then re-ran both after and diffed the failing-test lists by exact test ID to confirm the 9 target tests now pass and no other test/lint/type-check result changed. Documented all of this in `PR_description.md`.
+
+**Next steps:**
+Commit the fix, `PLAN.md`, and `PR_description.md`; push; open the PR against `ascherj/pathreview`; do the manual sanity-check pass from PLAN.md step 4 on a few phrasings outside the test file to gauge generalization.
+
+**Blockers:**
+None technical. Nothing is committed/pushed yet — still need to do that before a PR link exists.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [https://github.com/ascherj/pathreview/pull/786](https://github.com/ascherj/pathreview/pull/786)
+
+**Branch:** `fix/151-bias-detector-too-narrow`
+
+**What you built:**
+Broadened the two `BiasDetector` regex pattern lists in `safety/bias_detector.py` to catch common real-world phrasings of dismissive-education and demographic-assumption bias (plural subjects, more verbs, looser word order) instead of only the exact phrase orderings the original regexes were written against — the public `detect_bias(text) -> (bool, str)` interface is unchanged.
+
+**Tests added or updated:**
+None added or modified — `tests/unit/test_bias_detector.py` (32 tests) was already the complete spec from the issue (9 of the 32 were failing); the fix's job was to make all 32 pass without touching the test file.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
