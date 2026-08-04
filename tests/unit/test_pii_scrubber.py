@@ -190,6 +190,41 @@ class TestPIIScrubber:
 
         assert "[REDACTED]" in scrubbed
 
+    def test_parenthesized_phone_digits_fully_removed(self, scrubber):
+        """Regression (issue #146): parenthesized phone digits must not leak.
+
+        The `phone_us` pattern previously only matched hyphen/dot separators,
+        so the space after the closing paren in `(555) 123-4567` caused the
+        number to pass through both scrub() and detect() untouched.
+        """
+        text = "Call me at (555) 123-4567 today"
+        scrubbed = scrubber.scrub(text)
+
+        assert "[REDACTED]" in scrubbed
+        # None of the phone digit groups may survive scrubbing.
+        for digits in ("555", "123", "4567"):
+            assert digits not in scrubbed
+
+    def test_space_separated_plus_one_phone_detected(self, scrubber):
+        """Regression (issue #146): `+1 555 123 4567` is detected as phone PII."""
+        text = "Reach me at +1 555 123 4567 anytime"
+        detected = scrubber.detect(text)
+
+        phone_detections = [d for d in detected if "phone" in d["type"]]
+        assert len(phone_detections) > 0
+
+    def test_phone_fix_does_not_misclassify_ssn(self, scrubber):
+        """Guard: widening phone separators must not swallow a bare SSN.
+
+        A lone SSN like `123-45-6789` should still be detected as `ssn`, not
+        as a phone number, after the issue #146 separator change.
+        """
+        detected = scrubber.detect("SSN: 123-45-6789")
+        types = {d["type"] for d in detected}
+
+        assert "ssn" in types
+        assert "phone_us" not in types
+
     def test_address_variations(self, scrubber):
         """Test various street address formats."""
         addresses = [
@@ -202,6 +237,7 @@ class TestPIIScrubber:
             text = f"Address: {addr}"
             scrubbed = scrubber.scrub(text)
             # Should attempt to redact addresses
+            assert "[REDACTED]" in scrubbed
 
     def test_empty_text(self, scrubber):
         """Test with empty text."""
@@ -252,3 +288,4 @@ class TestPIIScrubber:
 
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
+        assert not any(d["type"] == "ssn" for d in detected)
