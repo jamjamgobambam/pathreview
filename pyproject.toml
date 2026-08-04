@@ -68,6 +68,21 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TCH"]
 "scripts/*.py" = ["E501"]
 "alembic/versions/*.py" = ["E501"]
 
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI dependency-injection helpers are designed to be called in argument
+# defaults; treat them as immutable so B008 does not flag idiomatic route code.
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.File",
+    "fastapi.Form",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+    "fastapi.Header",
+    "fastapi.Cookie",
+    "fastapi.Security",
+]
+
 [tool.black]
 target-version = ["py311"]
 line-length = 100

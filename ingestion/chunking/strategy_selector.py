@@ -21,15 +21,13 @@ class StrategySelector:
         Returns:
             Appropriate BaseChunker instance
         """
-        if source_type == "resume":
-            return self.semantic_chunker
-        elif source_type == "readme":
-            return self.structural_chunker
-        elif source_type == "repo":
-            return self.semantic_chunker
-        else:
-            # Default to semantic chunking
-            return self.semantic_chunker
+        chunker_by_type = {
+            "resume": self.semantic_chunker,
+            "readme": self.structural_chunker,
+            "repo": self.semantic_chunker,
+        }
+        # Default to semantic chunking for unknown source types
+        return chunker_by_type.get(source_type, self.semantic_chunker)
 
     def chunk(self, text: str, metadata: dict) -> list[Chunk]:
         """

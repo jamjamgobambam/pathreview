@@ -1,9 +1,9 @@
 """Contract tests for LLM providers"""
 
-import pytest
 import numpy as np
+import pytest
 
-from ingestion.embeddings.provider import MockEmbeddingProvider, EmbeddingProvider
+from ingestion.embeddings.provider import EmbeddingProvider, MockEmbeddingProvider
 
 
 @pytest.mark.unit
@@ -32,7 +32,7 @@ class TestLLMProviderContract:
         from ingestion.embeddings.provider import OpenAIEmbeddingProvider
 
         # Contract: must implement embed() method
-        assert hasattr(OpenAIEmbeddingProvider, 'embed')
+        assert hasattr(OpenAIEmbeddingProvider, "embed")
 
     def test_mock_provider_deterministic(self, mock_provider):
         """Test MockEmbeddingProvider is deterministic (same input = same output)."""
@@ -110,7 +110,7 @@ class TestLLMProviderContract:
 
     def test_provider_interface_implements_embed(self, mock_provider):
         """Test EmbeddingProvider interface defines embed method."""
-        assert hasattr(mock_provider, 'embed')
+        assert hasattr(mock_provider, "embed")
         assert callable(mock_provider.embed)
 
     def test_mock_provider_returns_floats_not_integers(self, mock_provider):
@@ -125,10 +125,11 @@ class TestLLMProviderContract:
     def test_multiple_providers_same_interface(self, mock_provider):
         """Test MockEmbeddingProvider and OpenAI have same interface."""
         # Both should have embed method
-        assert hasattr(mock_provider, 'embed')
+        assert hasattr(mock_provider, "embed")
 
         from ingestion.embeddings.provider import OpenAIEmbeddingProvider
-        assert hasattr(OpenAIEmbeddingProvider, 'embed')
+
+        assert hasattr(OpenAIEmbeddingProvider, "embed")
 
     def test_mock_provider_consistency_across_calls(self, mock_provider):
         """Test MockEmbeddingProvider consistency across multiple calls."""
@@ -147,7 +148,7 @@ class TestLLMProviderContract:
         sig = inspect.signature(mock_provider.embed)
         params = list(sig.parameters.keys())
 
-        assert 'texts' in params
+        assert "texts" in params
 
     def test_mock_provider_with_very_long_text(self, mock_provider):
         """Test MockEmbeddingProvider with very long text."""
@@ -226,7 +227,7 @@ class TestLLMProviderContract:
     def test_abstract_base_class_has_embed_method(self):
         """Test EmbeddingProvider abstract class has embed method."""
         # Should have abstract method
-        assert hasattr(EmbeddingProvider, 'embed')
+        assert hasattr(EmbeddingProvider, "embed")
         assert callable(EmbeddingProvider.embed)
 
     def test_mock_provider_embedding_stability(self, mock_provider):
@@ -234,10 +235,7 @@ class TestLLMProviderContract:
         # Same input should always produce same output
         text = "stable input text"
 
-        results = [
-            mock_provider.embed([text])[0][0]  # First component
-            for _ in range(10)
-        ]
+        results = [mock_provider.embed([text])[0][0] for _ in range(10)]  # First component
 
         # All should be identical
         assert len(set(results)) == 1

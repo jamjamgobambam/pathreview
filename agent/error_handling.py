@@ -1,14 +1,16 @@
 """Retry logic with exponential backoff."""
 
-import time
 import functools
+import time
+
 import structlog
 
 logger = structlog.get_logger()
 
 
-def retry_with_backoff(max_retries: int = 3, backoff_factor: float = 2.0,
-                       exceptions: tuple = (Exception,)):
+def retry_with_backoff(
+    max_retries: int = 3, backoff_factor: float = 2.0, exceptions: tuple = (Exception,)
+):
     """Decorator for retry logic with exponential backoff.
 
     Args:
@@ -19,6 +21,7 @@ def retry_with_backoff(max_retries: int = 3, backoff_factor: float = 2.0,
     Returns:
         Decorated function
     """
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -36,26 +39,37 @@ def retry_with_backoff(max_retries: int = 3, backoff_factor: float = 2.0,
 
                     if attempt < max_retries:
                         wait_time = backoff_factor ** (attempt - 1)
-                        logger.warning("retry_attempt", func=func.__name__,
-                                     attempt=attempt, max_retries=max_retries,
-                                     wait_seconds=wait_time, error=str(e))
+                        logger.warning(
+                            "retry_attempt",
+                            func=func.__name__,
+                            attempt=attempt,
+                            max_retries=max_retries,
+                            wait_seconds=wait_time,
+                            error=str(e),
+                        )
                         time.sleep(wait_time)
                     else:
-                        logger.error("retry_exhausted", func=func.__name__,
-                                   max_retries=max_retries, error=str(e))
+                        logger.error(
+                            "retry_exhausted",
+                            func=func.__name__,
+                            max_retries=max_retries,
+                            error=str(e),
+                        )
 
             if last_exception:
                 raise last_exception
 
         return wrapper
+
     return decorator
 
 
 class RetryContext:
     """Context manager for retry logic with exponential backoff."""
 
-    def __init__(self, max_retries: int = 3, backoff_factor: float = 2.0,
-                 exceptions: tuple = (Exception,)):
+    def __init__(
+        self, max_retries: int = 3, backoff_factor: float = 2.0, exceptions: tuple = (Exception,)
+    ):
         """Initialize retry context.
 
         Args:
@@ -86,12 +100,20 @@ class RetryContext:
 
         if self.attempt < self.max_retries:
             wait_time = self.backoff_factor ** (self.attempt - 1)
-            logger.warning("retry_context_attempt", attempt=self.attempt,
-                         max_retries=self.max_retries, wait_seconds=wait_time,
-                         error=str(exc_val))
+            logger.warning(
+                "retry_context_attempt",
+                attempt=self.attempt,
+                max_retries=self.max_retries,
+                wait_seconds=wait_time,
+                error=str(exc_val),
+            )
             time.sleep(wait_time)
             return True  # Suppress exception and retry
 
-        logger.error("retry_context_exhausted", attempt=self.attempt,
-                   max_retries=self.max_retries, error=str(exc_val))
+        logger.error(
+            "retry_context_exhausted",
+            attempt=self.attempt,
+            max_retries=self.max_retries,
+            error=str(exc_val),
+        )
         return False  # Re-raise exception

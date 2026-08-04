@@ -1,11 +1,12 @@
 from uuid import UUID
+
 import structlog
 from sqlalchemy import select
 
+from api.schemas.profile import ProfileCreate, ProfileUpdate
+from core.models.ingested_source import IngestedSource
 from core.models.profile import Profile
 from core.models.review import Review
-from core.models.ingested_source import IngestedSource
-from api.schemas.profile import ProfileCreate, ProfileUpdate
 
 log = structlog.get_logger()
 
@@ -41,9 +42,7 @@ async def get_profile(
     """
     Get a profile by ID, checking ownership.
     """
-    stmt = select(Profile).where(
-        (Profile.id == profile_id) & (Profile.user_id == user_id)
-    )
+    stmt = select(Profile).where((Profile.id == profile_id) & (Profile.user_id == user_id))
     result = await db.execute(stmt)
     return result.scalars().first()
 
