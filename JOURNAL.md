@@ -105,6 +105,8 @@ Added copy-pasteable `curl` examples for all 9 documented API endpoints in `docs
 **Tests added or updated:**
 N/A — This is a documentation-only change. No application code was modified, so no new tests were required.
 
-**Self-review confirmation:** Ran `make check` and `make test-unit`. Both fail on `main` (182 ruff errors, 53 test failures) — all in Python files. This branch changes only Markdown and `package-lock.json`, so these failures are pre-existing and unrelated to this PR.
+**Self-review confirmation:** [X] `make check` run  [X] `make test-unit` run
+
+Both commands fail identically on this branch and on `main` (182 ruff errors, 53 unit-test failures) — all in Python files. This branch changes only Markdown, so it introduces no new failures.
 
 **Draft PR feedback received from:** None (I reviewed against the pre-submission checklist and confirmed the PR meets all standards)
