@@ -49,3 +49,29 @@ Issue #111 concerns the test coverage of PathReview's PII scrubber in the safety
 **Walkthrough video (recommended):** Not recorded; this is optional and not graded.
 
 **Blockers or open questions:** Docker Desktop/PostgreSQL remains unavailable for the full application environment. The later property-test implementation must decide how to handle regex overlap, especially street-address matches in ordinary prose and the overlap between US and international phone patterns. No production implementation or pull request is included in Week 8.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:** Implemented the first vertical slice for Issue #111. Added bounded Hypothesis strategies and properties for email, US/international phone, SSN, and street-address values; strengthened fixed address and non-PII assertions; and corrected existing phone/address regex boundary issues exposed by the examples. The focused PII suite now passes all 28 tests.
+
+**Next steps:** Run the repository quality checks, self-review the diff, open a ready-for-review PR, and record the final submission state.
+
+**Blockers:** The repository has pre-existing failures outside the PII scrubber: full unit tests report 48 unrelated failures, while full-repository Ruff and mypy checks also report unrelated baseline errors. The focused PII tests, touched-file checks, and commit hooks pass.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/750
+
+**Branch:** `test/111-pii-scrubber-hypothesis`
+
+**What you built:** Added bounded Hypothesis properties that verify generated supported PII is redacted, detected with accurate source spans, and idempotent on repeated scrubbing. Also fixed phone-format boundaries and street-address suffix boundaries so the existing fixed tests and generated examples agree with the privacy contract.
+
+**Tests added or updated:** `tests/unit/test_pii_scrubber.py` — three Hypothesis properties plus stronger address and non-PII assertions; focused result: `28 passed`. The touched-file Ruff, Black, and mypy checks and the commit hooks all pass.
+
+**Self-review confirmation:** [ ] `make check` passes (blocked by pre-existing full-repository Ruff/type errors) [ ] `make test-unit` passes (blocked by 48 pre-existing failures outside `safety/pii_scrubber.py`)
+
+**Draft PR feedback received from:** none
