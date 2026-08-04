@@ -41,3 +41,37 @@ dependencies are available. This affects the API layer's monitoring/health path.
   reports healthy, and add/adjust a unit test for the health route.
 - **Conclusion:** Good fit for a first contribution — narrow, testable, and I've
   already seen it fail locally.
+
+
+cat << 'EOF' >> JOURNAL.md
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in api/routes/health.py by wrapping the raw SQL string in sqlalchemy.text(). Updated the unit tests to include a route-level test that mocks the database and verifies the endpoint returns 200.
+
+**Next steps:**
+Run make check and make test-unit, submit a draft PR for peer review, and then finalize the PR.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+
+**Branch:** fix/154-health-check-raw-sql
+
+**What you built:**
+Wrapped the Postgres health probe ("SELECT 1") in sqlalchemy.text() so it complies with SQLAlchemy 2.x requirements. This allows the probe to execute successfully, returning a 200 status when Postgres is reachable.
+
+**Tests added or updated:**
+Updated tests/unit/test_health_route.py. Added a route-level test using FastAPI's TestClient and AsyncMock to verify the /health endpoint returns 200 and marks Postgres as healthy when the DB probe succeeds.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
+EOF
