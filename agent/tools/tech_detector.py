@@ -56,6 +56,18 @@ class TechDetector(BaseTool):
         "cmake": ("CMake", "Build"),
     }
 
+    # Directory names to exclude from detection (vendored deps and build output)
+    SKIP_DIRS = {
+        "node_modules",
+        "vendor",
+        "dist",
+        "build",
+        ".git",
+        "__pycache__",
+        ".venv",
+        "venv",
+    }
+
     def execute(self, input_data: dict) -> ToolResult:
         """Detect tech stack from files.
 
@@ -140,8 +152,7 @@ class TechDetector(BaseTool):
             "frameworks": all_frameworks,
         }
 
-    @staticmethod
-    def _should_skip_file(filepath: str) -> bool:
+    def _should_skip_file(self, filepath: str) -> bool:
         """Check if file should be skipped.
 
         Args:
@@ -150,18 +161,7 @@ class TechDetector(BaseTool):
         Returns:
             True if file should be skipped
         """
-        skip_dirs = {
-            "node_modules",
-            "vendor",
-            "dist",
-            "build",
-            ".git",
-            "__pycache__",
-            ".venv",
-            "venv",
-        }
-
         # Match on path segments rather than slash-wrapped substrings, so that
         # top-level directories (e.g. "node_modules/lib/x.js", "build/a.js")
         # are excluded as well as nested ones (e.g. "src/vendor/x.js").
-        return any(segment in skip_dirs for segment in filepath.split("/"))
+        return any(segment in self.SKIP_DIRS for segment in filepath.split("/"))
