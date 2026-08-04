@@ -3428,3 +3428,38 @@ Updated PII scrubber functionality and verified behavior using:
 [ ] make test-unit passes (pre-existing unrelated test failures documented in PR)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+As of completing this reflection, my pull request has not received any reviewer or maintainer feedback. Since Summer 2026 does not include formal reviewer feedback, I am documenting that my PR is still awaiting review.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part of this project was understanding an existing codebase instead of writing code from scratch. Even though my issue seemed small, I had to trace how the `pii_scrubber.py` regex worked before I could safely modify it. I also spent a significant amount of time fixing pre-commit hook failures from Ruff and MyPy after adding my regression test in `tests/unit/test_pii_scrubber.py`, which showed me that writing the fix was only part of the process.
+
+**What did you learn about working in a large codebase?**
+
+I learned that contributing to a production project requires understanding the project's existing conventions instead of implementing the first solution that comes to mind. Before making changes, I had to study the existing test patterns, follow the repository's formatting and typing requirements, and verify that my change did not break unrelated functionality. Working in a shared codebase emphasized consistency and maintainability much more than my personal programming projects.
+
+**How did AI tools help — and where did they fall short?**
+
+AI was especially helpful for explaining unfamiliar parts of the repository, helping me understand the regular expression used to detect U.S. phone numbers, and troubleshooting issues with Git, virtual environments, and failing pre-commit checks. However, AI could not replace reading the project's files or interpreting the repository's requirements. I still had to verify that my implementation matched the project's coding style, place my tests correctly, and confirm that all required checks passed before submitting my pull request.
+
+**What would you do differently if you started over?**
+
+If I started over, I would spend more time exploring the repository before choosing an issue so I could better understand how the different components fit together. I would also run the full test suite and pre-commit hooks earlier and more frequently instead of waiting until I had finished most of my implementation. That would have helped me catch linting and typing issues sooner and made the final submission process smoother.
+
+**What are you most proud of from this module?**
+
+I am most proud that I successfully completed my first open-source contribution from start to finish. I learned how to identify an issue, create a feature branch, implement a fix, write a regression test, resolve tooling issues, and submit a professional pull request. Although the process was challenging at times, completing each step gave me much more confidence in contributing to larger software projects in the future.
