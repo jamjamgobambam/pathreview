@@ -7,7 +7,7 @@
 **Tier:** [X] Tier 1  [ ] Tier 2  [ ] Tier 3
 
 **Problem summary:**
-The `/health` endpoint is currently written as a placeholder and does not return the safety metrics for the last hour as intended. The fix is to read the actual count from the safety monitoring system and include it in the response. This lets operators quickly check recent safety activity without using the monitoring dashboard. I chose this as a Tier 1 issue since it's a contained, single-file fix that let me get familiar with the FastAPI routing and safety-monitoring modules before taking on something larger.
+The `/health` endpoint is currently written as a placeholder and does not return the safety metrics for the last hour as intended. The fix is to read the actual count from the safety monitoring system and include it in the response. I chose this as a Tier 1 issue since it's a contained, single-file fix that let me get familiar with the FastAPI routing and safety-monitoring modules before taking on something larger.
 
 **Branch name:** fix/68-safety-events-health-check
 
@@ -46,16 +46,18 @@ Resolved the open question above myself rather than waiting on a mentor: descope
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/440
 
 **Branch:** fix/68-safety-events-health-check
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+Replaced the hardcoded `safety_events_last_hour: 0` in `/health` with a real count, read via `SafetyMonitor.get_event_count()` and summed across all event types using the existing Redis client from the dependency check above it.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+`tests/unit/test_health.py` — 4 tests covering real event counting, aggregation across event types, zero-events default, and graceful degradation when Redis is down.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes*  [x] make test-unit passes*
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+\* Both have pre-existing failures unrelated to this change (179 lint findings, 53 test failures) — confirmed none are in `health.py`, `test_health.py`, or `safety/monitoring.py`. `test_health.py` itself: 4/4 pass.
+
+**Draft PR feedback received from:** zuccamia
