@@ -210,4 +210,6 @@ elsewhere); `ruff` went 182 → 177 repo-wide and 8 → 3 in my file; `black` no
 file unchanged; `mypy` is unchanged at 103 errors in 26 files. The 40 remaining failures
 are pre-existing across 15 unrelated files. The full baseline is documented in the PR.
 
-**Draft PR feedback received from:** none yet — opened as a draft, awaiting peer review
+**Draft PR feedback received from:** none — the PR was opened as a draft early in the week
+and posted for peer review, but no one picked it up before the deadline. It is now marked
+ready for review with no review comments outstanding.
