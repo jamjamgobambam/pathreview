@@ -71,7 +71,7 @@ None currently — ran into an early Alembic/Docker setup issue (missing
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/salunkheketki19/pathreview/tree/fix/82-concurrent-review-race
+**PR link:** [https://github.com/salunkheketki19/pathreview/tree/fix/82-concurrent-review-race](https://github.com/ascherj/pathreview/pull/779)
 
 **Branch:** `fix/82-concurrent-review-race`
 
