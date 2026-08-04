@@ -103,3 +103,58 @@ fail against the pre-fix code.
 > by this PR. My own test file passes 6/6.
 
 **Draft PR feedback received from:** none (peer review pending in Slack)
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No substantive reviewer feedback came in before this final journal entry. The
+PR was prepared with a detailed summary, testing notes, and reviewer guidance,
+but peer review was still pending.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was not the code change itself, but proving the exact failure
+mode with confidence. Timezone bugs look simple at first, but the real issue was
+the interaction between Python emitting a naive UTC timestamp and JavaScript
+parsing that offset-less string as local time. It also took more effort than I
+expected to build a stable reproduction because test environments cache timezone
+state in ways that make naive timezone-forcing unreliable.
+
+**What did you learn about working in a large codebase?**
+I learned that even a small fix has to be justified in terms of system behavior,
+not just local code. In my own projects I can change an implementation quickly
+and move on, but in someone else's codebase I had to trace where the data was
+produced, how it was serialized, where it was rendered, and whether a frontend
+or backend fix was the safer scope for the current issue. I also had to account
+for existing failing checks and separate baseline noise from regressions caused
+by my change.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for speeding up exploration, summarizing likely code paths,
+and helping draft targeted tests and PR documentation once I understood the bug.
+Where it fell short was in the parts that required precise judgment: validating
+timezone semantics, deciding what counted as a trustworthy regression test, and
+distinguishing repo-specific baseline failures from new problems. For those
+steps, I still had to verify behavior manually and reason from the actual code
+and tool output.
+
+**What would you do differently if you started over?**
+I would create the failing reproduction even earlier and treat it as the anchor
+for the whole issue. I spent time thinking through multiple fix locations before
+the test made the failure mode undeniable. I would also document the baseline
+failures sooner so validation results were easier to explain once the PR was
+ready.
+
+**What are you most proud of from this module?**
+I'm most proud of turning a subtle user-facing bug into a small, precise fix
+with a solid regression test and a clear explanation of why the change is
+correct.
