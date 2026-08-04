@@ -107,7 +107,7 @@ line.)
 
 ### Check-in 2 (end of week)
 
-**PR link:** <!-- TODO: paste the ready-for-review (not draft) PR URL here after opening it -->
+**PR link:** https://github.com/ascherj/pathreview/pull/811
 
 **Branch:** `fix/150-exclude-vendored-build-files`
 
