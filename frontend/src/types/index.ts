@@ -23,6 +23,8 @@ export interface Review {
   id: string
   profile_id: string
   status: 'pending' | 'processing' | 'complete' | 'failed'
+  /** Pipeline progress, 0-100. Reported by GET /reviews/:id/status while processing. */
+  progress_pct?: number
   overall_score?: number
   sections?: FeedbackSection[]
   error_message?: string
