@@ -129,3 +129,32 @@ I will be opening my PR and making appropriate edits based on the feedback.
 
 **Blockers:**
 Nothing so far - resolved linter issues I was originally facing.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:**
+
+https://github.com/ascherj/pathreview/pull/856
+
+**Branch:**
+
+feat/32-cache-repeated-portfolio-queries
+
+**What you built:**
+
+Added a caching layer that uses SHA-256 hashing of portfolio content (GitHub username, resume text, portfolio URL) to detect when content hasn't changed, allowing the system to return cached reviews instead of re-processing them with AI, preventing redundant operations. Enhanced unit test coverage for the portfolio review caching functionality implemented in the review service module.
+
+**Tests added or updated:**
+
+Updated tests/unit/test_review_service.py with 12 new caching-focused tests covering: content hash determinism and uniqueness, cache hit/miss scenarios, new review creation, content hash persistence, error handling for missing profiles, partial profile data handling, and database efficiency (verifying cached reviews skip db.add() calls). Also updated 10 existing test methods with proper type annotations (AsyncMock, Mock return types) and fixed all linting issues.
+
+**Self-review confirmation:**
+
+[ x ] make check passes
+[ x ] make test-unit passes
+
+**Draft PR feedback received from:**
+
+none - no feedback received
