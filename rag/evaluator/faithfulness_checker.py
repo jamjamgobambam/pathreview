@@ -34,14 +34,15 @@ class FaithfulnessChecker:
             logger.info("faithfulness_no_claims_extracted")
             return 0.5  # Default to neutral if no extractable claims
 
-        # Concatenate context text
-        # BUG #153 (reproduced): dict.get("text", "") only substitutes the
-        # default for a MISSING key, not for a key present with value None.
-        # A chunk like {"text": None} yields None here, so " ".join([...])
-        # raises: TypeError: sequence item 0: expected str instance, NoneType found.
-        # Repro: FaithfulnessChecker().check("Knows Python.", [{"text": None}])
-        # Fix planned in Week 9 (see PLAN.md) — coerce None/non-str text to "".
-        context_text = " ".join([chunk.get("text", "") for chunk in context_chunks])
+        # Concatenate context text.
+        # Guard against chunks whose "text" is None or a non-str value:
+        # dict.get("text", "") only substitutes the default for a MISSING key,
+        # not for a key present with value None, so a chunk like {"text": None}
+        # would otherwise make " ".join([...]) raise TypeError. Keep only string
+        # text; None/non-string chunks contribute nothing to the context.
+        context_text = " ".join(
+            text for chunk in context_chunks if isinstance(text := chunk.get("text"), str)
+        )
 
         # Check each claim for support
         supported = 0
