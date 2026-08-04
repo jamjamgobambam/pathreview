@@ -70,9 +70,9 @@ Nothing currently blocking but that may change as I write the corrected code.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [[Fix/43 agent session not resetting](https://github.com/ascherj/pathreview/pull/744)]
 
-**Branch:** [fix/43-Agent-session-not-resetting]
+**Branch:** [[fix/43-Agent-session-not-resetting](https://github.com/Wilder407/pathreview/tree/fix/43-Agent-session-not-resetting)]
 
 **What you built:**
 
