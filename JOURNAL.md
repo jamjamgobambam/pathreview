@@ -69,9 +69,9 @@ None blocking. The open scope question (whether wiring into `core/services/revie
 
 ### Check-in 2 (end of week)
 
-**Due:** originally Sun 2026-08-02; submitting within the 2-day grace period, targeting Tue 2026-08-04.
+**Due:** originally Sun 2026-08-02; submitted Mon 2026-08-03, within the 2-day grace period.
 
-**PR link:** _pending — push + open PR on 2026-08-04, then drop the link in here_
+**PR link:** https://github.com/ascherj/pathreview/pull/743
 
 **Branch:** `feat/69-feedback-tone-check`
 
