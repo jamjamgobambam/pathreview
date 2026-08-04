@@ -1,6 +1,7 @@
 """Prompt injection detection and defense."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -27,6 +28,16 @@ class PromptDefense:
         "}": "",
     }
 
+    # Newline-based injection patterns that sanitize() must strip.
+    # Kept separate from INJECTION_PATTERNS so we don't remove code-execution
+    # patterns like execute(...)/eval(...), which is out of scope for issue #64
+    # and risks stripping legitimate technical resume content (e.g. "eval()").
+    NEWLINE_INJECTION_PATTERNS = [
+        r"\n\s*---+\s*\n",  # Separator line
+        r"\n\s*(?:System|Human|Assistant):",  # Role switching
+        r"\n\s*(?:Ignore|Forget|Disregard|Override)",  # Explicit ignore instructions
+    ]
+
     @staticmethod
     def sanitize(text: str) -> str:
         """Sanitize user input to prevent injection.
@@ -38,6 +49,12 @@ class PromptDefense:
             Sanitized text
         """
         sanitized = text
+
+        # Remove newline-based injection patterns (issue #64). These are
+        # already detected by is_injection_attempt() via INJECTION_PATTERNS,
+        # but were never actually being stripped here.
+        for pattern in PromptDefense.NEWLINE_INJECTION_PATTERNS:
+            sanitized = re.sub(pattern, " ", sanitized, flags=re.IGNORECASE)
 
         # Strip template delimiters
         sanitized = sanitized.replace("{{", "").replace("}}", "")

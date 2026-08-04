@@ -1,0 +1,94 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/64
+
+**Issue title:** Prompt injection defense doesn't sanitize newline characters in user-supplied resume text
+
+**Tier:** Tier 2
+
+**Problem summary:**
+The prompt injection defense in the file safety/prompt_defense.py is supposed to clean user-supplied resume text before it gets passed into the system prompt. Right now it only removes a few specific characters like less-than signs, greater-than signs, and curly braces. It does not catch newline-based patterns such as a line break followed by three dashes, or a line break followed by the word System and a colon. This matters because an adversarial user could put one of these patterns into their resume text and use it to break out of the intended prompt and inject their own instructions to the AI. The sanitizer currently gives a false sense of safety because text that looks cleaned can still carry a working injection. My fix needs to expand the sanitization logic to catch these newline based patterns without accidentally breaking normal resume formatting, since real resumes naturally contain line breaks.
+
+**Checklist reasoning ("Is this right for me?"):**
+I can locate the exact file this issue affects: safety/prompt_defense.py, and the issue description names it directly, so there is no ambiguity about where to start. I looked at the existing test file, tests/unit/test_prompt_defense.py, and confirmed it already has passing tests for the detection method is_injection_attempt, but no tests confirming that sanitize actually removes what is detected. This told me the gap is narrow and well defined: detection logic already exists, but the cleaning function does not use it. The fix is contained to a single module and does not require touching the database, the API routes, or the frontend, which fits a Tier 2 issue that requires understanding how modules connect but not a large architectural change. The estimated effort of four to six hours matches what I would expect for adding pattern based sanitization plus new tests. The main scope risk I identified is not being too aggressive with the fix and accidentally stripping legitimate resume formatting, which is something I can test for directly using the existing test suite as a safety net.
+
+**Branch name:** fix/64-newline-sanitization
+
+**Setup confirmation:** App runs locally at localhost:5173
+
+**Cohort ledger:** Issue added to cohort ledger
+## Week 8 — Reproduction and solution planning
+
+**Reproduction commit link:** https://github.com/nikki2906/pathreview/commit/74e5b74fda37ba5f34d935fde63bcec3846d086c
+
+**Reproduction summary:**
+I added a test showing that calling sanitize on text containing a newline based injection pattern, such as a separator line followed by System colon ignore instructions, returns the text completely unchanged. The is_injection_attempt method still flags the sanitized output as an injection attempt afterward, proving that sanitize does not actually remove what it can detect.
+
+**PLAN.md link:** https://github.com/nikki2906/pathreview/blob/fix/64-newline-sanitization/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded this week.
+
+**Blockers or open questions:**
+PromptDefense is not called anywhere in the actual resume processing flow, so fixing sanitize alone does not yet protect real user input end to end. I am not sure if that is in scope for this issue or worth flagging as a separate follow up issue.
+
+## Week 9 — Solution building and PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the fix in safety/prompt_defense.py by adding a new NEWLINE_INJECTION_PATTERNS list and updating sanitize to loop through it and remove matches using a regular expression, completing sub-tasks 1 and 2 from my PLAN.md. I also completed sub-task 3 by adding seven new unit tests in tests/unit/test_prompt_defense.py covering separator lines, System, Human, and Assistant role switching, explicit ignore instructions, preservation of legitimate dashes in date ranges, and multiple stacked injection patterns in one input. I completed sub-tasks 4 and 5 by running the full test suite and confirming my Week 8 reproduction test, which previously failed, now passes with no new failures introduced anywhere else in the codebase.
+
+**Next steps:**
+I still need to open my pull request, get peer or mentor feedback on the draft, address any feedback I agree with, and mark it ready for review before the deadline.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/344
+
+**Branch:** fix/64-newline-sanitization
+
+**What you built:**
+I fixed the sanitize method in safety/prompt_defense.py so it actually removes newline based prompt injection patterns, such as fake separator lines and System, Human, or Assistant role switching attempts, instead of leaving them completely untouched like it did before. The fix reuses the same detection patterns the codebase already had in is_injection_attempt, applying them as removals inside sanitize instead of only using them for detection.
+
+**Tests added or updated:**
+I added seven new tests to tests/unit/test_prompt_defense.py. They cover removal of separator lines, removal of each role switching pattern individually, removal of explicit ignore instructions, preservation of legitimate content like date ranges written with a dash, and correct handling of multiple stacked injection patterns appearing together in a single input.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none yet
+
+## Week 10 — Iteration and reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback came in during Week 9 or Week 10. This matches the course note that reviewer feedback is not a feature in Summer 2026.
+
+**How you responded:**
+Since no feedback arrived, there was nothing to respond to. I kept my PR open and ready for review in case feedback comes in later.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the local environment running was much harder than the actual code fix. I spent significant time before I even got to the issue itself dealing with Docker not being installed, then a ChromaDB image that crashed on startup because its architecture compatibility step reinstalled NumPy 2, which broke on an old API the image's own code still depended on. I had to trace through container logs, inspect the image's actual entrypoint script, and rewrite the docker-compose command to reinstall the correct NumPy version after the incompatible rebuild step ran. None of that was part of the assigned issue, but without solving it I could not even reach the point of reproducing the actual bug.
+
+**What did you learn about working in a large codebase?**
+The biggest thing I learned is that a codebase can already contain the logic you need, just not wired up correctly. The detection function, is_injection_attempt, already had the correct regex patterns for the exact attack described in the issue. The bug was not missing logic, it was that the cleaning function, sanitize, never called that logic at all. In my own smaller projects I would probably have written detection and cleaning as one function from the start. In a large codebase, functionality gets split across multiple places, and the real skill is tracing how those pieces are supposed to connect, not just reading one function in isolation.
+
+**How did AI tools help, and where did they fall short?**
+AI was most useful for quickly tracing where a function was or was not being called across the codebase, and for helping me reason through edge cases in my PLAN.md before I wrote any code, like whether removing a matched pattern should leave a space or nothing, and whether that would affect a resume's date ranges. AI fell short when it came to trusting search results blindly. For example, I could not just assume PromptDefense was wired into the real resume upload flow. I had to actually grep the codebase myself and confirm it was only ever called in its own test file. AI could point me toward tools and questions to ask, but the actual verification, like proving a test failure was pre-existing by stashing my changes and rerunning it against the original code, had to be done by actually running commands and reading real output, not by assuming.
+
+**What would you do differently if you started over?**
+I would try to get my local environment fully running in Week 7 instead of leaving Docker setup mostly for when I needed it in Week 8. I lost time context switching between environment debugging and actual issue work. I would also write my scope reasoning into JOURNAL.md the first time instead of needing to add it after losing points, since writing it down as I made the decision would have taken less time than reconstructing my reasoning afterward.
+
+**What are you most proud of from this module?**
+I am most proud of catching that PromptDefense is not actually wired into the resume upload flow, and choosing to document that clearly as an out of scope follow up instead of either ignoring it or trying to fix everything in one PR. It would have been easy to either not notice it, or to expand my PR to fix it and risk introducing new bugs into code I did not fully understand yet. Staying inside the scope the issue actually asked for, while still being honest about the gap I found, felt like the right call for a first contribution to an unfamiliar codebase.
