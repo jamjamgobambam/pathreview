@@ -103,8 +103,8 @@ lives entirely in `docs/API.md` and doesn't require modifying any application co
 Added copy-pasteable `curl` examples for all 9 documented API endpoints in `docs/API.md`. Each example includes the full command, required headers, sample payloads, and expected responses. The documentation now helps developers quickly test the API when setting up the project locally.
 
 **Tests added or updated:**
-N/A — This is a documentation-only change. No application code was modified, so no new tests were required. The existing test suite (`make test-unit`) passes without changes.
+N/A — This is a documentation-only change. No application code was modified, so no new tests were required.
 
-**Self-review confirmation:** [X] `make check` passes  [X] `make test-unit` passes
+**Self-review confirmation:** Ran `make check` and `make test-unit`. Both fail on `main` (182 ruff errors, 53 test failures) — all in Python files. This branch changes only Markdown and `package-lock.json`, so these failures are pre-existing and unrelated to this PR.
 
 **Draft PR feedback received from:** None (I reviewed against the pre-submission checklist and confirmed the PR meets all standards)
