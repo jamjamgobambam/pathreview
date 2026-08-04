@@ -27,7 +27,7 @@ coercing a `None` text value to an empty string before concatenation.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [will fill in after next commit]
+**Reproduction commit link:** https://github.com/ReevaSharma/pathreview/commit/3f8f6c0
 
 **Reproduction summary:** Ran `FaithfulnessChecker().check('Knows Python.',
 [{'text': None}])` locally and confirmed it raises `TypeError: sequence
@@ -35,7 +35,7 @@ item 0: expected str instance, NoneType found`, matching the issue. Also
 confirmed `test_none_context_chunk_text` in the existing test suite
 currently fails with the same error.
 
-**PLAN.md link:** [will fill in after push]
+**PLAN.md link:** https://github.com/ReevaSharma/pathreview/blob/fix/153-faithfulness-checker-none-text-crash/PLAN.md
 
 **Blockers or open questions:**
 None currently — the fix is a small, well-scoped one-line change.
