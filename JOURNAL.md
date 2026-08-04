@@ -14,3 +14,19 @@ The Redis probe in `api/routes/health.py` reads `settings.redis_host`, but the `
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [7a9af707c5535d25e0589832245d37477377fe9c](https://github.com/ascherj/pathreview/commit/7a9af707c5535d25e0589832245d37477377fe9c)
+
+**Reproduction summary:**
+I started the backing services and requested `GET /health`. The Redis probe failed because
+`health.py` references `settings.redis_host` and `settings.redis_port`, while the `Settings`
+model defines only `redis_url`.
+
+**PLAN.md link:** [PLAN.md](https://github.com/pk1098/pathreview/blob/fix/155-health-check-redis-config/PLAN.md)
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
