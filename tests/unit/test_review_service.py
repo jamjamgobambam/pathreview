@@ -483,11 +483,11 @@ class TestReviewProgress:
         session.commit = AsyncMock()
         session.refresh = AsyncMock()
 
-        with patch("core.services.review_service.Review") as MockReview:
-            MockReview.return_value = Mock()
+        with patch("core.services.review_service.Review") as mock_review_cls:
+            mock_review_cls.return_value = Mock()
             await create_review(session, uuid4(), uuid4())
 
-            assert MockReview.call_args[1]["progress_pct"] == 0
+            assert mock_review_cls.call_args[1]["progress_pct"] == 0
 
     @pytest.mark.asyncio
     async def test_set_progress_clamps_values_outside_0_100(self):

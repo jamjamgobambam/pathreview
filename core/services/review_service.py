@@ -3,6 +3,7 @@ import structlog
 import json
 from datetime import datetime
 from sqlalchemy import select, and_
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models.review import Review
 from core.models.profile import Profile
@@ -21,7 +22,7 @@ PROGRESS_RAG_COMPLETE = 85
 PROGRESS_COMPLETE = 100
 
 
-async def _set_progress(db, review: Review, pct: int) -> None:
+async def _set_progress(db: AsyncSession, review: Review, pct: int) -> None:
     """Persist a pipeline progress value on a review.
 
     Args:
