@@ -46,3 +46,49 @@ This occurs because chunk.get("text", "") returns None when the key exists with 
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md step 2: in `rag/evaluator/faithfulness_checker.py`, the
+`context_text` join now uses `chunk.get("text") or ""` instead of `chunk.get("text", "")`, so a
+chunk with `{"text": None}` no longer raises a `TypeError` (the `.get` default only covers a
+*missing* key, not a key present with value `None`). The existing test
+`test_none_context_chunk_text` in `tests/unit/test_faithfulness_checker.py` (already in the repo
+from a prior task) now passes, confirming the fix — no new test was needed since that case was
+already covered but previously failing.
+
+Before touching code I ran `make test-unit` and `ruff check .` to record a baseline: 53 pre-existing
+unit test failures and 182 pre-existing ruff errors across the codebase, all unrelated to this
+issue (bias detector, resume parser, review service, etc.). After my change, the suite has 52
+failures (one less — the target test now passes) and 376 passes (one more), with no new failures
+introduced. `ruff`/`black`/`mypy` on the touched files show only the same pre-existing issues
+(unsorted imports in the file's header, an unused variable in an unrelated test method, and
+missing third-party type stubs) that existed before my change.
+
+**Next steps:**
+Run the full
+`make check` self-review, fill out the PR template, mark it ready for review, and add Check-in 2 with the PR link.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
