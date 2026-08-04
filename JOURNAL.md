@@ -35,3 +35,17 @@ I reread the issue and confirmed that neither `services/profile_service.py` nor 
 **Blockers or open questions:**
 
 This issue is straightforward since I made time to clearly understand the issue and read the code base carefully. Also because I have completed week 7 objectives, which helped me tremendously before going to reproduction and solution planning step
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I added docstrings with Google-style formatting to 4 functions in `profile_service.py` and 8 functions in `review_service.py`
+
+**Next steps:**
+I need to ensure that my commit messages follow the correct format. I also need to run code-quality check with `make check`, run test with `make test-unit`
+
+**Blockers:**
+None
