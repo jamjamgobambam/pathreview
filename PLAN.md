@@ -17,7 +17,13 @@ The files involved:
 - core/security.py: provides the low-level cryptographic password hashing/verification and JWT creation/decoding.
 - api/middleware/auth.py: validates the JWT authentication token for subsequent access to protected routes and resolving it to the current User or raising 401. 
 
-I will add tests to make sure the functions login and register functions in routes/auth.py, get_current_user function is middleware/api.pu, and hash_password, verify_password, create_access_token, and decode_access_token in security.py is doing what it's supposed to do.
+I will add tests to make sure the functions login and register functions in routes/auth.py, get_current_user function is middleware/api.pu, and hash_password, verify_password, create_access_token, and decode_access_token in security.py are all working in integration to secure the authentication workflow. 
+
+I will create tests/integration/test_auth_*.py and test each of the cases. 
+Files created:
+1) tests/integration/conftest.py - configures fixture for DB and HTTP connection used by integration test cases.
+2) tests/integration/test_db_connection.py - test DB connection works end-to-end, it will be used for other authentication integration tests 
+
 
 
 ### Plan
