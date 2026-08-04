@@ -148,17 +148,6 @@ class TechDetector(BaseTool):
         Returns:
             True if file should be skipped
         """
-        # Reproduced for #150: skip_patterns below only match when the
-        # directory name has a leading "/" (e.g. "/node_modules/"). The
-        # `files` list this method receives holds repo-relative paths with
-        # no leading slash (e.g. "node_modules/pkg/index.js"), so `in`
-        # never matches and vendor/build files leak into the language
-        # count. Confirmed locally: `pytest tests/unit/test_tech_detector.py
-        # -k "test_node_modules_excluded or test_build_directory_excluded"`
-        # fails on current main, both asserting primary_language == "Python"
-        # but getting "JavaScript" because the vendored .js files aren't
-        # filtered out. Fix (planned in PLAN.md) is to also match the
-        # pattern as a path-segment prefix so a leading slash isn't required.
         skip_patterns = [
             "/node_modules/",
             "/vendor/",
@@ -170,4 +159,9 @@ class TechDetector(BaseTool):
             "/venv/",
         ]
 
-        return any(pattern in filepath for pattern in skip_patterns)
+        # `filepath` is repo-relative and has no leading slash (e.g.
+        # "node_modules/pkg/index.js"), but every pattern above assumes
+        # one. Anchor with a leading "/" so root-level occurrences match
+        # the same way nested ones already do.
+        normalized = f"/{filepath}"
+        return any(pattern in normalized for pattern in skip_patterns)
