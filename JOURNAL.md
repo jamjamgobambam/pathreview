@@ -107,3 +107,35 @@ in the PR template.
 - `make check` / `make test-unit` have large pre-existing failures (53 failing tests, 103
   mypy errors) unrelated to this issue; tracking a before/after baseline to prove my change
   adds none.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/760
+
+**Branch:** `feat/54-plan-dag-validation`
+
+**What you built:**
+Made the agent orchestrator dependency-aware. Added a `TOOL_DEPENDENCIES` DAG and
+`validate_plan()` that rejects mis-ordered or cyclic plans before execution, run-time
+gating that skips any tool whose prerequisites failed (with a recorded reason), and
+`_resolve_inputs()` that feeds each tool's upstream outputs into it — so `market_analyzer`
+now scores real skills (`market_alignment_score` ~0.68) instead of returning an all-zero
+result on empty input.
+
+**Tests added or updated:**
+- `tests/unit/test_tool_dependencies.py` — valid / mis-ordered / empty plans, cycle
+  detection, and `unmet_prerequisites` gating (missing vs. failed prerequisites).
+- `tests/unit/test_orchestrator.py` — `market_analyzer` scores non-zero once skills
+  propagate; a dependent is skipped when its prerequisite fails (and never executed); an
+  invalid plan raises `PlanValidationError` before any tool runs.
+- 15 tests total, all passing.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+_(Per the module's pre-existing-failures guidance, "passes" = my change introduces no new
+failures. Documented baseline: `make test-unit` 53 failed/375 passed → 53 failed/390 passed
+(identical failing set + my 15 new tests); `make typecheck` 103 mypy errors → 103. The new
+files are fully ruff/black/mypy clean.)_
+
+**Draft PR feedback received from:** none
