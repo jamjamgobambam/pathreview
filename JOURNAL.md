@@ -94,7 +94,7 @@ count needs a working Redis client).
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [\[link to your submitted pull request\]](https://github.com/ascherj/pathreview/pull/735)
 
 **Branch:** `feat/68-Add-a-safety-event-count-to-the-health-check-endpoint`
 
@@ -108,6 +108,7 @@ previously-broken Redis health check.
 `tests/unit/test_health_safety_events.py` — two unit tests covering the health endpoint's
 safety count: one asserting the total of recorded events, one asserting `0` when none exist.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [-] make check passes  [-] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** ayc325
+
