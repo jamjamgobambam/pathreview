@@ -96,7 +96,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** TBD — see Check-in 1 next steps
+**PR link:** https://github.com/ascherj/pathreview/pull/247 (currently draft — pending peer/mentor review before marking ready)
 
 **Branch:** `feat/52-contribution-streak`
 
