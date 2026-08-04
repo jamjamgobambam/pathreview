@@ -39,3 +39,23 @@ currently fails with the same error.
 
 **Blockers or open questions:**
 None currently — the fix is a small, well-scoped one-line change.
+
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:** Implemented the fix in `faithfulness_checker.py` —
+changed `chunk.get("text", "")` to `chunk.get("text") or ""` so that a
+`None` value is treated the same as a missing key. Confirmed the
+previously-failing `test_none_context_chunk_text` now passes, and
+`make test-unit` shows 52 failed / 376 passed (down from the 53/375
+baseline), confirming no new regressions were introduced.
+
+**Next steps:** Run `make check` to confirm no new lint issues in the
+touched file, self-review against CONTRIBUTING.md, open a draft PR for
+feedback, then finalize the PR description and submit.
+
+**Blockers:** None.
+
