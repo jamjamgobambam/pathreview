@@ -46,3 +46,20 @@ the closing parenthesis, not a space.
 Noticed a separate, likely unrelated bug in test_mixed_pii_and_text where
 part of the word "Python" gets redacted along with nearby PII. Flagged it
 in PLAN.md as a risk to watch for but it's not in scope for issue #146.
+
+## Reproduction — Issue #146
+
+Ran `python -m pytest tests/unit/test_pii_scrubber.py -v` on branch `fix/146-pii-scrubber-parenthesized-phone`.
+
+**Result:** 5 failed, 20 passed.
+
+**Failures directly related to Issue #146 (parenthesized phone numbers not detected):**
+- `test_us_phone_number_redaction` — `(555) 123-4567` not redacted
+- `test_us_phone_formats` — parenthesized format `(555) 123-4567` not redacted (other formats pass)
+- `test_detect_phone_pii` — `detect()` returns 0 phone matches for `(555) 123-4567`
+- `test_phone_at_start_of_text` — `(555) 123-4567` at start of string not redacted
+
+**Root cause:** In `safety/pii_scrubber.py`, the `phone_us` regex (line 15) opens with `\b(?:\+?1[-.]?)?\(?`. Since `\b` requires a word-boundary transition and `(` is a non-word character, `\b` fails to match immediately before a literal `(`. Additionally, `[-.]?` after the closing `)?` does not account for a space, which is the standard separator in `(555) 123-4567`.
+
+**Unrelated pre-existing failure (not in scope for #146):**
+- `test_mixed_pii_and_text` fails because the `street_address` pattern's `Pl` (Place) alternative case-insensitively matches inside "a**pl**ications", greedily consuming text back to a preceding digit. This is a separate bug in the `street_address` pattern, not the phone regex, and is not part of Issue #146. Documenting here per pre-existing-failure policy; will note in PR description that this fix does not affect it.
