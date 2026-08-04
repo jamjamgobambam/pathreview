@@ -1,5 +1,7 @@
 """GitHub repository metadata tool."""
 
+from datetime import date, timedelta
+
 import httpx
 import structlog
 
@@ -127,3 +129,23 @@ class GitHubTool(BaseTool):
             return bool(response.status_code == 200)
         except Exception:
             return False
+
+    def _calculate_longest_streak(self, dates: list[date]) -> int:
+        """Find the longest run of consecutive calendar days with commits.
+        Args:
+            dates: List of commit dates (may contain duplicates)
+        Returns:
+            Longest consecutive-day streak (0 if no dates)
+        """
+        if not dates:
+            return 0
+        unique_dates = sorted(set(dates))
+        longest = 1
+        current = 1
+        for i in range(1, len(unique_dates)):
+            if unique_dates[i] - unique_dates[i - 1] == timedelta(days=1):
+                current += 1
+                longest = max(longest, current)
+            else:
+                current = 1
+        return longest
