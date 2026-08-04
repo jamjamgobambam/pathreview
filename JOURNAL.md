@@ -32,3 +32,43 @@ The integration test directory (`tests/integration/`) existed but contained only
 **Blockers or open questions:**
 - Need to confirm whether `RelevanceScorer` and `FaithfulnessChecker` make any external calls before deciding if they need to be mocked in the integration test.
 - Need to verify the exact JSON shape the mock LLM response must return so `output_parser.py` parses it into named sections rather than falling back to plaintext.
+
+
+## Week 9 — Mid-week check-in
+
+**Status:** Implementation complete, tests passing, PR being prepared.
+
+**What I did:**
+I wrote the full integration test in `tests/integration/test_rag_pipeline.py`. The test wires all three RAG pipeline stages together using mocked external dependencies so it runs completely offline with no API keys or running services needed.
+
+The test is organized into four classes:
+- `TestRetrievalStage` — verifies `HybridRetriever.retrieve()` returns a non-empty list of dicts with the right keys (`id`, `text`, `metadata`, `score`)
+- `TestGenerationStage` — verifies `ReviewGenerator.generate_full_review()` returns a list of `FeedbackSection` objects with non-empty content and no duplicate section names
+- `TestEvaluationStage` — verifies `EvalSuite.run()` returns scores between 0.0 and 1.0 and that `overall_score` equals the mean of the two component scores
+- `TestFullRAGPipeline` — one end-to-end test that runs all three stages in sequence and checks the boundary contracts between them
+- `TestEdgeCases` — covers empty chunk lists, malformed JSON from the LLM, and zero scores when retrieval returns nothing
+
+To answer the open questions from Week 8: `RelevanceScorer` and `FaithfulnessChecker` do not make external calls, so they did not need to be mocked. The mock LLM response needed to be a JSON object where each top-level key maps to a dict with `content` and `suggestions` fields, which is what `_parse_json_output` in `output_parser.py` expects.
+
+I also caught and fixed a lint issue in the test file: `Generator` was imported from `typing` instead of `collections.abc`, which ruff flags as UP035 in Python 3.11. Fixed before opening the PR.
+
+**Blockers:** None. All 11 tests pass and the file is lint-clean.
+
+
+## Week 9 — Submission check-in
+
+**PR link:** https://github.com/ascherj/pathreview/pull/[UPDATE WITH PR NUMBER]
+
+**What I'm submitting:**
+A single new file, `tests/integration/test_rag_pipeline.py`, with 11 integration tests covering the full RAG pipeline. No production code was changed.
+
+**Self-review against the bar:**
+- The happy path works and is tested end-to-end
+- Edge cases are covered (empty retrieval, malformed LLM output, zero scores)
+- The test file is lint-clean (`ruff check` passes with zero errors)
+- All 11 tests pass in under 2 seconds with no external dependencies
+- The mock setup matches the real ChromaDB and OpenAI response shapes so the mocks are realistic, not just stubs that bypass the actual logic
+- `make check` fails on the repo overall but all errors are in pre-existing unit test files that were already failing on `main` before my branch. My file introduces no new lint issues.
+
+**What I learned:**
+The trickiest part was getting the mock chain right for `HybridRetriever`. It calls `vector_store.get_collection()` to build the keyword index, and the returned collection object also needs to support `.get()` with a specific return shape. Getting that wrong would have caused the keyword indexing step to fail silently rather than raising an error, which would have been hard to debug. Reading the source carefully before writing the mocks saved a lot of time.
