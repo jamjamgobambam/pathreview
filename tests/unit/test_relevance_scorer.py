@@ -48,7 +48,7 @@ class TestRelevanceScorer:
         # doesn't match its own chunk text — needs correction, not a scorer fix.
         query = "Python Django web framework"
         chunks = [
-            {"text": "Django is a Python web framework for rapid development"},
+            {"text": "Django is a web framework for rapid development"},
         ]
 
         score = scorer.score(query, chunks)
