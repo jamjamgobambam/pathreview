@@ -50,40 +50,19 @@ I need to ensure that my commit messages follow the correct format. I also need 
 **Blockers:**
 None
 
-## PR Drafts
-## Summary
-From this PR, I added the missing docstrings to all public functions within `core/services/profile_service.py` and `core/services/review_service.py` where I comprehensively document each function' arguments, return values, and any raised exceptions. These documentation updates must be made without altering the existing runtime behavior.
 
-## Issue
-Closes #119 
+### Check-in 2 (end of week)
 
-## Changes
+**PR link:** https://github.com/ascherj/pathreview/pull/762
 
-- I added docstrings with Google-style formatting to 4 functions in `profile_service.py` and 8 functions in `review_service.py`
-- Added JOURNAL.md with the issue selection, solution planning, and solution building with validation result
-- Added PLAN.md documenting the problem investigation, plans, risks, and edge cases.
+**Branch:** `docs/119-add-inline-docstrings`
 
+**What you built:**
+I added docstrings with Google-style formatting to 4 functions in `profile_service.py` and 8 functions in `review_service.py`
 
-## Testing
-<!-- How did you verify your changes? -->
-- [ ] Unit tests pass (`make test-unit`)
-   - Running `make test-unit` resulted in 53 failed test cases and 375 passed test cases. 
-   - This PR doesn't make any changes that affected existing test cases
-- [ ] Integration tests pass (`make test-integration`)
-   - No integration test ran
-   - This PR doesn't make any changes that affected existing integration test
-- [ ] Linter passes (`make lint`)
-   - Running `make lint` resulted in 180 errors in the repository
-- [ ] Type checker passes (`make typecheck`)
-   - Running `make typecheck` resulted in 5 errors in 4 files
-   - This PR doesn't make any changes that affected existing test cases
-- [ ] New/updated tests cover the changes
+**Tests added or updated:**
+I did not add any test files since this issue only covers updating docstrings for existing functions.
 
-## Screenshots / Demo
-No demo video necessary for this issue
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
-## Notes for Reviewers
-<!-- Anything the reviewer should pay particular attention to -->
-- This issue references `core/services/notification_service.py`, but that file does not exist on the current upstream/main. 
-- This PR only add docstrings to all public functions in `profile_service.py` and `review_service.py`.
-- Since this PR only added docstrings to public functions, no change in this PR affected pre-existing validation test or any linting errors.
+**Draft PR feedback received from:** none
