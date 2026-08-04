@@ -55,3 +55,59 @@ metric store is unavailable.
   untouched files. No global auto-fixes were applied.
 
 **Walkthrough:** A ready-to-record outline is available in `LOOM_SCRIPT.md`.
+
+## Week 9 - Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+I completed the implementation described in `PLAN.md`. Safety events now use
+timestamped Redis sorted sets, the monitor calculates a rolling time-window count, and
+the health endpoint reports the aggregate count across all supported event types. I
+also added focused monitor and health-route tests.
+
+**Next steps:**
+
+Re-run the focused test and quality checks, review the final diff against
+`docs/CONTRIBUTING.md`, prepare the pull request description, and submit the PR as ready
+for review.
+
+**Blockers or questions:**
+
+The repository-wide unit and quality suites contain existing failures in untouched
+modules. Following the course guidance, I documented the baseline and verified that
+all checks scoped to my changed files pass.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/734
+
+**Branch:** `feat/68-safety-event-health-count`
+
+**What you built:**
+
+I replaced the health endpoint's hard-coded safety count with an aggregate rolling
+one-hour metric. Each safety event is timestamped in a Redis sorted set, expired events
+are pruned, and metric-read failures safely retain a zero count without crashing the
+health endpoint.
+
+**Tests added or updated:**
+
+- `tests/unit/test_safety_monitoring.py` covers event storage, time windows, expiration,
+  aggregation, invalid inputs, and Redis read/write failures.
+- `tests/unit/test_health.py` covers successful aggregate reporting and safe fallback
+  when metric retrieval fails.
+- All 12 focused tests pass, along with scoped Ruff, Black, and mypy checks.
+
+**Self-review confirmation:** [x] `make check` passes under the documented
+pre-existing-failure standard      [x] `make test-unit` passes under the documented
+pre-existing-failure standard
+
+The complete repository baseline remains 357 passing tests, 52 unrelated failures,
+and 31 unrelated setup errors. Global Ruff, Black, and mypy likewise report violations
+in untouched files; the changed files introduce no scoped failures.
+
+**Draft PR feedback received from:** none
