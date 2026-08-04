@@ -18,7 +18,14 @@ class TestReviewService:
 
     @pytest.fixture
     def mock_db_session(self) -> AsyncMock:
-        """Create a mock async database session."""
+        """Create a mock async database session.
+        
+        Boundary Note:
+        `db.execute` is configured as an AsyncMock because it is awaited in production code 
+        (`await db.execute(...)`). However, the returned result object from SQLAlchemy is 
+        synchronous, so `.scalars()` must return a synchronous `MagicMock` rather than a 
+        coroutine object to prevent downstream `AttributeError` on `.first()` or `.all()`.
+        """
         session = AsyncMock()
         session.add = Mock()
         session.commit = AsyncMock()
