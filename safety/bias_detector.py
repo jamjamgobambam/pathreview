@@ -10,23 +10,20 @@ logger = structlog.get_logger()
 class BiasDetector:
     """Detect biased language in feedback."""
 
-    # these regex patterns below miss strings where the intent is the same
-    # but the words are different. Tests in `tests/unit/test_bias_detector.py`
-    # catch this already
-
     # Genuinely dismissive phrases about educational background
     DISMISSIVE_PATTERNS = [
-        r"(?:bootcamp|self-taught|online\s+course)\s+(?:education|training)\s+is\s+(?:insufficient|inadequate|lacks)",
-        r"(?:bootcamp|self-taught)\s+(?:graduates?|developers?)\s+(?:lack|missing)\s+(?:rigor|fundamentals|proper\s+training)",
+        r"(?:bootcamp|self-taught|online\s+course|coding\s+bootcamp)\s+(?:education|training)\s+(?:is\s+)?(?:insufficient|inadequate|lacks?(?:\s+\w+)?)",
+        r"(?:bootcamp|self-taught|coding\s+bootcamp)\s+(?:graduates?|developers?|programmers?)\s+(?:can'?t|cannot|won'?t|will\s+not|lacks?|missing)\s+\w+",
         r"(?:bootcamp|coding\s+bootcamp)\s+(?:doesn't|does\s+not)\s+prepare\s+(?:you|developers?)",
-        r"(?:self-taught|bootcamp)\s+is\s+(?:not|never)\s+(?:equal|comparable)\s+to\s+(?:university|traditional|formal)",
+        r"(?:self-taught|bootcamp)(?:\s+(?:developers?|graduates?|programmers?))?\s+(?:is|are)\s+(?:not|never)\s+(?:equal|comparable)\s+to\s+(?:university|traditional|formal)",
+        r"(?:bootcamp|self-taught)\s+attendance\s+means\s+(?:insufficient|inadequate|poor|lack\s+of)",
     ]
 
     # Demographic assumptions (about age, background, identity)
     DEMOGRAPHIC_PATTERNS = [
-        r"(?:young|old|aged)\s+(?:person|developer|programmer)\s+(?:can't|cannot|won't|will\s+not)",
-        r"(?:person\s+from|coming\s+from)\s+(?:poor|rich|working[\s-]?class)",
-        r"(?:immigrant|international|foreign)\s+developers?.*(?:can't|cannot|won't|struggle)",
+        r"(?:young|old|aged)\s+(?:person|developers?|programmers?)\s+(?:can't|cannot|won't|will\s+not)",
+        r"(?:person|people|developers?|programmers?|coming)\s+from\s+(?:poor|rich|working[\s-]?class)",
+        r"(?:immigrant|international|foreign)\s+(?:developers?|programmers?).*(?:can't|cannot|won't|struggle)",
     ]
 
     @staticmethod
