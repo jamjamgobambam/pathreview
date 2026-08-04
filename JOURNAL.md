@@ -45,3 +45,74 @@ https://github.com/KingJNF/pathreview/blob/fix/146-pii-scrubber-parenthesized-ph
 **Walkthrough video (recommended):** N/A
 
 **Blockers or open questions:**
+
+
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the core fix from my PLAN.md. I updated the `phone_us` regex in `safety/pii_scrubber.py` so the separators accept whitespace, which makes the parenthesized `(555) 123-4567` format match. Sub-tasks 1 and 2 from my plan are done. The regex is modified, and running `pytest tests/unit/test_pii_scrubber.py -q`
+confirmed the four target tests now pass (went from 5 failed/20 passed to 1 failed/24 passed) 
+
+**Next steps:**
+Add a test for the parenthesized-no-space edge case (`(555)123-4567`), re-verify that no new lint/test failures were introduced, then open the PR to pathreview and fill in the template.
+
+**Blockers:**
+None. The one remaining test failure (`test_mixed_pii_and_text`) is a pre-existing `street_address` over-redaction bug, unrelated to my change and out of scope.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/281
+
+**Branch:** `fix/146-pii-scrubber-parenthesized-phone`
+
+**What you built:**
+I broadened the `phone_us` regex in `safety/pii_scrubber.py` so its separators also accept whitespace, allowing the common `(555) 123-4567` format to be matched and redacted by both `scrub()` and `detect()`. Previously these numbers passed through completely unredacted. No function signatures changed as only the regex pattern was updated.
+
+**Tests added or updated:**
+I added `test_us_phone_parenthesized_no_space` in `tests/unit/test_pii_scrubber.py`, covering the parenthesized-with-no-space format `(555)123-4567`. This complements the four existing phone tests my fix repairs (`test_us_phone_number_redaction`, `test_us_phone_formats`, `test_detect_phone_pii`, `test_phone_at_start_of_text`). After my changes the suite shows 25 passed, 1 pre-existing unrelated failure.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+[TO FILL NEAR DEADLINE — check PR #281 and summarize any reviewer comments here.]
+
+**How you responded:**
+[TO FILL NEAR DEADLINE — describe changes made or replies given.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The setup was harder than the actual fix. Getting the local environment running was a pain. Docker containers for PostgreSQL and Redis, plus the virtual environment took much longer than I anticipated, and I couldn't run a single test until it was all correct. By contrast, the fix for issue #146 came down to changing a few characters in one regex. I expected the coding to be the challenge, but the real friction was almost everything before it like the setup, git mechanics, and figuring out what "done" actually meant in someone else's repo.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was learning that "passing" doesn't mean the whole codebase is clean. When I ran `make check` I got 182 lint errors, and `make test-unit` had a failing test (`test_mixed_pii_and_text`) that had nothing to do with my issue. The `street_address` regex was over-redacting and swallowing the word "Python." In my
+own projects I'd assume any red meant I broke something, but here I had to record a baseline first and then prove my change added no *new* failures. Contributing to production code someone else owns is as much about tight scoping and leaving unrelated things alone as it is about writing the fix itself.
+
+**How did AI tools help and where did they fall short?**
+AI was most useful for tracing exactly why the `phone_us` regex failed. walking the pattern against `(555) 123-4567` character by character and showing that the `[-.]?` separator rejected the space after the closing paren made the fix (`[-.]?` →`[-.\s]?`) obvious. It also helped me structure my PLAN.md and PR description. Where
+it fell short was it couldn't run anything for me. I still had to reproduce the failure, run pytest, and confirm the count moved from five failed tests to one failed test myself. AI could reason about the code, but it couldn't verify the true state of my machine or confirm the pre-existing failures were genuinely pre-existing until I ran the baseline commands.
+
+**What would you do differently if you started over?**
+I'd budget far more time for environment setup instead of underestimating it, and I'd capture the `make check` / `make test-unit` baseline on day one rather than discovering the 182 lint errors and the pre-existing failing test partway through. That would have saved some anxiety about whether I'd broken something. On the planning
+side, the edge cases I listed in PLAN.md (like the no-space `(555)123-4567` format) turned out to be genuinely useful, so I'd write those edge-case tests earlier in the process instead of adding them near the end.
+
+**What are you most proud of from this module?**
+I'm most proud of how cleanly I kept my change scoped. It was tempting to "fix" the 182 lint errors or the `street_address` over-redaction bug I stumbled on, but I documented those as out-of-scope in my PLAN.md and PR instead, and shipped a focused fix that turned four failing tests green plus one edge-case test I added myself.
+Submitting a real PR (#281) to a repository I didn't create and having it be a tight, well-documented contribution rather than a sprawling one feels like a genuine milestone.
