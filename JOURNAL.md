@@ -42,3 +42,20 @@ Run `make check` and `make test-unit` against the full suite to confirm no new f
 
 **Blockers:**
 None currently. One open question I noted in `PLAN.md`: whether `redis.from_url()` handles every option the old `host`/`port` approach implicitly assumed (e.g. auth/TLS) — not an issue for this local setup, but worth a mentor's eyes on the PR in case it matters for other environments.
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/234
+
+**Branch:** fix/155-health-check-redis-host
+
+**What you built:**
+Fixed the `/health` endpoint so it correctly reports Redis status using the existing `redis_url` config field instead of the undefined `redis_host`/`redis_port` fields that were causing a silent `AttributeError` on every health check.
+
+**Tests added or updated:**
+Added `tests/unit/test_health.py` (7 tests) covering Redis healthy/unhealthy paths, a regression test confirming `redis_url` is used correctly, Postgres healthy/unhealthy paths, and overall response shape/status codes.
+
+**Self-review confirmation:** [x] make check passes (except 54 pre-existing mypy errors across 8 files unrelated to my change, documented in the PR) [x] make test-unit passes (except 53 pre-existing failures unrelated to my change, all in files I didn't touch — `test_health.py` passes 7/7)
+
+**Draft PR feedback received from:** Slack peer review — positive feedback, no blocking changes requested
