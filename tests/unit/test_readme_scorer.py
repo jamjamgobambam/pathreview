@@ -18,33 +18,103 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+
+        A comprehensive project description that explains what this tool does,
+        who it is for, and why it exists. This project helps developers analyze
+        their portfolios, surface actionable feedback, and track improvements
+        over time. It is designed to be approachable for newcomers while
+        remaining genuinely useful for experienced engineers who want deeper
+        insight into the quality of their work.
+
+        ## Overview
+
+        The application ingests project data, evaluates it against a set of
+        quality signals, and produces a structured report. Each report includes
+        a summary score, a breakdown by category, and concrete suggestions that
+        a contributor can act on immediately. The goal is to make code and
+        documentation review faster, more consistent, and less subjective for
+        everyone involved in the process.
 
         ## Installation
+
+        Before you begin, make sure you have a recent version of Python and a
+        working package manager installed on your machine. Installation is
+        intended to be quick and repeatable across Windows, macOS, and Linux
+        without any manual patching of system paths.
+
         ```bash
         pip install package
         ```
 
+        After installing, verify the installation by running the command line
+        interface with the version flag. If you see a version number printed,
+        the setup completed successfully and you are ready to continue with the
+        rest of this guide.
+
         ## Usage
+
+        Getting started takes only a few minutes. Import the package, create a
+        client, and call the run method with the content you want to evaluate.
+        The example below shows the most common workflow for a first time user
+        who just wants a quick result.
+
         ```python
         import package
         package.run()
         ```
 
+        For more advanced scenarios, you can pass configuration options that
+        control how strict the scoring is, which categories are enabled, and how
+        the final report is formatted. Every option has a sensible default so
+        that the tool works well without any additional configuration on day one.
+
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+
+        - Feature 1: automated scoring across multiple quality dimensions.
+        - Feature 2: detailed, human readable reports with clear explanations.
+        - Feature 3: configurable thresholds that adapt to your project size.
+        - Feature 4: fast local execution with no external services required.
+        - Feature 5: friendly output that highlights strengths and weaknesses.
+
+        ## Configuration
+
+        Configuration lives in a single file at the root of your project. You
+        can override any default there, commit it to version control, and share
+        it with your team so that everyone evaluates their work the same way and
+        gets comparable, reproducible results.
 
         ## Tech Stack
+
         - Python 3.9
         - FastAPI
         - PostgreSQL
+        - Redis for caching frequently requested results
+        - Docker for reproducible local development environments
+
+        These technologies were chosen for their maturity, strong community
+        support, and excellent documentation, which together keep the project
+        approachable for new contributors and easy to operate in production.
+
+        ## Testing
+
+        The project ships with a comprehensive automated test suite. Run the
+        unit tests locally before opening a pull request, and make sure the
+        full suite passes so that reviewers can focus on the substance of your
+        change rather than on preventable regressions that continuous
+        integration would have caught anyway.
+
+        ## Contributing
+
+        Contributions are welcome and appreciated. Please read the contributing
+        guide, open an issue to discuss significant changes, and keep pull
+        requests small and focused so they are easy to review and merge quickly
+        without long back and forth.
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
 
         ## Live Demo
+
         [Try it here](https://demo.example.com)
         """
 
