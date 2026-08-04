@@ -63,3 +63,26 @@ vulnerability-scanning step exists. The fix is to add scanning jobs/steps to
 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (and optionally a `make audit`
 target) that run `pip-audit` and `npm audit` and fail the build on high-severity findings.
 See [`PLAN.md`](../PLAN.md) for the solution plan.
+
+## Resolution
+
+A `security-scan` job was added to [`.github/workflows/ci.yml`](../.github/workflows/ci.yml),
+mirrored locally by `make audit`. It gates the build as follows:
+
+- **Frontend:** `npm audit --omit=dev --audit-level=high` fails on high+ severity in
+  **production** dependencies. Today those are clean (the remaining `react-router` finding
+  is moderate). The high/critical advisories surfaced above all live in the **dev-only**
+  build/test chain (`vite`, `vitest`, `esbuild`, `postcss`, …) and only have fixes behind
+  breaking major upgrades (vite 8 / vitest 4, which also need Node 20+); they are reported
+  by a separate non-blocking step and tracked for a future toolchain bump.
+- **Python:** the two fixable advisories were resolved by pinning security floors in
+  [`pyproject.toml`](../pyproject.toml) (`aiohttp>=3.14.3`, `cryptography>=50.0.0`). The two
+  with **no patched release** are ignored via a reviewed, commented allowlist:
+
+  | Advisory | Package | Reason ignored |
+  | --- | --- | --- |
+  | `PYSEC-2026-311` | `chromadb` | No patched release available upstream. |
+  | `PYSEC-2026-1325` | `ecdsa` | No patched release; `ecdsa` is transitive (Minerva side-channel). |
+
+  Revisit the allowlist (`PIP_AUDIT_IGNORE` in the [`Makefile`](../Makefile) and the matching
+  flags in CI) whenever an upstream fix ships.

@@ -63,8 +63,22 @@ We welcome contributions! Please read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.m
 make help          # Show all available commands
 make test-unit     # Run unit tests (~30 seconds)
 make check         # Run linter + formatter + type checker
+make audit         # Scan Python + frontend deps for known vulnerabilities
 make run           # Start the dev servers
 ```
+
+### Dependency security scanning
+
+CI runs a `security-scan` job on every pull request and push to `main`. It fails the
+build when a **high-severity (or worse)** vulnerability is found in a shipped dependency:
+
+- **Python** — [`pip-audit`](https://pypi.org/project/pip-audit/) over the installed
+  environment. Advisories with no patched release upstream are ignored via an explicit,
+  commented allowlist (see the `PIP_AUDIT_IGNORE` variable in the [`Makefile`](Makefile)).
+- **Frontend** — `npm audit --omit=dev --audit-level=high` over production dependencies.
+  Dev-tooling advisories (build/test chain) are reported in a separate, non-blocking step.
+
+Run the same checks locally with `make audit` before opening a PR.
 
 ## License
 
