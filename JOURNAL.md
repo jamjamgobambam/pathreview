@@ -41,3 +41,37 @@ Reproduced by adding `tests/unit/test_hybrid.py`, which mocks `VectorStore`/`Key
 **PLAN.md link:https://github.com/qixuan-code/pathreview/blob/feat/34-llm-reranker-retriever/plan.md
 
 **Blockers or open questions:**
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+The core of the feature is built. I added `rag/retriever/reranker.py` with an `LLMReranker` class and a `RerankerConfig` dataclass (mirroring `review_generator.ReviewConfig` so the same OpenAI-compatible/OpenRouter settings carry over). The reranker scores a candidate pool in batches, clamps malformed scores to `[0, 1]`, ignores ids that aren't in the pool, and falls back to the original ordering on any LLM error or unparseable output — so it can only help ordering, never break it. That covers the main sub-tasks from plan.md: the reranker class, config, batching, and fallback handling are done. I then wired it into `HybridRetriever`: it takes a `reranker` and calls `self.reranker.rerank(query, results)` right before the top-k truncation in `retrieve()`, which is the single integration point I identified back in Week 7.
+
+One deliberate deviation from the plan, flagged here so it's on the record: Week 7 / plan.md described the reranker as an *optional* parameter that defaults off and leaves `retrieve()` byte-for-byte unchanged when unconfigured. I changed it to a *required* constructor argument, so every `HybridRetriever` now reranks. It's simpler and removes the `None`-check branch, but it breaks the "unchanged when not configured" contract I originally committed to, and it forces every caller to pass a reranker. I want to revisit this before the PR goes up rather than silently ship the stricter design.
+
+**Next steps:**
+Finish `tests/unit/test_reranker.py` — the six cases from the plan: mocked scoring path, reordering, LLM-failure fallback, malformed JSON, score clamping, and batching across `batch_size`. Then run `make check` and `make test-unit` to confirm green, and open the draft PR against issue #34. I also want to settle the required-vs-optional question above before submitting.
+
+**Blockers:**
+No hard blockers, but the mid-week time sink was pre-commit friction rather than the feature itself. The moment `hybrid.py` entered the lint set, ruff and mypy surfaced pre-existing debt in the retriever package that had never been checked: an unused `all_chunks` local (F841), two over-length lines (E501), and — because mypy follows imports — missing return annotations in `vector_store.py` (`get_collection`) and `keyword_search.py` (`__init__`), plus a `var-annotated` error on an empty `self.chunks = []`. I fixed all of them (removed the dead variable, added `-> None` / `-> Any` and a `list[dict]` annotation, dropped an unused `Settings` import) to get a clean commit. Two process lessons: pre-commit stashes *unstaged* changes before running, so fixes have to be `git add`-ed or the hooks keep checking the old versions; and black reformats a file the first time it hits the hook, which needs a re-stage. The two latent bugs I called out in Week 7 (`add_chunks` field mismatch, missing `keyword_searcher.index()` call) are still deliberately out of scope.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [to be added on submission]
+
+**Branch:** `feat/34-llm-reranker-retriever`
+
+**What you built:**
+An `LLMReranker` (`rag/retriever/reranker.py`) that takes the retriever's blended candidate pool and asks a cheap LLM to score each chunk's relevance to the query, then reorders by that score before the top-k are truncated. It scores in batches, clamps or discards malformed/out-of-range scores, and falls back to the original blended ordering on any LLM error or unparseable output, so it can only improve ordering and never degrade it. It's wired into `HybridRetriever.retrieve()` at the point right before truncation.
+
+**Tests added or updated:**
+Added `tests/unit/test_reranker.py` — 10 tests driven by a mock OpenAI client so nothing hits the network: reordering by LLM score, empty-pool short-circuit (no LLM call), fallback on LLM error and on malformed/non-JSON output, partial scoring (unscored chunks keep their blended order), unknown-id and non-numeric-score handling, clamping scores to `[0, 1]`, parsing scores wrapped in a ```json code fence, and batching a pool larger than `batch_size` across multiple LLM calls. The reordering case mirrors the exact ranking bug reproduced in `test_hybrid.py` in Week 8.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** none
