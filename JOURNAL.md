@@ -112,7 +112,7 @@ docs-only change. Documented in Check-in 2.
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/yic04/pathreview/pulls
+**PR link:** https://github.com/ascherj/pathreview/pull/807
 
 **Branch:** `docs/36-hybrid-retrieval-scoring-formula`
 
