@@ -79,16 +79,20 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/797
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `fix/153-faithfulness-checker-none-text`
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+Fixed a crash in `FaithfulnessChecker.check()` where a context chunk shaped `{"text": None}` raised a `TypeError` on `" ".join(...)`. The bug was that `chunk.get("text", "")` only falls back to its default when the `"text"` key is *missing*, not when it's present with value `None`.
+Changed the lookup to `chunk.get("text") or ""`, which normalizes both cases to an empty string before joining, so the faithfulness check completes normally instead of crashing.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+`tests/unit/test_faithfulness_checker.py` — added `test_mixed_none_and_valid_text_chunks`, which covers a `context_chunks` list mixing valid text with a `{"text": None}` entry.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+*(Both pass in the sense required by this assignment: the codebase has pre-existing failures unrelated to this issue — 53 unit test failures and 182 ruff errors on `main` before this branch — and my change introduces none of its own. After the fix: unit tests go from
+`53 failed, 375 passed` to `52 failed, 377 passed` (the target test plus the new mixed-chunk test both now pass); `ruff`/`black`/`mypy` on the touched files show zero new issues. Full details and
+baseline numbers are in the PR description.)*
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
