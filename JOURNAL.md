@@ -82,3 +82,36 @@ introduced by it.)
 
 **Draft PR feedback received from:** none
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback came in. Reviewer feedback isn't a feature this term
+
+**How you responded:**
+N/A 
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The tooling friction was the biggest surprise, not the actual bug fix. The fix itself was a two-line change once I understood SQLAlchemy 2.x's argument validation. What took real time was getting a working local environment on Windows `make` isn't available without WSL/Git Bash, so I had to translate every Makefile target into its underlying command by hand. I also created a virtual environment in the wrong directory at one point (`api\routes` instead of the repo root) and didn't catch it until `pip install -e ".[dev]"` failed with a confusing "not a Python project" error. Reading the actual error message carefully, rather than assuming the tool was broken, was the fix.
+
+**What did you learn about working in a large codebase?**
+The biggest lesson was that a codebase this size already has its own failures baked in running the full unit suite surfaced 53 pre-existing failures completely unrelated to my issue (bias detection, PII scrubbing, resume parsing, tech detection, etc.). Early on I assumed a clean test run was the bar to clear; it wasn't. The actual bar was proving my two changed files didn't add to that number. I also learned that fixing one bug can surface adjacent ones while scoping my test assertions, I found that the health check's Redis probe references `settings.redis_host`/`redis_port`, which don't exist on the `Settings` class at all. That's a second, independent bug that made the endpoint always return 503 regardless of my fix. Deciding not to fix it (documenting it instead, and scoping my tests around it) was its own judgment call about staying inside the boundary of the issue I was actually assigned.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for reading unfamiliar parts of the codebase quickly  tracing `get_db`, checking whether `asyncio_mode` was set in `pyproject.toml`, finding the CI workflow's Postgres service container, and matching existing test patterns (e.g., how `tests/unit/test_review_service.py` mocks an `AsyncSession` with `AsyncMock`) rather than guessing at conventions from scratch. It also caught a real correctness issue I wouldn't have thought to check for on my own: that a mocked `AsyncMock` won't enforce SQLAlchemy's real argument-type validation, so a naive "does execute() get called" test would have passed even on the buggy code and the test had to check the actual type of the argument passed.
+
+Where it fell short: it couldn't run anything in my actual environment. It doesn't have live access to my filesystem, so every fix had to be manually copied over, and mismatches (wrong file paths, forgetting to rename a file, git conflicts from editing JOURNAL.md in two places) were something only I could catch by actually running things myself. I also had to be the one to verify that claims about tool behavior (like how AsyncMock handles arguments) actually held against the specific versions installed in my environment.
+
+**What would you do differently if you started over?**
+I would set up my environment correctly (venv at repo root, confirm `pyproject.toml` is right there) before running any commands, rather than discovering the mistake through a failed install. I'd also run the full unrelated test suite and `mypy`/`ruff`/`black` checks earlier establishing the pre-existing-failure baseline in Week 8 rather than Week 9 would have saved me from wondering whether my own changes caused any of that noise.
+
+**What are you most proud of from this module?**
+Catching the separate Redis bug and making the deliberate choice not to fix it. It would have been easy to either ignore it (and have a permanently-failing integration test that looked like my fix didn't work) or scope-creep into fixing it too. Documenting it clearly, scoping my tests around it, and explaining the reasoning in the PR notes felt like the most "real engineering" moment of the whole module more than the actual one-line fix.
+
