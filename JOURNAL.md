@@ -44,7 +44,7 @@ Since this is a logic error, there are many places where the error could reside.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/732
 
 **Branch:** `fix/24-hybrid-reviewer`
 
