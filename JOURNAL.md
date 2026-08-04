@@ -178,4 +178,4 @@ passes; `ruff`, `black`, and `mypy` all pass on the files I changed. The remaini
 failures pre-date this PR and live in modules it does not touch; details in the PR's Notes
 for Reviewers.)_
 
-**Draft PR feedback received from:** _<peer/mentor name or Slack handle, or "none">_
+**Draft PR feedback received from:** _None, Yet to be Reviewed_
