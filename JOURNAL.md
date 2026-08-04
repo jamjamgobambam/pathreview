@@ -35,3 +35,34 @@ N/A
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
 - I will need to investigate database structure, whether reviews have a unique ID, how the code gathers all reviews associated with a user, etc. This is the primary foundation needed for figuring out how to add the comparison feature without breaking anything else in the repo.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Got sub-tasks 1-4 from PLAN.md mostly done. Added the compare route + entry point on ReviewHistoryPage (checkbox select + compare button), built out ComparisonView.tsx to pull both reviews and render them, and wrote the diffFormatter.ts logic to diff sections and score deltas. Also pulled some of the render logic into a new ComparisonSection.tsx component so ComparisonView isn't one giant file.
+
+**Next steps:**
+Need to write tests for diffFormatter (started the test file but not filled in yet), handle loading/error states properly, and cover the edge cases from PLAN.md (mismatched sections, pending reviews, <2 reviews).
+
+**Blockers:**
+None major, just need to double check how section_name matching behaves when agent output varies between reviews.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** feat/102-add-comparison-view
+
+**What you built:**
+A before/after comparison view — users pick two completed reviews from ReviewHistoryPage, hit "Compare", and land on ComparisonView.tsx which shows overall score delta plus a per-section diff (added/removed/unchanged) computed by diffFormatter.ts.
+
+**Tests added or updated:**
+frontend/src/utils/__tests__/diffFormatter.test.ts — covers section diffing and score delta calc, including mismatched sections and identical-review edge case.
+
+**Self-review confirmation:** [✓] make check passes  [✓] make test-unit passes
+
+**Draft PR feedback received from:** none

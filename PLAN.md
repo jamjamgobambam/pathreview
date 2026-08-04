@@ -4,6 +4,13 @@
 
 **Issue:** [Add a before/after comparison view for users who have completed multiple reviews](https://github.com/ascherj/pathreview/issues/102)
 
+**Description:** Users who review their portfolio at two different points in time have no way to see how their scores changed. Add a comparison view that shows side-by-side diffs of two selected reviews.
+
+Relevant files:
+
+- frontend/src/pages/ComparisonView.tsx
+- frontend/src/utils/diffFormatter.ts
+
 ### Understand
 What is the root cause of this issue? What behavior is expected vs. actual?
 Users may want to view their progress, or compare past reviews with more recent reviews. The current issue is that Pathreview has no support for this. Expected behavior is that there IS support, and actual behavior is that there is NO support.
