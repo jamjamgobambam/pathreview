@@ -93,3 +93,68 @@ into segments and matching directory components) is a slightly different
 approach than a minimal patch to the existing regex-like patterns — I think
 segment-matching is more correct (see Risks & unknowns in PLAN.md for why),
 but I'll keep it small and reversible if reviewers prefer the narrower diff.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All 5 sub-tasks from PLAN.md are implemented. `_should_skip_file` in
+`agent/tools/tech_detector.py` now splits each path on `/` and checks the
+directory segments (every part except the filename) against a skip-dir set,
+instead of substring-matching slash-anchored patterns — this is the fix
+described in PLAN.md's Plan section, step 1. `test_node_modules_excluded`
+and `test_build_directory_excluded` pass now. I added a real assertion to
+`test_vendor_files_excluded` (step 3) and 4 new tests exercising
+`_should_skip_file` directly for the edge cases from PLAN.md: root-level
+dirs, nested dirs, a file whose name collides with a skip-dir name, and
+substring-vs-exact matching (`rebuild/` must not match `build`). Reran
+`scripts/repro_issue_150.py` (step 4) — it now prints "Not reproduced." Ran
+`make test-unit` and `make check` (step 5) and confirmed no new failures
+against the baseline I captured before touching anything: test-unit went
+from 53 failed/375 passed to 51 failed/381 passed (the 2 fewer failures are
+the two tests this issue's fix resolves; the 4 more passing are my new
+tests); ruff went from 182 to 173 pre-existing errors repo-wide (fixed 9 in
+files I was already touching, introduced 0 new); black and mypy counts are
+otherwise unchanged. Full breakdown is in the PR description.
+
+Along the way I hit a real blocker: the local pre-commit `mypy` hook has no
+path filter, so it checks every staged Python file — including `tests/`,
+which the project's own `Makefile`/CI explicitly exclude from typechecking.
+That mismatch blocked any commit touching a test file (repo-wide, not just
+mine — the whole test suite fails this hook). I fixed the hook's scope in
+`.pre-commit-config.yaml` to match the Makefile/CI paths, and separately
+cleaned up 7 pre-existing unused-variable lint errors in
+`test_tech_detector.py` that were blocking the ruff hook the same way. Both
+are documented in the same commit as clearly-labeled, separate concerns from
+the actual fix.
+
+**Next steps:**
+Open a PR against the upstream repo, fill in the PR template completely
+(including the pre-existing-failures note above), and get it in front of a
+classmate or mentor in Slack for draft feedback before marking it ready for
+review.
+
+**Blockers:**
+None on the implementation. Opening the actual PR and getting peer/mentor
+review both require steps outside what I can do unassisted — pending
+confirmation to open the PR, and the Slack review itself is a human-in-the-
+loop step I can't complete on my own.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _pending — added once opened_
+
+**Branch:** `fix/150-tech-detector-vendored-files`
+
+**What you built:**
+_pending_
+
+**Tests added or updated:**
+_pending_
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** _pending_
