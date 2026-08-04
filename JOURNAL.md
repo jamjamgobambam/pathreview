@@ -62,7 +62,7 @@ No hard blockers, but the mid-week time sink was pre-commit friction rather than
 
 ### Check-in 2 (end of week)
 
-**PR link:** [to be added on submission]
+**PR link:** https://github.com/ascherj/pathreview/pull/819
 
 **Branch:** `feat/34-llm-reranker-retriever`
 
