@@ -50,3 +50,36 @@ I reproduced issue #36 by comparing `docs/ARCHITECTURE.md` with the hybrid retri
 
 **Blockers or open questions:**  
 I need to ensure the documentation explains the scoring behavior accurately without making the architecture section unnecessarily difficult to understand.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**  
+I reviewed the hybrid retrieval implementation and completed the documentation update described in `PLAN.md`. I added the scoring formulas, default weights, threshold behavior, ranking process, worked example, and edge-case behavior to `docs/ARCHITECTURE.md`.
+
+**Next steps:**  
+Add and run a focused test for the architecture documentation, complete the repository checks, open the pull request, and document the final results.
+
+**Blockers:**  
+The repository has pre-existing Ruff, Black, Mypy, and unit-test failures unrelated to Issue #36.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [PASTE_PR_URL_HERE](https://github.com/ascherj/pathreview/pull/726)
+
+**Branch:** `docs/36-hybrid-retrieval-scoring`
+
+**What you built:**  
+I updated the architecture documentation to explain how vector similarity and BM25 scores are normalized and combined using the default 0.7/0.3 weighting formula. I also documented threshold filtering, ranking, missing-result behavior, and added a worked scoring example.
+
+**Tests added or updated:**  
+Added `tests/unit/test_architecture_docs.py`. It verifies that `docs/ARCHITECTURE.md` includes the hybrid scoring section, normalized score names, blended formula, default weights, minimum threshold, and missing-result behavior.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+The repository contains documented pre-existing failures, but the same failures remained before and after my contribution. The unit-test result improved from 375 passing tests to 376 passing tests while remaining at 53 failures, confirming that the new test passed and no new failures were introduced.
+
+**Draft PR feedback received from:** none
