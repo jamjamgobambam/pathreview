@@ -65,7 +65,9 @@ suite and all 20 pass.
 
 **Next steps:**
 Self-review with `make check` / `make test-unit` against the recorded baseline,
-open a draft PR, and request peer/mentor review before marking it ready.
+then open a PR against the upstream repo (base `ascherj/pathreview:main`) and
+self-check against the definition-of-done before marking it ready. (No peer code
+review this term — self-review stands in for it.)
 
 **Blockers:**
 Resolved the two Week 8 open questions (threshold defaults to flagging 2+ majors
@@ -104,4 +106,4 @@ introduce ZERO new failures: after my change the suite is 53 failing / 395
 passing (+20 of mine, all green), ruff is 182 (down 1), and mypy is unchanged.
 My two files pass ruff/black/mypy individually. -->
 
-**Draft PR feedback received from:** _pending — draft PR opened for peer review_
+**Draft PR feedback received from:** none — no code-review feedback this term; self-reviewed against the definition-of-done
