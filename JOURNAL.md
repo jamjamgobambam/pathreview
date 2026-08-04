@@ -95,7 +95,7 @@ lives entirely in `docs/API.md` and doesn't require modifying any application co
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/tsh594/pathreview/pull/777
+**PR link:** https://github.com/ascherj/pathreview/pull/777
 
 **Branch:** docs/117-api-curl-examples
 
