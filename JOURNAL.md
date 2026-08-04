@@ -222,7 +222,7 @@ N/A
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [\[link to your submitted pull request\]](https://github.com/ascherj/pathreview/pull/722)
 
 **Branch:** [fix/149-structural-chunker-silently-drops-documents-with-no-headings](https://github.com/mardisworld/pathreview/tree/fix/149-structural-chunker-silently-drops-documents-with-no-headings)
 
