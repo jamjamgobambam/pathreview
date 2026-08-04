@@ -96,6 +96,21 @@ Added `tests/unit/test_rate_limit_middleware.py`, covering: headers present on
 success, remaining count reflects the limiter's output, `429` + headers returned
 when the limit is exceeded, and remaining never goes negative.
 
-**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+**Self-review confirmation:** [x] make check passes*  [x] make test-unit passes*
+
+*Both commands surface pre-existing issues on `main`, unrelated to this change —
+confirmed identical before my changes by running both against `origin/main`:
+- `make test-unit`: 53 pre-existing failures (`test_bias_detector.py`,
+  `test_pii_scrubber.py`, `test_review_service.py`, `test_resume_parser.py`,
+  etc.). My branch introduces zero new failures and adds 4 net new passing
+  tests — this PR's own `test_rate_limit_middleware.py` and `test_rate_limiter.py`
+  tests all pass.
+- `make check`: 181 pre-existing ruff errors and 51 files needing `black`
+  reformatting codebase-wide (182/51 on `main` — not worse). `mypy` fails to
+  complete due to missing type stubs (`PyPDF2`, `jose`, `passlib`) and a
+  numpy/Python-version stub mismatch, identical on `main`. Zero lint, format,
+  or typecheck issues in the files this PR touches
+  (`api/middleware/rate_limit.py`, `api/main.py`,
+  `tests/unit/test_rate_limit_middleware.py`).
 
 **Draft PR feedback received from:** none
