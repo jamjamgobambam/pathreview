@@ -30,3 +30,36 @@ model defines only `redis_url`.
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Added the missing `redis_host` and `redis_port` settings required by the Redis health check and
+documented the reproduction and solution plan.
+
+**Next steps:**
+Complete the final checks, respond to review feedback, and update the PR if changes are requested.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [ascherj/pathreview#840](https://github.com/ascherj/pathreview/pull/840)
+
+**Branch:** `fix/155-health-check-redis-config`
+
+**What you built:**
+Added `redis_host` and `redis_port` to the application settings so the `/health` endpoint can
+construct a Redis client and accurately report Redis availability.
+
+**Tests added or updated:**
+No test files were added or updated.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** none
