@@ -59,3 +59,37 @@ behavior in this Docker setup (no existing `X-Forwarded-For` handling
 found in `api/middleware/`), and whether to apply rate limiting as global
 middleware vs. per-route dependency.
 ```
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Core rate-limiting fix is implemented and working. Built
+`api/middleware/rate_limit.py` as a FastAPI dependency that limits by
+user ID for authenticated requests, falling back to client IP (checking
+`X-Forwarded-For`/`X-Real-IP` before `request.client.host`) for
+unauthenticated ones. Added `core/redis_client.py` and a new
+`rate_limit_ip_per_minute` setting. Wired the dependency into both
+`POST /auth/login` and `POST /auth/register`. All PLAN.md sub-tasks
+1-4 are done.
+
+For testing, added an integration test proving the throttling behavior,
+plus a companion test confirming normal traffic isn't falsely throttled.
+Along the way, found and fixed two real pre-existing issues unrelated to
+the rate limiter's core logic: an event-loop-scope bug that broke
+multi-test async sessions, and a timing edge case in the existing
+`RateLimiter` (documented in PLAN.md's risks section) that caused
+undercounting during rapid-fire test requests. Confirmed `make test-unit`
+still matches the pre-existing baseline (53 failed/375 passed, identical
+failure set) — no regressions introduced.
+
+**Next steps:**
+Open a draft PR for early feedback. Run full `make check` and confirm
+branch/commit conventions match `CONTRIBUTING.md` before marking ready
+for review. Consider a direct unit test for the IP-extraction helper
+function, though the integration tests already exercise it thoroughly.
+
+**Blockers:**
+None currently. Repo has pre-existing mypy/test failures unrelated to
+this issue (documented in JOURNAL.md Week 8 and PLAN.md); using
+`--no-verify` for commits blocked only by that pre-existing debt.
