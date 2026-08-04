@@ -203,11 +203,15 @@ new behavior. `ruff`, `black` and `mypy` are all clean on the files I touched.
    distinguishing an SSN from an order number or an ID, so matching it trades a
    real leak for a broad false-positive class in a component that feeds LLM
    prompts. I flagged it in the PR rather than deciding it silently.
-3. **`make check` cannot be run as written.** The `check` target depends on
-   `format`, which runs `black .` and rewrites 52 unrelated files. I ran
-   `black --check` instead and am reporting per-file results; worth raising
-   upstream as a separate issue, since the documented pre-PR command mutates
-   the working tree.
+3. **`make check` fails on `main`, before I change anything.** It runs
+   `lint format typecheck` in order and aborts at `lint` on 182 pre-existing
+   ruff errors, so `format` and `typecheck` never execute. The documented
+   pre-PR command therefore cannot pass for any contributor right now, which is
+   worth raising upstream as its own issue. Two follow-on notes: because `lint`
+   aborts first, `make format`'s `black .` never runs, so nothing in the working
+   tree gets rewritten; and `make typecheck` fails independently (5 errors, all
+   missing third-party stubs outside `safety/`). I ran the three tools
+   individually to get per-file results.
 
 ---
 
@@ -278,11 +282,24 @@ disappear are exactly the `test_pii_scrubber.py` phone and address cases this
 fix addresses. `ruff`, `black` and `mypy` are all clean on the three files the
 PR touches, and `mypy safety/` alone is clean. Full table in the PR description.*
 
-*Caveat, flagged in the PR: `make check` cannot be run as documented, because
-its `format` dependency runs `black .` and rewrites 52 unrelated files in the
-working tree. I ran `ruff`, `black --check` and `mypy` individually instead.
-Since `docs/CONTRIBUTING.md` tells every contributor to run `make check` before
-opening a PR, that is worth its own issue.*
+**Stated plainly: `make check` does not pass, and it does not pass on `main`
+either.** It runs `lint format typecheck` in order and aborts at `lint` on
+pre-existing ruff errors — 182 on `main`, 178 here — so `format` and
+`typecheck` never execute and `make check` exits non-zero on both. I checked
+the box above only in the "introduces no new failures" sense the module
+guidance defines for a codebase with documented pre-existing failures; this
+branch strictly reduces every count in the table and adds nothing to any of
+them. It would be wrong to read that checkbox as "the command exits 0".
+
+Verified directly rather than assumed: `make check` on this branch aborts at
+`lint` with `make: *** [lint] Error 1`, and leaves the working tree untouched
+(0 files modified), because `format` is never reached. All 178 remaining ruff
+errors are in files this PR does not touch; the three files it does touch are
+clean under `ruff`, `black` and `mypy`.
+
+Since `docs/CONTRIBUTING.md` instructs every contributor to run
+`make check && make test-unit` before opening a PR, and neither command can
+pass on a clean checkout today, that is worth its own issue upstream.
 
 **Draft PR feedback received from:** *none yet — the PR is open and ready for
 review, and I am posting it to the cohort Slack channel for peer feedback. I
