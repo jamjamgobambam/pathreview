@@ -29,7 +29,7 @@ tests pass: `test_us_phone_number_redaction`, `test_us_phone_formats`,
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** https://github.com/jaystopthinkingjuststart/pathreview/commit/5e68e7d
+**Reproduction commit link:** https://github.com/jaystopthinkingjuststart/pathreview/commit/5e68e7db42edc6ff7b4f0899be3c109ac6c66a85
 
 **Reproduction summary:**
 Ran the four tests named in the issue (`test_us_phone_number_redaction`,
@@ -41,7 +41,7 @@ a word character. So any phone number written as `(555) 123-4567` is silently
 skipped by both `scrub()` and `detect()`, while the dashed format
 `555-123-4567` matches fine.
 
-**PLAN.md link:** [PLAN.md](./PLAN.md)
+**PLAN.md link:** https://github.com/jaystopthinkingjuststart/pathreview/blob/fix/146-parenthesized-phone-regex/PLAN.md
 
 **Walkthrough video (recommended):**
 
@@ -80,7 +80,7 @@ change caused. Sorting out whether to work around it or annotate everything.
 
 ### Check-in 2 (end of week)
 
-**PR link:** PR_LINK_PLACEHOLDER
+**PR link:** https://github.com/ascherj/pathreview/pull/794
 
 **Branch:** `fix/146-parenthesized-phone-regex`
 

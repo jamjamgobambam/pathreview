@@ -80,3 +80,28 @@ FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_phone_at_start_of_
   `"(555) 123-4567."`.
 - A string containing both a dashed and a parenthesized number, to confirm
   both get redacted, not just the first match.
+
+### Outcome (updated Week 9)
+The plan was right about the root cause but incomplete about the fix. Step 1
+assumed swapping the leading `\b` for a negative lookbehind would be enough.
+It wasn't. With `(?<![\w)])` in place, `(555) 123-4567` still didn't match,
+because the `[-.]?` separators between digit groups never allowed a space, and
+that format has a space after the closing paren. So there were two independent
+blockers on the same input, and I only found the second one by testing the
+regex directly after the first change didn't fix the test.
+
+Shipped fix: lookbehind `(?<![\w)])` for the boundary, plus widening the
+separators from `[-.]?` to `[-.\s]?`.
+
+On the risks I'd listed: `phone_intl` was fine. It still claims
+`+44 20 7946 0958` on its own, so the looser `phone_us` didn't steal that
+match. The lookbehind matches correctly at index 0 (nothing to look behind is
+not a failure), so a phone at the very start of a string works. `detect()`
+offsets stayed accurate, and I added a test asserting that rather than
+assuming it.
+
+One thing the plan didn't anticipate: `test_mixed_pii_and_text` also fails,
+but it's a separate `street_address` bug in the same file, not mine. That
+pattern has no trailing anchor, so its `[A-Za-z\s]+` group backtracks onto the
+letters `pl` inside "applications" and over-redacts. Left it alone to keep
+this PR scoped to one issue.
