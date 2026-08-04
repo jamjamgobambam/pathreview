@@ -58,4 +58,4 @@ Added `tests/unit/test_health.py` (7 tests) covering Redis healthy/unhealthy pat
 
 **Self-review confirmation:** [x] make check passes (except 54 pre-existing mypy errors across 8 files unrelated to my change, documented in the PR) [x] make test-unit passes (except 53 pre-existing failures unrelated to my change, all in files I didn't touch — `test_health.py` passes 7/7)
 
-**Draft PR feedback received from:** Slack peer review — positive feedback, no blocking changes requested
+**Draft PR feedback received from:** Slack peer review by Rabina Karki — positive feedback, no blocking changes requested
