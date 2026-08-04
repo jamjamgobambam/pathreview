@@ -59,3 +59,43 @@ which triggers naturally when Redis is unreachable). Also open: whether IP-based
 identifier keying (necessary since auth resolves after middleware runs) is
 acceptable long-term, or whether rate limiting should eventually move to a
 user-aware route dependency instead.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented `RateLimitMiddleware` in `api/middleware/rate_limit.py`, wired it into
+`api/main.py` alongside the existing `RequestIDMiddleware`, and wrote unit tests
+covering the main sub-tasks from PLAN.md.
+
+**Next steps:**
+Self-review against `docs/CONTRIBUTING.md`, run `make check` and `make test-unit`,
+and open the PR for peer/mentor feedback.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/237
+
+**Branch:** feat/86-rate-limit-headers
+
+**What you built:**
+Added `RateLimitMiddleware`, which wraps the existing `RateLimiter` from
+`safety/rate_limiter.py` and runs on every request, keyed by client IP. It attaches
+`X-RateLimit-Limit` and `X-RateLimit-Remaining` headers to every response, and
+returns a `429` with those same headers when the caller exceeds the configured
+limit, matching the existing `RequestIDMiddleware` pattern.
+
+**Tests added or updated:**
+Added `tests/unit/test_rate_limit_middleware.py`, covering: headers present on
+success, remaining count reflects the limiter's output, `429` + headers returned
+when the limit is exceeded, and remaining never goes negative.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
