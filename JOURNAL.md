@@ -105,3 +105,29 @@ top-level profile fields and exactly two repo entries, each with `name`, `html_u
 before/after comparison.)
 
 **Draft PR feedback received from:** none [to be filled in after peer review, posted in Slack already]
+
+**PR description (copy, for offline verification):**
+
+> **Summary**
+> The PR restores a missing test fixture file at `tests/fixtures/sample_profiles/basic_profile.json` that is referenced by `scripts/run_evals.py` and `scripts/issues_manifest.json`. The fixture contains realistic fake portfolio data (GitHub username, resume text, two repository entries) structured to match what the actual ingestion parsers consume.
+>
+> **Issue**
+> Closes #106
+>
+> **Changes**
+> - Introduces `tests/fixtures/sample_profiles/basic_profile.json` containing fake profile data with fields like `github_username`, `resume_filename`, `resume_text` (with section headers such as Summary, Technical Skills, Experience, Education), `portfolio_url`, and two `repos` entries patterned after GitHub API metadata
+> - Adds a `sample_profile_data` fixture to `tests/conftest.py` following established patterns for loading sample data
+> - Creates `tests/unit/test_fixtures.py` with a test that validates the fixture loads properly and contains expected structure (profile fields present, exactly two repos, each containing `name`/`html_url`/`readme_content`)
+>
+> **Testing**
+> Unit tests pass with 53 pre-existing failures remaining unchanged; new test passes. Integration tests not applicable. Linting produces no new errors (182 pre-existing unchanged). Type checking passes. Manual verification involves confirming the JSON fixture contains appropriate fields and running the new test.
+>
+> **Screenshots / Demo**
+> N/A — test fixture only, no UI change.
+>
+> **Notes for Reviewers**
+> No integration test currently uses this fixture. The two repository entries mirror raw GitHub API metadata rather than the `IngestedSource` database model, as that represents the layer where parsing occurs before database mapping.
+
+(Note: as of this writing the PR is still in Draft and the Testing section above still needs
+the concrete manual-verification steps promised — this copy will be refreshed once those
+edits land on GitHub.)
