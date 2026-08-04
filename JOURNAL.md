@@ -53,7 +53,7 @@ None major, just need to double check how section_name matching behaves when age
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [Link to PR](https://github.com/janielcaday/pathreview/pull/1)
 
 **Branch:** feat/102-add-comparison-view
 
