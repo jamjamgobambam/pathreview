@@ -118,3 +118,64 @@ https://github.com/tureh1/pathreview/blob/fix/152-faithfulness-short-claims/PLAN
   `test_multiple_claims_varying_support`) stem from the same `>= 2` threshold and/or a
   separate punctuation-tokenization weakness; one (`test_none_context_chunk_text`) is a
   `TypeError` that belongs to issue #153, not #152, so it is out of scope here.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in `rag/evaluator/faithfulness_checker.py`. `_is_supported` now
+filters stop words out of the claim first, then requires the meaningful overlap to reach
+`min(2, number_of_meaningful_claim_tokens)` instead of a fixed `>= 2`, with an early
+`return False` when the claim has no meaningful tokens. This covers PLAN.md sub-tasks 1–4
+(baseline recorded, meaningful-token count computed, threshold made length-aware, empty
+claim guarded). Both Week 8 reproduction tests now pass.
+
+**Next steps:**
+Strengthen the previously assertion-free `test_minimum_overlap_required`, add the edge-case
+tests from PLAN.md (short-ungrounded, all-stop-words, long-claim-single-overlap), run the
+full unit suite before/after to confirm no new failures, run the lint/format/type checks,
+then open the PR and fill in the template.
+
+**Blockers:**
+None. (Note: the repo-wide `make typecheck`/pre-commit `mypy` cannot execute on my Windows
+setup because of a NumPy 2.x stub vs. `python_version = 3.11` mismatch — unrelated to this
+change; `mypy` runs clean on the file I changed.)
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _[https://github.com/ascherj/pathreview/pull/824]
+
+**Branch:** `fix/152-faithfulness-short-claims`
+
+**What you built:**
+The RAG faithfulness checker marked every short claim as unsupported because
+`_is_supported` used a fixed "≥ 2 overlapping meaningful tokens" threshold that short
+claims can't reach. The fix makes the required overlap scale with the claim's length
+(`min(2, meaningful_token_count)`), so a genuinely grounded one-word claim now counts as
+supported while multi-token claims still need two overlaps — raising faithfulness scores
+that feed `EvalSuite`.
+
+**Tests added or updated:**
+All in `tests/unit/test_faithfulness_checker.py`: two Week 8 reproduction tests now pass and
+guard the fix (`test_short_grounded_claim_is_supported_issue_152`,
+`test_check_scores_grounded_short_feedback_above_zero_issue_152`); three new edge-case tests
+(`test_short_ungrounded_claim_not_supported_issue_152`,
+`test_all_stop_words_claim_not_supported_issue_152`,
+`test_long_claim_single_overlap_not_supported_issue_152`) cover an ungrounded short claim,
+an all-stop-words claim, and a long claim with only one overlap; and
+`test_minimum_overlap_required` was strengthened from a type-only check to assert the
+two-token claim stays unsupported.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+_(Interpreted per the assignment's pre-existing-failure rule: my change introduces no new
+failures. Full-suite unit tests went from 55 → 53 failures — the 2 I fixed — and 375 → 380
+passes; `ruff`, `black`, and `mypy` all pass on the files I changed. The remaining 53
+failures pre-date this PR and live in modules it does not touch; details in the PR's Notes
+for Reviewers.)_
+
+**Draft PR feedback received from:** _<peer/mentor name or Slack handle, or "none">_
