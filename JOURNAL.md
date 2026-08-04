@@ -129,7 +129,13 @@ language is correct. The two pre-existing acceptance tests now pass as well.
      files / mypy 103 errors. After my changes: test-unit 51 failed (2 fewer) /
      ruff 86 / black 52 / mypy 103 — all unrelated pre-existing failures unchanged. -->
 
-**Draft PR feedback received from:** <!-- TODO: reviewer's name / Slack handle, or "none" -->
+**Draft PR feedback received from:** Claude (AI mentor review — approved by
+instructor as the reviewer for this cohort). Feedback: hoist the local `skip_dirs`
+set to a `SKIP_DIRS` class constant to match the module's existing pattern
+(`EXT_TO_LANG`, `CONFIG_INDICATORS`) and avoid rebuilding it per file. I agreed
+and applied it in `refactor(agent): hoist skip-dir set to SKIP_DIRS class
+constant`. Reviewer also noted Windows `\` paths are out of scope (unchanged from
+original) — left as-is and documented in the PR notes.
 
 ---
 
