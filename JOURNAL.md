@@ -30,3 +30,34 @@ Reproduced the issue locally by running `.venv/Scripts/pytest tests/unit/test_re
 **Walkthrough video (recommended):** N/A
 
 **Blockers or open questions:** None.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed all sub-tasks from `PLAN.md`. Expanded the mock `readme` string fixture in `tests/unit/test_readme_scorer.py` from 51 words to ~530 words. Added realistic project description, architecture overview, installation steps, configuration flags, and contributing guidelines while maintaining all required Markdown quality signals (`#` headers, badge images, code snippets, demo links).
+
+**Next steps:**
+Verify test suite execution with `pytest`, commit changes, push working branch to remote fork, open Pull Request against upstream repository, and submit final branch link.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [Replace with live PR link after opening PR]
+
+**Branch:** fix/156-readme-scorer-fixture
+
+**What you built:**
+Expanded the inline mock `readme` fixture string in `tests/unit/test_readme_scorer.py` from 51 words to ~530 words. This ensures `TestReadmeScorer.test_readme_with_all_quality_signals` satisfies both `data["word_count"] > 100` and `data["word_count_category"] == "comprehensive"` as expected by the scorer logic.
+
+**Tests updated:**
+Updated `tests/unit/test_readme_scorer.py` (`TestReadmeScorer.test_readme_with_all_quality_signals`). Covered word count thresholds (>500 words for comprehensive tier), category classification ("comprehensive"), and verified that installation, usage, tech stack, badge, and demo link detection signals remain functional.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
