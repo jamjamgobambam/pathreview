@@ -148,7 +148,7 @@ change; `mypy` runs clean on the file I changed.)
 
 ### Check-in 2 (end of week)
 
-**PR link:** _[https://github.com/ascherj/pathreview/pull/824]
+**PR link:** https://github.com/ascherj/pathreview/pull/824
 
 **Branch:** `fix/152-faithfulness-short-claims`
 
