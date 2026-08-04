@@ -1,4 +1,4 @@
-.PHONY: setup run test-unit test-integration test-all lint format typecheck check migrate seed reset-db eval clean
+.PHONY: setup run test-unit test-integration test-all lint format typecheck check migrate validate-migrations seed reset-db eval clean
 
 SHELL := /bin/bash
 
@@ -62,6 +62,11 @@ check: lint format typecheck ## Run lint + format + typecheck
 
 migrate: ## Run pending database migrations
 	$(VENV_BIN)/alembic upgrade head
+
+validate-migrations: ## Apply all migrations to a fresh DB and verify schema matches models
+	source $(VENV_BIN)/activate && \
+		DATABASE_URL="$${DATABASE_URL:-postgresql://pathreview:pathreview@localhost:5433/pathreview_dev}" \
+		bash scripts/validate_migrations.sh
 
 seed: ## Re-seed the database with sample data
 	$(PYTHON) scripts/seed_db.py
