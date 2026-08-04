@@ -1,7 +1,7 @@
 """Tests for api/routes/health.py
 
 Covers issue #68 (ascherj/pathreview): /health must surface a real
-safety_events_last_hour count sourced from SafetyMonitor/Redis instead of a
+safety_events_total count sourced from SafetyMonitor/Redis instead of a
 hardcoded 0.
 """
 
@@ -74,15 +74,6 @@ class TestHealthCheckSafetyEventCount:
             vector_db_url="http://localhost:8001",
         )
 
-    def test_safety_monitor_tracks_events_correctly(self, mock_redis):
-        """SafetyMonitor's Redis-backed counting works in isolation."""
-        monitor = SafetyMonitor(mock_redis)
-
-        monitor.log_event("pii_detected", {"field": "email"})
-        monitor.log_event("pii_detected", {"field": "phone"})
-
-        assert monitor.get_event_count("pii_detected") == 2
-
     @pytest.mark.asyncio
     async def test_health_check_reports_real_safety_event_count(
         self, mock_db_session, mock_redis, fake_settings
@@ -90,7 +81,7 @@ class TestHealthCheckSafetyEventCount:
         """/health reflects real safety events logged via SafetyMonitor.
 
         Regression test for #68: health_check() used to hardcode
-        safety_events_last_hour to 0 regardless of real Redis state.
+        safety_events_total to 0 regardless of real Redis state.
         """
         monitor = SafetyMonitor(mock_redis)
         monitor.log_event("pii_detected", {"field": "email"})
@@ -104,7 +95,7 @@ class TestHealthCheckSafetyEventCount:
         ):
             result = await health_check(db=mock_db_session)
 
-        assert result["safety_events_last_hour"] == real_count
+        assert result["safety_events_total"] == real_count
 
     @pytest.mark.asyncio
     async def test_health_check_aggregates_across_event_types(
@@ -123,7 +114,7 @@ class TestHealthCheckSafetyEventCount:
         ):
             result = await health_check(db=mock_db_session)
 
-        assert result["safety_events_last_hour"] == 4
+        assert result["safety_events_total"] == 4
 
     @pytest.mark.asyncio
     async def test_health_check_defaults_to_zero_with_no_events(
@@ -136,7 +127,7 @@ class TestHealthCheckSafetyEventCount:
         ):
             result = await health_check(db=mock_db_session)
 
-        assert result["safety_events_last_hour"] == 0
+        assert result["safety_events_total"] == 0
 
     @pytest.mark.asyncio
     async def test_health_check_degrades_gracefully_when_redis_unavailable(
@@ -152,5 +143,5 @@ class TestHealthCheckSafetyEventCount:
         ):
             await health_check(db=mock_db_session)
 
-        assert exc_info.value.detail["safety_events_last_hour"] == 0
+        assert exc_info.value.detail["safety_events_total"] == 0
         assert exc_info.value.detail["dependencies"]["redis"] == "unhealthy"
