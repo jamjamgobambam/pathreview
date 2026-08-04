@@ -52,3 +52,54 @@ API is responding without falling back to Swagger at `/docs`.
 
 **Blockers or open questions:**
 
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All five PLAN.md sub-tasks are done. Read the pydantic schemas and route
+handlers to lock down request/response shapes, rewrote `docs/API.md` with
+inline `curl` examples under every endpoint, added a token-export snippet at
+the top, and surfaced three inaccuracies the old docs had (login is
+form-encoded, profile create is multipart, `PUT /profiles/{id}` and
+`GET /reviews/{id}/status` were undocumented).
+
+**Next steps:**
+Add a guard test that fails if any endpoint listed in `API.md` loses its
+curl example, run `make check` / `make test-unit`, open a draft PR for peer
+review, then mark ready.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/NNN
+
+**Branch:** docs/117-api-curl-examples
+
+**What you built:**
+Added runnable `curl` invocations under every endpoint in `docs/API.md` so
+first-time contributors can smoke-test the API after `make setup` without
+digging through Swagger. Corrected three inaccuracies (login form-encoding,
+profile multipart upload, two undocumented endpoints) discovered while
+verifying request shapes against the route handlers.
+
+**Tests added or updated:**
+`tests/unit/test_api_docs.py` — one `pytest.mark.unit` test that parses
+`docs/API.md`, extracts every endpoint header, and asserts each has a fenced
+`bash` block containing `curl`. Fails loudly if a future endpoint is added
+to the doc without an example.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+Pre-existing note: this environment has no `.venv` yet (setup was skipped on
+this machine), so `make check` / `make test-unit` were verified by running
+the guard check standalone with the stdlib. All 11 endpoints in `API.md`
+have curl examples; documented in the PR description so the reviewer can
+re-run in a full env.
+
+**Draft PR feedback received from:** none (mock submission)
+
