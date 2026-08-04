@@ -42,3 +42,19 @@ I’m ready to open the PR, gather any review feedback, and update the journal w
 **Blockers:** None
 
 ---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/394
+
+**Branch:** fix/146-parenthesized-us-phone-numbers
+
+**What you built:**
+I updated the US phone-number regex in `safety/pii_scrubber.py` so parenthesized numbers like `(555) 123-4567` are now detected and redacted consistently. I kept the change scoped to the phone pattern and added a regression assertion in `tests/unit/test_pii_scrubber.py` to make sure the parenthesized format stays covered.
+
+**Tests added or updated:**
+I updated `tests/unit/test_pii_scrubber.py` to assert that the parenthesized phone format is detected exactly, and I verified the affected phone-related tests with the focused pii scrubber test slice. The broader repo still has unrelated pre-existing lint and typecheck issues outside the files I touched.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes (test cases related to the issue all pass, but pre-existing issues remain.)
+
+**Draft PR feedback received from:** none
