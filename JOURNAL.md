@@ -30,3 +30,29 @@ The current ledger allows duplicate claims.
 **PLAN.md link:** https://github.com/DDDIGHE/pathreview/blob/test/157-partial-overlap-fixture/PLAN.md
 
 **Blockers or open questions:**
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:** Reproduced issue #157 and completed the implementation plan.
+
+**Next steps:** Update the partial-overlap fixture, run the relevant tests, and open the pull request.
+
+**Blockers:** None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/766
+
+**What you built:** Updated the partial-overlap fixture so it omits one query term and exercises the intended 0.75 relevance score instead of an exact match.
+
+**Tests added or updated:** Updated `tests/unit/test_relevance_scorer.py`; all 19 relevance-scorer tests pass.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** none
+
+**Repository-wide check note:** `make check` reports 182 lint errors across the repository. `make test-unit` reports 376 passed and 52 failures outside the changed relevance-scorer test.
