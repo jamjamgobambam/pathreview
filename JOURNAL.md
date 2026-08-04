@@ -140,4 +140,6 @@ here's what I measured:
   annotating all 29 functions in the file is unrelated to this issue. Flagging
   it in case the hook config is meant to match the Makefile.
 
-**Draft PR feedback received from:** TODO
+**Draft PR feedback received from:** Posted the draft PR for peer review in
+`#dts-su26-ai201-program-help-2a`. Will update here with the reviewer's name
+once someone picks it up.
