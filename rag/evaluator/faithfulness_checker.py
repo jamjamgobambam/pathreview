@@ -40,7 +40,7 @@ class FaithfulnessChecker:
         # " ".join(...) then raises TypeError. Reproduced via:
         #   FaithfulnessChecker().check("Knows Python.", [{"text": None}])
         # -> TypeError: sequence item 0: expected str instance, NoneType found
-        context_text = " ".join([chunk.get("text", "") for chunk in context_chunks])
+        context_text = " ".join([chunk.get("text") or "" for chunk in context_chunks])
 
         # Check each claim for support
         supported = 0
