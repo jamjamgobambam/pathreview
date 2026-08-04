@@ -61,3 +61,34 @@ I added seven new tests to tests/unit/test_prompt_defense.py. They cover removal
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none yet
+
+## Week 10 — Iteration and reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback came in during Week 9 or Week 10. This matches the course note that reviewer feedback is not a feature in Summer 2026.
+
+**How you responded:**
+Since no feedback arrived, there was nothing to respond to. I kept my PR open and ready for review in case feedback comes in later.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the local environment running was much harder than the actual code fix. I spent significant time before I even got to the issue itself dealing with Docker not being installed, then a ChromaDB image that crashed on startup because its architecture compatibility step reinstalled NumPy 2, which broke on an old API the image's own code still depended on. I had to trace through container logs, inspect the image's actual entrypoint script, and rewrite the docker-compose command to reinstall the correct NumPy version after the incompatible rebuild step ran. None of that was part of the assigned issue, but without solving it I could not even reach the point of reproducing the actual bug.
+
+**What did you learn about working in a large codebase?**
+The biggest thing I learned is that a codebase can already contain the logic you need, just not wired up correctly. The detection function, is_injection_attempt, already had the correct regex patterns for the exact attack described in the issue. The bug was not missing logic, it was that the cleaning function, sanitize, never called that logic at all. In my own smaller projects I would probably have written detection and cleaning as one function from the start. In a large codebase, functionality gets split across multiple places, and the real skill is tracing how those pieces are supposed to connect, not just reading one function in isolation.
+
+**How did AI tools help, and where did they fall short?**
+AI was most useful for quickly tracing where a function was or was not being called across the codebase, and for helping me reason through edge cases in my PLAN.md before I wrote any code, like whether removing a matched pattern should leave a space or nothing, and whether that would affect a resume's date ranges. AI fell short when it came to trusting search results blindly. For example, I could not just assume PromptDefense was wired into the real resume upload flow. I had to actually grep the codebase myself and confirm it was only ever called in its own test file. AI could point me toward tools and questions to ask, but the actual verification, like proving a test failure was pre-existing by stashing my changes and rerunning it against the original code, had to be done by actually running commands and reading real output, not by assuming.
+
+**What would you do differently if you started over?**
+I would try to get my local environment fully running in Week 7 instead of leaving Docker setup mostly for when I needed it in Week 8. I lost time context switching between environment debugging and actual issue work. I would also write my scope reasoning into JOURNAL.md the first time instead of needing to add it after losing points, since writing it down as I made the decision would have taken less time than reconstructing my reasoning afterward.
+
+**What are you most proud of from this module?**
+I am most proud of catching that PromptDefense is not actually wired into the resume upload flow, and choosing to document that clearly as an out of scope follow up instead of either ignoring it or trying to fix everything in one PR. It would have been easy to either not notice it, or to expand my PR to fix it and risk introducing new bugs into code I did not fully understand yet. Staying inside the scope the issue actually asked for, while still being honest about the gap I found, felt like the right call for a first contribution to an unfamiliar codebase.
