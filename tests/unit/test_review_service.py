@@ -1,14 +1,16 @@
 """Tests for review_service.py"""
 
-import pytest
-from uuid import uuid4
 from unittest.mock import AsyncMock, Mock, patch
-import asyncio
+from uuid import uuid4
+
+import pytest
+from redis.exceptions import LockError
 
 from core.services.review_service import (
     create_review,
     get_review,
     list_reviews,
+    process_review,
 )
 
 
@@ -45,7 +47,9 @@ class TestReviewService:
         return profile
 
     @pytest.mark.asyncio
-    async def test_create_review_returns_review_with_pending_status(self, mock_db_session, mock_review):
+    async def test_create_review_returns_review_with_pending_status(
+        self, mock_db_session, mock_review
+    ):
         """Test create_review returns Review with status='pending'."""
         profile_id = uuid4()
         user_id = uuid4()
@@ -55,7 +59,7 @@ class TestReviewService:
         mock_db_session.commit = AsyncMock()
         mock_db_session.refresh = AsyncMock()
 
-        with patch('core.services.review_service.Review') as MockReview:
+        with patch("core.services.review_service.Review") as MockReview:
             mock_instance = MockReview.return_value
             mock_instance.status = "pending"
             mock_instance.sections = None
@@ -66,7 +70,7 @@ class TestReviewService:
             # Check that Review was instantiated
             MockReview.assert_called()
             call_kwargs = MockReview.call_args[1]
-            assert call_kwargs['status'] == "pending"
+            assert call_kwargs["status"] == "pending"
 
     @pytest.mark.asyncio
     async def test_get_review_returns_review_for_correct_owner(self, mock_db_session):
@@ -133,9 +137,7 @@ class TestReviewService:
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
-        reviews, total = await list_reviews(
-            mock_db_session, user_id, page=2, page_size=page_size
-        )
+        reviews, total = await list_reviews(mock_db_session, user_id, page=2, page_size=page_size)
 
         # Second call should pass offset for page 2
         calls = mock_db_session.execute.call_args_list
@@ -165,7 +167,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.add.assert_called_once()
@@ -176,7 +178,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.commit.assert_called_once()
@@ -187,7 +189,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.refresh.assert_called_once()
@@ -244,13 +246,13 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review') as MockReview:
+        with patch("core.services.review_service.Review") as MockReview:
             MockReview.return_value = Mock()
             await create_review(mock_db_session, profile_id, user_id)
 
             call_kwargs = MockReview.call_args[1]
-            assert 'profile_id' in call_kwargs
-            assert 'status' in call_kwargs
+            assert "profile_id" in call_kwargs
+            assert "status" in call_kwargs
 
     @pytest.mark.asyncio
     async def test_get_review_verifies_ownership(self, mock_db_session):
@@ -287,7 +289,7 @@ class TestReviewService:
         """Test list_reviews returns list of Review objects."""
         user_id = uuid4()
 
-        mock_reviews = [Mock(spec=['id', 'status']) for _ in range(3)]
+        mock_reviews = [Mock(spec=["id", "status"]) for _ in range(3)]
         mock_result = AsyncMock()
         mock_result.scalars.return_value.all.return_value = mock_reviews
         mock_db_session.execute = AsyncMock(return_value=mock_result)
@@ -302,13 +304,13 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review') as MockReview:
+        with patch("core.services.review_service.Review") as MockReview:
             MockReview.return_value = Mock()
             await create_review(mock_db_session, profile_id, user_id)
 
             call_kwargs = MockReview.call_args[1]
-            assert call_kwargs['sections'] is None
-            assert call_kwargs['overall_score'] is None
+            assert call_kwargs["sections"] is None
+            assert call_kwargs["overall_score"] is None
 
     @pytest.mark.asyncio
     async def test_get_review_with_valid_uuid(self, mock_db_session):
@@ -338,3 +340,82 @@ class TestReviewService:
 
         # Should order by created_at descending
         mock_db_session.execute.assert_called_once()
+
+
+@pytest.mark.unit
+class TestReviewServiceLock:
+    """Test suite for the per-profile Redis review lock in process_review()."""
+
+    @pytest.fixture
+    def mock_db_session(self):
+        """Create a mock async database session."""
+        session = AsyncMock()
+        session.add = Mock()
+        session.commit = AsyncMock()
+        session.execute = AsyncMock()
+        return session
+
+    @pytest.fixture
+    def mock_lock(self):
+        """Create a mock redis.asyncio Lock with acquire/release as AsyncMock."""
+        lock = Mock()
+        lock.acquire = AsyncMock()
+        lock.release = AsyncMock()
+        return lock
+
+    @pytest.fixture
+    def review_not_found_db(self, mock_db_session):
+        """Mock db.execute so the review lookup in process_review() returns None."""
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.first.return_value = None
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+        return mock_db_session
+
+    @pytest.mark.asyncio
+    async def test_lock_acquired_and_released_on_success(self, review_not_found_db, mock_lock):
+        """Test process_review() acquires the lock once and releases it once."""
+        review_id = uuid4()
+        profile_id = uuid4()
+
+        with patch(
+            "core.services.review_service.redis_client.lock", return_value=mock_lock
+        ) as mock_lock_factory:
+            await process_review(review_not_found_db, review_id, profile_id)
+
+            mock_lock_factory.assert_called_once()
+            mock_lock.acquire.assert_awaited_once()
+            mock_lock.release.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_lock_keyed_and_scoped_per_profile_with_ttl(self, review_not_found_db, mock_lock):
+        """Test the lock is keyed by profile_id and uses REVIEW_LOCK_TTL_SECONDS."""
+        review_id = uuid4()
+        profile_id = uuid4()
+
+        with patch(
+            "core.services.review_service.redis_client.lock", return_value=mock_lock
+        ) as mock_lock_factory:
+            await process_review(review_not_found_db, review_id, profile_id)
+
+            args, kwargs = mock_lock_factory.call_args
+            assert args[0] == f"review_lock:{profile_id}"
+            assert kwargs["timeout"] == 300
+
+    @pytest.mark.asyncio
+    async def test_lock_released_on_expired_lock_is_logged_not_raised(
+        self, review_not_found_db, mock_lock
+    ):
+        """Test releasing an already expired lock logs a warning instead of raising."""
+        review_id = uuid4()
+        profile_id = uuid4()
+
+        mock_lock.release = AsyncMock(side_effect=LockError("Cannot release an unlocked lock"))
+
+        with (
+            patch("core.services.review_service.redis_client.lock", return_value=mock_lock),
+            patch("core.services.review_service.log") as mock_log,
+        ):
+            await process_review(review_not_found_db, review_id, profile_id)
+
+            mock_log.warning.assert_called_once()
+            assert mock_log.warning.call_args[0][0] == "review_lock_release_on_expired_lock"

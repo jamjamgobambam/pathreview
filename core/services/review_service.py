@@ -1,15 +1,25 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import redis.asyncio as redis
+import structlog
+from redis.exceptions import LockError
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.config import settings
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
+
+# Redis client for the per-profile review lock
+redis_client = redis.Redis.from_url(settings.redis_url)
+
+# TTL for the per-profile review lock
+REVIEW_LOCK_TTL_SECONDS = 300
 
 
 async def create_review(
@@ -40,8 +50,8 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
     return result.scalars().first()
@@ -86,6 +96,8 @@ async def process_review(
 ) -> None:
     """
     Background task to process a review.
+    Serialized per profile_id via a Redis lock,
+    so concurrent reviews for the same profile never interleave.
     Steps:
     1. Set status="processing"
     2. Run ingestion pipeline on profile's sources
@@ -95,6 +107,11 @@ async def process_review(
     6. Set status="complete", store sections in review.sections
     7. On exception: set status="failed", log error
     """
+    review_lock = redis_client.lock(
+        f"review_lock:{profile_id}",
+        timeout=REVIEW_LOCK_TTL_SECONDS,
+    )
+    await review_lock.acquire()
     try:
         # Get the review
         stmt = select(Review).where(Review.id == review_id)
@@ -192,6 +209,16 @@ async def process_review(
                 await db.commit()
         except Exception as e:
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
+
+    finally:
+        try:
+            await review_lock.release()
+        except LockError:
+            log.warning(
+                "review_lock_release_on_expired_lock",
+                review_id=str(review_id),
+                profile_id=str(profile_id),
+            )
 
 
 async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
