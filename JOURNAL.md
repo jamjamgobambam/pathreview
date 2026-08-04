@@ -59,4 +59,4 @@ I created a new test file `tests/unit/test_llm_reranker.py`. It uses `unittest.m
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** [Insert name of reviewer]
+**Draft PR feedback received from:** N/A
