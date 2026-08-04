@@ -89,3 +89,18 @@ the codebase calls an external API + mocks it in tests).
 - Unpinned or range-only deps with no resolvable current version → skipped.
 - PEP 503 name normalization so `Django` and `django` compare equal.
 - Pre-release / non-numeric versions handled without throwing.
+
+### Week 9 update
+
+Built sub-tasks 1–4: the three manifest parsers, the injectable latest-version
+resolver (with optional best-effort PyPI/npm lookup), and the major-version
+comparison/flagging, all covered by a 20-case unit suite. Threshold decision:
+`max_major_lag` defaults to 1, so a dependency is flagged only when **2+** majors
+behind ("more than one"); it is overridable per call.
+
+**Sub-task 5 (register in `orchestrator.py`) is deferred.** Editing
+`orchestrator.py` makes the pre-commit mypy hook follow its imports into
+`error_handling.py` and `memory/*.py`, which fail on pre-existing
+`disallow_untyped_defs` errors unrelated to #53. Wiring the tool in cleanly would
+require annotating ~4 unrelated modules, out of scope for this issue, so the tool
+ships standalone and fully tested with registration tracked as a follow-up.
