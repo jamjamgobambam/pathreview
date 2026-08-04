@@ -39,3 +39,34 @@ Started the backend locally via make run and ran curl -i http://localhost:8000/h
 **Blockers or open questions:**
 - safety_events_last_hour already appears in the /health response, need to confirm whether it's reading real safety event counts from safety/monitoring.py or is a placeholder value that always returns 0. If it's a stub, the actual work is wiring it up correctly rather than adding the field from scratch.
 - /health currently returns 503 locally because Postgres and Redis dependencies are unhealthy, need to confirm whether this is a local environment/config issue (e.g. services not running) or a genuine problem worth its own ticket, since it's unrelated to the safety-metrics issue but is blocking a clean "healthy" baseline to test against.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the core fix for issue #68. In `safety/monitoring.py`, replaced the
+`INCR`-based lifetime event counter with a Redis sorted set (`ZADD` with timestamp
+as score), so `get_event_count(event_type, window_hours)` now performs a real
+time-windowed `ZCOUNT` instead of ignoring the `window_hours` parameter. Added
+`get_total_event_count()` to sum counts across all event types. In
+`api/routes/health.py`, replaced the hardcoded `safety_events_last_hour: 0` stub
+with a real call into `SafetyMonitor`, and made it degrade to `null` (instead of a
+misleading `0`) when Redis is unhealthy. Also resolved the pre-commit failures this
+introduced — ruff's `B008` warning on `Depends()`, and several mypy errors caused by
+the `health_status` dict lacking an explicit type annotation and the `db` parameter
+lacking a type. `pre-commit run --all-files` now passes clean (ruff, black, mypy).
+
+**Next steps:**
+- Write unit tests for `SafetyMonitor.get_event_count` / `get_total_event_count`,
+  modeled on the existing `test_rate_limiter.py` pattern (mocked Redis client,
+  `patch('time.time', ...)` to control timestamps)
+- Add a test for `/health` covering the Redis-down case, confirming
+  `safety_events_last_hour` returns `null` rather than `0` or raising
+- Run the full `make test-unit` and `make test-integration` suites to confirm
+  nothing else regressed
+- Finalize and open the PR (description is drafted, includes manual verification
+  steps for reviewers)
+
+**Blockers:**
+None currently
