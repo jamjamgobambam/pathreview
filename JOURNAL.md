@@ -52,7 +52,7 @@ As of Tuesday, August 4, 2026, I still cannot run Python from this Codex workspa
 
 ### Check-in 2 (end of week)
 
-**PR link:** [to be added after PR creation]
+**PR link:** [PR #718](https://github.com/ascherj/pathreview/pull/718)
 
 **Branch:** `fix/157-relevance-scorer-partial-overlap-fixture`
 
