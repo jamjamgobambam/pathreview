@@ -72,3 +72,49 @@ it a real partial-overlap case and gives a score of 0.75 (inside 0.3–0.9). The
 changes is `tests/unit/test_relevance_scorer.py` — the scorer itself stays the same because it's
 already correct. The main risk I noted is not touching the tokenizer, since a few other tests in
 the file depend on how it currently works.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the fix from my PLAN.md. Before changing anything I ran the whole unit suite to note
+the pre-existing failures — `pytest tests/unit` gave `53 failed, 375 passed` (the codebase has a
+lot of unrelated failing tests, one per open issue). Then I made the one-line change to the sample
+chunk in `test_query_with_partial_overlap` so it only has 3 of the 4 query words. After the change,
+the target test passes, the whole `test_relevance_scorer.py` file is `19 passed`, and the full
+suite is now `52 failed, 376 passed` — so my change fixed exactly one test and didn't break
+anything else. I committed it as `test(rag): fix partial-overlap fixture in relevance scorer test`.
+
+**Next steps:**
+Open a draft PR against the upstream repo, ask for peer/mentor feedback in Slack, then fill in
+Check-in 2 with the PR link and mark the PR ready for review.
+
+**Blockers:**
+None. Note: `make check` and `make test-unit` have many pre-existing failures unrelated to my
+issue (ruff/black/mypy errors and 52 other failing tests). I confirmed my change introduces no new
+failures — the count of failing tests went down by exactly one.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _(to add once the PR is opened)_
+
+**Branch:** `fix/157-relevance-scorer-fixture`
+
+**What you built:**
+A one-line fix to a broken unit test. The `test_query_with_partial_overlap` fixture was scoring a
+query against a chunk that contained all four query words (full overlap), so the scorer correctly
+returned 1.0 and the test's `0.3 < score < 0.9` assertion failed. I changed the chunk to contain
+only three of the four words, so it now exercises genuine partial overlap and scores 0.75.
+
+**Tests added or updated:**
+`tests/unit/test_relevance_scorer.py` — updated the fixture in `test_query_with_partial_overlap`.
+No production code changed; the scorer in `rag/evaluator/relevance_scorer.py` was already correct.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+<!-- Per the pre-existing-failures guidance: "passes" here means my change introduces no NEW
+failures. Baseline 53 failed -> 52 failed after my change; ruff passes on the changed file. -->
+
+**Draft PR feedback received from:** _(add Slack handle once you get feedback, or "none")_
