@@ -31,3 +31,35 @@ full-coverage scoring of 1.0 is correct. The bug is in the test fixture,
 not the scorer.
 
 **PLAN.md link:**  https://github.com/nickventu/pathreview/blob/test/157-relevance-scorer-test-fixture/PLAN.md
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Rewrote chunk text so it overlaps on only some of the 4 query terms. (following step 1 of PLAN.md)
+
+**Next steps:**
+Actual implementation of the change in test_relevance_scorer
+
+**Blockers:**
+
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/837
+
+**Branch:** test/157 relevance scorer test fixture
+
+**What you built:**
+Fixed a mislabeled test fixture in `test_query_with_partial_overlap` for the RelevanceScorer test suite. The chunk text had full coverage of all 4 query terms, so the scorer correctly scored it 1.0, however the test asserted a mid-range "partial overlap" score, a premise the chunk didn't actually satisfy. Corrected the chunk text so it reflects true partial overlap; no scorer logic changed.
+
+**Tests added or updated:**
+Updated `tests/unit/test_relevance_scorer.py` — specifically `test_query_with_partial_overlap`. Covers the scorer's behavior when a query and chunk share some but not all terms, verifying the score falls in the expected 0.3–0.9 range rather than saturating to 1.0.
+
+**Self-review confirmation:** [ ] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
