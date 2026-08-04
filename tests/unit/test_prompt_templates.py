@@ -6,6 +6,46 @@ import pytest
 
 from rag.generator.prompt_templates import PROMPT_TEMPLATES, get_template
 
+# Snapshot of the exact prompt template text, keyed by (template name, version).
+#
+# Every review PathReview produces is generated from these templates, so a reworded
+# prompt changes product output. These hashes pin the text so such a change cannot
+# ship silently: it must be a deliberate version bump plus a snapshot update.
+#
+# MD5 is used for change detection only, never for security. It matches the hash
+# this suite already used, so the values stay comparable across the fix.
+#
+# When a snapshot test fails:
+#   1. Unintended edit -> revert the template change.
+#   2. Intended change -> add a NEW version key to PROMPT_TEMPLATES (e.g. "v2")
+#      rather than editing "v1" in place, so already-generated reviews stay
+#      reproducible, then add the new entry below. Print a hash with:
+#        python -c "import hashlib; \
+#          from rag.generator.prompt_templates import PROMPT_TEMPLATES; \
+#          print(hashlib.md5(PROMPT_TEMPLATES['NAME']['VERSION'].encode()).hexdigest())"
+EXPECTED_TEMPLATE_HASHES = {
+    ("first_impression", "v1"): "ef6429d3a6d426b3c9913381020dd7e4",
+    ("gaps_feedback", "v1"): "e5bfd6644fd62a0fe01f60c9aa456762",
+    ("presentation_feedback", "v1"): "43549ee59818dfc8eb3627554a563b2e",
+    ("projects_feedback", "v1"): "d346d01b24ee7aad92594014a46557af",
+    ("skills_feedback", "v1"): "f93103d823482a2e65decc6653e4ee5c",
+}
+
+
+def _hash_template_text(template_text: str) -> str:
+    """Hash a single template's text for snapshot comparison.
+
+    Hashes the raw string, so whitespace-only edits are also detected. That
+    strictness is intended: trailing whitespace reaches the model too.
+
+    Args:
+        template_text: Template string exactly as stored in PROMPT_TEMPLATES.
+
+    Returns:
+        Hex-encoded MD5 digest of the template text.
+    """
+    return hashlib.md5(template_text.encode()).hexdigest()
+
 
 @pytest.mark.unit
 class TestPromptTemplates:
@@ -188,34 +228,62 @@ class TestPromptTemplates:
 
         assert template_default == template_v1
 
-    def test_template_snapshot_content_hash(self):
-        """Snapshot test: verify template content hash."""
-        # REPRODUCTION — issue #37 (https://github.com/ascherj/pathreview/issues/37)
-        # This "snapshot" test is a no-op: it computes a hash of all template
-        # content but NEVER asserts it against a known-good value. The two
-        # assertions below are always true for any MD5 output (a 32-char string),
-        # regardless of what the templates say.
-        #
-        # Reproduced locally (2026-07-27): edited the skills_feedback template
-        # text, ran `pytest tests/unit/test_prompt_templates.py` -> all 37 tests
-        # PASSED. A silent, unversioned wording change ships undetected.
-        #
-        # Baseline combined MD5 of all templates at reproduction time:
-        #   3e79f974f8c1b6d8d1481dfc42e949ca
-        # The fix (Week 9) will assert per-template hashes against stored
-        # snapshots so any content change fails until the version is bumped.
-        # Create hash of all template content
-        template_content = ""
+    def test_template_snapshot_content_hash(self) -> None:
+        """Snapshot test: each template's text matches its stored hash."""
         for name in sorted(PROMPT_TEMPLATES.keys()):
             for version in sorted(PROMPT_TEMPLATES[name].keys()):
-                template_content += PROMPT_TEMPLATES[name][version]
+                expected_hash = EXPECTED_TEMPLATE_HASHES.get((name, version))
+                assert expected_hash is not None, (
+                    f"No stored snapshot for template '{name}' {version}. Add its hash "
+                    "to EXPECTED_TEMPLATE_HASHES in this file."
+                )
 
-        content_hash = hashlib.md5(template_content.encode()).hexdigest()
+                actual_hash = _hash_template_text(PROMPT_TEMPLATES[name][version])
+                assert actual_hash == expected_hash, (
+                    f"Template '{name}' {version} text changed: hash is {actual_hash}, "
+                    f"snapshot expects {expected_hash}. Revert the edit, or bump the "
+                    "template version and add the new hash to EXPECTED_TEMPLATE_HASHES."
+                )
 
-        # Expected hash - update if templates intentionally change
-        # This helps detect unintended changes to templates
-        assert isinstance(content_hash, str)
-        assert len(content_hash) == 32  # MD5 hash length
+    def test_snapshot_covers_exactly_the_current_templates(self) -> None:
+        """Snapshot test: stored snapshot keys match PROMPT_TEMPLATES exactly."""
+        actual_keys = {
+            (name, version) for name, versions in PROMPT_TEMPLATES.items() for version in versions
+        }
+
+        missing = actual_keys - set(EXPECTED_TEMPLATE_HASHES)
+        assert not missing, (
+            f"Templates with no stored snapshot: {sorted(missing)}. Add each one's hash "
+            "to EXPECTED_TEMPLATE_HASHES in this file."
+        )
+
+        orphaned = set(EXPECTED_TEMPLATE_HASHES) - actual_keys
+        assert not orphaned, (
+            f"Snapshots for templates that no longer exist: {sorted(orphaned)}. Remove "
+            "them from EXPECTED_TEMPLATE_HASHES in this file."
+        )
+
+    def test_snapshot_hash_detects_template_edits(self) -> None:
+        """Snapshot test: hashing is content-sensitive, so an edit cannot pass silently.
+
+        Guards against this suite regressing to the no-op it was in issue #37, where
+        the snapshot test asserted only that an MD5 hash was a 32-character string and
+        so passed no matter what the templates said.
+        """
+        original = PROMPT_TEMPLATES["skills_feedback"]["v1"]
+
+        # Edits are built by appending rather than replacing known wording, so this
+        # test keeps working when the templates are legitimately reworded.
+        reworded = original + "Also comment on testing practices.\n"
+        whitespace_only = original + " "
+
+        for edited, description in [
+            (reworded, "a reworded template"),
+            (whitespace_only, "a whitespace-only template edit"),
+        ]:
+            assert _hash_template_text(edited) != _hash_template_text(
+                original
+            ), f"hashing is not content-sensitive: {description} would ship undetected"
 
     def test_skills_feedback_requests_json_format(self):
         """Test skills_feedback requests JSON output."""
