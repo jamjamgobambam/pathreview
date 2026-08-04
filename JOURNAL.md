@@ -37,3 +37,42 @@ The issue is reproduced by running the test suite, specifically the `tests/unit/
 
 **Blockers or open questions:**
 No Blockers
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+I have implemented the fix to the test file by adjusting the text chunk and have run tests to ensure that all 19 tests in that file now pass. 
+
+**Next steps:**
+[What are you working on for the rest of the week?]
+I need to commit these changes and draft/create the PR. I need to also review the PR conventions and requirements for contributions. 
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+N/A
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request] https://github.com/ascherj/pathreview/pull/742
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+test/157-relevance-scorer-partial-overlap-test 
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+In `test_query_with_partial_overlap`, the chunk `text` now omits "Python" so there is not a complete match. This now matches the expected behavior of a partial match which the test checks. 
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+I modified the "test_relevance_scorer.py" test file because this issue involved a incorrect pre-existing test. The modifciation made was to change the input text chunk so that there was actually a partial match instead of a full match. 
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+There are pre-existing issue that are outside the scope of this PR. 
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
+"none"
