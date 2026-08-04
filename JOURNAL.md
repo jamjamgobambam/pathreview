@@ -126,6 +126,12 @@ here's what I measured:
   the repo. I reverted all of it and kept my diff to the one file, since a
   giant unrelated formatting diff would have buried the actual fix and made
   the PR unreviewable.
+- `make typecheck` fails on `main` too, with 5 errors that are all missing
+  third-party type stubs or an environment mismatch, none of them in `safety/`:
+  `PyPDF2`, `jose`, `passlib.context`, `rank_bm25`, and numpy's stub hitting
+  "Type statement is only supported in Python 3.12 and greater". That last one
+  looks like the venv runs Python 3.14 while `pyproject.toml` pins mypy to
+  3.11. My change adds no new type errors.
 - One commit uses `--no-verify`, the test commit. The pre-commit mypy hook
   enforces `disallow_untyped_defs` on test files, but the project's own
   `make typecheck` target deliberately scopes to `api/ core/ ingestion/ rag/
