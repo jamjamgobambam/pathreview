@@ -70,3 +70,41 @@ lacking a type. `pre-commit run --all-files` now passes clean (ruff, black, mypy
 
 **Blockers:**
 None currently
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+rkdown
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/806
+
+**Branch:** fix/68-add-safety-count
+
+**What you built:**
+Fixed the `safety_events_last_hour` field on `/health`, which had been a hardcoded
+stub always returning `0`. `SafetyMonitor` now logs events into a Redis sorted set
+keyed by timestamp instead of a lifetime counter, so event counts can be queried
+over a real time window via `ZCOUNT`. The health endpoint calls
+`get_total_event_count()` to report a genuine last-hour figure, and returns `null`
+instead of `0` when Redis is unreachable, so the field can't misrepresent "unknown"
+as "confirmed zero."
+
+**Tests added or updated:**
+- `tests/unit/test_monitoring.py`: covers `SafetyMonitor.log_event` (valid/invalid
+  event types, retention trimming, expiry, Redis failures), `get_event_count`
+  (correct time-window math via mocked Redis + `patch('time.time')`, zero-events case,
+  Redis-error fallback to 0), and `get_total_event_count` (summing across event types,
+  mixed counts, partial failures)
+- `tests/unit/test_health.py`: covers `/health` returning a real
+  `safety_events_last_hour` value when Redis is healthy, returning `null` (not `0`)
+  when Redis is down, confirming `SafetyMonitor` isn't even queried when Redis is
+  unreachable, graceful handling if the safety-events lookup itself throws, and the
+  existing Postgres-down / all-healthy status code paths
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** None
