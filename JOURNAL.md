@@ -58,7 +58,7 @@ failures documented in Check-in 2.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _<!-- TODO: paste the PR URL after opening it against ascherj/pathreview -->_
+**PR link:** https://github.com/ascherj/pathreview/pull/728
 
 **Branch:** `bug/128-add-vuln-scan-ci`
 
