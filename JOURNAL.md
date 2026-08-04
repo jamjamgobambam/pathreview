@@ -1,3 +1,55 @@
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All four sub-tasks from PLAN.md are done. The `readme` fixture in
+`test_readme_with_all_quality_signals` was rewritten from ~51 words into a
+genuine ~568-word README (comfortably past the 500-word `comprehensive`
+threshold), preserving every quality signal the assertions check (installation
+and usage sections, badges, a demo link, and a tech stack section). All
+assertions were left unchanged — they now accurately describe the fixture. The
+scorer itself was not touched. Change committed (`f8cf8dd`) and pushed to
+`origin/fix/156-resume-scorer-test`.
+
+**Next steps:**
+Open the PR against `ascherj/pathreview` and fill out the PR template.
+
+**Blockers:**
+None specific to #156. Note: repo-wide `make check` and `make test-unit` exit
+non-zero due to pre-existing failures in unrelated files (verified against the
+parent commit) plus a local `black` version mismatch (project pins 24.1.0; venv
+has 26.5.1). My changed lines pass ruff, the pinned black, and all 23
+readme_scorer tests.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** (https://github.com/ascherj/pathreview/pull/789)
+
+**Branch:** `fix/156-resume-scorer-test`
+
+**What you built:**
+Fixed a self-contradicting unit test: its fixture README was too short (~51
+words) to satisfy its own `word_count > 100` / `word_count_category ==
+"comprehensive"` assertions. Enlarged the fixture to a real ~568-word README so
+both assertions hold, while keeping all quality signals intact and leaving the
+scorer logic (`agent/tools/readme_scorer.py`) untouched.
+
+**Tests added or updated:**
+`tests/unit/test_readme_scorer.py` — rewrote the fixture in
+`test_readme_with_all_quality_signals`; assertions unchanged. The full module
+passes (23/23).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both fail repo-wide on pre-existing, unrelated issues; my changed lines are
+clean — ruff clean, project-pinned black clean, 23/23 readme_scorer tests pass.)
+
+**Draft PR feedback received from:** none
+
+---
+
 ## Week 8 — Reproduction & solution planning
 
 **Reproduction commit link:** [https://github.com/gulziraAbudula/pathreview/commit/cb5b62d2b9efead4b13a943a73f2382165006d7c]
