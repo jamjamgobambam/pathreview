@@ -49,17 +49,18 @@ The local `pre-commit` mypy hook fails on 14 pre-existing type-annotation errors
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/809
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `fix/43-agent-session-state-error`
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+`Orchestrator` was memoizing tool results in memory for the lifetime of the object instead of per review, `market_analyzer`'s input was hardcoded so its cache key never changed, and Redis-backed session state was merged rather than replaced on each run — together causing a new review to reuse a prior review's stale tool results. I fixed all three: `context_manager.clear()` now runs at the start of every `Orchestrator.run()`, `market_analyzer` receives the current run's actual detected skills, and session state in Redis is replaced rather than merged.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+`tests/unit/test_orchestrator.py` (new) — 4 tests covering all three fixes. Verified each one fails against the pre-fix code (by temporarily reverting the fix locally) and passes against the fix, so they're confirmed to actually catch the regression.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(In the sense defined by the pre-existing-failures policy: both commands have the same pre-existing failures as the baseline I recorded before starting — ruff 182→178, black 52→50 files, mypy unchanged at 5 errors/4 files, pytest 53 failed/375 passed → 53 failed/379 passed — and my change introduces zero new failures. Full breakdown is in the PR description.)
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
 
