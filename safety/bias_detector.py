@@ -12,11 +12,11 @@ class BiasDetector:
 
     # Genuinely dismissive phrases about educational background
     DISMISSIVE_PATTERNS = [
-        r"(?:bootcamp|self-taught|online\s+course)\s+(?:education|training)\s+(?:is\s+)?(?:insufficient|inadequate|lacks?\s+(?:rigor|fundamentals|proper\s+training))",
+        r"(?:bootcamp|self-taught|online\s+course)\s+(?:education|training)\s+(?:is\s+)?(?:(?:insufficient|inadequate)\b|lacks?\s+(?:rigor|fundamentals|proper\s+training))",
         r"(?:bootcamp|coding\s+bootcamp|self-taught)\s+(?:graduates?|developers?|programmers?)\s+(?:(?:can't|cannot|won't|will\s+not)\s+(?:write|handle|code)|(?:lack|lacks|missing)\s+(?:rigor|fundamentals|proper\s+training))",
         r"(?:bootcamp|coding\s+bootcamp)\s+(?:doesn't|does\s+not)\s+prepare\s+(?:you|developers?)",
         r"(?:self-taught|bootcamp)(?:\s+developers?)?\s+(?:is|are)\s+(?:not|never)\s+(?:equal|comparable)\s+to\s+(?:university|traditional|formal)(?:\s+(?:education|graduates?))?",
-        r"bootcamp\s+attendance\s+means\s+(?:inadequate|insufficient)\s+(?:training|education)",
+        r"bootcamp\s+attendance\s+means\s+(?:inadequate|insufficient)\b\s+(?:training|education)",
         r"only\s+attended\s+a\s+bootcamp[^.!?]{0,80}lacks?\s+(?:the\s+)?rigor\s+of\s+(?:a\s+)?formal\s+(?:cs\s+)?education",
     ]
 

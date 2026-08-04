@@ -337,3 +337,12 @@ class TestBiasDetector:
 
         assert is_biased is True
         assert reason == "Demographic assumptions detected"
+
+    def test_insufficiently_word_form_not_matched_as_insufficient(self):
+        """Test longer word forms do not trigger insufficient substring matches."""
+        text = "The online course education section is insufficiently documented in this profile."
+
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is False
+        assert reason == ""
