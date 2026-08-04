@@ -80,7 +80,7 @@ None — the resolved Week 8 open question was whether to use Python constants v
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/ascherj/pathreview/pull/PENDING — *(update with the real PR number once opened)*
+**PR link:** https://github.com/ascherj/pathreview/pull/813
 
 **Branch:** `test/37-prompt-template-snapshot-tests`
 
@@ -95,4 +95,4 @@ Added real snapshot tests for the versioned prompt templates in `rag/generator/p
 
 *(Pre-existing failures noted: `make check`/ruff reports 361 lint errors and `make test-unit` reports 53 failing tests across unrelated modules — e.g. `test_resume_parser.py`, `test_review_service.py`, `test_skill_extractor.py`, `test_pii_scrubber.py` — all pre-dating this branch and untouched by this PR. Confirmed identical failure lists before and after my changes; this PR introduces zero new lint errors or test failures.)*
 
-**Draft PR feedback received from:** none yet — requesting review in Slack after opening the draft PR
+**Draft PR feedback received from:** none — PR opened as ready for review at https://github.com/ascherj/pathreview/pull/813; requesting peer/mentor feedback in Slack
