@@ -115,3 +115,75 @@ annotation gaps regardless of my change, and annotating all 26 other
 functions is out of scope for #146.)
 
 **Draft PR feedback received from:** [fill in once you get peer/mentor review]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — reviewer feedback isn't a feature this term
+
+**Summary of feedback:**
+No reviewer feedback came in, since this isn't available in Su26. I did
+investigate an existing open PR (#162) linked to my issue before starting,
+to check whether someone else was already working on the same fix, and
+determined it was a low-effort, likely auto-generated PR bundling four
+unrelated issues with no engagement -- not a blocker to proceeding.
+
+**How you responded:**
+N/A -- no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Git itself, more than the actual bug fix. The regex fix was maybe 10
+minutes of real work, but I lost my uncommitted fix at least twice without
+realizing it (once after a stash/pop cycle, once from re-editing the file),
+and didn't catch it until a `git log` showed the file was never actually
+committed. I also hit a tangled staged-vs-unstaged state after `git add`
+followed by a pre-commit hook that auto-reformatted the file mid-commit.
+None of this was about understanding the codebase -- it was about
+understanding what git was actually doing versus what I assumed it was
+doing.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was realizing that "does my change work" and "is my
+change done" are different questions. My regex fix worked in isolation
+almost immediately. Getting it merge-ready meant running the full test
+suite and finding 49 unrelated failures, running the linter and finding
+178 unrelated errors, and having to figure out -- carefully, with actual
+evidence via `git stash` comparisons -- which of those were mine to fix
+and which predated me entirely. In my own solo projects, "all tests pass"
+is a simple binary. In an existing codebase with real technical debt, it's
+a judgment call that has to be documented, not assumed.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for methodical debugging under uncertainty -- for
+example, systematically checking whether PR #162 was a real competing
+contributor or a low-effort bot PR before deciding whether to proceed with
+my issue, or walking through exactly why the `phone_us` regex failed on
+`(555) 123-4567` character by character. It fell short at the actual
+git mechanics -- suggesting commands that assumed a clean state when my
+repo wasn't in one, which led to a couple of real mistakes (like the lost
+uncommitted fix) that took extra steps to diagnose and recover from. I
+learned to run `git status` and `git diff` before trusting that a previous
+step actually landed, rather than assuming it did.
+
+**What would you do differently if you started over?**
+I'd run `git status` after every single commit attempt before moving on,
+instead of assuming success from a lack of an obvious error message. I'd
+also check `make check` and `make test-unit` against the pre-existing repo
+state in Week 8 or earlier, during planning, instead of discovering 49
+pre-existing failures and 178 lint errors for the first time in Week 9 --
+that would have made my PLAN.md's "risks" section more accurate from the
+start instead of something I had to retroactively update.
+
+**What are you most proud of from this module?**
+Not fixing everything I found. It would have been easy to "helpfully" fix
+the `street_address` regex bug I discovered, or annotate all 26 untyped
+test functions mypy flagged, since I was already in those files. Instead
+I documented them, verified with `git stash` that they were pre-existing,
+and left them out of scope with a clear paper trail explaining why. That
+felt like the actual skill this module was testing -- not writing a
+correct regex, but knowing where my responsibility as a contributor ends.
