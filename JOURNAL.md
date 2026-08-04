@@ -52,3 +52,22 @@ Update the bias detector pattern coverage in `safety/bias_detector.py` while pre
 
 **Blockers:**
 There is an unrelated pre-existing repository baseline issue: `make check` currently fails during `ruff check .` with many existing lint violations outside Issue #151, and `make test-unit` also has unrelated pre-existing failures and environment-dependent network errors in chunker tests. These do not block targeted implementation in `safety/bias_detector.py`, but they do mean the full-project commands are not currently green before the fix.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/791
+
+**Branch:** `fix/151-expand-bias-detection-patterns`
+
+**What you built:**
+I expanded `BiasDetector` in `safety/bias_detector.py` so it recognizes more common dismissive educational-background phrasings and demographic assumptions, including `coding bootcamp` variants, plural age-based assumptions, and the issue example wording around bootcamp attendance and age. I preserved the existing detector interface, evaluation order, and public reason strings, and I added a boundary fix so terms like `insufficient` do not accidentally match inside larger words such as `insufficiently`.
+
+**Tests added or updated:**
+`tests/unit/test_bias_detector.py` was updated. The added and updated cases cover the Issue #151 examples, broader dismissive education and demographic phrasing variants, non-biased background-group mentions that should remain unflagged, and a regression proving that longer word forms like `insufficiently` do not trigger the educational-bias pattern by substring.
+
+**Self-review confirmation:** [ ] make check passes [ ] make test-unit passes
+`make check` still fails because of unrelated pre-existing repo-wide Ruff violations outside Issue #151. `make test-unit` still fails because of unrelated pre-existing unit test failures outside the bias detector work, but the targeted `tests/unit/test_bias_detector.py` run passed and the full unit run showed the bias detector tests passing.
+
+Feedback updated
