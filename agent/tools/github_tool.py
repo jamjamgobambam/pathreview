@@ -1,6 +1,6 @@
 """GitHub repository metadata tool."""
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import httpx
 import structlog
@@ -85,8 +85,20 @@ class GitHubTool(BaseTool):
         repo_json = response.json()
 
         # Extract metadata, handling null values
+        try:
+            commit_dates = self._fetch_commit_dates(username, repo_name)
+            streak = self._calculate_longest_streak(commit_dates)
+        except Exception as e:
+            logger.warning(
+                "github_commits_fetch_failed",
+                error=str(e),
+                username=username,
+                repo=repo_name,
+            )
+            streak = 0
         metadata = {
             "name": repo_json.get("name", ""),
+            "contribution_streak": streak,
             "description": repo_json.get("description") or "",
             "primary_language": repo_json.get("language") or "Unknown",
             "star_count": repo_json.get("stargazers_count", 0),
@@ -129,6 +141,48 @@ class GitHubTool(BaseTool):
             return bool(response.status_code == 200)
         except Exception:
             return False
+
+    def _fetch_commit_dates(self, username: str, repo_name: str) -> list[date]:
+        """Fetch commit dates from GitHub commits API.
+
+        Args:
+            username: GitHub username
+            repo_name: Repository name
+
+        Returns:
+            List of UTC calendar dates when commits were made
+        """
+        url = f"{self.base_url}/repos/{username}/{repo_name}/commits"
+
+        headers = {}
+        if self.api_token:
+            headers["Authorization"] = f"token {self.api_token}"
+
+        dates: list[date] = []
+        page = 1
+        max_pages = 10
+
+        while page <= max_pages:
+            response = httpx.get(
+                url,
+                headers=headers,
+                params={"page": page, "per_page": 100},
+                timeout=10.0,
+            )
+            response.raise_for_status()
+            commits = response.json()
+
+            if not commits:
+                break
+
+            for commit in commits:
+                date_str = commit["commit"]["author"]["date"]
+                dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+                dates.append(dt.date())
+
+            page += 1
+
+        return dates
 
     def _calculate_longest_streak(self, dates: list[date]) -> int:
         """Find the longest run of consecutive calendar days with commits.
