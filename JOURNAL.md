@@ -314,7 +314,7 @@ A few design questions came up before writing any code, and I worked through the
 
 ### Check-in 2 (end of week)
 
-**PR link:** [not yet opened]
+**PR link:** https://github.com/ascherj/pathreview/pull/774
 
 **Branch:** `fix/82-concurrent-reviews`
 
