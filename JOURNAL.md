@@ -134,7 +134,7 @@ rendered JSX path and its type-checking rather than by running `npm test`.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(TODO: paste the PR URL here once the pull request is opened)_
+**PR link:** https://github.com/ascherj/pathreview/pull/814
 
 **Branch:** `fix/97-review-progress-indicator`
 
