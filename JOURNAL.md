@@ -26,6 +26,41 @@
 
 ---
 
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:** All sub-tasks from PLAN.md are complete.
+- ✅ Sub-task 1: Reproduced the failure locally — `assert 51 > 100` confirmed (commit `425fb7b`)
+- ✅ Sub-task 2: Extended the fixture in `test_readme_with_all_quality_signals` from ~51 words to 500+ words, covering all 6 quality signals (installation, usage, tech stack, badges, demo link, word count category)
+- ✅ Sub-task 3: Verified all 23 tests in `TestReadmeScorer` pass, including `overall_score > 0.7`
+- ✅ Sub-task 4: Fixed pre-commit mypy scope — added `tests/` exclusion to `pyproject.toml` and `exclude: ^tests/` to `.pre-commit-config.yaml`
+- ✅ Sub-task 5: Committed and pushed to `fix/156-readme-scorer-fixture-word-count`, PR #231 open on upstream
+
+**Next steps:** Finalize Check-in 2, confirm PR is not in draft state, submit branch URL via course portal.
+
+**Blockers:** None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/231
+
+**Branch:** `fix/156-readme-scorer-fixture-word-count`
+
+**What you built:** Extended the README fixture in `test_readme_with_all_quality_signals` (`tests/unit/test_readme_scorer.py`) from ~51 words to 500+ words so it legitimately satisfies all of the test's own assertions. The scorer's `_score_readme` method was correct throughout — the fix is entirely in the test fixture. Also scoped mypy away from the `tests/` directory in both `pyproject.toml` and `.pre-commit-config.yaml` to match the project's existing convention of not requiring type annotations in test files.
+
+**Tests added or updated:** Modified `tests/unit/test_readme_scorer.py` — specifically the `test_readme_with_all_quality_signals` method's fixture string. The test covers that a README with 500+ words containing installation, usage, tech stack, badge, and demo link sections is correctly scored as `word_count_category == "comprehensive"` with `overall_score > 0.7`. All 23 tests in `TestReadmeScorer` pass.
+
+**Self-review confirmation:**
+- [x] `make test-unit` passes — 23/23 tests in `test_readme_scorer.py` pass; full unit suite shows no new failures introduced by this change
+- [x] `make check` (lint) passes for changed files — one pre-existing `I001` import order warning in `agent/tools/readme_scorer.py` exists on `main` before this branch and is unrelated to this fix
+
+**Draft PR feedback received from:** none
+
+---
+
 ## Week 8 — Reproduction & solution planning
 
 **Reproduction commit link:** https://github.com/olivertang40/pathreview/commit/425fb7b
