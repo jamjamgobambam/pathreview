@@ -45,3 +45,62 @@ The app's startup lifespan requires a reachable Postgres, so I couldn't boot `uv
 without a running Postgres instance to hit `GET /health` directly end-to-end. Reproduced the bug
 at the `Settings`/`health.py` code-path level instead (see PLAN.md "Risks & unknowns" for the
 plan to add a proper `TestClient`-based test in Week 9).
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md steps 1-2: `api/routes/health.py` now builds the Redis client
+with `redis.Redis.from_url(settings.redis_url, decode_responses=True)` instead of the nonexistent
+`settings.redis_host`/`settings.redis_port`. Completed step 3 by rewriting `tests/unit/test_health.py`
+to call `health_check()` directly with a mocked DB session, covering both the "healthy" (ping
+succeeds) and "unhealthy" (ping raises, 503) cases, and retired the Week 8 reproduction test that
+asserted the bug (step 5), keeping only the test that documents `Settings` never defines
+`redis_host`/`redis_port`. Also completed step 4 (manual verification): started a local
+`redis-server`, called `health_check()` directly, and confirmed it reports `"healthy"`; stopped
+Redis and confirmed it correctly flips to `"unhealthy"`/503.
+
+**Next steps:**
+Open the PR as a draft, request peer/mentor review per the course Slack channel, and address any
+feedback before marking it ready for review.
+
+**Blockers:**
+The repo's pre-commit hook (ruff + mypy) fails on pre-existing type/lint issues in `health.py`
+that exist on `main` and are unrelated to this fix (untyped `health_check` signature, `Depends()`
+in default args, an untyped `health_status` dict) — confirmed via `git stash` that these predate
+this branch. Skipped the hook for this one commit and documented the pre-existing counts in the
+PR description rather than expanding scope into a full retype of the file.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/326
+
+**Branch:** `fix/155-redis-health-check`
+
+**What you built:**
+Fixed the `/health` endpoint's Redis probe, which referenced `settings.redis_host`/`settings.redis_port`
+(fields that don't exist on `Settings`) and silently reported Redis as unconditionally unhealthy.
+The probe now builds its client from the existing `settings.redis_url` via `redis.Redis.from_url(...)`,
+so the health check reflects Redis's real status instead of always failing.
+
+**Tests added or updated:**
+`tests/unit/test_health.py` — kept `test_settings_has_no_redis_host_field` (documents the root
+cause), and replaced the old reproduction tests with `test_health_check_reports_redis_healthy_when_ping_succeeds`
+(calls `health_check()` with a mocked DB session and a mocked `redis.Redis.from_url`/`ping()` that
+succeeds, asserting `dependencies.redis == "healthy"` and that the client was built from
+`redis_url`) and `test_health_check_reports_redis_unhealthy_when_ping_fails` (mocks `ping()` to
+raise `ConnectionError`, asserting `health_check()` raises a 503 `HTTPException` with
+`dependencies.redis == "unhealthy"`).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+_(`make test-unit`: 378 passed, 53 pre-existing failures unrelated to this issue, confirmed via
+`git stash` to predate this branch. `make check`/lint: 182 pre-existing errors on `main`, still 182
+after this change — net zero new issues; my changed lines are individually clean. `make check`/typecheck:
+this change reduces `health.py`'s mypy error count from 11 to 8 by removing the `redis_host`/`redis_port`
+attr-defined errors; the remaining 8 are pre-existing and unrelated to #155. Full details and the
+pre-existing baseline comparison are documented in the PR description.)_
+
+**Draft PR feedback received from:** none yet — just opened
