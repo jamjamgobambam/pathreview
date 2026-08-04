@@ -111,3 +111,72 @@ and 31 unrelated setup errors. Global Ruff, Black, and mypy likewise report viol
 in untouched files; the changed files introduce no scoped failures.
 
 **Draft PR feedback received from:** none
+
+## Week 10 - Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes      [x] No - still awaiting review
+
+**Summary of feedback:**
+
+I checked PR #734 on August 3, 2026. It is open and ready for review, but it has no
+review comments, submitted reviews, or review threads. This is consistent with the
+course note that formal reviewer feedback is not provided during Summer 2026.
+
+**How you responded:**
+
+No response or code revision was needed because no reviewer feedback was received. I
+left the tested PR open and ready for review.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was making the phrase "last hour" technically accurate. The existing
+monitor stored one integer counter per event type and expired it after 24 hours, so it
+could not distinguish a recent event from one that happened several hours earlier. I
+had to choose a timestamped representation, define the exact cutoff behavior, and avoid
+reusing the old Redis keys because changing an integer key into a sorted set would cause
+a Redis `WRONGTYPE` error during deployment. Separating my results from the repository's
+many pre-existing test and quality-check failures also required more care than I
+expected.
+
+**What did you learn about working in a large codebase?**
+
+I learned that a small-looking change can cross several system boundaries. This issue
+touched the health API, Redis storage, safety-event definitions, failure handling, and
+tests. I also learned to keep the contribution narrowly scoped. The health endpoint has
+separate PostgreSQL and Redis probe problems tracked in issues #154 and #155, but fixing
+those at the same time would have made issue #68 harder to review. Reading the
+contribution guide, matching existing patterns, and documenting unrelated failures were
+as important as writing the new logic.
+
+**How did AI tools help - and where did they fall short?**
+
+AI tools helped me search the repository, trace the hard-coded value back to its source,
+compare implementation options, build a detailed plan, and generate focused test cases.
+They were especially useful for noticing edge cases such as simultaneous events,
+rolling-window boundaries, Redis outages, and legacy key-type conflicts. However, the
+AI could not replace verification or project judgment. I still needed to choose the
+time-based interpretation, run the application against a real Redis instance, inspect
+the actual API response, and confirm that broad test failures came from untouched code.
+
+**What would you do differently if you started over?**
+
+I would capture the repository-wide test, lint, formatting, and type-check baseline
+before changing any files instead of documenting it later. That would make the before
+and after comparison even clearer. I would also read the Week 9 and Week 10 submission
+instructions earlier and open the PR sooner, even though Summer 2026 does not include
+formal reviewer feedback. The implementation itself would still use a separate Redis
+timeline namespace because that was the safest migration choice.
+
+**What are you most proud of from this module?**
+
+I am most proud that I turned a misleading hard-coded health metric into a behavior that
+matches its name. The final solution counts only events inside a real rolling one-hour
+window, handles monitoring failures safely, avoids conflicts with legacy Redis data, and
+is supported by 12 focused passing tests plus a live Redis/API verification. I also left
+a clear contribution record in `PLAN.md`, `JOURNAL.md`, the commit history, and PR #734.
