@@ -37,3 +37,27 @@ Walkthrough video (recommended): [not recorded]
 
 Blockers or open questions: PR#162 is already open against this issue, need to check whether it already resolves the bug before finalizing my own fix approach.
 
+Week 9 — Solution building & PR submission
+
+Check-in 1 (mid-week)
+
+Current progress: Implemented the fix for issue#153, changed chunk.get("text", "") to chunk.get("text") or "" in rag/evaluator/faithfulness_checker.py so both a missing text key and an explicit None value normalize to an empty string. Added a new test, test_mixed_none_and_valid_text_chunks, covering a mixed list of None and valid-text chunks. Captured a full pre-existing-failures baseline (make test-unit, make lint, make format, make typecheck) before making changes, confirmed the fix introduces no new failures, and opened a draft PR (#748) against ascherj/pathreview.
+
+Next steps: Get peer/mentor feedback on the draft PR in Slack, address any requested changes, then mark the PR ready for review and do a final self-review pass before Sunday's deadline.
+
+Blockers: None currently. One thing I'm keeping an eye on: PR#162 is already open against issue#153, will check it doesn't conflict before finalizing.
+
+Check-in 2 (end of week)
+
+PR link: https://github.com/ascherj/pathreview/pull/748
+
+Branch: fix/153-faithfulness-checker-none-text
+
+What you built: Fixed a crash in FaithfulnessChecker.check() where a context chunk with text: None caused an unhandled TypeError during string joining. Normalized both missing and explicitly-None text values to an empty string so the checker degrades gracefully instead of crashing.
+
+Tests added or updated: Added test_mixed_none_and_valid_text_chunks to tests/unit/test_faithfulness_checker.py. The existing test_none_context_chunk_text (previously failing) now passes.
+
+Self-review confirmation: make check passes, make test-unit passes, both confirmed passing for the files this PR touches; pre-existing unrelated failures across the rest of the codebase are documented in the PR description and unaffected by this change.
+
+Draft PR feedback received from: none
+
