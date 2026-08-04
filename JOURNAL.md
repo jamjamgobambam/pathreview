@@ -46,14 +46,14 @@ Since this is a logic error, there are many places where the error could reside.
 
 **PR link:** [link to your submitted pull request]
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `fix/24-hybrid-reviewer`
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+My fix reevaluates the BM25 retriever only so that when the chunks are scored, there is much better evaluation. This made the keyword signals more meaningful.
 
 **Tests added or updated:**
 I touched `hybrid.py` and `keyword_search.py` because the focus on the BM25 scoring which is what the model uses to run.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
