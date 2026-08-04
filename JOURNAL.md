@@ -47,12 +47,14 @@ The current ledger allows duplicate claims.
 
 **PR link:** https://github.com/ascherj/pathreview/pull/766
 
+**Branch:** `test/157-partial-overlap-fixture`
+
 **What you built:** Updated the partial-overlap fixture so it omits one query term and exercises the intended 0.75 relevance score instead of an exact match.
 
 **Tests added or updated:** Updated `tests/unit/test_relevance_scorer.py`; all 19 relevance-scorer tests pass.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
 
-**Repository-wide check note:** `make check` reports 182 lint errors across the repository. `make test-unit` reports 376 passed and 52 failures outside the changed relevance-scorer test.
+**Repository-wide check note:** Before the fix (`e28c4c0`), `make check` reported 182 lint errors and `make test-unit` reported 375 passed / 53 failed. After the fix, `make check` still reports the same 182 lint errors and `make test-unit` reports 376 passed / 52 failed, so this change introduces no new failures and fixes the targeted test.
