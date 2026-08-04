@@ -125,7 +125,8 @@ x-request-id: af3aae52-40a4-4a97-8e98-b9b0d7097c4c
     {"detail":"Not authenticated"}
 
     Case 6: Invalid JWT string (random string or wrong segment count)
-    Reproduction: curl.exe -i http://localhost:8000/reviews -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9[]][[[[][][]]]]"                                                                          
+    Reproduction: curl.exe -i http://localhost:8000/reviews -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9[]][[[[][][]]]]"
+
     HTTP/1.1 401 Unauthorized               
     date: Wed, 29 Jul 2026 05:55:59 GMT
     server: uvicorn
@@ -140,7 +141,7 @@ x-request-id: af3aae52-40a4-4a97-8e98-b9b0d7097c4c
 
     If an attacker tries to forge a token, assuming they got hold the user email and know the sub, set a future exp, and forges the signature, it would not let the attacker in. 
 
-    (.venv) PS C:\Users\mimi\Documents\GitHub\pathreview> curl.exe -i http://localhost:8000/reviews -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5OTgyZTVhOS1jYTFkLTRhMmItYWMwYy03NThkZjBmODBiZDYiLCJleHAiOjE3ODUzMDk5MjV9.zjk1yElsGoighKMuZRX_p5OM2yxoO1dzJHy7hHmolLI"
+    (.venv) PS C:\Users\mimi\Documents\GitHub\pathreview> curl.exe -i http://localhost:8000/reviews -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5OTgyZTVhOS1jYTFkLTRhMmItYWMwYy03NThkZjBmODBiZDYiLCJleHAiOjE3ODUzMDk5MjV9.<forged signature>"
     HTTP/1.1 401 Unauthorized
     date: Wed, 29 Jul 2026 06:46:44 GMT
     server: uvicorn
@@ -152,9 +153,12 @@ x-request-id: af3aae52-40a4-4a97-8e98-b9b0d7097c4c
     {"detail":"Invalid authentication credentials"}
 
 
-**PLAN.md link:** [\[link to PLAN.md in your fork\]](https://github.com/mmim14/pathreview/blob/test/90-add-tests-authentication/PLAN.md)
+**PLAN.md link:** [link to PLAN.md in your fork]
+https://github.com/mmim14/pathreview/blob/test/90-add-tests-authentication/PLAN.md
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
 **Blockers or open questions:**
-[Anything you're still uncertain about going into Week 9, or leave blank] 
+[Anything you're still uncertain about going into Week 9, or leave blank]
+
+What type of test am I creating? There are 4 subfolders under /tests: bechmarks, integration, security and unit. There are only unit tests. My hunch is the tests for authentication should be under /security. 
