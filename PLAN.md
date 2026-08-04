@@ -28,25 +28,26 @@
 
 ## Plan
 
-1. **Define snapshot constants or fixture file**
-   - Compute SHA-256 hash for each `(template_name, version)` pair in `PROMPT_TEMPLATES` (5 templates × `v1` today).
-   - Store expected hashes in `tests/fixtures/prompt_template_snapshots.json` or a `EXPECTED_TEMPLATE_HASHES` dict at the top of `test_prompt_templates.py`.
-   - Document in a comment: *"Update this file only when intentionally adding a new version key."*
+1. **Define snapshot constants** — ✅ Done
+   - Computed SHA-256 hash for each `(template_name, version)` pair in `PROMPT_TEMPLATES` (5 templates × `v1` today).
+   - Chose **Python constants** over a JSON fixture (resolves the Week 8 open question) — no new file I/O, matches existing test style in this repo.
+   - `EXPECTED_TEMPLATE_HASHES` dict + `EXPECTED_COMBINED_TEMPLATE_HASH` added at the top of `test_prompt_templates.py`, with a module docstring documenting the version-bump workflow.
 
-2. **Add per-template snapshot assertions**
-   - Add `test_each_template_matches_snapshot_hash()` that iterates all templates and asserts `sha256(text) == expected[name][version]`.
-   - Replace or extend `test_template_snapshot_content_hash` to assert a combined hash constant (optional belt-and-suspenders check).
+2. **Add per-template snapshot assertions** — ✅ Done
+   - Added `test_each_template_matches_snapshot_hash()` — iterates all templates and asserts `sha256(text) == expected[name][version]`, with an assertion message naming the exact template/version that drifted.
+   - Strengthened `test_template_snapshot_content_hash` to assert the combined hash equals `EXPECTED_COMBINED_TEMPLATE_HASH` (previously only checked hash format).
+   - Added `test_snapshot_hashes_cover_every_template_version()` — catches both a new template/version added without a snapshot entry, and a stale snapshot left behind after removal.
 
-3. **Add a regression test for the failure mode**
-   - Add a test (or use `pytest.raises`/inline comment) showing that mutating `v1` text without updating the snapshot constant would fail the new assertion.
-   - This validates the guardrail actually works once implemented.
+3. **Add a regression test for the failure mode** — ✅ Done
+   - Added `test_snapshot_detects_unversioned_content_edit()` — mutates `skills_feedback` v1 text in-memory and asserts the mutated hash no longer matches the expected snapshot, proving the guardrail would catch this exact failure mode.
+   - Manually verified end-to-end: temporarily edited `rag/generator/prompt_templates.py` (`"Analyze"` → `"Analyse"`), confirmed 3 tests failed with a clear diff, then reverted the edit and confirmed all 40 tests passed again.
 
-4. **Verify CI compatibility and document update workflow**
-   - Run `make test-unit` locally; confirm all prompt template tests pass with current snapshots.
-   - Add a short docstring or comment block explaining the version-bump workflow: *"To change template wording, add `v2` in `prompt_templates.py` and add the new hash — do not edit `v1` snapshots in place."*
+4. **Verify CI compatibility and document update workflow** — ✅ Done
+   - Ran `make test-unit`; all prompt template tests pass with current snapshots (40/40).
+   - Documented the workflow in the module docstring: add a new version key (e.g. `v2`) instead of editing an existing version in place, then add its hash to `EXPECTED_TEMPLATE_HASHES`.
 
-5. **Clean up reproduction file (optional)**
-   - Keep `test_issue_37_snapshot_reproduction.py` as historical reproduction, or merge its clearest assertion into the main test file and delete duplication.
+5. **Clean up reproduction file** — ✅ Done (removed, not merged)
+   - Deleted `tests/unit/test_issue_37_snapshot_reproduction.py`. Once real snapshots existed, one of its assertions (`test_no_expected_snapshot_values_are_asserted_anywhere`) started failing because it explicitly checked that no `EXPECTED_*` constants existed — the fix landing made that check obsolete rather than useful. History is preserved in the Week 8 `JOURNAL.md` entry and commit `ebcece3`.
 
 ## Inputs & outputs
 
