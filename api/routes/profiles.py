@@ -1,3 +1,4 @@
+import io
 import mimetypes
 from uuid import UUID
 
@@ -58,10 +59,12 @@ async def create_profile_endpoint(
             # Parse resume text
             if file_mime == "application/pdf":
                 try:
-                    import PyPDF2
+                    from pypdf import PdfReader
 
-                    pdf_reader = PyPDF2.PdfReader(content)
-                    resume_text = "\n".join(page.extract_text() for page in pdf_reader.pages)
+                    # PdfReader needs a file-like object, not raw bytes; and
+                    # extract_text() can return None for pages with no text.
+                    pdf_reader = PdfReader(io.BytesIO(content))
+                    resume_text = "\n".join(page.extract_text() or "" for page in pdf_reader.pages)
                 except Exception as exc:
                     log.error("pdf_parsing_failed", error=str(exc))
                     raise HTTPException(
