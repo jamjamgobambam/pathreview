@@ -69,3 +69,73 @@ rather than silently expanding scope. Also noting for Week 9: a full
 `pytest tests/unit -m unit` run currently shows 53 pre-existing failures
 unrelated to this issue (only 2 belong to #150) — will re-confirm that
 count doesn't grow after the fix.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md step 2: `_should_skip_file` in
+`agent/tools/tech_detector.py` now normalizes `filepath` with a leading `/`
+before matching skip patterns, so root-level vendor/build paths (e.g.
+`node_modules/pkg/index.js`) match the same way nested ones already did.
+`test_node_modules_excluded` and `test_build_directory_excluded` both pass
+now. Also completed PLAN.md steps 3–4: tightened the weak tests in
+`test_tech_detector.py` that exercised the code with no `assert`
+(`test_vendor_files_excluded`, `test_dockerfile_detection`,
+`test_github_actions_detection`, `test_makefile_detection`,
+`test_framework_detection`, `test_cpp_detection`, and
+`test_ipynb_counted_as_python_not_json`), and added a new
+`test_nested_vendor_directory_excluded` regression test for the
+nested-vendor-directory edge case called out in PLAN.md's Risks section.
+File now stands at 28/28 passing.
+
+**Next steps:**
+Run the full `make check` / `make test-unit` suite and diff against the
+Week 8 baseline (53 failed / 375 passed) to confirm the fix removes exactly
+the 2 pinned failures and introduces nothing new (PLAN.md step 5). Then
+write the PR description and open the PR against `ascherj/pathreview:main`.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/TBD
+
+**Branch:** `fix/150-tech-detector-vendor-build-files`
+
+**What you built:**
+Fixed `_should_skip_file` in `agent/tools/tech_detector.py` so vendor/build
+directory patterns (`node_modules/`, `vendor/`, `dist/`, `build/`, etc.)
+match repo-relative paths regardless of leading slash, by anchoring the
+filepath with `/` before the existing substring check. This stops vendored
+JS files from being counted as source, so `primary_language` correctly
+reports `"Python"` for a repo with only vendored/build JS alongside real
+Python files.
+
+**Tests added or updated:**
+`tests/unit/test_tech_detector.py` — tightened six existing tests that
+previously called `detector.execute()` with no assertion
+(`test_vendor_files_excluded`, `test_dockerfile_detection`,
+`test_github_actions_detection`, `test_makefile_detection`,
+`test_framework_detection`, `test_cpp_detection`), rewrote
+`test_ipynb_counted_as_python_not_json` to assert directly instead of
+computing an unused variable, and added `test_nested_vendor_directory_excluded`
+to cover a vendor directory nested below the repo root. 28/28 tests in the
+file pass; a full `pytest tests/unit -m unit` run is 51 failed / 378 passed,
+down from the Week 8 baseline of 53 failed / 375 passed — diffing the two
+failure lists confirms only the two #150 tests moved from fail to pass and
+nothing else changed.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(both scoped to "no new failures introduced" — `ruff`/`black`/`mypy` are
+clean on the two changed files; the repo-wide pre-existing failures noted
+in Week 8 and above are unaffected by this change and documented in the PR
+description.)
+
+**Draft PR feedback received from:** none — per this term's format there is
+no reviewer feedback loop; self-reviewed against the Week 9 "seven
+conditions for done" instead.
