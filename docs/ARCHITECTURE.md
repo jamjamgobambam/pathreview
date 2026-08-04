@@ -59,16 +59,36 @@ A plan-execute orchestrator that coordinates multiple analysis tools. Each tool 
 ### RAG System (`rag/`)
 Hybrid retrieval (vector similarity + BM25 keyword) fetches relevant context from the user's ingested documents. The generator uses prompt templates to produce structured, evidence-based feedback. The evaluator scores retrieval relevance and generation faithfulness.
 
-<!-- ISSUE #36 (reproduction note): this section does not explain how the vector and
-     keyword scores are combined into one ranking. The real formula lives in
-     rag/retriever/hybrid.py:57-81 (HybridRetriever.retrieve): each candidate's raw
-     vector score and BM25 score are min-max normalized against the max score in
-     their own result set, then blended as
-     score = vector_weight * vector_norm + keyword_weight * keyword_norm,
-     with defaults vector_weight=0.7, keyword_weight=0.3 (rag/retriever/hybrid.py:14).
-     No formula, default weights, or worked example appear in this doc — confirmed
-     by reading this file end to end. Fix: add a subsection here with the formula,
-     defaults, and a concrete example. -->
+#### Hybrid Retrieval Scoring
+
+`HybridRetriever.retrieve()` (`rag/retriever/hybrid.py`) runs vector similarity search and BM25 keyword search independently, then blends their scores into a single ranking:
+
+1. **Normalize.** Each side's raw scores are min-max normalized against the maximum score *within that search's own result set* (not a global maximum across queries):
+   - `vector_norm = vector_score / max(vector_scores)`
+   - `keyword_norm = bm25_score / max(bm25_scores)`
+
+   A chunk returned by only one of the two searches gets a `0` for the missing side — its score is not filled in from the other method.
+
+2. **Blend.** The normalized scores are combined with a weighted sum:
+
+   ```
+   score = vector_weight * vector_norm + keyword_weight * keyword_norm
+   ```
+
+   Defaults are `vector_weight=0.7`, `keyword_weight=0.3`, favoring semantic (vector) matches while letting a strong keyword match act as a tiebreaker or boost.
+
+3. **Filter and rank.** Chunks scoring below `min_score` (default `0.3`) are dropped; the rest are sorted by blended score, and the top `max_chunks` are returned.
+
+Because normalization is per-query and per-result-set, the blended score is a relative ranking signal, not an absolute measure of chunk quality — the same raw vector or BM25 score can normalize differently across queries depending on what else was retrieved.
+
+**Worked example:**
+
+| Chunk | Raw vector score | Raw BM25 score | vector_norm | keyword_norm | Blended score (0.7 / 0.3) |
+|-------|------------------|-----------------|-------------|---------------|----------------------------|
+| A     | 0.82             | 4.1             | 0.82/0.82 = 1.00 | 4.1/6.5 = 0.63 | 0.7(1.00) + 0.3(0.63) = 0.889 |
+| B     | 0.75             | 6.5             | 0.75/0.82 = 0.91 | 6.5/6.5 = 1.00 | 0.7(0.91) + 0.3(1.00) = 0.940 |
+
+Chunk B outranks Chunk A despite a lower raw vector score, because its stronger keyword match is enough to overcome the 0.7/0.3 weighting.
 
 ### Safety Layer (`safety/`)
 Middleware wrapping the generation pipeline. Components run in sequence: prompt injection defense → content filter → bias detector → PII scrubber. All safety events are logged with structured metadata for monitoring.
