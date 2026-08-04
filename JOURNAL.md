@@ -36,3 +36,23 @@ Ran `GitHubTool.execute()` locally with `github_username=octocat` and `repo_name
 
 **Blockers or open questions:**
 Should `contribution_streak` be computed from commits in the specific repo passed to the tool, or from the user's overall GitHub contribution calendar across all repos? I plan to start with repo-scoped commits as a start.
+
+## Week 9 - Solution building and PR
+
+**Progress:**
+Implemented PLAN.md tasks 1-4, adding `_fetch_commit_dates()` to pull commit dates from the GitHub commits API, `_calculate_longest_streak()` to find the longest consecutive-day run, and wired `contribution_streak` into `_fetch_repo_metadata()`. Added error handling so commit fetch failures return streak 0 without breaking the tool, then opened a draft PR on GitHub.
+
+**Next steps:**
+Finish unit tests (task 5), run self-review checks on my changed files, address draft PR feedback, and mark PR ready for review. No current blockers.
+
+**PR Link:** https://github.com/ascherj/pathreview/pull/835
+
+**Branch:** `feat/52-github-streak-tracker`
+
+**What was built:**
+Added a `contribution_streak` field to `GitHubTool` that fetches commit history for the given repo, finds the longest run of consecutive calendar days with at least one commit, and includes that integer in the metadata dict returned by `execute()`. If the commits API fails, the tool still returns repo metadata with `contribution_streak` set to 0.
+
+**Additional tesets:**
+Updated `tests/unit/test_github_tool.py` with 8 tests covering: `contribution_streak` present in output, streak calculation for consecutive/non-consecutive/single-day/empty inputs, same-day deduplication, empty commit history returning 0, and API error fallback returning 0 while keeping other metadata.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
