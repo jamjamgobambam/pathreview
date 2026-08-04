@@ -93,3 +93,21 @@ The main risk is expanding the patterns too broadly and causing neutral statemen
 
 ---
 
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/736
+
+**Branch:** `fix/151-bias-detector-patterns`
+
+**What you built:**
+I expanded the regular-expression patterns in `safety/bias_detector.py` so the bias detector recognizes more natural forms of dismissive educational-background language and demographic assumptions. The updated patterns support additional wording variations, contractions, plural subjects, and longer phrases while using bounded matching to reduce false positives.
+
+**Tests added or updated:**
+I added `tests/unit/test_bias_detector_issue_151.py`. The tests cover the longer bootcamp-dismissal wording from Issue #151, an age-related assumption expressed through contextual language, and a neutral bootcamp statement that must remain unflagged.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+`make check` reported pre-existing repository-wide lint failures in unrelated files. I documented those failures in the PR and verified that `safety/bias_detector.py` and `tests/unit/test_bias_detector_issue_151.py` do not introduce new linting, formatting, or type-checking failures.
+
+**Draft PR feedback received from:** [REVIEWER NAME OR SLACK HANDLE, OR "none"]
+
