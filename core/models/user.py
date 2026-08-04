@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, Index, String
+from sqlalchemy import Boolean, DateTime, Index, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -37,7 +37,13 @@ class User(Base):
         "Profile", back_populates="user", cascade="all, delete-orphan"
     )
 
-    __table_args__ = (Index("ix_users_email_active", "email", "is_active"),)
+    # The named unique constraint mirrors migration 001 (op.f("uq_users_email")).
+    # Declaring it on the model keeps Base.metadata in sync with the migrated
+    # schema so `alembic check` reports no drift.
+    __table_args__ = (
+        UniqueConstraint("email", name="uq_users_email"),
+        Index("ix_users_email_active", "email", "is_active"),
+    )
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email})>"
