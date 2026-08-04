@@ -213,14 +213,81 @@ new behavior. `ruff`, `black` and `mypy` are all clean on the files I touched.
 
 ### Check-in 2 (end of week)
 
-**PR link:** *pending — to be filled in on submission*
+**PR link:** https://github.com/ascherj/pathreview/pull/358 *(open, ready for
+review — not a draft)*
 
 **Branch:** `test/111-pii-scrubber-property-tests`
 
-**What you built:** *pending*
+**What you built:**
 
-**Tests added or updated:** *pending*
+Property-based tests for `PIIScrubber` using `hypothesis`: a strategy per PII
+type that generates randomized-but-valid values, asserting the invariant issue
+#111 names — a generated PII value never survives `scrub()`. Writing them
+surfaced five real defects in `safety/pii_scrubber.py`, including a live leak
+where `phone_intl` consumed only the country code and turned `+44 20 7946 0958`
+into `[REDACTED] 20 7946 0958`, output that reads as redacted while the
+subscriber number sits beside it. The PR fixes all five: whitespace-aware phone
+separators, a `(?<![-.\d])` lookbehind replacing a `\b` that could never match
+before a `(`, full consumption of international digit groups, per-pattern case
+sensitivity so `Dr`/`Pl`/`St` stop matching inside `adr`/`applications`/
+`streetwise`, and reordering so `phone_intl` runs before `phone_us`.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Tests added or updated:**
 
-**Draft PR feedback received from:** *pending*
+- `tests/unit/test_pii_scrubber_properties.py` **(new)** — the deliverable. Five
+  `@st.composite` strategies (`emails`, `us_phones`, `intl_phones`, `ssns`,
+  `street_addresses`), each parameterizing exactly the dimensions the fixed
+  examples hold constant: separator character, parenthesized vs. bare area code,
+  optional country prefix, TLD shape, casing. Twenty tests in three groups —
+  **round-trip** (generated PII never survives `scrub()`, plus a combined
+  property placing all four types in one string, since `scrub()` applies its
+  patterns sequentially to progressively rewritten text and composition is where
+  the interesting bugs live); **cross-API** (`detect()`/`scrub()` agreement,
+  offsets slice back to the reported value, idempotence, total-function behavior
+  on arbitrary text); and **negative** (prose returns byte-identical, a bare
+  number followed by lowercase words is not an address), so a scrubber that
+  simply redacted everything would fail too.
+- `tests/unit/test_pii_scrubber_repro_111.py` → **renamed** to
+  `test_pii_scrubber_regression_111.py` — the Week 8 reproduction, with its six
+  `xfail(strict=True)` markers dropped now that the fix has landed. Every one
+  flipped to `XPASS(strict)` the moment the regexes were corrected, which is
+  that marker doing exactly its job. The pinned `@example` counterexamples stay:
+  each is the minimal input hypothesis shrank to against the unfixed scrubber,
+  so they guard the formats that actually regressed rather than formats someone
+  guessed at.
+- `tests/unit/test_pii_scrubber.py` — **deliberately unmodified.** Five of its
+  25 tests were already red on `main`; all 25 now pass. I treated the file as a
+  fixed contract rather than editing its assertions to match new behavior, since
+  rewriting the tests you are supposed to satisfy is how a real fix gets faked.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+*Both in the "no new failures" sense the module guidance defines for a codebase
+with documented pre-existing failures — `main` is already substantially red.
+Measured against a clean `main` worktree:*
+
+| Check | `main` | This branch |
+|---|---|---|
+| `tests/unit` | 53 failed, 375 passed | **48 failed, 408 passed** |
+| `ruff check .` | 182 errors | **178** |
+| `black --check .` | 52 files unformatted | **51** |
+| `mypy` (as `make typecheck` runs it) | 5 errors in 4 files | **5 errors in 4 files** |
+
+*Diffing the two failure lists gives **zero new failures**; the five that
+disappear are exactly the `test_pii_scrubber.py` phone and address cases this
+fix addresses. `ruff`, `black` and `mypy` are all clean on the three files the
+PR touches, and `mypy safety/` alone is clean. Full table in the PR description.*
+
+*Caveat, flagged in the PR: `make check` cannot be run as documented, because
+its `format` dependency runs `black .` and rewrites 52 unrelated files in the
+working tree. I ran `ruff`, `black --check` and `mypy` individually instead.
+Since `docs/CONTRIBUTING.md` tells every contributor to run `make check` before
+opening a PR, that is worth its own issue.*
+
+**Draft PR feedback received from:** *none yet — the PR is open and ready for
+review, and I am posting it to the cohort Slack channel for peer feedback. I
+will fold in anything I agree with before the deadline and note the reviewer
+here.*
+
+**Course portal submission:**
+`https://github.com/kredd2506/pathreview/tree/test/111-pii-scrubber-property-tests`
