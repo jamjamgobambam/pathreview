@@ -70,3 +70,23 @@ to also fix the pre-existing ruff/mypy violations in
 scoped, but I'll fold them in if requested.
 
 ---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/301
+
+**Branch:** feat/37-prompt-template-snapshots
+
+**What you built:**
+Replaced the placeholder `test_template_snapshot_content_hash` in `tests/unit/test_prompt_templates.py` with real per-template SHA-256 snapshots. Added two new pytest tests: `test_template_content_matches_snapshot` fails when a registered template's content changes without a version bump, and `test_every_template_version_has_a_snapshot` catches the reverse case of adding a new template without a registered snapshot. This gives the project actual regression protection against silent prompt drift.
+
+**Tests added or updated:**
+Modified `tests/unit/test_prompt_templates.py`. Removed 1 placeholder test, added 2 real snapshot tests plus an `EXPECTED_TEMPLATE_SNAPSHOTS` dict pinning all 5 current template versions. All 38 tests in the file pass locally. Manually verified the snapshot test catches drift by editing `PROMPT_TEMPLATES["skills_feedback"]["v1"]` character-by-character and confirming the test fails with the expected error message, then reverting to confirm it passes again.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+Note on `make check`: the codebase has ~176 pre-existing ruff/mypy violations across many files. `test_prompt_templates.py` specifically had 14 errors on `main` and 13 after my changes — my contribution removed 1 error and introduced 0 new ones.
+
+Note on `make test-unit`: 53 pre-existing test failures across the project on `main` (in files like `test_structural_chunker.py`, `test_tech_detector.py`, `test_review_service.py`). Confirmed the identical 53 failures exist on `main` before my changes via `git stash`. In `tests/unit/test_prompt_templates.py` specifically — the file I modified — all 38 tests pass, including both new snapshot tests. Per the Week 9 "doesn't make things worse" guidance, my contribution introduces 0 new test failures and 0 new lint errors.
+
+**Draft PR feedback received from:** none
