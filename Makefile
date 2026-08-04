@@ -1,4 +1,4 @@
-.PHONY: setup run test-unit test-integration test-all lint format typecheck check migrate seed reset-db eval clean
+.PHONY: setup run test-unit test-integration test-all lint format typecheck check audit migrate seed reset-db eval clean
 
 SHELL := /bin/bash
 
@@ -57,6 +57,23 @@ typecheck: ## Run mypy type checker
 	$(VENV_BIN)/mypy api/ core/ ingestion/ rag/ agent/ safety/
 
 check: lint format typecheck ## Run lint + format + typecheck
+
+# ---- Security ----
+
+# Advisories with no patched release available upstream yet — reviewed and
+# accepted so the gate is intentional, not silently green. Revisit when a fix
+# ships (tracking: docs/reproduction-128.md).
+#   PYSEC-2026-311  chromadb  — no patched release
+#   PYSEC-2026-1325 ecdsa     — no patched release (Minerva side-channel)
+PIP_AUDIT_IGNORE := --ignore-vuln PYSEC-2026-311 --ignore-vuln PYSEC-2026-1325
+
+audit: ## Scan Python + frontend deps for known vulnerabilities (mirrors CI)
+	@echo "--- Python dependencies (pip-audit) ---"
+	$(VENV_BIN)/pip-audit $(PIP_AUDIT_IGNORE)
+	@echo "--- Frontend production dependencies (fails on high+) ---"
+	cd frontend && npm audit --omit=dev --audit-level=high
+	@echo "--- Frontend dev-tooling advisories (informational, non-blocking) ---"
+	cd frontend && npm audit || true
 
 # ---- Database ----
 
