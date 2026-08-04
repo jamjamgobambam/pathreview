@@ -33,3 +33,37 @@ I reproduced issue #150 by running the existing tests for excluding `node_module
 **Blockers or open questions:**
 I need to determine whether the fix should normalize both forward-slash and Windows backslash paths while avoiding false matches for similarly named directories.
 
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I reviewed the approved PLAN.md, reproduced the root-level ignored-directory bug, and added a focused failing test for `node_modules/pkg/index.js`. I identified that the existing matching logic required a leading slash, so it failed to recognize ignored directories located at the repository root.
+
+**Next steps:**
+Implement the smallest fix by normalizing path separators and matching exact directory components. Then add boundary tests for root-level, nested, absolute, and Windows-style paths while confirming that similarly named directories are not incorrectly skipped.
+
+**Blockers:**
+The repository has pre-existing Ruff, mypy, and unit-test failures unrelated to issue #150. I documented their baseline results and kept my changes limited to the issue.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/727
+
+**Branch:** `fix/150-ignore-vendored-build-output`
+
+**What you built:**
+I updated the tech detector to exclude files inside ignored directories by matching exact path components. The implementation normalizes Windows and Unix path separators, correctly handles root-level and nested directories, and avoids false positives such as `build_tools` and `node_modules_backup`.
+
+**Tests added or updated:**
+Updated `tests/unit/test_tech_detector.py` with one focused reproduction test and five parameterized boundary cases. The complete tech-detector test suite passes with 33 tests, including coverage for root-level, nested, absolute, and Windows-style paths.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+* `make check` still reports 182 pre-existing Ruff errors unrelated to this change.
+* `make test-unit` improved from 53 failed and 375 passed to 51 failed and 383 passed. The two issue #150 failures now pass; the remaining failures are pre-existing.
+
+**Draft PR feedback received from:** none
