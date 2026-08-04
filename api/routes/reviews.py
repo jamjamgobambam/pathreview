@@ -163,7 +163,7 @@ async def get_review_status(
         return {
             "review_id": str(review.id),
             "status": review.status,
-            "progress_pct": getattr(review, "progress_pct", 0),
+            "progress_pct": review.progress_pct,
         }
 
     except HTTPException:
