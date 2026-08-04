@@ -1,8 +1,8 @@
 ## Week 7 — Issue selection
 
-**Issue link:** [https://github.com/ascherj/pathreview/issues/101]
+**Issue link:** https://github.com/ascherj/pathreview/issues/101
 
-**Issue title:** [Add a "Copy link" button to share a public review summary]
+**Issue title:** Add a "Copy link" button to share a public review summary
 
 **Tier:** [ ] Tier 1  [ X ] Tier 2  [ ] Tier 3
 
@@ -11,11 +11,13 @@ Tier 2 fits my current scope because the feature spans both the frontend and bac
 **Problem summary:**
 Users currently have no way to share their review summary with others — there is no shareable link feature in the application. The missing functionality should allow a user to generate a public, read-only link to their review summary that anyone can view without needing to log in. A successful fix would add a "Copy link" button to the review page that creates a time-limited share token (expiring after 30 days) and returns a public URL. This primarily affects `frontend/src/pages/ReviewPage.tsx`, `frontend/src/services/shareService.ts`, and `api/routes/reviews.py`.
 
-**Branch name:** [feat/101-copy-link-button]
+**Branch name:** feat/101-copy-link-button
 
 **Setup confirmation:** [ X ] App runs locally at localhost:5173
 
 **Cohort ledger:** [ X ] Issue added to cohort ledger
+
+---
 
 ## Week 8 — Reproduction & solution planning
 
@@ -30,3 +32,22 @@ I confirmed the gap by running the app locally and clicking the existing Share b
 
 **Blockers or open questions:**
 I am uncertain whether other files beyond the three listed in the issue will need to change. Specifically, I expect to also need a new database model for share tokens, an Alembic migration, and a new Pydantic schema — none of which are mentioned in the original issue description.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Sub-task 1 — ShareToken model + migration
+Sub-task 2 — Pydantic schemas
+Sub-task 3 — Backend endpoints
+
+**Next steps:**
+Sub-task 4 — Frontend service
+Sub-task 5 — Update ReviewPage
+Sub-task 6 — Public share page + frontend route
+
+**Blockers:**
+There are no blockers so far.
