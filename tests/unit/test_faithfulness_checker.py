@@ -241,6 +241,29 @@ class TestFaithfulnessChecker:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
+    def test_mixed_none_and_valid_chunk_text(self, checker):
+        """Test a None chunk is skipped while a valid chunk still scores.
+
+        Proves the #153 fix coerces None to "" (no crash) without discarding
+        the support provided by valid chunks in the same list.
+        """
+        feedback = "The developer has Python and Django skills."
+        mixed_chunks = [
+            {"text": None},
+            {"text": "Portfolio shows Python and Django framework experience."},
+        ]
+        valid_only = [mixed_chunks[1]]
+
+        mixed_score = checker.check(feedback, mixed_chunks)
+        valid_score = checker.check(feedback, valid_only)
+
+        assert isinstance(mixed_score, float)
+        assert 0.0 <= mixed_score <= 1.0
+        # The None chunk contributes nothing, so the score reflects only the
+        # valid chunk — identical to scoring that chunk on its own.
+        assert mixed_score == valid_score
+        assert mixed_score > 0.5
+
     def test_missing_text_key_in_chunk(self, checker):
         """Test handling of missing 'text' key in context chunk."""
         feedback = "Has Python skills"
