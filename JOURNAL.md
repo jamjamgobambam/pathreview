@@ -48,7 +48,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [Replace with live PR link after opening PR]
+**PR link:** https://github.com/ascherj/pathreview/pull/780
 
 **Branch:** fix/156-readme-scorer-fixture
 
