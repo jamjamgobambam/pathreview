@@ -109,5 +109,5 @@ I added `tests/unit/test_bias_detector_issue_151.py`. The tests cover the longer
 
 `make check` reported pre-existing repository-wide lint failures in unrelated files. I documented those failures in the PR and verified that `safety/bias_detector.py` and `tests/unit/test_bias_detector_issue_151.py` do not introduce new linting, formatting, or type-checking failures.
 
-**Draft PR feedback received from:** [REVIEWER NAME OR SLACK HANDLE, OR "none"]
+**Draft PR feedback received from:** None
 
