@@ -37,3 +37,17 @@ the existing `test_us_phone_number_redaction` test.
 
 **Blockers or open questions:**
 Unclear whether "+1 555 123 4567" (space-separated international-style format) needs a separate fix beyond the parenthesis issue — will check when implementing next week.
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix for issue #146: updated the `phone_us` regex in `safety/pii_scrubber.py` (changed leading `\b` to `(?<!\d)`, added whitespace to the separator classes). All 4 previously-failing phone tests now pass, plus a new test covering additional parenthesized-format edge cases. Ran `make check` and `make test-unit` — confirmed my change introduces no new failures; pre-existing failures exist in bias_detector, review_service, resume_parser, and other files I didn't touch, plus pre-existing lint/type errors unrelated to my change.
+
+**Next steps:**
+Finalize PR description documenting the pre-existing failures, open the PR for peer/mentor review.
+
+**Blockers:**
+None.
