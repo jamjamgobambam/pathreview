@@ -36,7 +36,7 @@ Local environment setup (Docker Desktop / Postgres connection) was still being f
 
 ### Check-in 2 (end of week)
 
-**PR link:** PENDING — PR not yet opened as of this check-in. Will update this line with the real link before final submission.
+**PR link:** (https://github.com/ascherj/pathreview/pull/263)
 
 **Branch:** fix/153-faithfulness-checker-none-text
 
