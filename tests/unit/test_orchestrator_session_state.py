@@ -32,11 +32,17 @@ class FakeSessionStore:
 
 class FakeGithubTool:
     """Returns whatever repo_name it was called with, so we can tell fresh
-    results apart from stale ones."""
+    results apart from stale ones. Tracks call count so tests can assert
+    whether the tool actually ran or was served from cache."""
 
     name = "github_tool"
 
+    def __init__(self) -> None:
+        self.call_count = 0
+
     def execute(self, tool_input: dict) -> Any:
+        self.call_count += 1
+
         class Result:
             success = True
             data = {"repo_name": tool_input["repo_name"]}
@@ -102,3 +108,27 @@ class TestOrchestratorSessionState:
         persisted_state = session_store.get(profile_id)
         assert persisted_state is not None
         assert "tech_detector" not in persisted_state
+
+    def test_repeated_call_within_same_session_still_hits_context_cache(self) -> None:
+        """The fix for stale cross-review state must not break legitimate
+        intra-session memoization: two run() calls on the *same* Orchestrator
+        instance, with the same tool input, should still cache-hit via
+        ContextManager rather than re-executing the tool."""
+        github_tool = FakeGithubTool()
+        tools = {"github_tool": github_tool}
+        session_store = FakeSessionStore()
+
+        profile_id = "user-456"
+        profile_data = {
+            "github_username": "octocat",
+            "projects": [{"github_repo": "repo-a"}],
+        }
+
+        orchestrator = Orchestrator(tools=tools, session_store=session_store)  # type: ignore[arg-type]
+
+        first_result = orchestrator.run(profile_id, profile_data)
+        second_result = orchestrator.run(profile_id, profile_data)
+
+        assert github_tool.call_count == 1
+        assert first_result["tool_results"]["github_tool"]["repo_name"] == "repo-a"
+        assert second_result["tool_results"]["github_tool"]["repo_name"] == "repo-a"
