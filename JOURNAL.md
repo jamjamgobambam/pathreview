@@ -86,8 +86,7 @@ possible follow-up issue rather than fixing it here.
 ---
 
 ### Check-in 2 (end of week)
-**PR link:** [PLACEHOLDER — I will fill this in after opening the PR
-manually on GitHub, since PR creation needs to happen in the browser]
+**PR link:** https://github.com/ascherj/pathreview/pull/908 (draft)
 
 **Branch:** fix/153-faithfulness-checker-none-text
 
