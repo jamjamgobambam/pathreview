@@ -10,6 +10,7 @@ build/
 .venv/
 venv/
 *.egg
+frontend/package-lock.json
 
 # Environment
 .env
@@ -44,3 +45,5 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+
+

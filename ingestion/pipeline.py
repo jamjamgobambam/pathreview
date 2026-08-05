@@ -1,6 +1,5 @@
 import hashlib
 from dataclasses import dataclass
-from typing import Optional
 
 import structlog
 
@@ -10,7 +9,7 @@ from .embeddings.provider import EmbeddingProvider
 from .parsers.readme_parser import ReadmeParser
 from .parsers.repo_analyzer import RepoAnalyzer
 from .parsers.resume_parser import ResumeParser
-
+from core.models.ingested_source import IngestedSource
 
 logger = structlog.get_logger()
 
@@ -18,10 +17,11 @@ logger = structlog.get_logger()
 @dataclass
 class IngestResult:
     """Result of ingesting a source."""
+
     source_id: str
     chunk_count: int
     skipped: bool
-    skip_reason: Optional[str] = None
+    skip_reason: str | None = None
 
 
 class IngestionPipeline:
@@ -86,16 +86,21 @@ class IngestionPipeline:
         try:
             # Parse resume
             parse_result = self.resume_parser.parse(content)
-            logger.info("Resume parsed successfully", sections=parse_result.metadata.get("detected_sections"))
+            logger.info(
+                "Resume parsed successfully",
+                sections=parse_result.metadata.get("detected_sections"),
+            )
 
             # Prepare metadata
             metadata = parse_result.metadata.copy()
-            metadata.update({
-                "source_id": source_id,
-                "profile_id": profile_id,
-                "filename": filename,
-                "source_type": "resume",
-            })
+            metadata.update(
+                {
+                    "source_id": source_id,
+                    "profile_id": profile_id,
+                    "filename": filename,
+                    "source_type": "resume",
+                }
+            )
 
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
@@ -150,7 +155,9 @@ class IngestionPipeline:
         )
 
         # Check if already ingested
-        skip_result = self._check_skip(source_id, "readme")
+        skip_result = self._check_skip(
+            source_id, "readme"
+        )  # implement this method, should skip if readme already ingested
         if skip_result:
             return skip_result
 
@@ -165,12 +172,14 @@ class IngestionPipeline:
 
             # Prepare metadata
             metadata = parse_result.metadata.copy()
-            metadata.update({
-                "source_id": source_id,
-                "profile_id": profile_id,
-                "repo_name": repo_name,
-                "source_type": "readme",
-            })
+            metadata.update(
+                {
+                    "source_id": source_id,
+                    "profile_id": profile_id,
+                    "repo_name": repo_name,
+                    "source_type": "readme",
+                }
+            )
 
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
@@ -239,11 +248,13 @@ class IngestionPipeline:
 
             # Prepare metadata
             metadata = parse_result.metadata.copy()
-            metadata.update({
-                "source_id": source_id,
-                "profile_id": profile_id,
-                "source_type": "repo",
-            })
+            metadata.update(
+                {
+                    "source_id": source_id,
+                    "profile_id": profile_id,
+                    "source_type": "repo",
+                }
+            )
 
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
@@ -277,7 +288,7 @@ class IngestionPipeline:
             content = content.encode()
         return hashlib.sha256(content).hexdigest()[:16]
 
-    def _check_skip(self, source_id: str, source_type: str) -> Optional[IngestResult]:
+    def _check_skip(self, source_id: str, source_type: str) -> IngestResult | None:
         """
         Check if source has already been ingested.
 
@@ -286,11 +297,15 @@ class IngestionPipeline:
         try:
             # Query database for existing source
             # This assumes a table/model named IngestedSource
-            existing = self.db_session.query(
-                "IngestedSource"  # Placeholder - actual query depends on ORM
-            ).filter_by(source_id=source_id).first()
+            existing = None
+            if(source_type == "readme"):
+                existing = (
+                    self.db_session.query(IngestedSource)  # Placeholder - actual query depends on ORM
+                    .filter_by(content_hash=source_id)
+                    .first()
+                )
 
-            if existing:
+            if existing is not None and existing:
                 logger.info("Source already ingested, skipping", source_id=source_id)
                 return IngestResult(
                     source_id=source_id,
@@ -326,6 +341,10 @@ class IngestionPipeline:
         try:
             # This is a placeholder for actual database recording
             # In a real implementation, would create IngestedSource record
+            if(source_type == "readme"): #Create IngestedSource record for readme and add/commit to database
+               entry = IngestedSource(content_hash=source_id, source_type=source_type, profile_id=profile_id, chunk_count=chunk_count  )
+               self.db_session.add(entry)
+               self.db_session.commit()
             logger.info(
                 "Recording ingested source",
                 source_id=source_id,
