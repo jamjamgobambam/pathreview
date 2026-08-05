@@ -92,3 +92,76 @@ guards.
 > Check-in 1 blockers). The files changed in this PR pass ruff, black, and mypy,
 > and all 42 tests in `tests/unit/test_bias_detector.py` pass.
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review has come in yet. PR #868 was opened against `ascherj/pathreview` with
+issue #151 linked and is currently awaiting maintainer review.
+
+**How you responded:**
+No changes required yet. While waiting, I did a self-review pass and confirmed
+the changed files pass ruff/black/mypy and that all 42 bias-detector tests pass;
+I noted the stray `frontend/package-lock.json` change and the course docs
+(`JOURNAL.md`/`PLAN.md`) in the diff as things a reviewer might ask to split out.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Two things I didn't see coming. First, the *environment* — `make setup`/`make run`
+failed not because of the code but because Node, Docker, and the `.env` file were
+missing, and I nearly created a venv by hand before realizing `make setup`
+already builds one. Second, and bigger: the repo's own quality gates were
+*already red*. `make check` reported ~179 lint errors and `make test-unit` had 44
+failures on the untouched base branch. Working against a codebase where "is it
+green?" isn't a usable signal was much harder than fixing the actual bug — I had
+to learn to scope correctness down to just the files I changed.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's production code is mostly about *fitting in*, not
+just being correct. The real constraints were: match the existing style (the
+detector was pure-regex and dependency-free, so I kept it that way instead of
+reaching for an NLP library), preserve the public contract (`detect_bias` still
+returns `tuple[bool, str]` so no callers break), and keep every pre-existing
+test green so my change stays low-blast-radius. I also hit the reality that a
+repo's *stated* standards and its *actual* state can diverge — the pre-commit
+mypy hook enforces typed defs, but the existing test file was full of untyped
+functions, forcing a judgment call about scope (fix only my additions vs.
+reformat 30 unrelated functions). In my own projects those tensions don't exist
+because I set all the conventions myself.
+
+**How did AI tools help — and where did they fall short?**
+Most useful for *momentum and mechanics*: reproducing the bug in one line,
+diagnosing the "ahead 1, behind 1" git divergence and reconciling it, generating
+the candidate regex patterns, running the lint/type/test gates and reading the
+output, and drafting tests for the paraphrasings that were slipping through. Where
+it fell short was *judgment*: deciding how to resolve the false-negative vs.
+false-positive tension (the co-occurrence-window design was a real tradeoff, not
+a lookup), deciding whether `--no-verify` was acceptable given the repo's own
+non-compliance, choosing the PR target, and honestly reporting that the repo-wide
+gates fail for reasons unrelated to my change rather than papering over it. AI
+could also not open the PR or tell me whether a human review had landed — those
+stayed mine to own.
+
+**What would you do differently if you started over?**
+Keep the history clean from the start. The branch accumulated avoidable noise: a
+duplicated "issue selection docs" commit that caused the divergence, a stray
+`package-lock.json` change from an early `misc` commit, and course docs mixed in
+with the code fix. Next time I'd commit atomically, keep `JOURNAL.md`/`PLAN.md` on
+a separate track from the fix so the PR is fix-only, and check the base branch's
+CI/gate health *before* selecting an issue so I know what "passing" even means.
+
+**What are you most proud of?**
+The design of the fix, and being honest about its limits. Instead of just adding
+more brittle regexes, I moved to a subject × dismissive-predicate co-occurrence
+model that fixed the false negatives *and* held the line on false positives
+(critique of a "bootcamp project … lacks tests" still isn't flagged as bias about
+a person) — verified by keeping every original negative test green. And I didn't
+tick the `make check`/`make test-unit` boxes just to look done; I documented
+exactly what passes and what fails and why.
+
