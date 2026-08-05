@@ -120,7 +120,7 @@ failures.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(to be filled when the PR is opened)_
+**PR link:** https://github.com/ascherj/pathreview/pull/959
 
 **Branch:** `fix/150-tech-detector-vendored-files`
 
@@ -138,4 +138,5 @@ existing `test_node_modules_excluded` and `test_build_directory_excluded` green.
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
-**Draft PR feedback received from:** _(to be filled)_
+**Draft PR feedback received from:** none yet — draft PR shared in the cohort
+Slack; no responses at the time of writing.
