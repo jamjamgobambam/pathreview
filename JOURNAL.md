@@ -29,3 +29,25 @@ I reproduced the issue by writing a failing unit test (`test_sanitize_removes_ne
 
 **Blockers or open questions:**
 I am currently researching the best regular expression (regex) pattern to ensure I catch variations like `\nSYSTEM:` or `\n --- \n` without accidentally deleting normal resume formatting.
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+**Current progress:**
+I have fully implemented the sanitization fix inside `safety/prompt_defense.py`. Instead of manually trying to replace strings, I leveraged the existing `INJECTION_PATTERNS` regex list and applied `re.sub()` with the `re.IGNORECASE` flag to strip out `\n---\n` and `\nSystem:` during the `sanitize` method.
+**Next steps:**
+I am running `make check` and `make test-unit` to verify the fix and prepare my branch for a pull request.
+**Blockers:**
+
+---
+
+### Check-in 2 (end of week)
+**PR link:** [PR LINK HERE]
+**Branch:** `fix/64-prompt-injection-defense`
+**What you built:**
+I updated the `PromptDefense.sanitize()` method to utilize regular expressions. It now iterates through the class's predefined `INJECTION_PATTERNS` and neutralizes structural role-playing markers and newline injections by substituting them out of the user's data payload.
+**Tests added or updated:**
+I updated `tests/unit/test_prompt_defense.py` by adding `test_sanitize_removes_newline_injections`, which asserts that malicious sequences are successfully stripped from the final parsed text. 
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+**Draft PR feedback received from:** none

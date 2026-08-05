@@ -1,6 +1,7 @@
 """Prompt injection detection and defense."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -45,6 +46,11 @@ class PromptDefense:
 
         # Remove angle brackets
         sanitized = sanitized.replace("<", "").replace(">", "")
+
+        # Strip newline injection patterns and role-switching markers
+        for pattern in PromptDefense.INJECTION_PATTERNS:
+            # FIX: Replace with a newline instead of a space
+            sanitized = re.sub(pattern, "\n", sanitized, flags=re.IGNORECASE)
 
         return sanitized
 

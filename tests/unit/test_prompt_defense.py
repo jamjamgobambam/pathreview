@@ -222,7 +222,6 @@ class TestPromptDefense:
         sanitized = PromptDefense.sanitize(malicious_text)
 
         # Assert that the dangerous sequences are stripped
-        # THIS WILL FAIL because the regex currently misses these patterns
         assert "\n---\n" not in sanitized
         assert "System:" not in sanitized
 
