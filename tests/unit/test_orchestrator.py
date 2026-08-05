@@ -19,6 +19,15 @@ class FailedResultTool:
         )
 
 
+class SuccessfulResultTool:
+    """Test double that returns a successful tool result."""
+
+    name = "successful_result_tool"
+
+    def execute(self, tool_input: dict) -> ToolResult:
+        return ToolResult(success=True, data={"value": "result"})
+
+
 class RaisingTool:
     """Test double that raises every time it is executed."""
 
@@ -26,6 +35,41 @@ class RaisingTool:
 
     def __init__(self) -> None:
         self.execute = Mock(side_effect=RuntimeError("forced tool exception"))
+
+
+def test_run_distinguishes_successful_and_failed_tool_results() -> None:
+    """ToolResult.success should determine the status recorded in the log."""
+    successful_tool = SuccessfulResultTool()
+    failed_tool = FailedResultTool()
+    orchestrator = Orchestrator(
+        tools={
+            successful_tool.name: successful_tool,
+            failed_tool.name: failed_tool,
+        }
+    )
+
+    with (
+        patch.object(
+            orchestrator,
+            "_build_plan",
+            return_value=[
+                (successful_tool.name, {"test": True}),
+                (failed_tool.name, {"test": True}),
+            ],
+        ),
+        patch("agent.orchestrator.logger") as mock_logger,
+    ):
+        orchestrator.run(profile_id="test-profile", profile_data={})
+
+    tool_execution_logs = [
+        call.kwargs
+        for call in mock_logger.info.call_args_list
+        if call.args and call.args[0] == "tool_executed"
+    ]
+    assert tool_execution_logs == [
+        {"tool": successful_tool.name, "success": True},
+        {"tool": failed_tool.name, "success": False},
+    ]
 
 
 def test_run_preserves_failed_tool_result_and_does_not_log_success() -> None:
