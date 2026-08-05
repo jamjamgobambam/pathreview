@@ -117,7 +117,9 @@ class TestBiasDetector:
 
     def test_technical_feedback_not_flagged(self):
         """Test pure technical feedback not flagged."""
-        text = "Consider adding error handling to your API endpoints and documenting the parameters."
+        text = (
+            "Consider adding error handling to your API endpoints and documenting the parameters."
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -210,7 +212,9 @@ class TestBiasDetector:
 
     def test_multiple_bias_indicators(self):
         """Test text with multiple bias indicators."""
-        text = "young bootcamp graduates can't write code and immigrant developers lack fundamentals"
+        text = (
+            "young bootcamp graduates can't write code and immigrant developers lack fundamentals"
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -274,3 +278,27 @@ class TestBiasDetector:
 
         assert is_biased_obs is False  # Factual
         assert is_biased_ass is True  # Biased assumption
+
+    def test_positive_demographic_mention_not_flagged(self):
+        """Category term + positive framing should not be flagged."""
+        text = "young developers bring fresh energy to the team"
+        is_biased, _ = BiasDetector.detect_bias(text)
+        assert is_biased is False
+
+    def test_negative_technical_feedback_without_category_not_flagged(self):
+        """Negative words alone, with no protected category term, should not flag."""
+        text = "this project lacks test coverage and the error handling is inadequate"
+        is_biased, _ = BiasDetector.detect_bias(text)
+        assert is_biased is False
+
+    def test_unrelated_clauses_not_flagged(self):
+        """Category term and negative term in unrelated clauses should not flag."""
+        text = "the candidate is a bootcamp graduate. Separately, the codebase lacks documentation."
+        is_biased, _ = BiasDetector.detect_bias(text)
+        assert is_biased is False
+
+    def test_case_and_whitespace_after_rewrite(self):
+        """Case-insensitivity must survive the clause-splitting rewrite."""
+        text = "YOUNG   DEVELOPERS   CAN'T   handle complex systems"
+        is_biased, _ = BiasDetector.detect_bias(text)
+        assert is_biased is True
