@@ -16,25 +16,76 @@ class TestReadmeScorer:
 
     def test_readme_with_all_quality_signals(self, scorer):
         """Test README with all quality signals returns high score."""
+        # Note (issue #156): this fixture is intentionally padded past 500 words
+        # so it actually satisfies the "comprehensive" word_count_category
+        # threshold asserted below, in addition to exercising every other
+        # quality signal the scorer checks for.
         readme = """
         # Project Name
-        A comprehensive project description.
+        A comprehensive project description that explains what this project
+        does, who it is for, and why it exists. This project was built to
+        help developers quickly bootstrap a production-ready service without
+        having to reinvent common infrastructure pieces like configuration
+        loading, database access, authentication, and background job
+        processing. It favors sensible defaults over configuration, while
+        still allowing every default to be overridden when a project's
+        needs diverge from the common case.
+
+        ## Overview
+        The project is organized as a small set of composable modules.
+        Each module exposes a narrow, well-documented interface so it can
+        be used independently or combined with the others. The core design
+        goal is predictability: given the same input and configuration,
+        the system should always produce the same output, which makes the
+        project easy to test, easy to reason about, and easy to debug in
+        production when something unexpected happens.
 
         ## Installation
+        Installing the project takes only a couple of steps. First, make
+        sure you have a supported Python version installed locally.
         ```bash
         pip install package
         ```
+        After installation, verify everything is working correctly by
+        running the built-in diagnostic command, which checks that all
+        required dependencies are present and that the configuration file
+        can be parsed without errors.
 
         ## Usage
+        Basic usage only requires importing the package and calling the
+        primary entry point. Most configuration options have sensible
+        defaults, so a new user can get a working example running in
+        under a minute.
         ```python
         import package
         package.run()
         ```
+        More advanced usage, including customizing retry behavior, logging
+        verbosity, and connection pooling, is covered in the extended
+        documentation linked from this README.
 
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+        - Feature 1: Automatic retries with exponential backoff for
+          transient network failures, configurable per request.
+        - Feature 2: Structured logging out of the box, with sensible
+          defaults for both local development and production environments.
+        - Feature 3: A pluggable storage backend so teams can swap the
+          default database for an alternative without rewriting business
+          logic.
+
+        ## Configuration
+        Configuration values can be supplied through environment variables,
+        a configuration file, or programmatically at startup. Environment
+        variables always take precedence, which makes the project friendly
+        to container-based deployments where configuration is typically
+        injected through the environment rather than baked into an image.
+
+        ## Testing
+        The project ships with a comprehensive test suite covering unit
+        tests for individual modules as well as integration tests that
+        exercise the full request lifecycle against a real database.
+        Contributors are expected to add or update tests for any behavior
+        change before opening a pull request.
 
         ## Tech Stack
         - Python 3.9
@@ -46,6 +97,27 @@ class TestReadmeScorer:
 
         ## Live Demo
         [Try it here](https://demo.example.com)
+
+        ## Contributing
+        Contributions are welcome. Please open an issue describing the
+        change you would like to make before submitting a large pull
+        request, so maintainers can offer feedback on the approach early.
+        Smaller fixes, like documentation corrections, can be submitted
+        directly as a pull request without a preceding discussion.
+
+        ## License
+        This project is distributed under an open source license. See the
+        license file included in the repository for the full text and any
+        conditions that apply to redistribution or modification.
+
+        ## Acknowledgements
+        Thanks to everyone who has filed issues, reviewed pull requests, or
+        contributed documentation improvements. This project would not be
+        nearly as reliable without that ongoing feedback. If you build
+        something interesting on top of this project, consider opening a
+        pull request to add it to the list of example integrations, since
+        real-world examples tend to help new users far more than abstract
+        descriptions of what the project can theoretically do.
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -157,9 +229,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +291,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +307,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
