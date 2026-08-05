@@ -7,6 +7,7 @@ from typing import Optional
 from .memory.session_store import SessionStore
 from .memory.context_manager import ContextManager
 from .error_handling import retry_with_backoff
+from .tools.base import ToolResult
 
 logger = structlog.get_logger()
 
@@ -53,9 +54,14 @@ class Orchestrator:
         for tool_name, tool_input in plan:
             try:
                 result = self._execute_tool(tool_name, tool_input)
-                results[tool_name] = result.data if hasattr(result, 'data') else result
+                if isinstance(result, ToolResult):
+                    results[tool_name] = result.data
+                    tool_succeeded = result.success
+                else:
+                    results[tool_name] = result
+                    tool_succeeded = True
 
-                logger.info("tool_executed", tool=tool_name, success=True)
+                logger.info("tool_executed", tool=tool_name, success=tool_succeeded)
 
             except Exception as e:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
