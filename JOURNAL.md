@@ -139,3 +139,90 @@ import-stub errors for `PyPDF2`/`jose`/`passlib`/`rank_bm25` present on
 introduces 0 new failures.)*
 
 **Draft PR feedback received from:** none yet
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No comments, reviews, or review requests have landed on PR #262 as of this
+writing. Per the Su26 course note, reviewer feedback isn't a feature this
+term, so this is expected rather than a gap — the PR stands on its own
+documentation and test coverage.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the token-overlap threshold to work for short claims wasn't a
+one-line tweak the way the issue title made it sound. Three existing tests
+only made sense once I realized compound sentences ("Python expert. Knows
+Rust. Skilled with Docker.") needed to be split into one claim per fact
+*before* the threshold logic could ever produce the right per-claim
+verdicts — I had to hand-trace token overlaps for each existing test case
+against several candidate formulas before finding one that satisfied all
+of them simultaneously, including ones the issue didn't explicitly
+mention. The other harder-than-expected part was mechanical: a
+`GH007` push rejection over email privacy, and a pre-commit `mypy` hook
+that flagged 26 pre-existing missing-type-annotation errors across the
+*entire* test file — neither related to my actual fix, but both were real
+blockers to getting a commit to land at all.
+
+**What did you learn about working in a large codebase?**
+Most of the effort wasn't writing the fix — it was proving the fix didn't
+break anything else. That meant running the full unit suite and diffing
+lint/mypy error counts against `main` (182→180 ruff errors, 53→50 failing
+tests) rather than trusting a clean local diff. It also meant deliberately
+*not* fixing things I noticed along the way — a `None`-context crash bug
+sitting three lines from my change, and ~180 unrelated pre-existing lint
+errors repo-wide. In a solo project I'd just fix whatever I found; here,
+scope discipline meant documenting those instead of touching them. I also
+learned that a repo's stated commands (the Makefile's `typecheck` target
+explicitly excludes `tests/`) and its actual enforced gates (the
+pre-commit hook's `mypy` runs against everything staged, no exclusion) can
+disagree, and you have to satisfy both.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was fastest at codebase exploration — locating the exact
+method and lines the issue described in minutes — and at rigor: actually
+running `make check`/`make test-unit`, diffing against `main` via
+`git stash` and a throwaway worktree, and verifying the issue's literal
+repro command before and after the fix, rather than assuming a
+plausible-sounding change was correct. It fell short anywhere a human
+decision or credential was required: it couldn't push a branch or open a
+PR without my own `gh` auth, couldn't confirm the app actually runs at
+`localhost:5173` in a browser, and correctly refused to guess on things
+like whether to skip a failing pre-commit hook or add type annotations
+project-wide — those are project-culture calls, not something to
+auto-decide. It also wasn't right on the first try: the first couple of
+candidate fixes for the threshold logic looked reasonable but failed the
+issue's own example when actually run against it — only iterating against
+the real test fixtures caught that.
+
+**What would you do differently if you started over?**
+I'd request peer review earlier in the week instead of near the end —
+even though Su26 doesn't feature reviewer feedback, it's the habit that
+matters. I'd also write the Week 7/8 journal entries in real time while
+exploring the issue rather than reconstructing "Understand" and "Map"
+after the fix already existed — the actual work happened faster than the
+four-week cadence assumes, which compressed reflection that should've been
+spread out into one sitting. And I'd default to staging files by explicit
+path from the start — I used `git add -A` once and nearly bundled personal
+notes and an unrelated `package-lock.json` change into the fix commit;
+caught it before pushing, but it shouldn't have happened.
+
+**What are you most proud of from this module?**
+Not stopping at "the named tests turned green." I checked out the
+pre-fix code in a separate git worktree, ran the issue's exact repro
+against it to confirm the real `0.0`, then ran the identical command
+against my fix to confirm `1.0` — an actual before/after, not an inferred
+one. Combined with quantifying that the change strictly improved the
+repo's lint and test-failure counts rather than just "not regressing
+anything I could see," that's the part I'd point to as evidence the fix
+is real and not just test-shaped.
