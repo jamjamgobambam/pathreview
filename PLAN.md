@@ -127,5 +127,43 @@ response are canned/seeded, not live).
   `FeedbackSection(content=f"Error generating {section_name}", confidence=0.0)` instead
   of failing the whole `generate_full_review()` call.
 
-You'll update this file as your understanding evolves in Week 9. It's a living document,
-not a contract.
+### Week 9 update — what actually happened
+
+Implemented as `tests/integration/test_rag_pipeline.py` (8 tests, all passing). The five
+planned sub-tasks all landed, but building it surfaced four things the plan had wrong or
+did not know:
+
+1. **`HybridRetriever` never indexes the keyword searcher.** `hybrid.py:50` computes
+   `all_chunks = self._get_all_chunks(collection_name)` and then discards it —
+   `keyword_searcher.index(...)` is never called anywhere in the retriever. So the
+   keyword arm silently returns `[]` and blended scores cap at `vector_weight` unless
+   the *caller* indexes the searcher first. The test's `retriever` fixture does that
+   explicitly, with a comment. Risk 4 in the list above guessed at this seam but
+   assumed `_get_all_chunks` fed the index; it does not.
+2. **Nothing in the repo satisfies `VectorStore.add_chunks`.** It reads `chunk.id`,
+   `chunk.source_id`, `chunk.chunk_index` and `chunk.section`, but `Chunk`
+   (`ingestion/chunking/base.py`) only has `text` and `metadata`. The test defines a
+   minimal `StoredChunk` record for the seam; the mismatch itself is reported in the PR,
+   not fixed here.
+3. **A single canned LLM response would have collapsed the review to one section.**
+   `generate_section` returns the *parser's* `section_name` (taken from the JSON payload
+   key), and `_consolidate_feedback` de-duplicates on that name — so the same mock reply
+   for all five calls yields one section, not five. The fake client therefore identifies
+   which section is being requested by matching the distinct opening wording of each
+   prompt template and answers under that section's own key. As a corollary,
+   `first_impression` (whose template asks for prose, not JSON) comes back named
+   `general_feedback`; the test matches that section on its content rather than its
+   name, so the assertion holds whether or not that drift is later corrected.
+4. **The planned "empty corpus" edge case does not arise the way the plan assumed.**
+   Because both arms are max-normalised, the top hit always normalises to 1.0 and
+   `min_score=0.3` filters almost nothing — a query unrelated to the corpus still
+   returns chunks. Zero-retrieval is instead reached with a profile that has no indexed
+   chunks at all (empty collection *and* unindexed searcher), which is what the test
+   uses.
+
+A review pass then caught that the first draft asserted an exact retrieved-chunk count,
+which passed only because `VectorStore.query` converts cosine distance with the
+euclidean formula `1 / (1 + distance)`; fixing that bug would have broken the test. The
+count assertion was replaced with a threshold test that holds under either conversion.
+
+This file was a living document, not a contract — the divergences above are the point.
