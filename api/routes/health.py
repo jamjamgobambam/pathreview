@@ -1,8 +1,12 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-import structlog
-from datetime import datetime, timedelta
+from datetime import datetime
+from typing import Annotated, Any
 
+import structlog
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from api.deps import get_safety_monitor
 from core.database import get_db
+from safety.monitoring import SafetyMonitor
 
 log = structlog.get_logger()
 
@@ -10,12 +14,15 @@ router = APIRouter(prefix="/health", tags=["health"])
 
 
 @router.get("")
-async def health_check(db=Depends(get_db)):
+async def health_check(
+    db: Annotated[Any, Depends(get_db)],
+    safety_monitor: Annotated[SafetyMonitor, Depends(get_safety_monitor)],
+) -> dict[str, Any]:
     """
     Check health of PostgreSQL, Redis, and Vector DB.
     Returns 200 if all healthy, 503 if any dependency is down.
     """
-    health_status = {
+    health_status: dict[str, Any] = {
         "status": "healthy",
         "dependencies": {
             "postgres": "unknown",
@@ -39,6 +46,7 @@ async def health_check(db=Depends(get_db)):
     try:
         # Check Redis (if available)
         import redis
+
         from core.config import settings
 
         r = redis.Redis(
@@ -72,10 +80,11 @@ async def health_check(db=Depends(get_db)):
         health_status["dependencies"]["vector_db"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
-    # Count safety events in last hour (placeholder)
+    # Count safety events in last hour
     try:
-        # This would be populated by actual safety event logging
-        health_status["safety_events_last_hour"] = 0
+        health_status["safety_events_last_hour"] = safety_monitor.get_total_event_count(
+            window_hours=1
+        )
     except Exception as exc:
         log.error("safety_events_check_failed", error=str(exc))
 
