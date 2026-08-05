@@ -25,7 +25,7 @@ class Profile(Base):
         UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4())
     )
     user_id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+        UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     github_username: Mapped[str | None] = mapped_column(String(255), nullable=True)
     resume_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)

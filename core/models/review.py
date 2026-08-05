@@ -26,7 +26,6 @@ class Review(Base):
         UUID(as_uuid=False),
         ForeignKey("profiles.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="pending"
