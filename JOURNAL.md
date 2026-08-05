@@ -68,4 +68,4 @@ Added `tests/unit/test_monitoring.py` (covers `get_total_event_count`: no events
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 _(This repo has documented pre-existing failures; "passes" = my changes introduce **no new** failures. After my changes: `make test-unit` still 53 failed / now 382 passed; my four files are ruff- and black-clean.)_
 
-**Draft PR feedback received from:** _(pending — will request in Slack)_
+**Draft PR feedback received from:** none
