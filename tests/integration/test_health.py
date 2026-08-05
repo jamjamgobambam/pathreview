@@ -1,11 +1,13 @@
-"""Reproduction test for issue #155.
+"""Integration regression test for issue #155.
 
-api/routes/health.py probes Redis using settings.redis_host and
+api/routes/health.py used to probe Redis using settings.redis_host and
 settings.redis_port, but Settings (core/config.py) only defines redis_url.
-That mismatch raises an AttributeError inside the health check's Redis probe,
-so /health reports Redis as unhealthy even when Redis is up and reachable
-(see docker-compose.yml's redis service). This test expects the health check
-to correctly report Redis as healthy and currently fails because of the bug.
+That mismatch raised an AttributeError inside the health check's Redis probe,
+so /health reported Redis as unhealthy even when Redis was up and reachable
+(see docker-compose.yml's redis service). The fix builds the client from
+settings.redis_url instead, so this test confirms /health now correctly
+reports Redis as healthy when the real Redis container is reachable.
+Requires the docker-compose `redis` service to be running.
 """
 
 import pytest
