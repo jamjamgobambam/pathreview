@@ -1,9 +1,24 @@
 """Tests for prompt_templates.py - Snapshot tests"""
 
-import pytest
 import hashlib
 
+import pytest
+
 from rag.generator.prompt_templates import PROMPT_TEMPLATES, get_template
+
+# Baseline snapshot of each template's content hash, keyed by "name:version".
+# If a template's text changes, its hash no longer matches and the snapshot test
+# below fails. When a change is intentional, add a NEW version (e.g. "v2") to
+# PROMPT_TEMPLATES and record its hash here, rather than silently editing an
+# existing version in place. Only update the hash for an existing key when you
+# have deliberately decided to change that exact version.
+EXPECTED_TEMPLATE_HASHES = {
+    "first_impression:v1": "ef6429d3a6d426b3c9913381020dd7e4",
+    "gaps_feedback:v1": "e5bfd6644fd62a0fe01f60c9aa456762",
+    "presentation_feedback:v1": "43549ee59818dfc8eb3627554a563b2e",
+    "projects_feedback:v1": "d346d01b24ee7aad92594014a46557af",
+    "skills_feedback:v1": "f93103d823482a2e65decc6653e4ee5c",
+}
 
 
 @pytest.mark.unit
@@ -52,7 +67,9 @@ class TestPromptTemplates:
         """Test each template contains {context} placeholder."""
         for template_name, versions in PROMPT_TEMPLATES.items():
             for version, template_text in versions.items():
-                assert "{context}" in template_text, f"{template_name} v{version} missing {{context}}"
+                assert (
+                    "{context}" in template_text
+                ), f"{template_name} v{version} missing {{context}}"
 
     def test_each_template_contains_github_username_placeholder(self):
         """Test each template contains {github_username} placeholder."""
@@ -151,19 +168,32 @@ class TestPromptTemplates:
         """Test gaps_feedback template mentions missing/gap concepts."""
         template = PROMPT_TEMPLATES["gaps_feedback"]["v1"]
 
-        assert "gap" in template.lower() or "missing" in template.lower() or "demand" in template.lower()
+        assert (
+            "gap" in template.lower()
+            or "missing" in template.lower()
+            or "demand" in template.lower()
+        )
 
     def test_presentation_feedback_mentions_readme(self):
         """Test presentation_feedback template mentions README or presentation."""
         template = PROMPT_TEMPLATES["presentation_feedback"]["v1"]
 
-        assert "readme" in template.lower() or "presentation" in template.lower() or "organization" in template.lower()
+        assert (
+            "readme" in template.lower()
+            or "presentation" in template.lower()
+            or "organization" in template.lower()
+        )
 
     def test_first_impression_is_concise(self):
         """Test first_impression template instructs concise output."""
         template = PROMPT_TEMPLATES["first_impression"]["v1"]
 
-        assert "2" in template or "3" in template or "sentence" in template.lower() or "summary" in template.lower()
+        assert (
+            "2" in template
+            or "3" in template
+            or "sentence" in template.lower()
+            or "summary" in template.lower()
+        )
 
     def test_get_template_default_version(self):
         """Test get_template() defaults to v1 when version not specified."""
@@ -173,19 +203,39 @@ class TestPromptTemplates:
         assert template_default == template_v1
 
     def test_template_snapshot_content_hash(self):
-        """Snapshot test: verify template content hash."""
-        # Create hash of all template content
-        template_content = ""
-        for name in sorted(PROMPT_TEMPLATES.keys()):
-            for version in sorted(PROMPT_TEMPLATES[name].keys()):
-                template_content += PROMPT_TEMPLATES[name][version]
+        """Snapshot test: fail if a template's content changes without a version bump.
 
-        content_hash = hashlib.md5(template_content.encode()).hexdigest()
+        Each template version has a recorded baseline hash in
+        EXPECTED_TEMPLATE_HASHES. Editing a template's text changes its hash and
+        fails this test, forcing a conscious decision: add a new version (and its
+        hash) rather than silently editing an existing one.
+        """
+        current_hashes = {
+            f"{name}:{version}": hashlib.md5(text.encode("utf-8")).hexdigest()
+            for name, versions in PROMPT_TEMPLATES.items()
+            for version, text in versions.items()
+        }
 
-        # Expected hash - update if templates intentionally change
-        # This helps detect unintended changes to templates
-        assert isinstance(content_hash, str)
-        assert len(content_hash) == 32  # MD5 hash length
+        # A new or removed template version must be reflected in the baseline on
+        # purpose, so the set of known versions must match exactly.
+        assert set(current_hashes) == set(EXPECTED_TEMPLATE_HASHES), (
+            "Set of prompt template versions changed.\n"
+            f"  added:   {sorted(set(current_hashes) - set(EXPECTED_TEMPLATE_HASHES))}\n"
+            f"  removed: {sorted(set(EXPECTED_TEMPLATE_HASHES) - set(current_hashes))}\n"
+            "If intentional, update EXPECTED_TEMPLATE_HASHES to match (add the new "
+            "version's hash, or remove the deleted one)."
+        )
+
+        # Existing template content must match its recorded baseline hash.
+        changed = [
+            key for key, digest in current_hashes.items() if digest != EXPECTED_TEMPLATE_HASHES[key]
+        ]
+        assert not changed, (
+            f"Prompt template content changed for: {changed}.\n"
+            "If this change is intentional, bump the template version (add a new "
+            "'vN' entry in PROMPT_TEMPLATES) instead of editing an existing version "
+            "in place, then record its hash in EXPECTED_TEMPLATE_HASHES."
+        )
 
     def test_skills_feedback_requests_json_format(self):
         """Test skills_feedback requests JSON output."""
@@ -216,7 +266,11 @@ class TestPromptTemplates:
         template = PROMPT_TEMPLATES["first_impression"]["v1"]
 
         # Should specify format (JSON or plain text)
-        assert "json" in template.lower() or "text" in template.lower() or "summary" in template.lower()
+        assert (
+            "json" in template.lower()
+            or "text" in template.lower()
+            or "summary" in template.lower()
+        )
 
     def test_templates_have_portfolio_context(self):
         """Test templates mention portfolio or context."""
@@ -230,7 +284,8 @@ class TestPromptTemplates:
         # Import logger to verify it's used
         with pytest.MonkeyPatch.context() as mp:
             from unittest.mock import patch
-            with patch('rag.generator.prompt_templates.logger') as mock_logger:
+
+            with patch("rag.generator.prompt_templates.logger") as mock_logger:
                 get_template("skills_feedback")
                 # Should log template retrieval
 
@@ -267,7 +322,8 @@ class TestPromptTemplates:
             for version, template_text in versions.items():
                 # All placeholders should use {name} syntax
                 import re
-                placeholders = re.findall(r'\{(\w+)\}', template_text)
+
+                placeholders = re.findall(r"\{(\w+)\}", template_text)
                 assert "context" in placeholders
                 assert "github_username" in placeholders
                 assert "project_count" in placeholders
