@@ -1,3 +1,56 @@
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+No reviews came in.
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Probably dealing with git, and the size of the repository, together. While I am usually pretty
+confident with git, it was a little challenging to deal with failed tests (and therefore 
+dealing with git not letting me commit). I have never encountered that before, so it was 
+definitely a learning curve.
+
+**What did you learn about working in a large codebase?**
+Personally, I think I understood on a deeper level why it is so important to have an organized 
+directory in your project. It would be a lot harder to navigate in someone else's production 
+code if there was no organization and no comments. So that helped a lot and made me appreciate it. 
+So, I think that contributing to your own project is easier for that reason. But in the real world, you never 
+really contribute only to your own codebase - you always work with someone else. 
+So, it was good practice to try and navigate in someone else's code.
+
+**How did AI tools help — and where did they fall short?**
+To be honest, AI helped a lot with rewriting my docs. As an engineer, it has always been a little challenging
+for me to write well, and AI rephrasing and polishing my thoughts was really helpful. Additionally, I think the
+AI was very helpful explaining the functions or files (e.g. I would ask: what does this file do? - and AI 
+would summarize it). I think I still had to rely a lot on my own knowdlege, as AI always tried to complicate 
+things. For example, when git would fail to commit because of the failed checks, AI wanted to fix it 
+immediately, but I really needed was how to commit without running the checks at all, not fixing the problems themselves.
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+I think that I would probably pick a higher tier issue. I picked tier 1 issue because I have never contributed
+to an open source before. Looking back, I should have known that it isn't much different from contributing to 
+any other repository with its own rules (in my opinion). Tier 1 issue that I picked was basically a one-line 
+fix, and I wish I could do more coding/problem-solving. Other than that, I think everything else went smooth.
+
+**What are you most proud of from this module?**
+I think I am most proud of being able to use git with confidence. I think that git is a skill, and no one can
+just master it once and forget - it requires constant practice and refreshing. I was able to handle most of the
+git I needed to use on my own, without using AI. That makes me very happy.
+
 ## Week 9 — Solution building & PR submission
 
 ### Check-in 1 (mid-week)
