@@ -1,0 +1,23 @@
+{
+  "github_username": "alexrivera-dev",
+  "resume": {
+    "filename": "alex_rivera_resume.md",
+    "text": "# Alex Rivera\n\nSoftware engineer focused on accessible web applications and reliable APIs.\n\n## Experience\n- Software Engineering Intern, Civic Tech Lab (2025)\n  - Built FastAPI endpoints and added pytest coverage for community-services data.\n  - Improved a React search flow for keyboard and screen-reader users.\n\n## Education\n- B.S. in Computer Science, Lakeside University (Expected 2027)\n\n## Skills\nPython, TypeScript, FastAPI, React, PostgreSQL, Docker, GitHub Actions"
+  },
+  "repositories": [
+    {
+      "name": "community-events-api",
+      "url": "https://github.com/alexrivera-dev/community-events-api",
+      "description": "A REST API for finding and managing local community events.",
+      "primary_language": "Python",
+      "readme": "# Community Events API\n\nA FastAPI service for searchable community events.\n\n## Features\n- Location and date filters\n- Organizer authentication\n- PostgreSQL persistence\n- Pytest unit tests"
+    },
+    {
+      "name": "accessible-study-planner",
+      "url": "https://github.com/alexrivera-dev/accessible-study-planner",
+      "description": "A keyboard-friendly study planner with progress tracking.",
+      "primary_language": "TypeScript",
+      "readme": "# Accessible Study Planner\n\nA React application for organizing assignments and study sessions.\n\n## Features\n- Keyboard-accessible task controls\n- Deadline and progress views\n- Local-first data storage\n- Vitest component tests"
+    }
+  ]
+}
