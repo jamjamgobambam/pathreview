@@ -48,7 +48,7 @@ N/A
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/966#issue-5067937138
 
 **Branch:** `test/57-mock-github-server`
 
@@ -58,6 +58,13 @@ Added a mock-GitHub-API integration test suite for `GitHubTool` using `pytest-ht
 **Tests added or updated:**
 `tests/integration/test_github_tool.py` (9 tests) covering the success path with full metadata, null/missing-field fallbacks, README present/absent detection, and error mapping for 404 (not found), 403 (rate limited), and generic 500 responses, plus missing-argument validation. Also added fixture responses under `tests/fixtures/github_responses/` (`repo_success.json`, `repo_nulls.json`, `error_403.json`, `error_404.json`, `error_500.json`).
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [] make check passes  [] make test-unit passes
+Note: There are pre-existing failures in unit tests before the fix of this issue (53 failed, 384 passed). This number didn't change after the fix of this issue. `make check` also have pre-existing failures. To ensure that linter and typecheck pass for the code files touched by the fix, the following commands were ran on to achieve the same effect:
+- `.venv/Scripts/ruff.exe check tests/integration/test_github_tool.py`
+- `.venv/Scripts/black.exe tests/integration/test_github_tool.py`
+- `.venv/Scripts/mypy.exe tests/integration/test_github_tool.py`
+- `.venv/Scripts/ruff.exe check agent/tools/github_tool.py`
+- `.venv/Scripts/black.exe agent/tools/github_tool.py`
+- `.venv/Scripts/mypy.exe agent/tools/github_tool.py`
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
