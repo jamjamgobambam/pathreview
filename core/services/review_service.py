@@ -1,15 +1,22 @@
-from uuid import UUID
-import structlog
 import json
+import secrets
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
+
+# Number of random bytes used to generate a public share token. 32 bytes of
+# entropy from `secrets` yields a ~43 character URL-safe string, well within
+# the 64 character column limit.
+SHARE_TOKEN_BYTES = 32
 
 
 async def create_review(
@@ -43,6 +50,75 @@ async def get_review(
     stmt = select(Review).join(Profile).where(
         and_(Review.id == review_id, Profile.user_id == user_id)
     )
+    result = await db.execute(stmt)
+    return result.scalars().first()
+
+
+async def create_or_get_share_token(
+    db,
+    review_id: UUID,
+    user_id: UUID,
+) -> str | None:
+    """Return a public share token for an owned review, creating one if needed.
+
+    The operation is idempotent: if the review already has a share token it is
+    returned unchanged so existing shared links keep working. A fresh,
+    cryptographically secure token is generated only the first time a review is
+    shared.
+
+    Args:
+        db: Async database session.
+        review_id: ID of the review to share.
+        user_id: ID of the user requesting the share link (ownership is
+            enforced via the review's profile).
+
+    Returns:
+        The share token string, or ``None`` if no review with ``review_id`` is
+        owned by ``user_id``.
+    """
+    review = await get_review(db, review_id, user_id)
+    if review is None:
+        return None
+
+    if review.share_token:
+        return review.share_token
+
+    # Retry on the astronomically unlikely event of a token collision.
+    for _ in range(5):
+        token = secrets.token_urlsafe(SHARE_TOKEN_BYTES)
+        existing = await get_review_by_share_token(db, token)
+        if existing is None:
+            review.share_token = token
+            db.add(review)
+            await db.commit()
+            await db.refresh(review)
+            log.info(
+                "share_token_created",
+                review_id=str(review_id),
+                user_id=str(user_id),
+            )
+            return token
+
+    log.error("share_token_generation_failed", review_id=str(review_id))
+    raise RuntimeError("Could not generate a unique share token")
+
+
+async def get_review_by_share_token(
+    db,
+    share_token: str,
+) -> Review | None:
+    """Fetch a review by its public share token without any ownership check.
+
+    Args:
+        db: Async database session.
+        share_token: The public share token from a shared link.
+
+    Returns:
+        The matching :class:`Review`, or ``None`` if the token is unknown.
+    """
+    if not share_token:
+        return None
+    stmt = select(Review).where(Review.share_token == share_token)
     result = await db.execute(stmt)
     return result.scalars().first()
 

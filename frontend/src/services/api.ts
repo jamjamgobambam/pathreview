@@ -1,4 +1,11 @@
-import { AuthResponse, Profile, Review, ReviewListResponse } from '../types'
+import {
+  AuthResponse,
+  Profile,
+  Review,
+  ReviewListResponse,
+  ShareTokenResponse,
+  PublicReview,
+} from '../types'
 
 const API_BASE = '/api'
 
@@ -109,6 +116,16 @@ class ApiClient {
 
   async listReviews(page: number = 1, pageSize: number = 10): Promise<ReviewListResponse> {
     return this.request(`/reviews?page=${page}&page_size=${pageSize}`)
+  }
+
+  // Generate (or reuse) a public share link for an owned review.
+  async createShareLink(reviewId: string): Promise<ShareTokenResponse> {
+    return this.request(`/reviews/${reviewId}/share`, { method: 'POST' })
+  }
+
+  // Fetch a sanitized shared review by its public token (no auth required).
+  async getSharedReview(shareToken: string): Promise<PublicReview> {
+    return this.request(`/reviews/share/${shareToken}`)
   }
 
   async deleteProfile(id: string): Promise<void> {

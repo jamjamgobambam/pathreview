@@ -69,3 +69,20 @@ make run           # Start the dev servers
 ## License
 
 MIT
+
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/101
+
+**Issue title:** Add a "Copy link" button to share a public review summary
+
+**Tier:** [ ] Tier 1  [X] Tier 2  [ ] Tier 3
+
+**Problem summary:**
+Currently, portfolio review results are only accessible to authenticated users who own the review through the private `/reviews/{review_id}` API endpoint. There is no way for users to share their review summaries with others (colleagues, mentors, potential employers) without granting full account access. The issue requires implementing a public review sharing feature by: (1) adding a unique public share token to the Review model, (2) creating a new public API endpoint to fetch review summaries by share token, and (3) adding a "Copy link" button in the ReviewPage component (frontend) that generates and copies a shareable public URL. This affects the Review model in `core/models/review.py`, review service in `core/services/review_service.py`, API routes in `api/routes/reviews.py`, and the ReviewPage component in `frontend/src/pages/ReviewPage.tsx`.
+
+**Branch name:** feat/101-public-review-sharing
+
+**Setup confirmation:** [X] App runs locally at localhost:5173
+
+**Cohort ledger:** [X] Issue added to cohort ledger

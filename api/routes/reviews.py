@@ -1,15 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import (
+    PublicReviewResponse,
+    ReviewCreate,
+    ReviewListResponse,
+    ReviewResponse,
+    ShareTokenResponse,
+)
 from core.database import get_db
+from core.models.user import User
 from core.services.review_service import (
+    create_or_get_share_token,
     create_review,
     get_review,
+    get_review_by_share_token,
     list_reviews,
     process_review,
 )
@@ -59,6 +67,89 @@ async def create_review_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create review",
+        )
+
+
+@router.get("/share/{share_token}", response_model=PublicReviewResponse)
+async def get_shared_review_endpoint(
+    share_token: str,
+    db=Depends(get_db),
+):
+    """
+    Public endpoint: fetch a sanitized review summary by its share token.
+
+    No authentication required. Returns 404 if the token is unknown so that
+    revoked or mistyped tokens are indistinguishable from never-shared reviews.
+    """
+    try:
+        review = await get_review_by_share_token(db=db, share_token=share_token)
+
+        if not review:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Shared review not found",
+            )
+
+        return PublicReviewResponse.model_validate(review)
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        log.error("get_shared_review_error", error=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve shared review",
+        )
+
+
+@router.post("/{review_id}/share", response_model=ShareTokenResponse)
+async def create_share_link_endpoint(
+    review_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db=Depends(get_db),
+):
+    """
+    Generate (or return the existing) public share link for a review.
+
+    Requires authentication and ownership of the review. Idempotent: repeated
+    calls return the same token so previously shared links keep working.
+    Returns 404 if the review does not exist or is not owned by the caller.
+    """
+    try:
+        share_token = await create_or_get_share_token(
+            db=db, review_id=review_id, user_id=current_user.id
+        )
+
+        if share_token is None:
+            log.warning(
+                "share_review_not_found",
+                review_id=str(review_id),
+                user_id=str(current_user.id),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Review not found",
+            )
+
+        log.info(
+            "share_link_created",
+            review_id=str(review_id),
+            user_id=str(current_user.id),
+        )
+
+        return ShareTokenResponse(
+            share_token=share_token,
+            share_url=f"/shared/{share_token}",
+        )
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        log.error("create_share_link_error", error=str(exc))
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create share link",
         )
 
 
