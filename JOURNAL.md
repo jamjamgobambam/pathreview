@@ -60,3 +60,35 @@ Added `tests/unit/test_orchestrator.py` with 5 tests: re-execution across separa
 (Both commands were run and confirmed to introduce zero new failures compared to the pre-fix code -- the pre-existing failures/errors in unrelated files are documented in my PR description.)
 
 **Draft PR feedback received from:** none (posted in Slack, but no responses came in before the deadline)
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+(Note: reviewer feedback is not a feature in Summer 2026, per course announcement.)
+
+**Summary of feedback:**
+No review came in on PR #663 by the end of the module. I posted the draft PR in Slack asking for early feedback, but no one responded before the deadline.
+
+**How you responded:**
+N/A -- no feedback was received to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting my local environment running reliably was a bigger time sink than the actual bug fix. I hit a Docker container (`vector-db` / ChromaDB) that crashed on every startup due to a `numpy` version incompatibility baked into the image itself -- nothing I could fix by restarting or rebuilding, since the issue was internal to the pinned image version. I also kept running commands in PowerShell instead of Git Bash out of habit, which broke `make` repeatedly until I got in the habit of checking which shell I was in. Tracing the actual bug was harder than I expected too -- the issue title pointed at `session_store.py`, but that file turned out to be completely correct on its own. The real bug was two layers away, in how `Orchestrator` instantiated `ContextManager` in `__init__` instead of scoping it to a single `run()` call. I had to read through `orchestrator.py`, `context_manager.py`, and trace the call chain from `main.py` through `reviews.py` through `review_service.py` before I found where the actual orchestration logic lived (and even then, found out it was just a placeholder that isn't wired into the live API yet).
+
+**What did you learn about working in a large codebase?**
+The bug wasn't where the issue title said it would be. That was the biggest lesson -- issue titles and docstrings point you in a direction, but the actual root cause can be one or two layers removed from where you start looking. I also learned that a codebase can have pre-existing, unrelated failures (53 failing tests, 179 lint/type errors) that have nothing to do with what you're working on, and that's normal -- the standard isn't "leave the codebase perfect," it's "don't make it worse." Documenting that clearly in a PR description, backed by a before/after comparison (I used `git stash` to prove the same 53 failures existed before and after my change), felt like a more honest and useful contribution than silently ignoring them or trying to fix everything at once.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for reading and tracing code I didn't write -- following the chain from the API route through the service layer to the actual orchestrator, and spotting that `ContextManager`'s own docstring ("within-session memoization") directly contradicted how it was being used (stored for the lifetime of the Orchestrator instance). It was also useful for quickly explaining unfamiliar tooling errors (Docker Compose output, pre-commit hook failures, mypy error messages) in plain language when I didn't recognize them. Where it fell short: it couldn't actually run commands on my machine, so every fix still required me to manually copy files, run terminal commands, and report back results -- which meant a lot of back-and-forth for things that would have been one step if I'd had direct file access. It also couldn't diagnose the Docker/numpy issue with certainty since it couldn't execute anything inside the container itself; we could only reason about it from the log output.
+
+**What would you do differently if you started over?**
+I'd read the full call chain (API route -> service -> orchestrator -> memory) before writing any reproduction code, instead of starting with the file the issue title pointed at. I'd also set up my environment more carefully at the start -- confirming Git Bash vs PowerShell early, and checking `docker compose ps -a` (not just `ps`) from the very first setup so I'd have caught the vector-db crash sooner instead of discovering it mid-restart.
+
+**What are you most proud of from this module?**
+Proving the bug was real before writing any fix. Instead of guessing at the cause and patching something, I wrote a standalone script with a fake tool that counted its own executions, which gave me clear, undeniable log output (`tool_result_cache_hit`) showing the exact mechanism of the bug. That same script became the basis for my actual regression test, so the proof-of-bug and the safety-net-against-regression were the same piece of work.
