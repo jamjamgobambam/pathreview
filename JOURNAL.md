@@ -44,3 +44,54 @@ At the time I claimed the issue, I did not see an assignee or a stated
 dependency blocking the work. I will complete the tests one case at a
 time and ask for clarification if the integration-test setup requires
 changes outside the expected scope.
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+I completed the local reproduction and solution plan for Issue #90.
+I reviewed the authentication dependency in
+`api/middleware/auth.py`, the JWT utilities in `core/security.py`,
+and the existing security unit tests.
+
+I also established the pre-change baseline before implementing the
+new integration tests.
+
+`make check` currently fails with 182 pre-existing Ruff violations
+across the repository.
+
+`make test-unit` currently reports:
+
+- 428 tests collected
+- 345 passed
+- 52 failed
+- 31 errors
+- 1 warning
+
+These failures appear unrelated to Issue #90. The only existing
+security test failure concerns malformed bcrypt-hash handling, not
+JWT authentication or protected API routes.
+
+The working tree remained unchanged after running the baseline checks.
+
+**Next steps:**
+
+Create `tests/integration/test_auth_middleware.py` and add integration
+tests for:
+
+- Missing Authorization header
+- Malformed JWT
+- Expired JWT
+- JWT signed with the wrong secret
+
+Then run the new integration test file and compare the final project
+checks against the recorded baseline.
+
+**Blockers:**
+
+The repository currently has pre-existing lint, unit-test, and test
+setup failures. I will document these in the PR and confirm that my
+changes do not introduce additional failures.
