@@ -58,3 +58,58 @@ Separately, running mypy against this file surfaced several pre-existing type er
 loosely-typed `health_status` object) — I bypassed the pre-commit hook for my reproduction
 commit since those errors predate my change, but I'll decide in Week 9 whether cleaning
 them up belongs in this PR's scope, since I'll already be editing that exact function.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed sub-tasks 1-2 from `PLAN.md`: grepped the codebase for other `redis.Redis(...)`
+call sites and confirmed `api/routes/health.py` is the only one, then replaced the broken
+`redis.Redis(host=settings.redis_host, port=settings.redis_port, ...)` construction with
+`redis.Redis.from_url(settings.redis_url, decode_responses=True)`.
+
+**Next steps:**
+Update `tests/unit/test_health.py` (sub-task 4) so it verifies the fixed behavior instead
+of just documenting the bug — flip the end-to-end test to expect `"healthy"`, and add a
+new test confirming a genuinely unreachable Redis is still correctly reported as
+`"unhealthy"`. Then run `make check` and `make test-unit` to confirm no new failures
+(sub-task 5), and open the PR.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/990
+
+**Branch:** fix/155-health-check-redis-host
+
+**What you built:**
+Fixed the `/health` endpoint's Redis probe, which crashed with an `AttributeError` because
+it referenced `settings.redis_host`/`settings.redis_port` — fields that don't exist on
+`Settings` (only `redis_url` does). The endpoint now connects via
+`redis.Redis.from_url(settings.redis_url)`, so it correctly reports Redis's real status
+instead of always returning a 503.
+
+**Tests added or updated:**
+Updated `tests/unit/test_health.py` (3 tests total): one confirms the root cause directly
+(`Settings` has no `redis_host`/`redis_port` fields, only `redis_url`), one confirms a
+reachable Redis now reports `"healthy"` with a 200 response instead of the old 503, and one
+covers the edge case that a genuinely unreachable Redis still correctly reports
+`"unhealthy"` rather than the fix silently masking real outages.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Note: this codebase has documented pre-existing failures unrelated to this issue —
+53 pre-existing test failures across 16 unrelated files, 100 pre-existing mypy errors
+across 26 files including 8 in `health.py` itself, and 183 pre-existing ruff errors in
+files I didn't touch. I confirmed all of these counts are identical before and after my
+change, so "passes" here means my change introduces no new failures, per the
+pre-existing-failures guidance for this week. Full breakdown is documented in the PR
+description.)
+
+**Draft PR feedback received from:** none — opened directly as ready for review due to
+the submission deadline having passed; reaching out to the course team separately about
+the late submission.
