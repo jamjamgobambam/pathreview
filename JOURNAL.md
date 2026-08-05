@@ -238,5 +238,34 @@ File test_structural_chunker.py:
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. 
+
+**How you responded:**
+No feedback came in, but I was confident that my pull request would have been approved. 
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The codebase was much deeper and more complex than what I am used to working with. I am a Software Engineer at Liberty Mutual, and I thought work applications were complex, but this was even more complex to me. Perhaps that is because I am less familiar with production Pyton code (I've only used Python in school projects), or perhaps it was because it used different aspects of AI development that I haven't seen combined in one project before. It also was probably because I didn't **have** to understand the entire codebase to implement my small fix, so I didn't take the time to fully understand the details of it. 
+
+**What did you learn about working in a large codebase?**
+Following coding standards that are implemented by a team - making sure that every commit followed the structure outlined by CONTRIBUTING.md was not new, but it was actually stricter than what I have to follow at work. Git rebasing is new to me, and I got a C on that assignment, while all of my other assignments I got an A or A+. Taking the time to fully understand the codebase would habe been beneficial, but I think I was (am) kind of burned out after this course.
+
+**How did AI tools help — and where did they fall short?**
+AI helped most in the planning of the fix that needed to be implemented. It was also helpful wiht generating the tests that covered the edge cases that were identified in PLAN.md, then implementing the fix(es) to make sure that the issue was completely resolved before submission. 
+
+**What would you do differently if you started over?**
+If I hadn't worked so hard on the earlier projects - and I did put a LOT of effort into some of them, especially Projects 1 and 3 (25 - 30 hours per project) and as I said earlier, this burned me out to some extent. I probably would have chosen a more difficult issue if I had more bandwidth and energy, but I wanted to do an easy project that I knew wouldn't eat up all of my free time during these last few weeks. This project didn't challenge me, and it isn't like me to choose the easy path. I think I just need to learn to pace myself, and not let myself get burned out half way into a course. That said, it was a good learning experience.  
+
+**What are you most proud of from this module?**
+I am most proud of the test cases that were created based on the edge cases identified in PLAN.md. 
 
