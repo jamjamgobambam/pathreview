@@ -71,7 +71,7 @@ Open a draft PR and request peer/mentor review. The live-DB smoke test (confirmi
 
 ### Check-in 2 (end of week)
 
-**PR link:** _<paste the PR URL here after opening it — e.g. https://github.com/ascherj/pathreview/pull/NNN>_
+**PR link:** https://github.com/ascherj/pathreview/pull/894
 
 **Branch:** fix/154-health-check-textual-sql
 
