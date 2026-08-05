@@ -125,3 +125,60 @@ pre-existing test failures and 182 pre-existing ruff errors unrelated to this
 change, documented in the PR description and verified via before/after diffs.)
 
 **Draft PR feedback received from:** none yet — posted in Slack for review
+
+## Week 10 — Iteration & reflection
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+I posted the draft PR link in the class Slack channel asking for feedback before 
+marking it ready for review, but no one responded before the deadline.
+
+**How you responded:**
+N/A — no feedback was received to respond to.
+
+### Reflection
+
+**What was harder than you expected?**
+My first instinct was to just re-run `make test-unit` before and after my change
+and eyeball the pass/fail counts, but a raw `diff` between the two full output
+files was almost useless because the object memory addresses, UUIDs, and timestamps
+change on every single run, so the diff was hundreds of lines of noise even
+though only one test's status had actually changed. I had to strip that down
+to just the `FAILED` lines, sort them, and diff those to get a clean signal:
+one line removed, nothing added. That took a couple of extra passes to get
+right, and it taught me that "run the tests before and after" isn't actually
+enough on its own you need output that's stable enough to diff meaningfully.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was learning to distinguish my bug from pre-existing
+codebase debt. The first time I ran the full test suite, I saw 53 failing
+tests and briefly panicked my instinct was that I'd broken something before
+I'd even touched a file. Once I understood that pathreview already had 52
+unrelated failures I realized a huge part of contributing to an existing codebase
+is proving a negative. Capturing before/after output and diffing the
+sorted list of failing test names was the only way to actually prove that,
+rather than just eyeballing pass/fail counts.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for quickly tracing root causes across files
+and for troubleshooting environment errors I didn't have the background to 
+diagnose alone. It also helped me reason through whether a fix belonged in 
+the fixture or the assertion itself, since the issue explicitly allowed for
+either and picking wrong would have meant fixing the test in a way that 
+no longer tested real behavior.
+
+**What would you do differently if you started over?**
+I'd read the full week's assignment doc before starting any work, not partway
+through. I jumped straight into fixing the fixture the same day I picked the
+issue, and had to backtrack once I realized Week 7 only asked for setup and
+issue selection.
+
+**What are you most proud of from this module?**
+Catching that the test's assertion (`word_count > 100`) didn't actually match
+the scorer's real threshold (500+ words) rather than just patching the test to
+make it pass. My first attempt at extending the fixture only got to 321 words,
+which still would have failed. It forced me to trust the code's real logic
+over my own assumption about how long the fixture should be, and confirm the
+fix against the actual `_score_readme` thresholds rather than guessing.
