@@ -1,12 +1,12 @@
 """Plan-execute orchestrator for agent tools."""
 
 import time
-import structlog
-from typing import Optional
 
-from .memory.session_store import SessionStore
-from .memory.context_manager import ContextManager
+import structlog
+
 from .error_handling import retry_with_backoff
+from .memory.context_manager import ContextManager
+from .memory.session_store import SessionStore
 
 logger = structlog.get_logger()
 
@@ -14,8 +14,9 @@ logger = structlog.get_logger()
 class Orchestrator:
     """Orchestrate tool execution with planning and memoization."""
 
-    def __init__(self, tools: dict, session_store: Optional[SessionStore] = None,
-                 tool_timeout: float = 30.0):
+    def __init__(
+        self, tools: dict, session_store: SessionStore | None = None, tool_timeout: float = 30.0
+    ):
         """Initialize orchestrator.
 
         Args:
@@ -36,7 +37,12 @@ class Orchestrator:
             profile_data: Profile data dict with github_username, projects, etc.
 
         Returns:
-            Dict with analysis results from all tools
+            Dict with analysis results from all tools. Every entry in
+            "tool_results" has the uniform shape
+            {"success": bool, "data": dict | None, "error": str | None},
+            and the top-level "status" ("complete" | "partial" | "failed")
+            plus "failed_tools" tell the caller whether anything went wrong
+            without needing to inspect individual entries.
         """
         logger.info("orchestrator_start", profile_id=profile_id)
 
@@ -50,29 +56,46 @@ class Orchestrator:
 
         # Execute plan
         results = {}
+        failed_tools = []
         for tool_name, tool_input in plan:
             try:
                 result = self._execute_tool(tool_name, tool_input)
-                results[tool_name] = result.data if hasattr(result, 'data') else result
+                data = result.data if hasattr(result, "data") else result
+                results[tool_name] = {"success": True, "data": data, "error": None}
 
                 logger.info("tool_executed", tool=tool_name, success=True)
 
             except Exception as e:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
-                results[tool_name] = {"error": str(e), "success": False}
+                results[tool_name] = {"success": False, "data": None, "error": str(e)}
+                failed_tools.append(tool_name)
+
+        if not plan or not failed_tools:
+            status = "complete"
+        elif len(failed_tools) == len(plan):
+            status = "failed"
+        else:
+            status = "partial"
 
         # Persist state
         if self.session_store:
             session_state.update(results)
             self.session_store.set(profile_id, session_state)
 
-        logger.info("orchestrator_complete", profile_id=profile_id,
-                   tools_executed=len(results))
+        logger.info(
+            "orchestrator_complete",
+            profile_id=profile_id,
+            tools_executed=len(results),
+            status=status,
+            failed_tools=failed_tools,
+        )
 
         return {
             "profile_id": profile_id,
+            "status": status,
             "tool_results": results,
-            "cached_results": self.context_manager.get_all_results()
+            "failed_tools": failed_tools,
+            "cached_results": self.context_manager.get_all_results(),
         }
 
     def _build_plan(self, profile_data: dict) -> list[tuple[str, dict]]:
@@ -90,45 +113,52 @@ class Orchestrator:
         if profile_data.get("github_username"):
             for project in profile_data.get("projects", []):
                 if project.get("github_repo"):
-                    plan.append((
-                        "github_tool",
-                        {
-                            "github_username": profile_data["github_username"],
-                            "repo_name": project["github_repo"]
-                        }
-                    ))
+                    plan.append(
+                        (
+                            "github_tool",
+                            {
+                                "github_username": profile_data["github_username"],
+                                "repo_name": project["github_repo"],
+                            },
+                        )
+                    )
                     break  # Only process first repo for now
 
         # Tech detector (if files available)
         if profile_data.get("files"):
-            plan.append((
-                "tech_detector",
-                {"files": profile_data["files"]}
-            ))
+            plan.append(("tech_detector", {"files": profile_data["files"]}))
 
         # README scorer
         if profile_data.get("readme_content"):
-            plan.append((
-                "readme_scorer",
-                {"readme_content": profile_data["readme_content"]}
-            ))
+            plan.append(("readme_scorer", {"readme_content": profile_data["readme_content"]}))
 
         # Skill extractor
         if profile_data.get("resume_text"):
-            plan.append((
-                "skill_extractor",
-                {
-                    "resume_text": profile_data["resume_text"],
-                    "repo_metadata": profile_data.get("repo_metadata", {})
-                }
-            ))
+            plan.append(
+                (
+                    "skill_extractor",
+                    {
+                        "resume_text": profile_data["resume_text"],
+                        "repo_metadata": profile_data.get("repo_metadata", {}),
+                    },
+                )
+            )
 
         # Market analyzer (if skills detected)
         if plan:  # Only if other tools executed
-            plan.append((
-                "market_analyzer",
-                {"detected_skills": {}}  # Will be populated by context
-            ))
+            plan.append(
+                ("market_analyzer", {"detected_skills": {}})  # Will be populated by context
+            )
+
+        # Skip steps for tools that aren't registered instead of queuing them
+        # to fail at execution time with an opaque "Unknown tool" error.
+        registered_plan = []
+        for tool_name, tool_input in plan:
+            if tool_name not in self.tools:
+                logger.warning("tool_not_registered", tool=tool_name)
+                continue
+            registered_plan.append((tool_name, tool_input))
+        plan = registered_plan
 
         logger.info("plan_built", plan_size=len(plan))
         return plan
@@ -172,7 +202,7 @@ class Orchestrator:
             logger.error("tool_execution_error", tool=tool_name, error=str(e))
             raise
 
-    def _execute_with_timeout(self, tool, tool_input: dict, timeout: Optional[float] = None):
+    def _execute_with_timeout(self, tool, tool_input: dict, timeout: float | None = None):
         """Execute tool with timeout.
 
         Args:
