@@ -168,6 +168,25 @@ class TestResumeParser:
         assert "education" in sections_lower
         assert "skills" in sections_lower
 
+    def test_detect_sections_with_tabs(self, parser: ResumeParser) -> None:
+        """Indented headers using tabs should be detected, not just spaces."""
+        text = "\tEducation:\n\tB.S. Computer Science\n\n\tSkills: Python\n"
+        sections_lower = [s.lower() for s in parser._detect_sections(text)]
+
+        assert "education" in sections_lower
+        assert "skills" in sections_lower
+
+    def test_detect_sections_no_false_positive_mid_sentence(self, parser: ResumeParser) -> None:
+        """A section keyword indented mid-sentence (not a header) should not match."""
+        text = "        Built a system to track education milestones for students.\n"
+        sections_lower = [s.lower() for s in parser._detect_sections(text)]
+
+        assert "education" not in sections_lower
+
+    def test_detect_sections_empty_text_returns_empty_list(self, parser: ResumeParser) -> None:
+        """Empty input should return an empty list without raising."""
+        assert parser._detect_sections("") == []
+
     def test_strip_markdown_syntax(self, parser: ResumeParser) -> None:
         """Test markdown syntax stripping."""
         markdown_text = """
