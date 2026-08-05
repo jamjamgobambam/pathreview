@@ -5,7 +5,6 @@ from pypdf import PdfReader
 
 from .base import BaseParser, ParseResult
 
-
 SECTION_HEADERS = {
     "experience",
     "education",
@@ -75,7 +74,7 @@ class ResumeParser(BaseParser):
                 source_type="resume",
             )
         except Exception as e:
-            raise ValueError(f"Failed to parse PDF: {str(e)}")
+            raise ValueError(f"Failed to parse PDF: {str(e)}") from e
 
     def _parse_markdown(self, content: str) -> ParseResult:
         """Extract text from markdown resume, stripping markdown syntax."""
@@ -98,8 +97,8 @@ class ResumeParser(BaseParser):
 
     def _strip_markdown(self, content: str) -> str:
         """Remove markdown syntax from content."""
-        # Remove markdown headers
-        text = re.sub(r"^#+\s+", "", content, flags=re.MULTILINE)
+        # Remove markdown headers (allowing leading whitespace before the #)
+        text = re.sub(r"^[ \t]*#+\s+", "", content, flags=re.MULTILINE)
 
         # Remove markdown links [text](url)
         text = re.sub(r"\[([^\]]+)\]\(([^\)]+)\)", r"\1", text)
@@ -130,12 +129,12 @@ class ResumeParser(BaseParser):
         text_lower = text.lower()
 
         for section in SECTION_HEADERS:
-            # Look for section header patterns
+            # Look for section header patterns (allowing leading whitespace)
             patterns = [
-                rf"^{re.escape(section)}\s*$",
-                rf"^{re.escape(section)}\s*[:|-]",
-                rf"\n{re.escape(section)}\s*$",
-                rf"\n{re.escape(section)}\s*[:|-]",
+                rf"^\s*{re.escape(section)}\s*$",
+                rf"^\s*{re.escape(section)}\s*[:|-]",
+                rf"\n\s*{re.escape(section)}\s*$",
+                rf"\n\s*{re.escape(section)}\s*[:|-]",
             ]
 
             for pattern in patterns:
