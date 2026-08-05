@@ -64,3 +64,33 @@ The local `pre-commit` mypy hook fails on 14 pre-existing type-annotation errors
 
 **Draft PR feedback received from:** none
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review submitted yet on PR #809 as of this writing — status shows "No reviews," no line comments or requested changes.
+
+**How you responded:**
+N/A — nothing to respond to yet.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Figuring out what was actually broken versus what was just unfinished scaffolding. Early on I noticed every review I ran came back with the same score (81) and eventually the same wording, and my first instinct was that it had to be related to #43's session-caching bug. It turned out to be unrelated: `review_service.py` returns hardcoded placeholder data and never calls the real agent pipeline at all, and the "different" reviews I'd seen earlier were just static fixtures from `seed_db.py`. Untangling that from the actual issue took longer than the fix itself. The local `pre-commit` mypy hook was a similar surprise — it type-checks the whole import graph, not just the lines I changed, so it failed on 14 pre-existing errors in files I never touched, and just committing my actual fix required deciding whether to bypass it.
+
+**What did you learn about working in a large codebase?**
+That a file existing and being imported somewhere doesn't mean it's on a live code path — `Orchestrator` and `SessionStore` are fully implemented but never instantiated outside of what I wrote. Same with `ReviewGenerator` in `rag/generator/`, which actually calls the LLM correctly but is never wired into the pipeline. I got in the habit of grepping for `ClassName(` before trusting that a module mattered, rather than assuming based on file structure or docstrings.
+
+**How did AI tools help — and where did they fall short?**
+Claude was fastest at the mechanical parts: tracing call graphs across files to confirm something was (or wasn't) wired up, writing the reproduction tests, and drafting JOURNAL.md/PLAN.md/PR boilerplate from our discussion so I wasn't starting from a blank template. It fell short — or rather, needed me to make the call — on judgment questions: whether wiring the orchestrator into `review_service.py` was in scope for #43, and whether to bypass the pre-commit hook.
+
+**What would you do differently if you started over?**
+I'd run `make check`/`make test-unit` to get a baseline before doing anything else, not partway through Week 9 — I ended up doing it retroactively once the pre-commit hook forced the question. Having the baseline up front would have made the "is this failure mine or pre-existing" question trivial from the start instead of something I had to reconstruct.
+
+**What are you most proud of from this module?**
+Not trusting my own fix until I'd proven it — I reverted `orchestrator.py`/`context_manager.py` locally, confirmed all 4 new tests actually failed against the old code, then restored the fix and confirmed they passed. That turned "I think this fixes it" into something I could actually back up in the PR.
