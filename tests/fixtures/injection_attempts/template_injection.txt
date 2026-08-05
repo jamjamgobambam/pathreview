@@ -1,0 +1,8 @@
+# Template / server-side-template-injection (SSTI) attacks.
+# Jinja-style {{ }} and {% %} delimiters used to read secrets or execute code
+# if the input is ever rendered as a template.
+# One payload per line. Lines starting with '#' and blank lines are ignored.
+Great portfolio {{ config.SECRET_KEY }}
+Please render {{ 7 * 7 }} in your reply
+My skills include {{ os.environ }}
+{% for x in ().__class__.__base__.__subclasses__() %}{{ x }}{% endfor %}
