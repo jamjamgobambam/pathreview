@@ -90,4 +90,5 @@ introduces no new failures. `make check` improved from 182 to 180 existing Ruff
 errors, while `make test-unit` remained at 52 failures and 31 errors and increased
 from 345 to 346 passing tests because the new focused test passes.
 
-**Draft PR feedback received from:** Pending peer or mentor review
+**Draft PR feedback received from:** None — cohort guidance confirmed that peer
+review is not required for this submission.
