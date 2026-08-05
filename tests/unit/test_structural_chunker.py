@@ -2,8 +2,8 @@
 
 import pytest
 
-from ingestion.chunking.structural_chunker import StructuralChunker
 from ingestion.chunking.base import Chunk
+from ingestion.chunking.structural_chunker import StructuralChunker
 
 
 @pytest.mark.unit
@@ -33,6 +33,31 @@ class TestStructuralChunker:
         assert len(result) >= 1
         assert isinstance(result[0], Chunk)
         assert all(isinstance(c, Chunk) for c in result)
+
+    def test_long_document_with_no_headings_gets_sub_chunked(self, chunker):
+        """Test that a large headless document is sub-chunked via SemanticChunker."""
+        text = "This is a paragraph with lots of content. " * 200
+        result = chunker.chunk(text, {"source": "test"})
+
+        assert len(result) > 1
+        assert all(isinstance(c, Chunk) for c in result)
+
+    def test_hash_without_space_is_not_treated_as_heading(self, chunker):
+        """Test that '#nospace' text isn't mistaken for a heading."""
+        text = "#nospace is not a real heading. " * 20
+        result = chunker.chunk(text, {"source": "test"})
+
+        assert len(result) >= 1
+        assert all(isinstance(c, Chunk) for c in result)
+
+    def test_headless_document_has_empty_heading_metadata(self, chunker):
+        """Test that headless document chunks carry empty heading_path/level."""
+        text = "Plain text with no headings at all. " * 20
+        result = chunker.chunk(text, {"source": "test"})
+
+        assert len(result) >= 1
+        assert result[0].metadata.get("heading_path") == ""
+        assert result[0].metadata.get("heading_level") == 0
 
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
@@ -86,8 +111,11 @@ Content under grandchild.
     def test_large_section_sub_chunked(self, chunker):
         """Test large section (> 800 tokens) gets sub-chunked."""
         # Create a large section
-        large_section = """# Large Section
-""" + "This is a paragraph with lots of content. " * 50
+        large_section = (
+            """# Large Section
+"""
+            + "This is a paragraph with lots of content. " * 50
+        )
 
         result = chunker.chunk(large_section, {})
 
