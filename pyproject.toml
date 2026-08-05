@@ -80,6 +80,13 @@ disallow_untyped_defs = true
 check_untyped_defs = true
 exclude = ["alembic/versions/"]
 
+# Test modules aren't required to be fully type-annotated. `make check`'s
+# typecheck target already skips tests/; this mirrors that for the pre-commit
+# mypy hook so untyped pytest functions don't block commits.
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
