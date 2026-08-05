@@ -149,3 +149,56 @@ The 53 failures are pre-existing and unrelated to #159 (this fork is seeded with
 intentional issues). Of the 11 tests in `test_batch_processor.py`, the single failure is
 the `caplog` one. My success criterion is therefore **52 failed / 376 passed**, not a
 green suite.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Most of the PLAN.md sub-tasks are done. I wrote the failing tests first and confirmed they
+were red, then added the autouse fixture in `tests/conftest.py` that routes structlog through
+stdlib logging (Plan steps 1-3). The target test `test_empty_chunks_list_returns_empty` now
+passes, and I ran the full unit suite to confirm no regressions (Plan steps 4-5). I also
+settled the open design question from Week 8: I went with a purpose-built test config instead
+of reusing the app's `configure_logging()`, because that function calls `basicConfig` and
+fights pytest's own log capture.
+
+**Next steps:**
+Add type annotations the pre-commit mypy hook wants on the new test file, commit, push, and
+open the PR. Then write Check-in 2 and submit the branch URL through the portal.
+
+**Blockers:**
+None. One minor snag: `make typecheck` skips `tests/`, so it did not catch that my test
+methods needed return annotations, but the pre-commit hook did. Fixed in a couple minutes.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/917
+
+**Branch:** `fix/159-structlog-caplog-capture`
+
+**What you built:**
+An autouse pytest fixture in `tests/conftest.py` that reconfigures structlog to emit through
+Python's standard `logging` module during tests, so pytest's `caplog` fixture can actually
+capture log events. It resets structlog to its defaults after each test so the global config
+does not leak. No application code changed.
+
+**Tests added or updated:**
+Added `tests/unit/test_logging_capture.py` with 5 tests. They cover that a structlog warning
+becomes one captured record with level `WARNING`, that the record's name matches the logger,
+that bound key/value data renders into the captured text, that INFO logs are dropped until a
+test opts in with `caplog.at_level(INFO)`, and that a test which logs nothing sees zero
+records (the fixture adds no noise). The existing `test_empty_chunks_list_returns_empty` in
+`tests/unit/test_batch_processor.py` also flips from failing to passing.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(This fork has documented pre-existing failures, so "passes" means my changes add no new ones.
+Baselines recorded in my PR description: unit tests went 53 failed / 375 passed to 52 failed /
+381 passed, exactly one pre-existing failure flipped, and lint/format/typecheck counts are
+unchanged.)
+
+**Draft PR feedback received from:** none
