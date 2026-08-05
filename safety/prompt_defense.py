@@ -40,8 +40,10 @@ class PromptDefense:
         """
         sanitized = text
 
-        # TODO: Strip newline characters (\n, \r) to prevent prompt injection
-        # via role-switching attacks. See https://github.com/ascherj/pathreview/issues/64
+        # Strip newline characters to prevent prompt injection via role-switching
+        sanitized = sanitized.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+        sanitized = sanitized.replace("\x0b", " ").replace("\x0c", " ")
+        sanitized = sanitized.replace("\x85", " ").replace("\u2028", " ").replace("\u2029", " ")
 
         # Strip template delimiters
         sanitized = sanitized.replace("{{", "").replace("}}", "")
