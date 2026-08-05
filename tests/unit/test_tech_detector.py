@@ -104,6 +104,35 @@ class TestTechDetector:
         data = result.data
         assert data["primary_language"] == "Python"
 
+    def test_dist_directory_excluded(self, detector):
+        """Test top-level dist/ directory is excluded from counts."""
+        files = [
+            "src/main.py",
+            "dist/bundle.js",
+            "dist/vendor.js",
+            "app.py",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+        assert "JavaScript" not in data["all_languages"]
+
+    def test_top_level_vendored_files_fully_excluded(self, detector):
+        """Test a top-level source file is counted while node_modules/ is not."""
+        files = [
+            "main.py",
+            "node_modules/lib/index.js",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+        assert "Python" in data["all_languages"]
+        assert "JavaScript" not in data["all_languages"]
+
     def test_config_file_detection(self, detector):
         """Test detection from config files."""
         files = [
