@@ -205,6 +205,13 @@ class TestSkillExtractor:
             skill_names = [s.name for s in result]
             assert "JavaScript" in skill_names, f"Got skills: {skill_names} for {snippet!r}"
 
+    def test_package_json_filename_detected_as_javascript(self, extractor):
+        """Test that a package.json filename is still a JavaScript signal."""
+        result = extractor.extract_skills('{"name": "app"}', filename="package.json")
+
+        skill_names = [s.name for s in result]
+        assert "JavaScript" in skill_names
+
     def test_javascript_detected_from_arrow_function_only(self, extractor):
         """Test JavaScript detection from an arrow function with no import or require."""
         text = """

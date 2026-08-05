@@ -238,7 +238,7 @@ class SkillExtractor:
         js_evidence = []
         if filename_lower.endswith((".js", ".jsx", ".mjs", ".cjs")):
             js_evidence.append("JavaScript file extension")
-        if "package.json" in text_lower:
+        if filename_lower.endswith("package.json") or "package.json" in text_lower:
             js_evidence.append("package.json found")
         js_evidence.extend(self._match_signals(text, self.JS_SIGNALS))
 
