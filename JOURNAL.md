@@ -179,3 +179,63 @@ I will be working on getting my PR draft reviewed by a TF.
 **Blockers:**
 [Anything slowing you down? Or leave blank.]
 Nothing at the moment. 
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+https://github.com/ascherj/pathreview/pull/913
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+https://github.com/mmim14/pathreview/tree/test/90-add-tests-authentication
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+Integration tests were missing test for authentication workflow. I added integration tests for the auth middleware, the login/register routes, and the end-to-end auth workflow, verifying authentication behaves as intended and prevents unauthorized access.
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+Adds a new integration-test suite (23 in total) under tests/integration/:
+
+- conftest.py — fixtures for a dedicated pathreview_test database and an httpx client wired to the app (overrides get_db so real HTTP requests hit the test DB and not the dev database)
+- test_db_connection.py — smoke tests that the DB fixtures work end to end
+- test_auth_middleware.py — get_current_user rejects every unauthorized token case with 401: expired, wrong-secret, malformed / bad segment count, missing header, empty Bearer, no-Bearer prefix, and Bearer a b. In addition, it tests a positive control that a valid token is accepted
+- test_auth_routes.py ( /auth/register and /auth/login) — token issuance on success, 400 on duplicate email, and a generic 401 on wrong password, unknown email, or inactive user
+- test_auth_workflow.py — full workflow: register → log in → use the issued token on a protected route
+
+Screenshot of auth integratiob tests passed:
+![integration tests passed](image.png)
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+There was errors that was outside the scope of my issue. My changes didn't affect them.
+
+`make check` before my change:
+...
+Found 182 errors.
+[*] 86 fixable with the --fix option (42 hidden fixes can be enabled with the --unsafe-fixes option).
+make: *** [Makefile:51: lint] Error 1
+
+
+`make check` after my change:
+...
+Found 182 errors.
+[*] 86 fixable with the `--fix` option (42 hidden fixes can be enabled with the `--unsafe-fixes` option).
+make: *** [Makefile:51: lint] Error 1
+
+`make test-unit` before my change:
+================================== 53 failed, 375 passed, 1 warning in 6.99s ==================================
+C:\Users\mimi\Documents\GitHub\pathreview\.venv\Lib\site-packages\_pytest\unraisableexception.py:33: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  gc.collect()
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+make: *** [Makefile:40: test-unit] Error 1
+
+`make test-unit` after my change:
+======================================================= 53 failed, 375 passed, 1 warning in 13.03s =======================================================
+C:\Users\mimi\Documents\GitHub\pathreview\.venv\Lib\site-packages\_pytest\unraisableexception.py:33: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  gc.collect()
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+make: *** [Makefile:40: test-unit] Error 1
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
+I'm waiting for someone to review my draft PR. 
