@@ -49,9 +49,9 @@ My next steps are adding tests to check my changes. I want to add the following 
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/871
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** https://github.com/proy19/pathreview/tree/fix/68-Add-a-safety-event-count-to-the-health-check-endpoint
 
 **What you built:**
 My fix populates the previously hardcoded safety_events_last_hour field in the /health endpoint with a real count, by reworking SafetyMonitor to store events in hourly Redis buckets (safety:events:{event_type}:{YYYYMMDDHH}) instead of a single counter with a resetting TTL. health.py now instantiates SafetyMonitor with the same Redis client used for the Redis dependency check and calls a new get_total_event_count(window_hours=1) method, which sums the relevant hourly buckets across all event types; if Redis is unreachable, the field returns None instead of a misleading 0.
