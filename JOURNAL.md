@@ -129,15 +129,20 @@ commits on this branch.
 
 ### Reviewer feedback
 
-**Did you receive reviewer feedback?** [ ] Yes  [x] No — still awaiting review
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
 
+**Summary of feedback:**
 As of August 4, 2026, [PR #548](https://github.com/ascherj/pathreview/pull/548) is open
-and marked as requiring review, with no reviews or comments. There is therefore no
-reviewer-requested change to make or response to document yet. If feedback arrives, I
-will respond on the PR and add any resulting commit here rather than treating the lack of
-a review as a reason to delay this reflection.
+and marked as requiring review, with no reviews or comments. No review came in before I
+completed this reflection.
 
-### What was harder than expected?
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
 
 The code change was only one expression, but proving that it was safe was much harder
 than writing it. I chose issue #153 because it had a narrow failure: `dict.get("text",
@@ -155,7 +160,7 @@ validation in a repository whose default branch already had 53 failing unit test
 ruff errors, and 5 mypy errors. I used a clean `upstream/main` worktree and compared
 sorted failure IDs, not just totals, to show that my branch introduced no regressions.
 
-### What did you learn from working in a large codebase?
+**What did you learn about working in a large codebase?**
 
 I learned that contributing to someone else's codebase is as much about respecting its
 boundaries as changing its code. I needed to follow the repository's branch and commit
@@ -172,7 +177,7 @@ was in the file would have mixed two bugs in one review and risked overlapping a
 contributor. In my own project I might clean up everything nearby; in a shared project,
 a focused change with explicit evidence is easier to review and safer to merge.
 
-### How did AI tools help, and where did they fall short?
+**How did AI tools help — and where did they fall short?**
 
 AI tools helped me trace the failure to the difference between a missing dictionary key
 and an explicit `None`, find the nearby tests, enumerate edge cases, and turn raw command
@@ -189,7 +194,7 @@ such as `{"text": 123}` still raises the same `TypeError`. That case was outside
 reported issue, so I did not expand this PR, but it showed me that generated suggestions
 are hypotheses to test, not evidence.
 
-### What would you do differently next time?
+**What would you do differently if you started over?**
 
 I would write the journal entries when the work happens instead of reconstructing both
 Week 9 check-ins near the deadline. I would also open a draft PR earlier so a peer could
@@ -199,7 +204,7 @@ and I would establish the repository's baseline before running the full suite on
 branch. Finally, I would examine the whole input contract up front, including truthy
 non-string values, even if I ultimately documented them as out of scope.
 
-### What are you most proud of?
+**What are you most proud of from this module?**
 
 I am most proud of not stopping at the one-line fix. The additional regression test
 captures the behavior users need: one malformed context chunk must not erase the useful
