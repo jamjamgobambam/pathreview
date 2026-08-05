@@ -13,6 +13,9 @@ ifeq ($(OS),Windows_NT)
   RUFF := $(VENV_BIN)\ruff.exe
   BLACK := $(VENV_BIN)\black.exe
   MYPY := $(VENV_BIN)\mypy.exe
+  # Forward-slash path for POSIX-shell recipes (e.g. `run`): a backslash in
+  # `.venv\Scripts` is eaten as an escape by /bin/sh, breaking `source`.
+  ACTIVATE := .venv/Scripts/activate
 else
   VENV_BIN := .venv/bin
   PYTHON := $(VENV_BIN)/python
@@ -23,6 +26,7 @@ else
   RUFF := $(VENV_BIN)/ruff
   BLACK := $(VENV_BIN)/black
   MYPY := $(VENV_BIN)/mypy
+  ACTIVATE := $(VENV_BIN)/activate
 endif
 
 # ---- Setup ----
@@ -42,7 +46,7 @@ setup: ## First-time setup: venv, deps, migrations, seed data
 
 run: ## Start backend + frontend dev servers
 	@trap 'kill %1 %2 2>/dev/null' EXIT; \
-	source $(VENV_BIN)/activate && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
+	source $(ACTIVATE) && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
 	cd frontend && npm run dev & \
 	wait
 
