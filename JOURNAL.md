@@ -46,7 +46,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [PASTE PR LINK HERE AFTER OPENING — see docs/PR_DRAFT.md for the description to paste in]
+**PR link:** https://github.com/ascherj/pathreview/pull/906 (currently draft — pending peer/mentor review before marking ready for review)
 
 **Branch:** `fix/154-health-check-sqlalchemy-text`
 
