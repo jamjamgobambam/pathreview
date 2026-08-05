@@ -119,8 +119,7 @@ built the venv with Homebrew Python 3.14.3.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(to be filled in — branch is pushed and the PR body is ready; see
-"PR status" below)_
+**PR link:** https://github.com/ascherj/pathreview/pull/267
 
 **Branch:** `fix/148-skill-extractor-js-ts`
 
