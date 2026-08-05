@@ -229,15 +229,60 @@ class TestFaithfulnessChecker:
         # Need at least 2 meaningful tokens for support
 
     def test_none_context_chunk_text(self, checker):
-        """Test handling of None in context chunk text."""
+        """Regression (issue #153): a chunk with text=None must not crash.
+
+        Previously ``" ".join([chunk.get("text", "") ...])`` raised
+        ``TypeError: sequence item 0: expected str instance, NoneType found``
+        because ``dict.get``'s default only applies to absent keys.
+        """
         feedback = "Has Python skills"
+        context_chunks = [{"text": None}]
+
+        score = checker.check(feedback, context_chunks)
+
+        # Should handle gracefully: no text to support the claim -> 0.0
+        assert isinstance(score, float)
+        assert score == 0.0
+
+    def test_mixed_none_and_valid_chunks(self, checker):
+        """A None chunk is skipped while valid chunks still contribute."""
+        feedback = "The developer has strong Python and Django skills."
         context_chunks = [
-            {"text": None}
+            {"text": None},
+            {"text": "Portfolio shows Python expertise and Django framework work."},
         ]
 
         score = checker.check(feedback, context_chunks)
 
-        # Should handle gracefully
+        assert isinstance(score, float)
+        # The valid chunk still supports the claim despite the None chunk.
+        assert score > 0.5
+
+    def test_all_none_chunks_returns_zero(self, checker):
+        """All chunks having None text yields a valid 0.0, not an exception."""
+        feedback = "The developer has strong Python skills."
+        context_chunks = [{"text": None}, {"text": None}]
+
+        score = checker.check(feedback, context_chunks)
+
+        assert score == 0.0
+
+    def test_empty_string_text_chunk(self, checker):
+        """An empty-string text chunk is treated as no support, not a crash."""
+        feedback = "The developer has strong Python skills."
+        context_chunks = [{"text": ""}]
+
+        score = checker.check(feedback, context_chunks)
+
+        assert score == 0.0
+
+    def test_non_string_text_is_coerced(self, checker):
+        """A non-string text value is coerced instead of crashing the join."""
+        feedback = "The number 12345 appears in the portfolio metrics."
+        context_chunks = [{"text": 12345}]
+
+        score = checker.check(feedback, context_chunks)
+
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 

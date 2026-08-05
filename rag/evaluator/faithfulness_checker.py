@@ -1,6 +1,7 @@
 """Check if generated feedback is supported by retrieved context."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -20,8 +21,11 @@ class FaithfulnessChecker:
             Faithfulness score 0.0-1.0 (ratio of supported claims)
         """
         if not feedback or not context_chunks:
-            logger.info("faithfulness_empty_input", has_feedback=bool(feedback),
-                       has_chunks=bool(context_chunks))
+            logger.info(
+                "faithfulness_empty_input",
+                has_feedback=bool(feedback),
+                has_chunks=bool(context_chunks),
+            )
             return 0.0
 
         # Extract key claims from feedback (sentences)
@@ -30,10 +34,27 @@ class FaithfulnessChecker:
             logger.info("faithfulness_no_claims_extracted")
             return 0.5  # Default to neutral if no extractable claims
 
-        # Concatenate context text
-        context_text = " ".join([
-            chunk.get("text", "") for chunk in context_chunks
-        ])
+        # Concatenate context text.
+        # A chunk's "text" may be missing, explicitly None, or a non-string.
+        # dict.get's default only applies when the key is ABSENT, so a chunk of
+        # {"text": None} would return None and make " ".join([... None ...])
+        # raise "TypeError: sequence item 0: expected str instance, NoneType
+        # found" (issue #153). Coerce every chunk's text to a string and skip
+        # empties so scoring proceeds over whatever valid text remains.
+        texts = []
+        skipped = 0
+        for chunk in context_chunks:
+            text = chunk.get("text")
+            if isinstance(text, str) and text:
+                texts.append(text)
+            elif text is None or text == "":
+                skipped += 1
+            else:
+                # Non-string, non-empty (e.g. a number): coerce defensively.
+                texts.append(str(text))
+        if skipped:
+            logger.info("faithfulness_skipped_empty_chunks", skipped_count=skipped)
+        context_text = " ".join(texts)
 
         # Check each claim for support
         supported = 0
@@ -43,8 +64,9 @@ class FaithfulnessChecker:
 
         score = supported / len(claims) if claims else 0.0
 
-        logger.info("faithfulness_checked", claims_count=len(claims),
-                   supported_count=supported, score=score)
+        logger.info(
+            "faithfulness_checked", claims_count=len(claims), supported_count=supported, score=score
+        )
 
         return score
 
@@ -59,7 +81,7 @@ class FaithfulnessChecker:
             List of claims (sentences)
         """
         # Split by sentence (simple regex)
-        sentences = re.split(r'[.!?]+', text)
+        sentences = re.split(r"[.!?]+", text)
         claims = [s.strip() for s in sentences if s.strip() and len(s.strip()) > 10]
         return claims[:10]  # Limit to 10 claims for scoring
 
@@ -81,8 +103,25 @@ class FaithfulnessChecker:
         # Require at least some meaningful overlap
         overlap = claim_tokens & context_tokens
         # Filter out common stop words
-        stop_words = {'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been',
-                     'and', 'or', 'but', 'in', 'of', 'to', 'for', 'that'}
+        stop_words = {
+            "a",
+            "an",
+            "the",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "and",
+            "or",
+            "but",
+            "in",
+            "of",
+            "to",
+            "for",
+            "that",
+        }
         meaningful_overlap = overlap - stop_words
 
         return len(meaningful_overlap) >= 2
