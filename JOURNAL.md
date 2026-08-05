@@ -92,7 +92,7 @@ None remaining.
 
 **Check-in 2**
 
-**PR link:** [to be added once PR is opened]
+**PR link:** https://github.com/ascherj/pathreview/pull/911
 
 **Branch:** fix/146-pii-scrubber-parenthesized-phone
 
