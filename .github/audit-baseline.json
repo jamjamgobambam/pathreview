@@ -1,0 +1,16 @@
+{
+  "_comment": "Advisories already present when the CI dependency scan was added. The scan fails only on advisory ids NOT listed here. Regenerate with `python scripts/dependency_audit.py --update-baseline` after intentionally changing dependencies. See docs/CONTRIBUTING.md.",
+  "python": [
+    "PYSEC-2026-1325",
+    "PYSEC-2026-311"
+  ],
+  "npm": [
+    "1115552",
+    "1120126",
+    "1120743",
+    "1123259",
+    "1123525",
+    "1124252",
+    "1124288"
+  ]
+}

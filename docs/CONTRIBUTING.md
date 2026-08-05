@@ -82,6 +82,36 @@ make check      # All three
 make test-unit  # Unit tests
 ```
 
+## Dependency Vulnerability Scan
+
+CI runs a `dependency-scan` job that scans third-party dependencies for known
+published advisories using [`pip-audit`](https://pypi.org/project/pip-audit/)
+(Python) and `npm audit` (frontend). The gate lives in
+`scripts/dependency_audit.py`.
+
+To keep the pipeline from red-walling on pre-existing, not-yet-fixable
+advisories, the scan compares against a committed baseline at
+`.github/audit-baseline.json`. The build fails only when a vulnerability appears
+whose advisory id is **not** already in the baseline — i.e. a *newly introduced*
+one. Python advisories are gated regardless of severity (pip-audit reports no
+severity); npm advisories are gated at `high` or `critical`.
+
+When you intentionally change dependencies and a scan flags a new advisory:
+
+1. **Preferred:** upgrade or replace the affected package so the advisory clears.
+2. **If it cannot be fixed today:** accept it by regenerating the baseline and
+   noting why in your PR description:
+
+   ```bash
+   python scripts/dependency_audit.py --update-baseline
+   ```
+
+Run the scan locally the same way CI does:
+
+```bash
+python scripts/dependency_audit.py
+```
+
 ## Adding a New Parser
 
 If your issue involves adding a new document parser to the ingestion pipeline:
