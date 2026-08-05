@@ -107,3 +107,79 @@ two new passing tests, no regressions). Pre-existing ruff/mypy/black issues are
 unrelated to this change and are documented in the PR's Notes for Reviewers. -->
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments came in on PR #372 by the end of the week.
+(Per the Summer 2026 cohort note, PR reviewer feedback is not provided this
+term.) I checked the open PR for comments and none were present.
+
+**How you responded:**
+N/A — no feedback to respond to. If review had come in, the first thing I would
+have wanted a second set of eyes on was whether coercing non-string chunk text
+to an empty string is the right call versus surfacing malformed upstream data.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part wasn't the fix — it was working around everything the repo
+already had wrong. When I ran `make test-unit` and `make check` for a baseline,
+there were 53 failing unit tests, 182 ruff errors, and 103 mypy errors before I
+touched anything. Then the pre-commit hooks blocked my commit because the test
+file I was editing had no type annotations on any of its functions — a
+pre-existing issue that had nothing to do with my one-line bug. Figuring out
+whether "passing" meant a green suite or just "no new failures," and proving my
+change only moved the count from 53 to 52 failures, took more care than writing
+the actual `_normalize_chunk_text` helper. The root cause itself was also
+sneakier than I expected: `dict.get("text", "")` looks safe, but the default
+only applies when the key is missing, not when it's present with a `None` value.
+
+**What did you learn about working in a large codebase?**
+On my own projects, "done" means everything works. Here, "done" meant "don't
+make it worse" — the codebase already had documented pre-existing failures, and
+the expectation was that my contribution not add new ones, not that I fix the
+whole repo first. That reframed how I worked: I took a baseline before changing
+anything, kept my diff as small as possible (I reverted formatter changes that
+would have touched unrelated lines), matched the existing conventions instead of
+my own (Google-style docstrings, the `@staticmethod` helper pattern, the repo's
+black/ruff line-length config), and documented the pre-existing failures in the
+PR so a reviewer could tell my change apart from the noise. Reading the existing
+tests before writing mine mattered more than I expected.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for exploring an unfamiliar codebase quickly — locating the
+crash, understanding the conventions in the test file, and drafting the helper,
+tests, and PR description in the repo's style. It was also good at diagnosis:
+why `git` wasn't on my PATH, why the pre-commit hooks were failing, why a commit
+link survives a branch rename. Where it fell short was judgment: whether to
+bypass the hooks or annotate an entire pre-existing test file, whether to rename
+my branch mid-stream, how defensive the sanitization should be — those were
+decisions I had to make and own. It also once let a formatter reformat unrelated
+lines, which I had to catch and revert to keep the diff clean; the tooling will
+happily do the technically-correct thing that's the wrong thing for the change.
+
+**What would you do differently if you started over?**
+Two things. First, branch naming — I named my branch `fix/faithfulness-checker-
+none-text` without the issue number and had to rename it to
+`fix/153-faithfulness-checker-none-text` to match CONTRIBUTING.md; I'd read the
+contribution standards before creating the branch, not after. Second, I'd open
+the draft PR much earlier and actually chase down a peer or mentor review —
+I never got a second set of eyes, and I can already see edge cases I only
+thought of late (what if `context_chunks` itself is `None` or not a list?) that
+a reviewer might have flagged. I'd also run the `make check` / `make test-unit`
+baseline on day one so the pre-existing failures never surprised me.
+
+**What are you most proud of?**
+That I resisted the urge to just wrap the join in a `try/except` and move on. I
+traced the bug to the exact reason `dict.get` returned `None`, fixed it at that
+point with a small readable helper, and proved with before/after numbers that I
+improved the suite without breaking anything else. The discipline of keeping the
+diff minimal and being transparent about what was pre-existing versus mine is
+the part I'd be comfortable defending in a real review.
