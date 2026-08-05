@@ -37,3 +37,35 @@ Wrote `tests/unit/test_health_safety_events_reproduction.py`, which records safe
 
 **Blockers or open questions:**
 The issue asks for events in the "last hour," but `SafetyMonitor` doesn't actually enforce a one-hour window — its Redis counter has a 24-hour TTL and the `window_hours` argument is "not enforced." Going into Week 9 I need to decide whether to implement true one-hour windowing (e.g. Redis sorted sets keyed by timestamp) or keep the existing rolling counter and make the field's meaning honest. Planning to get mentor input before choosing.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md. Added `SafetyMonitor.get_total_event_count()` (sums the per-type counters across `VALID_EVENT_TYPES`) in `safety/monitoring.py`, and wired `/health` to call it in `api/routes/health.py`, replacing the hardcoded `0`. The read is wrapped so a Redis failure degrades to `0` and logs instead of failing the whole health check. On the "last hour" question, I kept the existing rolling counter for a Tier-1 scope and documented the window limitation in the method's docstring rather than re-architecting storage. Recorded the pre-existing baseline first: `make test-unit` = 53 failed / 376 passed, `make check` = 183 lint/type errors — none in the files I touch.
+
+**Next steps:**
+Open a draft PR and request peer/mentor feedback in Slack, then finalize: confirm no new failures, fill in the PR template, mark ready for review, and add the PR link to Check-in 2.
+
+**Blockers:**
+None blocking. Side discovery: the *existing* Redis dependency check in `health.py` references `settings.redis_host`/`redis_port`, which don't exist (config uses `redis_url`) — a pre-existing bug I left out of scope for this issue and noted for the PR.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _(to add once the PR is opened)_
+
+**Branch:** `fix/68-health-check-safety-event-count`
+
+**What you built:**
+`/health` now reports a real `safety_events_last_hour` value sourced from `SafetyMonitor.get_total_event_count()`, which sums safety-event counters across all event types, instead of a hardcoded `0`. A Redis read failure degrades gracefully to `0` and logs, so it never takes down the health check.
+
+**Tests added or updated:**
+Added `tests/unit/test_monitoring.py` (covers `get_total_event_count`: no events → 0, summed across types, unknown types ignored, Redis error → 0, single-type count). Converted `tests/unit/test_health_safety_events_reproduction.py` from an `xfail` reproduction into a passing regression test proving `/health` reports the recorded count.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+_(This repo has documented pre-existing failures; "passes" = my changes introduce **no new** failures. After my changes: `make test-unit` still 53 failed / now 382 passed; my four files are ruff- and black-clean.)_
+
+**Draft PR feedback received from:** _(pending — will request in Slack)_
