@@ -1,0 +1,202 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/155
+
+**Issue title:** Health check references `settings.redis_host`, which does not exist on Settings
+
+**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
+
+**Branch name:** `fix/155-health-check-redis-settings`
+
+**Problem summary:**
+The `/health` endpoint checks PostgreSQL, Redis, and vector DB status, but its Redis check originally read `settings.redis_host` and `settings.redis_port` even though the app's `Settings` model only defines `redis_url`. Because of that mismatch, the Redis check could not use the configured Redis connection information correctly and would mark Redis as unhealthy, contributing to a 503 response.
+
+**Why I chose this issue:**
+I chose this issue because it is a clearly scoped Tier 1 backend bug and it touches service health/configuration, which I find interesting. It also seemed like a good fit for a first contribution because the affected area was narrow and the bug could be traced to a specific mismatch between the route code and the settings model.
+
+**Affected area:**
+- `api/routes/health.py`
+- `core/config.py`
+
+**Confirmed investigation notes:**
+- `health.py` originally used `settings.redis_host` and `settings.redis_port`
+- `core/config.py` defines `redis_url`, but not `redis_host` or `redis_port`
+- The Redis exception is caught inside the route, so the issue is not an uncaught crash
+- Instead, Redis is marked unhealthy and the route can return HTTP 503
+
+**Known unknowns during investigation:**
+- Whether the smallest clean fix should parse the URL manually or use a Redis URL-based constructor
+- Whether there was already an existing health-route test pattern in the repo
+- Whether Docker would be required for all validation or whether mocked unit tests would be enough for this issue
+
+**Scope estimate:**
+Small Tier 1 backend fix, likely 1 source file plus 1 focused test file.
+
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+**Issue claim:** [x] Comment posted on GitHub issue
+
+**Setup progress:**
+- [x] Forked repo
+- [x] Cloned repo
+- [x] Created virtual environment
+- [x] Installed Python dependencies with editable install
+- [x] Repaired WSL/Docker startup issue on Windows
+- [ ] App fully runs locally at `localhost:5173`
+
+**Docker / environment blocker:**
+Docker image pulls for local services were blocked by repeated EOF errors while downloading:
+- `postgres:16-alpine`
+- `redis:7-alpine`
+- `chromadb/chroma:0.4.22`
+
+Because of that, I could not fully bring up the repo's Docker-backed services locally. However, I was still able to continue issue investigation and write focused mocked unit tests for this issue.
+
+**Testing investigation:**
+There were no existing FastAPI `TestClient` tests or health-route tests in the repo. The best nearby patterns were:
+- `tests/unit/test_review_service.py` for `AsyncMock` database usage
+- `tests/unit/test_rate_limiter.py` for Redis mocking
+
+Based on that, I created:
+- `tests/unit/test_health.py`
+
+**Tests added:**
+1. `test_health_check_returns_healthy_when_dependencies_are_healthy`
+2. `test_health_check_uses_redis_url_from_settings`
+
+These tests call `health_check()` directly with mocked dependencies instead of relying on Docker services.
+
+**Implementation progress:**
+I updated the Redis health check in `api/routes/health.py` to use the existing `settings.redis_url` configuration rather than missing `redis_host` / `redis_port` settings.
+
+**Validation status:**
+Focused issue tests now pass locally:
+
+```powershell
+.\.venv\Scripts\python -m pytest tests/unit/test_health.py -v
+.\.venv\Scripts\python -m pytest tests/unit/test_health.py tests/unit/test_rate_limiter.py -v
+```
+
+Result:
+
+* 21 passed
+
+**Current status:**
+Issue claimed and added to ledger, working branch created and pushed, journal updated, focused fix implemented, PR opened, and focused validation completed with 21 passing unit tests.
+
+## Week 8 — Reproduction and planning
+
+**Reproduced issue:**
+I reproduced the issue by tracing the Redis health check in `api/routes/health.py` and confirming it used `settings.redis_host` and `settings.redis_port`, while `core/config.py` only defines `redis_url`. Before the fix, focused tests failed because Redis was marked unhealthy and the route returned HTTP 503.
+
+**Observed behavior:**
+Before the fix, the Redis health check raised an internally caught `AttributeError` because `Settings` had no `redis_host` attribute. The route then marked Redis as unhealthy and raised HTTP 503.
+
+**Expected behavior:**
+The health route should use the application's existing Redis configuration source, `settings.redis_url`. When Redis responds to `ping()`, the route should report Redis as healthy without requiring duplicate `redis_host` or `redis_port` settings.
+
+**Plan summary:**
+My plan was to keep the fix minimal by using the existing `settings.redis_url` configuration instead of introducing new settings fields. Since Docker-backed services were blocked by image pull EOF errors, I used mocked unit tests to validate the health route behavior without relying on live Postgres, Redis, or Chroma containers.
+
+**Approach:**
+
+1. Add focused tests in `tests/unit/test_health.py`
+2. Mock database and Redis behavior directly
+3. Update the Redis health check to use `settings.redis_url`
+4. Re-run focused tests and nearby Redis-related unit tests
+
+**Relevant files:**
+
+* `api/routes/health.py`
+* `core/config.py`
+* `tests/unit/test_health.py`
+* `tests/unit/test_review_service.py`
+* `tests/unit/test_rate_limiter.py`
+
+**Known unknowns resolved:**
+
+* I confirmed there were no existing FastAPI `TestClient` tests or health-route tests.
+* I confirmed direct async testing of `health_check()` with mocks was enough for focused unit validation.
+* I confirmed `redis_url` was the existing source of truth for Redis configuration.
+* I confirmed Docker was not required for the focused mocked unit tests.
+
+**Validation for plan/fix:**
+
+* `tests/unit/test_health.py` passed
+* `tests/unit/test_health.py` and `tests/unit/test_rate_limiter.py` passed
+* Total: 21 passing tests
+
+**Blockers:**
+Docker image pulls for local services were blocked by repeated EOF errors, so full Docker-backed runtime verification was not possible on my machine.
+
+**Week 8 current status:**
+`PLAN.md` has been created, the issue has been reproduced, the solution plan is documented, the focused fix is implemented, the PR is open, and relevant mocked unit tests are passing.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+The solution is complete. I updated `api/routes/health.py` so the Redis health check uses the existing `settings.redis_url` configuration, and I added focused mocked unit tests in `tests/unit/test_health.py`. The PR is already open.
+
+**Next steps:**
+Review the changed files and PR, keep the journal current, and complete any additional validation that is available locally.
+
+**Blockers:**
+Docker-backed runtime validation is blocked by repeated EOF errors while pulling `postgres:16-alpine`, `redis:7-alpine`, and `chromadb/chroma:0.4.22`. The full Docker environment could not be started. `make check` and `make test-unit` were not run, so they are not marked as passing.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/171
+
+**Branch:** `fix/155-health-check-redis-settings`
+
+**What I built:**
+I fixed the Redis health check to construct its client from `settings.redis_url` instead of the missing `settings.redis_host` and `settings.redis_port` settings.
+
+**Tests added or updated:**
+Added `tests/unit/test_health.py` with mocked tests covering a healthy health check and verification that the configured Redis URL is used. The focused commands passed with 21 tests total:
+
+```powershell
+.\.venv\Scripts\python -m pytest tests/unit/test_health.py -v
+.\.venv\Scripts\python -m pytest tests/unit/test_health.py tests/unit/test_rate_limiter.py -v
+```
+
+`make check` and `make test-unit` were not run locally. Docker-backed validation remains blocked by the image pull EOF errors described above.
+
+**Self-review confirmation:**
+I reviewed the implementation and tests for scope, correctness, and valid Markdown formatting. The fix remains limited to the Redis settings mismatch and its focused tests.
+
+**Draft PR feedback received from:**
+none yet
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback has come in yet. Summer 2026 notes indicate that reviewer feedback is not provided, so there is no feedback to summarize at this time.
+
+**How you responded:**
+No response or code changes were needed because no reviewer feedback has been received yet.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment and setup were harder than the code fix itself. Docker-backed validation repeatedly failed with EOF errors while pulling `postgres:16-alpine`, `redis:7-alpine`, and `chromadb/chroma:0.4.22`. That made full local runtime validation harder even though the implementation was a small configuration correction. The focused mocked tests still provided useful evidence for the route behavior, but I could not verify the complete Docker environment locally.
+
+**What did you learn about working in a large codebase?**
+I learned that fixing a route often requires tracing behavior across the route code, configuration definitions, and existing test patterns instead of editing only the obvious file. Checking how Redis was configured in `core/config.py` helped confirm that `settings.redis_url` was the existing source of truth. Matching the project's conventions and keeping the change scoped made the fix easier to test and review.
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped with codebase navigation, test planning, drafting the journal and `PLAN.md`, and organizing a debugging strategy. They could not solve the external Docker image pull and network issues directly, however. Their suggestions still needed to be checked against the repository's actual files and the output from the test commands before I could rely on them.
+
+**What would you do differently if you started over?**
+I would check the configuration definitions earlier and write the focused reproduction test sooner. I would also avoid spending too long trying to force the full Docker setup once it was clear that external image pull EOF errors were blocking it.
+
+**What are you most proud of from this module?**
+I am most proud of taking a real open-source issue from selection through reproduction, planning, implementation, tests, PR submission, and documentation. I kept the fix small and evidence-based, using the project's existing Redis configuration and focused tests rather than introducing unnecessary settings or unrelated changes.
