@@ -66,6 +66,52 @@ Expanded the README fixture in the unit test so it now exceeds the threshold for
 **Tests added or updated:**
 I updated the `test_readme_scorer.py` file, specifically the `test_readme_with_all_quality_signals` test. 
 
-**Self-review confirmation:** [x] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+
+I think there was a lot more thought and planning that went into the issue than I expected. I assumed the fix would be relatively simple and quick, but after starting I realized there were other factors I needed to consider. I needed to fully understand the purpose of the test, and I spent some time reading sections of code to understand what the intention was. 
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+
+I learned how to navigate a large codebase. I learned that it is important to stay organized and be clear where the files live. The main difference in working with someone elses codebase is I wasn't familiar with the files, so it took time to understand them. 
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+
+AI tools were very helpful in understanding the codebase and finding specific files. What AI couldn't really help me with was specific design decisions such as changing `assert data["word_count"] > 100` to `assert data["word_count"] > 500` to make it match the test. The first version wasn't exactly wrong, but it didn't match the true intention of the test
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+
+If I started over I think I would choose an issue that was a bit more challenging. While I learned a lot about the process of working on an issue and submitting a PR (very valuable skills on their own), I feel like the actual implementation itself was relatively simple and I could have done something more difficult. 
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+
+I'm very proud of keeping up with the module for the last 4 weeks and that I was able to complete the course overall! 
