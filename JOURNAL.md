@@ -89,7 +89,7 @@ None — the distance-metric question that was open in Week 8 is now resolved.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(fill in after opening the PR against `ascherj/pathreview`)_
+**PR link:** https://github.com/ascherj/pathreview/pull/974
 
 **Branch:** `docs/36-hybrid-retrieval-scoring-formula`
 
