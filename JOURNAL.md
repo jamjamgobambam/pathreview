@@ -75,3 +75,25 @@ passes - confirming the bug is specific to a `None` value, not a missing key.
 None currently. Still deciding whether to search for similar `.get("text", ...)`
 patterns elsewhere in the codebase during implementation, or keep scope
 strictly limited to this one file for the Tier 1 fix.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix for issue #153: changed `chunk.get("text", "")` to
+`chunk.get("text") or ""` in `rag/evaluator/faithfulness_checker.py` so that
+both a missing `"text"` key and a present-but-`None` value are handled
+gracefully. Confirmed `test_none_context_chunk_text` and
+`test_missing_text_key_in_chunk` both pass. Ran the full test file (22 tests)
+and confirmed 3 pre-existing failures are unrelated to this change (verified
+identical before/after via `git stash`). Ran `ruff`, `black`, and `mypy`
+scoped to the changed file - all pass. Opened a draft PR:
+https://github.com/ascherj/pathreview/pull/846
+
+**Next steps:**
+Share the draft PR in Slack for peer/mentor feedback, address any feedback
+received, then mark the PR ready for review and complete Check-in 2.
+
+**Blockers:**
+None currently.
