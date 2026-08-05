@@ -55,7 +55,7 @@ draft PR opened and shared in Slack for peer review.
 **Next steps:**
 Address peer feedback on the draft PR, run final `make check` /
 `make test-unit` verification, mark the PR ready for review, and complete
-Check-in 2 with the PR link by Sunday.
+Check-in 2 with the PR link.
 
 **Blockers:**
 None currently.
@@ -64,16 +64,101 @@ None currently.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [add your PR link here on Sunday]
+**PR link:** https://github.com/ascherj/pathreview/pull/902
 
 **Branch:** `fix/147-resume-leading-whitespace`
 
 **What you built:**
-[fill in on Sunday]
+Fixed resume section detection failing on text with leading whitespace
+(issue #147). Added optional leading whitespace to the header-matching
+regexes in `_detect_sections()` and to the markdown header-stripping regex
+in `_strip_markdown()` — the same root cause existed in both places — so
+indented headers from PDF-extracted and markdown resumes are now detected,
+while column-0 headers continue to work with no regression.
 
 **Tests added or updated:**
-[fill in on Sunday]
+Modified `tests/unit/test_resume_parser.py`: added
+`test_detect_sections_with_leading_whitespace`, which verifies that section
+headers preceded by spaces (e.g. indented "Education:" and "Skills:") are
+detected. Also added type annotations to the existing tests (required by the
+mypy pre-commit hook). Two previously failing tests in this file now pass:
+`test_parse_markdown_resume` and `test_strip_markdown_syntax` (indented
+markdown headers are now stripped and detected). Full file: 11/11 passing.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+*(no new failures introduced beyond the failures pre-existing on `main` —
+48 test failures and 178 lint errors in unrelated modules, documented in the
+PR description; both changed files pass ruff, black, and mypy)*
 
-**Draft PR feedback received from:** [name or Slack handle, fill in on Sunday]
+**Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback came in on PR #902 before the end of the module
+(reviewer feedback is not a feature this term).
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The gap between "I have the fix" and "the fix is actually in my repo."
+At one point I was sure the code change was done — I had the corrected
+file open and had even shared it — but when I ran `grep` on the actual
+file on disk, the old buggy regex was still there. My branch only had
+documentation commits. Nothing was wrong with my understanding of the
+fix; the problem was that I never verified what was actually saved and
+committed. Debugging that taught me more than writing the fix did.
+
+**What did you learn about working in a large codebase?**
+That my change doesn't exist in isolation. When I ran the test suite
+and saw 54 failures, my first instinct was panic — but most of those
+failures existed on `main` before I touched anything. I had to run the
+suite on both branches and diff the results to prove my change
+introduced zero new failures (and actually fixed two pre-existing
+ones). I also learned that one bug can live in more than one place:
+the leading-whitespace problem from issue #147 existed in
+`_detect_sections()` AND in `_strip_markdown()`, and fixing only the
+reported one would have left markdown resumes still broken. The
+pre-commit hooks (ruff, black, mypy) blocked my commits repeatedly
+until my files met the project's standards — in a shared codebase, the
+tooling enforces conventions whether you like it or not. I also
+accidentally overwrote `readme_parser.py` with a bad paste and broke
+test collection for the whole suite; `git status` and `git restore`
+saved me, which showed me how much blast radius a careless edit has in
+someone else's code.
+
+**How did AI tools help — and where did they fall short?**
+AI helped me debug, check my code, and understand the structure of the
+codebase and the contribution workflow — things like why pre-commit
+hooks abort a commit after auto-fixing, and how to classify
+pre-existing test failures. Where it fell short: the AI can only see
+what I show it. It "verified" a fixed version of my file that turned
+out to never exist in my repo — the real state of my code was only
+visible through `git status`, `git diff`, and `grep` on my own
+machine. The lesson is that AI output isn't done until I've verified
+it against the actual filesystem and test runner myself.
+
+**What would you do differently if you started over?**
+Give myself more time and finish early instead of compressing
+everything near the deadline — most of my mistakes came from rushing.
+And I'd build one small habit: after every edit, run `git status` and
+`git diff` to confirm the work actually exists on disk before assuming
+it's done, and after every submission, open my own submitted link in
+an incognito browser to confirm a grader could find everything from
+that URL alone.
+
+**What are you most proud of?**
+Completing the full contribution cycle end to end — reproducing a real
+issue, planning the fix, getting it through the project's linting and
+type-checking standards, proving it against `main`, and submitting PR
+#902 with a clean trail — and actually learning every concept along
+the way instead of just getting it done.
