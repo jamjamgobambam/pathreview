@@ -85,7 +85,7 @@ test (critique of a "bootcamp project" must not be flagged as bias about the
 person). All existing positive/neutral tests remain green as false-positive
 guards.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 > Note: both boxes are left unchecked because `make check` and `make test-unit`
 > fail repo-wide due to pre-existing issues unrelated to this change (see
