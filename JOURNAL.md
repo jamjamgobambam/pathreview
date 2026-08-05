@@ -30,7 +30,7 @@ I located the affected places and confirmed they exist:
 
 [x] I can describe a concrete before-and-after: what the user sees before the fix and what they see after.
 
-Before the fix the doc lakcs scoring detail. After the fix, it has a section a reader can use to understand hybrid retrieval scoring.
+Before the fix the doc lacks scoring detail. After the fix, it has a section a reader can use to understand hybrid retrieval scoring.
 
 ### Part 2 — Tier Fit
 
@@ -120,3 +120,45 @@ I was advised by the instructor and tech fellows (TFs) that for docs-only change
 Both commands were run before and after my changes. `make check` is unchanged (pre-existing ruff errors, none in files I touched). `make test-unit` shows the same pre-existing failures, with the 2 new tests passing. Per the module guidance on codebases with documented pre-existing failures, "passes" means my changes introduce no new failures, which the before/after comparison confirms.
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. Per the Summer 2026 course setup, reviewer feedback is not provided this term. I checked PR #424 before the final submission: zero comments and zero reviews.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating inconsistency between guidance and grading. I was advised by the TFs that new test cases are not applicable to a docs-only issue and that documenting this explicitly would earn the relevant rubric points, so I shipped the PR without tests and wrote the rationale into my journal and PR. The autograder then withheld the "Tests Documented" points anyway because no test file existed, and I had to add `tests/unit/test_hybrid_retriever.py` after the fact, and update the PR. The technical work was straightforward, but reconciling two authoritative sources that disagreed cost more time than the fix itself.
+
+**What did you learn about working in a large codebase?**
+Two things.
+
+First, you don't fix what you weren't asked to fix: `rag/retriever/hybrid.py`, the very file my documentation describes, has pre-existing issues sitting right next to the code I was documenting, and leaving them alone was the correct move because my issue was about the docs.
+
+Second, big codebases are never green: `make check` reported 182 pre-existing ruff errors and `make test-unit` had 53 pre-existing failures before I touched anything, so "my changes pass" has to mean "my changes introduce no new failures," and I proved that with before-and-after runs rather than assuming it.
+
+**How did AI tools help — and where did they fall short?**
+AI helped most in weeding out bogus issues quickly. Many issues in the tracker did not match the actual codebase, and cross-checking an issue's claims against the source with AI assistance made that verification cheap enough to do for every candidate before claiming one.
+
+On the other hand, AI hallucinates from time to time, and its output often required significant rework. My takeaway is to use AI mostly to suggest problems I may have overlooked and to lean on its language-model strengths, reviewing grammar, spelling, and consistency, while keeping the source code and my own verification as the ground truth.
+
+**What would you do differently if you started over?**
+I would pick a more challenging issue.
+
+I followed the checklist guidance and chose a Tier 1 documentation issue as my first contribution to this codebase, and it was the right on-ramp, but the full cycle of reproducing, planning, implementing, and submitting turned out to be well within my capability. With the workflow now familiar, a Tier 2 code issue with real test writing would have taught me more per hour spent.
+
+**What are you most proud of from this module?**
+Finding an issue that was actually applicable.
+
+Many issues in the tracker described code or behavior that does not exist in the repository, so before claiming anything I read the relevant source for each candidate and verified its claims. That filter caught the bogus ones and led me to #36, a real gap between `docs/ARCHITECTURE.md` and `rag/retriever/hybrid.py` that I could confirm, plan, and close with confidence.
