@@ -58,7 +58,7 @@ None. Pre-existing failures are unrelated to #64.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/929
 
 **Branch:** `fix/64-newline-injection-sanitization`
 
@@ -86,4 +86,4 @@ Created a PDF resume (`tests/fixtures/malicious_resume_newline_injection.pdf`) t
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes (all failures are pre-existing, none introduced by this PR)
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
