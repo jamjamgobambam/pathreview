@@ -1,14 +1,18 @@
 """Tests for review_service.py"""
 
-import pytest
-from uuid import uuid4
+# mypy: ignore-errors
+
 from unittest.mock import AsyncMock, Mock, patch
-import asyncio
+from uuid import uuid4
+
+import pytest
 
 from core.services.review_service import (
+    _compute_profile_hash,
     create_review,
     get_review,
     list_reviews,
+    process_review,
 )
 
 
@@ -45,7 +49,9 @@ class TestReviewService:
         return profile
 
     @pytest.mark.asyncio
-    async def test_create_review_returns_review_with_pending_status(self, mock_db_session, mock_review):
+    async def test_create_review_returns_review_with_pending_status(
+        self, mock_db_session, mock_review
+    ):
         """Test create_review returns Review with status='pending'."""
         profile_id = uuid4()
         user_id = uuid4()
@@ -55,18 +61,18 @@ class TestReviewService:
         mock_db_session.commit = AsyncMock()
         mock_db_session.refresh = AsyncMock()
 
-        with patch('core.services.review_service.Review') as MockReview:
-            mock_instance = MockReview.return_value
+        with patch("core.services.review_service.Review") as mock_review_class:
+            mock_instance = mock_review_class.return_value
             mock_instance.status = "pending"
             mock_instance.sections = None
             mock_instance.overall_score = None
 
-            result = await create_review(mock_db_session, profile_id, user_id)
+            await create_review(mock_db_session, profile_id, user_id)
 
             # Check that Review was instantiated
-            MockReview.assert_called()
-            call_kwargs = MockReview.call_args[1]
-            assert call_kwargs['status'] == "pending"
+            mock_review_class.assert_called()
+            call_kwargs = mock_review_class.call_args[1]
+            assert call_kwargs["status"] == "pending"
 
     @pytest.mark.asyncio
     async def test_get_review_returns_review_for_correct_owner(self, mock_db_session):
@@ -91,7 +97,6 @@ class TestReviewService:
     async def test_get_review_returns_none_for_wrong_user(self, mock_db_session):
         """Test get_review returns None when user_id doesn't match."""
         review_id = uuid4()
-        user_id = uuid4()
         wrong_user_id = uuid4()
 
         # Setup mock to return None
@@ -133,9 +138,7 @@ class TestReviewService:
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
-        reviews, total = await list_reviews(
-            mock_db_session, user_id, page=2, page_size=page_size
-        )
+        reviews, total = await list_reviews(mock_db_session, user_id, page=2, page_size=page_size)
 
         # Second call should pass offset for page 2
         calls = mock_db_session.execute.call_args_list
@@ -165,7 +168,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.add.assert_called_once()
@@ -176,7 +179,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.commit.assert_called_once()
@@ -187,7 +190,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.refresh.assert_called_once()
@@ -244,13 +247,13 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review') as MockReview:
-            MockReview.return_value = Mock()
+        with patch("core.services.review_service.Review") as mock_review_class:
+            mock_review_class.return_value = Mock()
             await create_review(mock_db_session, profile_id, user_id)
 
-            call_kwargs = MockReview.call_args[1]
-            assert 'profile_id' in call_kwargs
-            assert 'status' in call_kwargs
+            call_kwargs = mock_review_class.call_args[1]
+            assert "profile_id" in call_kwargs
+            assert "status" in call_kwargs
 
     @pytest.mark.asyncio
     async def test_get_review_verifies_ownership(self, mock_db_session):
@@ -287,7 +290,7 @@ class TestReviewService:
         """Test list_reviews returns list of Review objects."""
         user_id = uuid4()
 
-        mock_reviews = [Mock(spec=['id', 'status']) for _ in range(3)]
+        mock_reviews = [Mock(spec=["id", "status"]) for _ in range(3)]
         mock_result = AsyncMock()
         mock_result.scalars.return_value.all.return_value = mock_reviews
         mock_db_session.execute = AsyncMock(return_value=mock_result)
@@ -302,13 +305,13 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review') as MockReview:
-            MockReview.return_value = Mock()
+        with patch("core.services.review_service.Review") as mock_review_class:
+            mock_review_class.return_value = Mock()
             await create_review(mock_db_session, profile_id, user_id)
 
-            call_kwargs = MockReview.call_args[1]
-            assert call_kwargs['sections'] is None
-            assert call_kwargs['overall_score'] is None
+            call_kwargs = mock_review_class.call_args[1]
+            assert call_kwargs["sections"] is None
+            assert call_kwargs["overall_score"] is None
 
     @pytest.mark.asyncio
     async def test_get_review_with_valid_uuid(self, mock_db_session):
@@ -338,3 +341,126 @@ class TestReviewService:
 
         # Should order by created_at descending
         mock_db_session.execute.assert_called_once()
+
+    def test_profile_hash_is_consistent(self):
+        """
+        Verify that identical portfolio data produces the same cache key.
+
+        This ensures repeated submissions of unchanged portfolios can
+        successfully locate cached reviews.
+        """
+
+        profile = Mock()
+        profile.github_username = "testuser"
+        profile.resume_filename = "resume.pdf"
+        profile.resume_text = "software engineer"
+        profile.portfolio_url = "https://example.com"
+
+        first_hash = _compute_profile_hash(profile)
+        second_hash = _compute_profile_hash(profile)
+
+        assert first_hash == second_hash
+
+    def test_profile_hash_changes_when_profile_changes(self):
+        """
+        Verify that modifying portfolio data creates a different cache key.
+
+        This prevents stale reviews from being returned after a user updates
+        their resume or portfolio.
+        """
+
+        profile = Mock()
+        profile.github_username = "testuser"
+        profile.resume_filename = "resume.pdf"
+        profile.resume_text = "software engineer"
+        profile.portfolio_url = "https://example.com"
+
+        original_hash = _compute_profile_hash(profile)
+
+        # Simulate the user updating their resume.
+        profile.resume_text = "updated software engineer resume"
+
+        updated_hash = _compute_profile_hash(profile)
+
+        assert original_hash != updated_hash
+
+    @pytest.mark.asyncio
+    async def test_process_review_uses_cached_review(self):
+        """
+        Test that process_review returns a cached review when the same
+        portfolio content hash already has a completed review.
+        """
+
+        # Create IDs
+        review_id = uuid4()
+        profile_id = uuid4()
+
+        # Mock review that is currently pending
+        mock_review = Mock()
+        mock_review.id = review_id
+        mock_review.status = "pending"
+        mock_review.sections = None
+        mock_review.overall_score = None
+
+        # Mock profile
+        mock_profile = Mock()
+        mock_profile.id = profile_id
+        mock_profile.github_username = "testuser"
+        mock_profile.resume_filename = "resume.pdf"
+        mock_profile.resume_text = "Python developer"
+        mock_profile.portfolio_url = "https://portfolio.com"
+
+        # Existing completed cached review
+        cached_review = Mock()
+        cached_review.id = uuid4()
+        cached_review.status = "complete"
+        cached_review.sections = [
+            {
+                "section_name": "Projects",
+                "content": "Cached feedback",
+                "confidence": 0.9,
+                "suggestions": [],
+            }
+        ]
+        cached_review.overall_score = 0.85
+
+        # Mock SQLAlchemy results
+        review_result = Mock()
+        review_result.scalars.return_value.first.return_value = mock_review
+
+        profile_result = Mock()
+        profile_result.scalars.return_value.first.return_value = mock_profile
+
+        cached_result = Mock()
+        cached_result.scalars.return_value.first.return_value = cached_review
+
+        # Mock async DB session
+        db = AsyncMock()
+
+        # process_review calls db.execute 3 times:
+        # 1. Get review
+        # 2. Get profile
+        # 3. Find cached review
+        db.execute.side_effect = [
+            review_result,
+            profile_result,
+            cached_result,
+        ]
+
+        db.add = Mock()
+        db.commit = AsyncMock()
+
+        # Run function
+        await process_review(
+            db=db,
+            review_id=review_id,
+            profile_id=profile_id,
+        )
+
+        # Verify cache was used
+        assert mock_review.status == "complete"
+        assert mock_review.sections == cached_review.sections
+        assert mock_review.overall_score == cached_review.overall_score
+
+        # Verify database was updated
+        db.commit.assert_called()

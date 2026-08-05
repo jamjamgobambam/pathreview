@@ -33,6 +33,16 @@ class Review(Base):
     )  # "pending", "processing", "complete", "failed"
     sections: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Structured review output
     overall_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    # Stores the hash of the portfolio data used to generate this review.
+    # Used to determine whether a future review request can reuse this result
+    # instead of running the expensive ingestion + RAG pipeline again.
+    content_hash: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+        index=True,
+    )
+
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=datetime.utcnow

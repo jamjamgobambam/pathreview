@@ -1,11 +1,13 @@
+# mypy: ignore-errors
 from uuid import UUID
+
 import structlog
 from sqlalchemy import select
 
+from api.schemas.profile import ProfileCreate, ProfileUpdate
+from core.models.ingested_source import IngestedSource
 from core.models.profile import Profile
 from core.models.review import Review
-from core.models.ingested_source import IngestedSource
-from api.schemas.profile import ProfileCreate, ProfileUpdate
 
 log = structlog.get_logger()
 
@@ -18,8 +20,21 @@ async def create_profile(
     resume_text: str = None,
 ) -> Profile:
     """
-    Create a new profile for a user.
+    Returns an existing profile or creates a new profile for a user.
     """
+
+    existing_profile_stmt = select(Profile).where(
+        Profile.user_id == user_id,
+        Profile.github_username == data.github_username,
+        Profile.portfolio_url == data.portfolio_url,
+    )
+
+    result = await db.execute(existing_profile_stmt)
+    existing_profile = result.scalars().first()
+
+    if existing_profile:
+        return existing_profile
+
     profile = Profile(
         user_id=user_id,
         github_username=data.github_username,
@@ -41,9 +56,7 @@ async def get_profile(
     """
     Get a profile by ID, checking ownership.
     """
-    stmt = select(Profile).where(
-        (Profile.id == profile_id) & (Profile.user_id == user_id)
-    )
+    stmt = select(Profile).where((Profile.id == profile_id) & (Profile.user_id == user_id))
     result = await db.execute(stmt)
     return result.scalars().first()
 

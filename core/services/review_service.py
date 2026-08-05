@@ -1,54 +1,120 @@
-from uuid import UUID
-import structlog
+import hashlib
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from typing import cast
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
 
+def _compute_profile_hash(profile: Profile) -> str:
+    """
+    Generate a deterministic hash representing the portfolio contents.
+
+    The hash is used as a cache key. If the same portfolio data is submitted
+    again, the system can reuse the previous review instead of regenerating
+    feedback through the ingestion and RAG pipeline.
+    """
+
+    # Combine all profile fields that represent portfolio content.
+    # Any change to these values will produce a different hash.
+    content = "|".join(
+        [
+            profile.github_username or "",
+            profile.resume_filename or "",
+            profile.resume_text or "",
+            profile.portfolio_url or "",
+        ]
+    )
+
+    # SHA256 provides a stable fixed-length identifier for the portfolio.
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()
+
+
 async def create_review(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
     """
     Create a new review with status="pending".
+    Uses cached review if the portfolio was already analyzed.
     """
+
+    # Get profile for hashing
+    stmt = select(Profile).where(Profile.id == profile_id)
+    result = await db.execute(stmt)
+    profile = result.scalars().first()
+
+    if not profile:
+        raise ValueError("Profile not found")
+
+    profile_hash = _compute_profile_hash(profile)
+
+    # Check cache before creating a new review
+    cached_stmt = (
+        select(Review)
+        .where(
+            Review.status == "complete",
+            Review.content_hash == profile_hash,
+        )
+        .order_by(Review.created_at.desc())
+    )
+
+    cached_result = await db.execute(cached_stmt)
+    cached_review = cast(Review | None, cached_result.scalars().first())
+
+    if cached_review:
+        log.info(
+            "review_cache_hit",
+            profile_id=str(profile_id),
+            review_id=str(cached_review.id),
+        )
+        return cached_review
+
+    # No cache found, create new review
     review = Review(
         profile_id=profile_id,
         status="pending",
         sections=None,
         overall_score=None,
+        content_hash=profile_hash,
     )
+
     db.add(review)
     await db.commit()
     await db.refresh(review)
+
     return review
 
 
 async def get_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    review = result.scalars().first()
+    return cast(Review | None, review)
 
 
 async def list_reviews(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     page: int = 1,
     page_size: int = 20,
@@ -80,7 +146,7 @@ async def list_reviews(
 
 
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
@@ -115,6 +181,45 @@ async def process_review(
             review.status = "failed"
             db.add(review)
             await db.commit()
+            return
+
+        # Generate a unique fingerprint for the current portfolio.
+        # This allows us to compare the current submission against previous
+        # completed reviews.
+        profile_hash = _compute_profile_hash(profile)
+
+        # Search for a previously completed review generated from the same
+        # portfolio contents. If one exists, we can reuse the stored result
+        # instead of running ingestion, agents, and RAG again.
+        cached_stmt = (
+            select(Review)
+            .where(
+                Review.status == "complete",
+                Review.content_hash == profile_hash,
+            )
+            .order_by(Review.created_at.desc())
+        )
+
+        cached_result = await db.execute(cached_stmt)
+        cached_review = cached_result.scalars().first()
+
+        # Cache hit: copy the existing review output into the new review.
+        # This avoids unnecessary LLM/API calls and reduces processing time.
+        if cached_review:
+            log.info(
+                "review_cache_hit",
+                profile_id=str(profile.id),
+                review_id=str(cached_review.id),
+            )
+
+            review.status = "complete"
+            review.sections = cached_review.sections
+            review.overall_score = cached_review.overall_score
+            review.content_hash = profile_hash
+
+            db.add(review)
+            await db.commit()
+
             return
 
         # Step 1: Set status to processing
@@ -168,6 +273,8 @@ async def process_review(
         review.status = "complete"
         review.sections = [s.model_dump() for s in sections]
         review.overall_score = rag_output.get("overall_score", None)
+        # Save the generated review score and the portfolio hash used to create it.
+        review.content_hash = profile_hash
         review.updated_at = datetime.utcnow()
 
         db.add(review)
@@ -194,7 +301,7 @@ async def process_review(
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
 
-async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
+async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[dict]:
     """
     Run ingestion pipeline to extract data from profile sources.
     Returns list of ingested source data.
