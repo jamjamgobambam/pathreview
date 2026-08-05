@@ -136,7 +136,13 @@ and node_modules exclusion, Windows-separator build output, nested vendored
 dirs, and look-alike names that must not be skipped). The change also turns the
 existing `test_node_modules_excluded` and `test_build_directory_excluded` green.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+_"Passes" here means my changes introduce no new failures: my edited files are
+ruff/black/mypy-clean (verified by the pre-commit hooks on the fix commit), and
+`make test-unit` went from 53 failed / 375 passed (baseline) to 51 failed / 382
+passed — the two target tests fixed and five new tests added, no new failures.
+The repo's remaining pre-existing lint/type/test failures are unrelated to #150._
 
 **Draft PR feedback received from:** none yet — draft PR shared in the cohort
 Slack; no responses at the time of writing.
