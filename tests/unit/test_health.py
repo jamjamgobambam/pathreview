@@ -1,75 +1,75 @@
 """Tests for the /health route DB probe (api/routes/health.py).
 
-Reproduction test for issue #154:
+Regression tests for issue #154:
 https://github.com/ascherj/pathreview/issues/154
 
-The health check probes Postgres with ``await db.execute("SELECT 1")`` — a bare
-Python string. Under SQLAlchemy 2.x a raw string is no longer an executable
-object; it must be wrapped in ``sqlalchemy.text()``. Passing the raw string
-raises ``sqlalchemy.exc.ArgumentError`` during statement coercion (before any DB
-round-trip), and the route's ``try/except`` swallows it and misreports Postgres
-as "unhealthy" even when the database is up.
+Background: the health check probed Postgres with ``await db.execute("SELECT 1")``,
+passing a bare Python string. Under SQLAlchemy 2.x a raw string is no longer an
+executable object — it must be wrapped in ``sqlalchemy.text()`` — so the call
+raised ``sqlalchemy.exc.ArgumentError``. The route's ``try/except`` swallowed that
+error and misreported Postgres as "unhealthy" even when the database was up.
 
-These tests document today's *broken* behavior. They pass on the current code and
-will need their assertions flipped (expecting "healthy") once the fix wraps the
-query in ``text("SELECT 1")`` — see PLAN.md.
+The fix wraps the query in ``text("SELECT 1")``. These tests confirm the fix by
+asserting on the ``postgres`` dependency specifically: it now reports "healthy"
+when the probe query succeeds, and still reports "unhealthy" on a genuine DB
+error (the fix does not mask real outages).
+
+Scope note: these tests intentionally assert on ``dependencies["postgres"]`` only.
+The endpoint may still return HTTP 503 because of an unrelated, pre-existing issue
+in the redis probe (it reads ``settings.redis_host`` / ``settings.redis_port``,
+which are not defined on ``Settings``). That is out of scope for issue #154.
 """
 
-import pytest
-from sqlalchemy import exc as sa_exc
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from unittest.mock import AsyncMock
 
+import pytest
 from fastapi import HTTPException
 
 from api.routes.health import health_check
 
 
 @pytest.mark.unit
-class TestHealthCheckRawSQLBug:
-    """Reproduce the SQLAlchemy 2.x raw-SQL failure in the health check (#154)."""
-
-    @pytest.fixture
-    def async_session_factory(self):
-        """A real async session factory built like core.database's.
-
-        The engine points at an unreachable host on purpose. The bug we are
-        reproducing surfaces during SQLAlchemy's statement coercion, which
-        happens *before* any connection is attempted, so no live database is
-        required and the test stays a fast, dependency-free unit test.
-        """
-        engine = create_async_engine(
-            "postgresql+asyncpg://healthcheck:healthcheck@127.0.0.1:1/pathreview_repro",
-        )
-        return async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+class TestHealthCheckPostgresProbe:
+    """Verify the health check's Postgres probe after the #154 fix."""
 
     @pytest.mark.asyncio
-    async def test_raw_string_execute_raises_argument_error(self, async_session_factory):
-        """`db.execute("SELECT 1")` raises ArgumentError under SQLAlchemy 2.x (#154).
+    async def test_health_check_reports_postgres_healthy_when_query_succeeds(self):
+        """Confirms the #154 fix: Postgres reports "healthy" when the probe runs.
 
-        Proves the failure comes purely from passing a raw string to execute(),
-        not from database connectivity — the error is raised before we connect.
+        With the query wrapped in ``text("SELECT 1")``, ``db.execute`` succeeds and
+        the Postgres probe reports "healthy" — where the raw string previously
+        raised ``ArgumentError`` and got misreported as "unhealthy".
         """
-        async with async_session_factory() as session:
-            with pytest.raises(sa_exc.ArgumentError) as exc_info:
-                await session.execute("SELECT 1")
+        db = AsyncMock()
+        db.execute = AsyncMock()
 
-        # SQLAlchemy 2.x tells us exactly how to fix it: wrap in text().
-        assert "text(" in str(exc_info.value)
+        # The endpoint raises 503 due to the unrelated redis probe issue (see the
+        # module docstring); we assert on the postgres dependency value only.
+        with pytest.raises(HTTPException) as exc_info:
+            await health_check(db=db)
+
+        detail = exc_info.value.detail
+        assert detail["dependencies"]["postgres"] == "healthy"
+
+        # Guard against a regression to a raw SQL string: the statement passed to
+        # execute() must be a SQLAlchemy text() clause, not a plain str (#154).
+        executed_stmt = db.execute.call_args[0][0]
+        assert not isinstance(executed_stmt, str)
+        assert str(executed_stmt) == "SELECT 1"
 
     @pytest.mark.asyncio
-    async def test_health_check_reports_db_unhealthy_due_to_raw_sql_string(
-        self, async_session_factory
-    ):
-        """The route swallows the ArgumentError and misreports Postgres (#154).
+    async def test_health_check_reports_postgres_unhealthy_on_real_db_error(self):
+        """The fix must not mask genuine outages (#154).
 
-        Confirms the bug's user-visible impact: even though the ArgumentError is
-        an API misuse (not a real connectivity problem), the surrounding
-        try/except catches it and marks Postgres — and the overall service — as
-        "unhealthy", returning HTTP 503.
+        When ``db.execute`` fails with a real connectivity error (not an API
+        misuse), the probe should still report Postgres "unhealthy" and the
+        endpoint should return HTTP 503.
         """
-        async with async_session_factory() as session:
-            with pytest.raises(HTTPException) as exc_info:
-                await health_check(db=session)
+        db = AsyncMock()
+        db.execute = AsyncMock(side_effect=ConnectionError("could not connect to postgres"))
+
+        with pytest.raises(HTTPException) as exc_info:
+            await health_check(db=db)
 
         detail = exc_info.value.detail
         assert exc_info.value.status_code == 503
