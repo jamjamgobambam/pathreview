@@ -65,16 +65,38 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [your pathreview PR URL]
+**PR link:** https://github.com/ascherj/pathreview/pull/355
 
 **Branch:** `fix/64-prompt-defense-harden-sanitize`
 
 **What you built:**
-[1–3 sentences: sanitize now strips newline injection boundaries…]
+Hardened `PromptDefense.sanitize()` so newline prompt-boundary markers (`---` separators and `System`/`Human`/`Assistant` role labels) are neutralized after the existing template/`<>` stripping. Detection’s role regex was aligned to allow optional spaces before `:`. This closes the detect-vs-sanitize gap described in #64.
 
 **Tests added or updated:**
-[`tests/unit/test_prompt_defense.py` — #64 newline sanitize + variants]
+`tests/unit/test_prompt_defense.py` — #64 newline sanitize case, Human role marker, spaced `---` separator (35 tests in that file pass).
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] touched files pass lint/tests  [x] `pytest tests/unit/test_prompt_defense.py` passes  
+Note: full `make check` fails on ~180 pre-existing ruff issues elsewhere; full `make test-unit` reports 52 failures / 379 passed in unrelated modules. None of those failures are in `test_prompt_defense.py`. Documented in the PR.
 
-**Draft PR feedback received from:** [name/handle or "none"]
+**Draft PR feedback received from:** none (marking ready for review; will document any mentor/peer comments in Week 10)
+
+## Week 10 — Iteration and reflection
+
+### Reviewer feedback log
+| Date | From | Feedback | Response |
+|------|------|----------|----------|
+| — | — | No reviewer comments yet | Will update this table if feedback arrives |
+
+### Reflection
+
+**What went well:**
+Choosing a Tier 2 issue with a clear detect-vs-sanitize gap made the problem easy to reproduce with a failing unit test before writing the fix. Matching existing `test_prompt_defense.py` patterns kept the new tests small and focused. Documenting pre-existing `make check` / `make test-unit` failures in the PR avoided trying to fix the whole repo before contributing.
+
+**What was hard:**
+Orienting in a multi-service codebase and deciding sanitize scope (boundary markers only vs all `INJECTION_PATTERNS`). Pre-commit/ruff and Opsera gates slowed commits even when the change itself was small.
+
+**What I’d do differently next time:**
+Open the draft PR earlier in the week for peer feedback, baseline `make check` / `make test-unit` at the start to capture pre-existing failures, and keep commits smaller (`test` → `fix` → `docs`) with conventional messages from the first commit.
+
+**What I learned about open-source contribution:**
+Contribution standards (branch naming, conventional commits, full PR template, JOURNAL check-ins) matter as much as the code. Reviewers need a clear summary, issue link, and honest testing notes — including what you did *not* change.
