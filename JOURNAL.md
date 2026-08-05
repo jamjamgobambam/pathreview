@@ -118,3 +118,76 @@ passes for the changed service and test files and Black reports all four changed
 Python files are formatted.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback was provided during the Summer 2026 review
+period. I therefore did not have any requested changes or comments to address.
+
+**How you responded:**
+No response or code changes were needed because no review feedback came in.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was not writing the ownership query itself, but proving that a
+small security fix behaved correctly within the existing test suite. The
+repository had unrelated unit, tokenizer-download, lint, and type-check
+failures, so a single red or green command was not enough to tell me whether my
+change was safe. I had to separate the existing baseline from failures caused
+by my branch and run the changed service and route tests independently. I also
+had to learn that SQLAlchemy's async session returns a synchronous result
+object: `db.execute()` is awaited, but `result.scalars().first()` is not. Using
+`AsyncMock` for the whole chain made several existing tests model the API
+incorrectly and produced confusing results.
+
+**What did you learn about working in a large codebase?**
+I learned that the correct fix depends on contracts outside the function where
+the bug appears. The missing ownership check was in `create_review()`, but the
+route also had to handle the service returning `None` before it accessed the
+review ID or scheduled background processing. I used nearby profile and review
+service functions to match the project's existing ownership-query pattern and
+returned the same generic 404 for a missing profile and another user's profile
+so the endpoint would not reveal whether a UUID exists. Compared with my own
+projects, I spent more time tracing callers, matching established conventions,
+limiting scope, and documenting baseline failures instead of changing every
+related concern I noticed.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for quickly locating the route, service, model, and
+neighboring ownership checks; turning the security scenario into focused test
+cases; and checking the diff for paths I might have missed. They also helped me
+interpret noisy test output and recognize the difference between an
+`AsyncMock` session method and the synchronous SQLAlchemy result returned by
+that method. However, AI suggestions still needed verification against this
+repository. They could not decide from generic advice whether this project
+should use 403, 404, `None`, or an exception, and they could not treat a failing
+full suite as proof that my patch was wrong or that it was safe. I had to read
+the surrounding code, compare the branch with the repository baseline, run the
+focused tests, and make the final scope and security decisions myself.
+
+**What would you do differently if you started over?**
+I would record the repository's test, lint, and type-check baseline immediately
+after setup, before writing the reproduction. That would make later failures
+much easier to classify. I would also map the service's callers before changing
+its return contract and create the route-level test at the same time as the
+service reproduction. The route test exposed an important requirement—an
+unauthorized request must not enqueue `process_review`—that a service-only test
+could not prove. Finally, I would confirm issue ownership in the cohort ledger
+earlier because several contributors had expressed interest in the same issue.
+
+**What are you most proud of from this module?**
+I am most proud that I treated a short authorization fix as a complete behavior
+change rather than just adding one `WHERE` clause. The final work verifies both
+the allowed and rejected paths, avoids leaking profile existence, confirms that
+rejected requests cause no database write or background task, and documents
+exactly how the focused results differ from the repository-wide baseline. That
+gave the contribution a clear, reviewable argument for why it is correct even
+though the PR did not receive maintainer feedback.
