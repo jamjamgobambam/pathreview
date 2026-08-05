@@ -78,3 +78,66 @@ control passes).
   bypasses as `xfail(strict=True)` rather than ship a red build.
 - `PromptDefense` is currently imported only by tests, not by the request path —
   need to confirm whether wiring it into the API is in or out of scope for #71.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Four of five PLAN.md sub-tasks are complete. (1) Curated attack fixtures under
+`tests/fixtures/injection_attempts/` — five category files (role-switching,
+instruction-override, template injection, code execution, separator) plus a
+benign control set. (2) Built the suite: `tests/security/injection_corpus.py`
+(fixture loader) and `tests/security/test_prompt_injection.py`, a parametrized
+`security`-marked suite (25 attacks asserted blocked, 8 benign asserted allowed,
+1 empty-corpus guard) — 34 tests, all green. (3) Hardened `PromptDefense`: the
+patterns were anchored to a leading `\n`, so first-line attacks slipped through;
+re-anchored them to `(?:^|\n)` (start-of-text or any line) and added a phrase
+pattern for "ignore/disregard … instructions" anywhere. (5) Retired the Week 8
+reproduction file into the real suite.
+
+**Next steps:**
+Wire the CI `test-security` job (done), then open a draft PR, request peer
+review in Slack, and finalize.
+
+**Blockers:**
+Pre-existing broken baseline in the repo (unrelated to #71): 53 failing unit
+tests, ~182 ruff and 52 black issues before any of my changes. Working to the
+"no new failures" bar and documenting the baseline in the PR.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _(fill in after opening the PR)_
+
+**Branch:** `test/71-prompt-injection-red-team-suite`
+
+**What you built:**
+A prompt-injection red-team test suite that fires a curated corpus of known
+attacks (loaded from fixture files) at `PromptDefense.is_injection_attempt` and
+asserts each is blocked, with a benign control set guarding against false
+positives, wired into CI as a `test-security` job. Also hardened the detector so
+first-line injections (previously undetected because patterns required a leading
+newline) are now caught.
+
+**Tests added or updated:**
+- `tests/security/test_prompt_injection.py` — new red-team suite (34 tests).
+- `tests/security/injection_corpus.py` — fixture loader.
+- `tests/fixtures/injection_attempts/*.txt` — curated attack + benign payloads.
+- `safety/prompt_defense.py` — hardened patterns; all 32 existing
+  `tests/unit/test_prompt_defense.py` tests still pass (one previously-failing
+  case, `test_whitespace_variations_detected`, now passes).
+
+**Pre-existing failures (documented per assignment):** Before my changes,
+`make test-unit` reported 53 failing tests and `make check` reported ~182 ruff /
+52 black / 5 mypy issues, all unrelated to #71. After my changes: 52 failing
+unit tests (the one fewer is the case my fix repaired) and **zero new** ruff /
+black / mypy issues in the files I touched. My contribution introduces no new
+failures.
+
+**Self-review confirmation:** [x] make check passes (no new failures)  [x] make test-unit passes (no new failures)
+
+**Draft PR feedback received from:** _(fill in — Slack handle, or "none")_
