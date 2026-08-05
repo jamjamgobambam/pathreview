@@ -50,7 +50,61 @@ CI/CD skills.
 
 **Blockers or open questions:**
 ChromaDB requires scalar metadata values (str/int/float/bool), so the extracted `skills` cannot be
-stored as a raw list — still deciding between a comma-joined string and boolean flags
+stored as a raw list, still deciding between a comma-joined string and boolean flags
 (`has_docker`, `runs_pytest`, `has_deployment`). Also weighing whether to rely on `SkillExtractor`'s
 substring matching (which over-matches, e.g. `git` inside `github`) versus inspecting structured
 `uses:`/`run:` values directly in the parser.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All implementation sub-tasks from PLAN.md are complete. Added `ingestion/parsers/workflow_parser.py`
+(`WorkflowParser`), which parses workflow YAML and detects GitHub Actions, Docker, pytest, and
+deployment structurally from the workflow's triggers/jobs/steps; wired it into
+`IngestionPipeline.ingest_workflow()` and routed `"workflow"` sources to the structural chunker;
+declared `pyyaml` / `types-pyyaml`; and extended `tests/unit/test_workflow_parser.py` from the 4
+reproduction tests to 15 (edge cases: empty/whitespace input, non-workflow YAML, malformed YAML, the
+`on:`-key YAML 1.1 gotcha, matrix builds, reusable job-level `uses:`, ChromaDB-scalar metadata, and
+`SkillExtractor` reuse). All 15 pass.
+
+Resolved both Week 8 open questions: skills are serialized to a comma-joined string plus boolean
+flags (ChromaDB-safe), and the parser does its own structural detection rather than relying on
+`SkillExtractor`'s substring matching — `SkillExtractor` is still called for supplementary signal
+(`extracted_skills`), honoring the issue's "reuse it" note without depending on it.
+
+**Next steps:**
+Gather peer/mentor feedback on the draft PR, address it, and mark the PR ready for review by the end
+of the week.
+
+**Blockers:**
+None. The repo has documented pre-existing `make check` / `make test-unit` failures (53 failing unit
+tests, ~103 mypy errors — all pre-existing); this change introduces no new failures.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/887 (draft; to be marked ready for review
+after peer feedback)
+
+**Branch:** `feat/14-github-workflow-parser`
+
+**What you built:**
+A `WorkflowParser` for `.github/workflows/*.yml` that detects CI/CD and DevOps skills (GitHub
+Actions, Docker, pytest, deployment) structurally from the workflow's triggers, jobs, and steps, and
+reuses the existing `SkillExtractor` for supplementary signal. It is wired into the ingestion
+pipeline as a new `workflow` source type with structural chunking.
+
+**Tests added or updated:**
+`tests/unit/test_workflow_parser.py` — 15 unit tests covering the `ParseResult` shape, the four #14
+skills, bytes/invalid input, empty/whitespace, non-workflow and malformed YAML, the `on:`-key gotcha,
+matrix builds, reusable job-level `uses:`, ChromaDB-scalar metadata, and `SkillExtractor` reuse.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Per the Week 9 pre-existing-failures rule, "passes" = introduces no new failures. Both commands have
+documented pre-existing failures in this repo; this change adds none, and the new/edited files are
+ruff-, black-, and mypy-clean. Details in the PR's Notes for Reviewers.)
+
+**Draft PR feedback received from:** none yet (draft opened for peer review)
