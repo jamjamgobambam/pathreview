@@ -21,4 +21,33 @@ Reproduced the bug by testing the phone_us regex against parenthesized US phone 
 **PLAN.md link:** https://github.com/pclerveau2025/pathreview/blob/fix/146-parenthesized-us-phone-pii/PLAN.md
 **Walkthrough video (recommended):** [none recorded]
 **Blockers or open questions:**
-None currently. Still need to verify no overlap/duplicate detection occurs between phone_us and phone_intl patterns once the fix is applied more broadly.
+None currently. Still need to verify no overlap/duplicate detection occurs between phone_us and phone_intl patterns once the fix is applied more broadly. ## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix for issue #146 by updating the phone_us regex in safety/pii_scrubber.py to correctly match parenthesized US phone numbers.
+
+**Next steps:**
+Write Week 9 journal entry and submit PR.
+
+**Blockers:**
+Mac sent to Apple for repair — working from phone via GitHub web editor.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/864
+
+**Branch:** fix/146-parenthesized-us-phone-pii
+
+**What you built:**
+Fixed the phone_us regex in safety/pii_scrubber.py to correctly detect and redact parenthesized US phone numbers like (555) 123-4567. The word boundary was moved to sit before the digit group instead of before the optional parenthesis.
+
+**Tests added or updated:**
+No new test files added. Fix verified manually against parenthesized and dashed phone number formats.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** none
