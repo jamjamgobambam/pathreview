@@ -86,33 +86,37 @@ I added `test_us_phone_parenthesized_no_space` in `tests/unit/test_pii_scrubber.
 
 ### Reviewer feedback
 
-**Feedback received:** [ ] Yes  [ ] No — still awaiting review
+**Feedback received:** [] Yes  [X] No — still awaiting review.
+
 
 **Summary of feedback:**
-[TO FILL NEAR DEADLINE — check PR #281 and summarize any reviewer comments here.]
+No reviewer or maintainer feedback came in on #146. Per the Summer 2026 course note, PR reviewer feedback is not a feature this term, so no maintainer review was expected on the open pull request.
+
 
 **How you responded:**
-[TO FILL NEAR DEADLINE — describe changes made or replies given.]
+N/A. No reviewer feedback was received to respond to.
 
 ---
 
 ### Reflection
 
 **What was harder than you expected?**
-The setup was harder than the actual fix. Getting the local environment running was a pain. Docker containers for PostgreSQL and Redis, plus the virtual environment took much longer than I anticipated, and I couldn't run a single test until it was all correct. By contrast, the fix for issue #146 came down to changing a few characters in one regex. I expected the coding to be the challenge, but the real friction was almost everything before it like the setup, git mechanics, and figuring out what "done" actually meant in someone else's repo.
+The hardest part was the git workflow. When I first tried to commit my Week 9 work, the repo's pre-commit hook (ruff, black, and mypy)
+failed on 27 pre-existing mypy errors and the pre-existing lint errors, and it silently aborted my commit. I didn't realize it hadn't gone through, so my fix sat "staged but never committed" for weeks. My files were saved on disk and my tests passed locally, but GitHub was still frozen at Week 8. I only caught it when a review flagged the two files as "missing." The eventual fix (re-staging and
+committing with `--no-verify` to bypass the hook on pre-existing errors) was simple, but diagnosing why a commit had never happened was confusing.
 
 **What did you learn about working in a large codebase?**
-The biggest shift was learning that "passing" doesn't mean the whole codebase is clean. When I ran `make check` I got 182 lint errors, and `make test-unit` had a failing test (`test_mixed_pii_and_text`) that had nothing to do with my issue. The `street_address` regex was over-redacting and swallowing the word "Python." In my
-own projects I'd assume any red meant I broke something, but here I had to record a baseline first and then prove my change added no *new* failures. Contributing to production code someone else owns is as much about tight scoping and leaving unrelated things alone as it is about writing the fix itself.
+The biggest shift was learning that "passing" doesn't mean the whole codebase is clean. When I ran `make check` I got 182 lint errors, and `make test-unit` had a failing test (`test_mixed_pii_and_text`) that had nothing to do with my issue. The `street_address` regex was over-redacting and swallowing the word "Python." In my own projects I'd assume any red meant I broke something, but here I had to record a baseline first and then prove my change added no *new* failures. Contributing to production code someone else owns is as much about tight scoping and leaving unrelated things alone as it is about writing the fix itself.
 
 **How did AI tools help and where did they fall short?**
-AI was most useful for tracing exactly why the `phone_us` regex failed. walking the pattern against `(555) 123-4567` character by character and showing that the `[-.]?` separator rejected the space after the closing paren made the fix (`[-.]?` →`[-.\s]?`) obvious. It also helped me structure my PLAN.md and PR description. Where
-it fell short was it couldn't run anything for me. I still had to reproduce the failure, run pytest, and confirm the count moved from five failed tests to one failed test myself. AI could reason about the code, but it couldn't verify the true state of my machine or confirm the pre-existing failures were genuinely pre-existing until I ran the baseline commands.
+AI was most useful for tracing exactly why the `phone_us` regex failed. Using the pattern against `(555) 123-4567` and showing that the `[-.]?` separator rejected the space after the closing parenthese made the fix (`[-.]?` → `[-.\s]?`) obvious. It also helped me diagnose the "staged but never committed" git problem and structure my PLAN.md and PR description.
+
+Where it fell short: It couldn't run anything for me. I had to reproduce the failure, run pytest, and confirm the count moved from five failed tests to only one failed test myself. It also didn't flag that `\s` was broader than I needed. My grader pointed out that `\s` matches tabs and newlines too, and a literal space would have been the narrower, safer choice. That was a judgment call AI didn't push me on.
+
 
 **What would you do differently if you started over?**
-I'd budget far more time for environment setup instead of underestimating it, and I'd capture the `make check` / `make test-unit` baseline on day one rather than discovering the 182 lint errors and the pre-existing failing test partway through. That would have saved some anxiety about whether I'd broken something. On the planning
-side, the edge cases I listed in PLAN.md (like the no-space `(555)123-4567` format) turned out to be genuinely useful, so I'd write those edge-case tests earlier in the process instead of adding them near the end.
+Three things. First, I'd verify every commit actually landed (checking `git log` and the file on GitHub) instead of assuming `git add` was enough. That one habit would have saved the whole "missing files" problem. Second, on the regex, I'd take my grader's advice and use a literal space rather than `\s`, choosing the narrowest match that satisfies the requirement. My PLAN.md even called out the newline over-matching risk, but my fix didn't fully act on it. Third, I'd add a negative test case (input that should *not* match) alongside my positive tests, to prove the broader pattern doesn't accidentally capture something it shouldn't.
+
 
 **What are you most proud of from this module?**
-I'm most proud of how cleanly I kept my change scoped. It was tempting to "fix" the 182 lint errors or the `street_address` over-redaction bug I stumbled on, but I documented those as out-of-scope in my PLAN.md and PR instead, and shipped a focused fix that turned four failing tests green plus one edge-case test I added myself.
-Submitting a real PR (#281) to a repository I didn't create and having it be a tight, well-documented contribution rather than a sprawling one feels like a genuine milestone.
+I'm most proud of how cleanly I kept my change scoped. It was tempting to "fix" the 182 lint errors or the `street_address` over-redaction bug I stumbled on, but I documented those as out-of-scope in my PLAN.md and PR instead, and shipped a focused fix that turned four failing tests green plus one edge-case test I added myself. Submitting a real PR (#281) to a repository I didn't create and having it be a tight, well-documented contribution rather than a sprawling one feels like a genuine milestone.
