@@ -16,3 +16,7 @@ repos:
       - id: mypy
         additional_dependencies: [types-redis]
         args: [--ignore-missing-imports]
+        # Match the scope of `make typecheck`, which checks application packages
+        # only. Test modules are not annotated, so checking them here blocked
+        # every commit that touched a file under tests/.
+        exclude: ^tests/

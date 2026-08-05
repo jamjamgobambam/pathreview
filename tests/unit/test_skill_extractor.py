@@ -2,7 +2,7 @@
 
 import pytest
 
-from ingestion.parsers.skill_extractor import SkillExtractor, SkillDetection
+from ingestion.parsers.skill_extractor import SkillDetection, SkillExtractor
 
 
 @pytest.mark.unit
@@ -60,6 +60,29 @@ class TestSkillExtractor:
         skill_names = [s.name for s in result]
         # Should detect TypeScript
         assert any("typescript" in s.lower() for s in skill_names)
+
+    def test_typescript_detected_from_prose_without_filename(self, extractor):
+        """Test TypeScript detection from prose when no filename is supplied."""
+        text = "Built app.tsx and types.ts with strict TypeScript interfaces"
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        # TypeScript must be detected from the text alone, not just the filename
+        assert any("typescript" in s.lower() for s in skill_names), f"Got skills: {skill_names}"
+
+    def test_typescript_annotations_not_reported_as_python(self, extractor):
+        """Test that TypeScript type annotations are not mistaken for Python."""
+        text = """
+        export interface User {
+            id: string;
+            name: string;
+        }
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        # ": string" must not count as a Python type annotation
+        assert "Python" not in skill_names, f"Got skills: {skill_names}"
 
     def test_jupyter_ipynb_detection(self, extractor):
         """Test Python/Jupyter detection from .ipynb reference."""
@@ -135,7 +158,7 @@ class TestSkillExtractor:
         """
         result = extractor.extract_skills(text)
 
-        skill_names = [s.name for s in skill_names]
+        skill_names = [s.name for s in result]
         # Should detect PostgreSQL
         assert any("postgres" in s.lower() or "sql" in s.lower() for s in skill_names)
 
@@ -182,6 +205,35 @@ class TestSkillExtractor:
         skill_names = [s.name for s in result]
         assert any("javascript" in s.lower() or "js" in s.lower() for s in skill_names)
 
+    def test_javascript_detected_from_es6_imports(self, extractor):
+        """Test JavaScript detection from ES6 module syntax."""
+        text = "import express from 'express';\nexport default function app() {}"
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("javascript" in s.lower() for s in skill_names), f"Got skills: {skill_names}"
+
+    def test_python_imports_not_reported_as_javascript(self, extractor):
+        """Test that Python import statements do not trigger JavaScript detection."""
+        text = """
+        import psycopg2
+        conn = psycopg2.connect("dbname=mydb")
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        # A bare "import" is shared with Python and must not imply JavaScript
+        assert "JavaScript" not in skill_names, f"Got skills: {skill_names}"
+        assert any("python" in s.lower() for s in skill_names)
+
+    def test_prose_keywords_do_not_trigger_javascript(self, extractor):
+        """Test that English prose using JS keywords is not detected as JavaScript."""
+        text = "I let the team run a function to improve the class schedule"
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert "JavaScript" not in skill_names, f"Got skills: {skill_names}"
+
     def test_docker_compose_detection(self, extractor):
         """Test Docker and Docker Compose detection."""
         text = """
@@ -196,6 +248,28 @@ class TestSkillExtractor:
 
         skill_names = [s.name for s in result]
         assert any("docker" in s.lower() for s in skill_names)
+
+    def test_dockerfile_without_the_word_docker(self, extractor):
+        """Test Docker detection from Dockerfile instructions alone."""
+        text = """
+        FROM node:20
+        WORKDIR /app
+        COPY . .
+        CMD ["npm", "start"]
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        # The word "docker" never appears, but the instructions identify a Dockerfile
+        assert any("docker" in s.lower() for s in skill_names), f"Got skills: {skill_names}"
+
+    def test_single_uppercase_word_is_not_a_dockerfile(self, extractor):
+        """Test that one capitalised word in prose is not treated as a Dockerfile."""
+        text = "RUN the analysis pipeline twice before submitting results"
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert "Docker" not in skill_names, f"Got skills: {skill_names}"
 
     def test_aws_gcp_azure_detection(self, extractor):
         """Test cloud platform detection."""
@@ -232,10 +306,7 @@ class TestSkillExtractor:
     def test_skill_detection_dataclass(self):
         """Test SkillDetection dataclass structure."""
         skill = SkillDetection(
-            name="Python",
-            category="Language",
-            confidence=0.95,
-            evidence=["import statement"]
+            name="Python", category="Language", confidence=0.95, evidence=["import statement"]
         )
 
         assert skill.name == "Python"
