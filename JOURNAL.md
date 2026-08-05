@@ -146,3 +146,61 @@ The repo's remaining pre-existing lint/type/test failures are unrelated to #150.
 
 **Draft PR feedback received from:** none yet — draft PR shared in the cohort
 Slack; no responses at the time of writing.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No comments came in on PR #959. Summer 2026 doesn't run the reviewer-feedback
+process, and although I posted the PR in the cohort Slack, nobody responded by
+the end of the week.
+
+**How you responded:**
+Nothing to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Honestly the fix itself was quick. Fighting the repo was the slow part. The first
+time I ran `make check` and `make test-unit` the whole thing was already a mess —
+182 ruff errors, 52 files black wanted to reformat, mypy crashing, and 53 tests
+failing before I'd touched anything. I spent a while confused, thinking I'd broken
+something, until it clicked that the repo just ships like that and "passing" only
+means I didn't make it worse. Then my first commit got blocked because the mypy
+hook wanted type annotations on my test functions, even though none of the
+existing tests have them. Small stuff like that ate more time than the bug did.
+
+**What did you learn about working in a large codebase?**
+Mostly that you have to hold back. While I was in there I spotted a second real
+bug — it picks the "main" language alphabetically instead of by how many files
+use it — and I really wanted to just fix that too. But it's a separate problem,
+and jamming it in would've made my PR messier to review, so I left it as a note
+for later. On my own projects I clean up whatever I touch. Here I had to keep the
+change small and do things their way (commit style, branch names, the hooks)
+instead of mine.
+
+**How did AI tools help — and where did they fall short?**
+AI was genuinely useful for finding my footing: understanding how the parts
+connect, reproducing the bug, writing tests that matched the ones already there,
+and working out why the commit hooks kept failing. Where it didn't help much was
+the actual decisions — what to leave alone, whether to drop my tests in a
+separate file. And this reflection too; it can list what happened, but what was
+actually annoying or satisfying is on me.
+
+**What would you do differently if you started over?**
+Run the tests and `make check` on day one, before reading any code. If I'd known
+the repo was already red from the start, I wouldn't have wasted time
+second-guessing whether my change was the thing that broke it. I'd also skim the
+pre-commit config early so the hooks didn't catch me off guard at commit time.
+
+**What are you most proud of from this module?**
+That I kept it honest. The fix is small, the tests actually cover the annoying
+cases (nested folders, Windows paths, folders that look like build output but
+aren't), and I said plainly in the PR which failures were already there and which
+were mine. It would've been easy to tick the boxes and hope nobody looked
+closely — I'd rather the numbers be real.
