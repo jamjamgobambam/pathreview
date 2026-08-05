@@ -177,20 +177,69 @@ N/A — no feedback to respond to.
 ### Reflection
 
 **What was harder than you expected?**
-[Be specific — what part of the process, codebase, or workflow
-surprised you?]
+I picked #117 specifically because it was Tier 1 and docs-only, expecting a
+fairly mechanical task: read the routes, write curl commands, done. What I
+didn't expect was how much verification work a "just write down what already
+exists" issue actually requires. Two of the ten originally-documented
+endpoints had behavior that contradicted the obvious reading of the route
+code (`/auth/login` looking like every other JSON POST until you actually
+hit the `OAuth2PasswordRequestForm` dependency; `/profiles` accepting a JSON
+body without erroring at all, just silently nulling every field). Neither
+of those would have been obvious from a read-through — I only found them by
+actually executing every example against a live stack instead of trusting
+my own reading of `api/routes/*.py`. That reflex, run it before you write
+it down, ended up being the actual work of the issue, not the curl syntax.
 
 **What did you learn about working in a large codebase?**
-[What's different about contributing to someone else's production code
-vs. building your own project?]
+The gap between what code appears to do and what it actually does when run
+is bigger than I expected, and it's not always a logic bug — sometimes it's
+an environment mismatch you'd never catch by reading. The PDF resume upload
+path looks completely correct in `api/routes/profiles.py` (`import PyPDF2`,
+parse the pages, return the text), but the project's dependency is `pypdf`,
+not `PyPDF2`, so every PDF upload has been silently 422ing since whenever
+that dependency was added. Nothing in the code itself signals that; you only
+find it by running the code in the actual environment it ships in. In my
+own projects I control both the code and the environment at all times, so
+that class of bug barely exists. In someone else's production codebase, the
+two can drift apart without anyone noticing, and a contributor writing docs
+is one of the few people who has a reason to actually exercise every path.
 
 **How did AI tools help — and where did they fall short?**
-[Where was AI assistance most useful this module? Where did you need
-to go beyond what AI could give you?]
+AI assistance (Claude Code) was most useful for the parts that are
+mechanical once you know the answer: reading `api/routes/*.py` and
+`api/schemas/*.py` quickly to identify field shapes, drafting consistent
+curl/JSON formatting across a dozen endpoints without me having to hand-type
+each one, and catching a self-review inconsistency I'd introduced myself
+(a real captured UUID left in one request body while every other example
+used a `{profile_id}` placeholder). It fell short at the one thing that
+actually mattered for this issue: knowing whether an example was *true*.
+Left unchecked, it would have been easy to generate a plausible-looking PDF
+upload response instead of running one, and that response would have been
+wrong. The only way to catch that was to distrust generated output by
+default and re-run every single example against the live API before
+committing it, which is slower than just writing docs from the route code,
+but it's the actual point of the issue.
 
 **What would you do differently if you started over?**
-[Issue selection, planning, implementation, or process — anything
-you'd change?]
+I'd request peer or mentor feedback on the draft PR before finalizing it,
+rather than skipping straight from "self-review passes" to "mark as ready
+for review." I made that call because I didn't think feedback would arrive
+in time, but it means I have no outside check on two judgment calls I made
+solo: how much detail to put in the two bug callouts (health check,
+PDF upload) versus how much is scope creep for a docs issue, and whether
+the authentication walkthrough section is genuinely clearer for a first-time
+reader or just clearer to me because I already know the flow. Both are
+exactly the kind of thing a second pair of eyes catches that self-review
+doesn't.
 
 **What are you most proud of from this module?**
-[One thing — it doesn't have to be the PR itself.]
+Catching the `POST /profiles` JSON-body silent data loss case specifically.
+It's not the flashiest thing in the PR, but it's the one most likely to
+actually cost someone real time: it doesn't error, it doesn't warn, it
+returns a normal-looking 200 with a profile object that just happens to have
+every field set to `null`. A developer following the old docs would create
+a "successful" profile with no data in it and have no idea why until they
+went and read the route source, which is exactly the problem #117 was filed
+to fix. Finding it wasn't clever, it just meant not stopping at the first
+successful-looking response and treating the "succeeds but looks off" cases
+as seriously as the ones that outright error.
