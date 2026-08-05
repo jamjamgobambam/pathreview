@@ -29,3 +29,16 @@
 
 **Blockers or open questions:**
 [Deciding what `heading_path` should be for heading-less chunks (empty string vs. a sentinel like the doc title) — need to check how retrieval/citation code in `rag/` consumes `heading_path`. Also unsure whether previously ingested heading-less docs need re-ingestion after the fix, since they currently have zero chunks in the index.]
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in `StructuralChunker._extract_sections()` (`ingestion/chunking/structural_chunker.py`): content lines are now collected regardless of whether a heading has been seen yet, and the trailing section is always saved (guarded so purely blank/whitespace content is skipped, to avoid emitting empty chunks between adjacent headings). This resolves both the original bug (heading-less documents returning zero chunks) and the related preamble-loss defect from PLAN.md. Grepped `rag/` and `api/` for `heading_path` consumers — none exist outside the chunking module, so the empty-string sentinel for heading-less sections (`" > ".join([])`) is safe. Updated `tests/unit/test_issue_149_reproduction.py` from "expected to fail" framing to permanent regression tests; all 18 tests in that file and `test_structural_chunker.py` pass. Ran the full `tests/unit` suite and confirmed 52 pre-existing failures across unrelated modules (bias_detector, pii_scrubber, resume_parser, review_service, skill_extractor, tech_detector, etc.) are unaffected by this change — verified via `git stash` before/after comparison. `make lint`/`black` are clean on the files I touched; mypy fails repo-wide due to a pre-existing numpy/Python 3.14 stub incompatibility unrelated to this fix.
+
+**Next steps:**
+Open a draft PR, request peer/mentor review in Slack, and address feedback before marking ready for review.
+
+**Blockers:**
+None.
