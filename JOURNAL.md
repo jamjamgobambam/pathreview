@@ -55,7 +55,7 @@ None blocking. Side discovery: the *existing* Redis dependency check in `health.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(to add once the PR is opened)_
+**PR link:** https://github.com/ascherj/pathreview/pull/939
 
 **Branch:** `fix/68-health-check-safety-event-count`
 
