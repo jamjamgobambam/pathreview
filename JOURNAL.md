@@ -37,3 +37,25 @@ I reproduced the issue by writing a unit test (`test_orchestrator_swallows_tool_
 
 **Blockers or open questions:**
 While i was attempting to find the cause of the issue, i hit several roadblock (e.g. tracing the wrong problem and then being stuck). What are steps to take to systematically isolate a root cause without getting side-tracked by false leads? Thanks in advance.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the fix for Issue #44 by adding `exc_info=True` to the structured error logs in `agent/error_handling.py` (for intermediate retries) and `agent/orchestrator.py` (for top-level tool failures). I also updated `tests/unit/test_orchestrator.py` to assert that the exception stack trace is successfully captured. All coding sub-tasks from my PLAN.md are complete.
+
+**Next steps:**
+Open a draft pull request on GitHub, note the pre-existing unrelated test/linting failures in the description, and request a peer review in the class Slack channel.
+
+**Blockers:**
+None.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/863
+**Branch:** `fix/44-orchestrator-logging-issue`
+**What you built:** Added `exc_info=True` to `agent/orchestrator.py` and `agent/error_handling.py` to ensure unhandled tool exceptions preserve their full stack trace in structured logs.
+**Tests added or updated:** Updated `tests/unit/test_orchestrator.py` to verify that `structlog` captures `exc_info` when a tool crashes.
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+**Draft PR feedback received from:** Asked in Slack, but no feedback was received prior to the submission deadline.
