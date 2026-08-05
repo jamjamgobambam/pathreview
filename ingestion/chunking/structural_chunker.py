@@ -49,22 +49,26 @@ class StructuralChunker(BaseChunker):
             if section_tokens > self.SECTION_TOKEN_LIMIT:
                 # Sub-chunk using semantic chunker
                 section_metadata = metadata.copy()
-                section_metadata.update({
-                    "heading_path": heading_path,
-                    "heading_level": section["level"],
-                })
+                section_metadata.update(
+                    {
+                        "heading_path": heading_path,
+                        "heading_level": section["level"],
+                    }
+                )
                 sub_chunks = self.semantic_chunker.chunk(section_text, section_metadata)
                 chunks.extend(sub_chunks)
             else:
                 # Single chunk for this section
                 section_metadata = metadata.copy()
-                section_metadata.update({
-                    "heading_path": heading_path,
-                    "heading_level": section["level"],
-                    "chunk_index": len(chunks),
-                    "char_start": 0,
-                    "char_end": len(section_text),
-                })
+                section_metadata.update(
+                    {
+                        "heading_path": heading_path,
+                        "heading_level": section["level"],
+                        "chunk_index": len(chunks),
+                        "char_start": 0,
+                        "char_end": len(section_text),
+                    }
+                )
                 chunks.append(Chunk(text=section_text, metadata=section_metadata))
 
         return chunks
@@ -85,15 +89,20 @@ class StructuralChunker(BaseChunker):
             heading_match = re.match(r"^(#{1,6})\s+(.+)$", line)
 
             if heading_match:
-                # Save previous section if exists
-                if current_section_lines:
-                    if heading_stack:
-                        sections.append({
-                            "content": "\n".join(current_section_lines).strip(),
+                # Save previous section if it has content (including
+                # preamble before the first heading, when heading_stack is
+                # still empty). Skip if it's only blank lines, so we don't
+                # emit empty chunks between adjacent/empty headings.
+                content = "\n".join(current_section_lines).strip()
+                if content:
+                    sections.append(
+                        {
+                            "content": content,
                             "path": [h[1] for h in heading_stack],
                             "level": heading_stack[-1][0] if heading_stack else 0,
-                        })
-                    current_section_lines = []
+                        }
+                    )
+                current_section_lines = []
 
                 # Process new heading
                 heading_level = len(heading_match.group(1))
@@ -107,23 +116,21 @@ class StructuralChunker(BaseChunker):
                 current_level = heading_level
 
             else:
-                # Regular content line
-                # BUG(#149): content is only collected once a heading has been
-                # seen, so a document with no headings collects nothing and
-                # chunk() returns [] — the document is silently dropped from
-                # the RAG index. Preamble text before the first heading is
-                # lost for the same reason. Repro: tests/unit/test_issue_149_reproduction.py
-                if heading_stack or current_section_lines:  # Only collect if we have a heading
-                    current_section_lines.append(line)
+                # Regular content line: always collect, even before the first
+                # heading is seen, so heading-less documents and preambles
+                # aren't silently dropped (issue #149).
+                current_section_lines.append(line)
 
-        # Save final section
-        # BUG(#149): the final section is discarded unless heading_stack is
-        # non-empty, which also drops heading-less documents.
-        if current_section_lines and heading_stack:
-            sections.append({
-                "content": "\n".join(current_section_lines).strip(),
-                "path": [h[1] for h in heading_stack],
-                "level": heading_stack[-1][0] if heading_stack else 0,
-            })
+        # Save final section, including a heading-less document's only
+        # section (heading_stack empty) or trailing preamble.
+        content = "\n".join(current_section_lines).strip()
+        if content:
+            sections.append(
+                {
+                    "content": content,
+                    "path": [h[1] for h in heading_stack],
+                    "level": heading_stack[-1][0] if heading_stack else 0,
+                }
+            )
 
         return sections

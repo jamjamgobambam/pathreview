@@ -1,16 +1,17 @@
-"""Reproduction tests for issue #149.
+"""Regression tests for issue #149.
 
 https://github.com/ascherj/pathreview/issues/149
-StructuralChunker silently drops documents that contain no headings.
+StructuralChunker silently dropped documents that contain no headings.
 
-`StructuralChunker._extract_sections()` only collects content lines after a
-heading has been seen, and only saves the final section when the heading
-stack is non-empty. A document with zero markdown headings therefore yields
-zero sections, so `chunk()` returns an empty list and the document is
-silently excluded from the RAG index.
+`StructuralChunker._extract_sections()` used to only collect content lines
+after a heading had been seen, and only save the final section when the
+heading stack was non-empty. A document with zero markdown headings
+therefore yielded zero sections, so `chunk()` returned an empty list and the
+document was silently excluded from the RAG index.
 
-These tests FAIL on the current code and are expected to pass once the fix
-(fallback chunking for heading-less documents) lands in Week 9.
+The fix collects content lines regardless of whether a heading has been
+seen yet, emitting a level-0 section (empty heading path) for text with no
+enclosing heading. These tests guard against regressing that behavior.
 """
 
 import pytest
@@ -36,7 +37,6 @@ class TestIssue149Reproduction:
         )
         result = chunker.chunk(text, {"source": "readme"})
 
-        # FAILS on current code: result == []
         assert len(result) >= 1, (
             "Issue #149: heading-less document was silently dropped "
             "(chunk() returned an empty list)"
@@ -49,7 +49,6 @@ class TestIssue149Reproduction:
         text = "A README written as plain paragraphs, without any # headings."
         result = selector.chunk(text, {"source_type": "readme"})
 
-        # FAILS on current code: result == []
         assert len(result) >= 1, (
             "Issue #149: README with no headings produced zero chunks via "
             "the readme ingestion path"
@@ -67,7 +66,6 @@ class TestIssue149Reproduction:
         result = chunker.chunk(text, {"source": "readme"})
         combined = " ".join(c.text for c in result)
 
-        # FAILS on current code: the preamble never appears in any chunk
-        assert "Important preamble" in combined, (
-            "Issue #149 (related): content before the first heading is lost"
-        )
+        assert (
+            "Important preamble" in combined
+        ), "Issue #149 (related): content before the first heading is lost"
