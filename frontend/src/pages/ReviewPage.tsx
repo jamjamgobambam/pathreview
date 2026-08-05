@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Share2, Download, ArrowLeft, Loader } from 'lucide-react'
+import { Share2, Download, ArrowLeft, Loader, Check } from 'lucide-react'
 import { useReviewStatus } from '../hooks/useReviewStatus'
 import { ReviewSection } from '../components/ReviewSection'
 import { apiClient } from '../services/api'
@@ -12,6 +12,8 @@ export const ReviewPage: React.FC = () => {
   const [fullReview, setFullReview] = useState<Review | null>(null)
   const { review: statusReview, isPolling, error } = useReviewStatus(reviewId || '')
   const [fetchError, setFetchError] = useState('')
+  const [shareCopied, setShareCopied] = useState(false)
+  const [shareError, setShareError] = useState('')
 
   useEffect(() => {
     if (!isPolling && statusReview?.status === 'complete') {
@@ -29,11 +31,17 @@ export const ReviewPage: React.FC = () => {
 
   const currentReview = fullReview || statusReview
 
-  const handleShare = () => {
-    const url = window.location.href
-    navigator.clipboard.writeText(url).then(() => {
-      alert('Review link copied to clipboard!')
-    })
+  const handleShare = async () => {
+    setShareError('')
+    try {
+      const { token } = await apiClient.createShareLink(reviewId || '')
+      const shareUrl = `${window.location.origin}/share/${token}`
+      await navigator.clipboard.writeText(shareUrl)
+      setShareCopied(true)
+      setTimeout(() => setShareCopied(false), 2000)
+    } catch (err) {
+      setShareError(err instanceof Error ? err.message : 'Failed to create share link')
+    }
   }
 
   const handleExport = () => {
@@ -91,6 +99,12 @@ ${section.suggestions.map((s) => `- ${s}`).join('\n')}
           </div>
         )}
 
+        {shareError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-800">{shareError}</p>
+          </div>
+        )}
+
         {isPolling && (
           <div className="mb-12 p-8 bg-white rounded-lg shadow text-center">
             <Loader className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
@@ -115,8 +129,12 @@ ${section.suggestions.map((s) => `- ${s}`).join('\n')}
                   onClick={handleShare}
                   className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors"
                 >
-                  <Share2 className="w-5 h-5" />
-                  Share
+                  {shareCopied ? (
+                    <Check className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <Share2 className="w-5 h-5" />
+                  )}
+                  {shareCopied ? 'Link copied!' : 'Share'}
                 </button>
                 <button
                   onClick={handleExport}
