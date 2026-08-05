@@ -17,6 +17,9 @@ Create a branch from `main` using this format:
 <type>/<issue-number>-<short-description>
 ```
 
+/fix/151-Bias-detector-patterns-too-narrowto-match-commonphrasings
+ 
+
 Where `<issue-number>` is the GitHub issue number (the number shown under the issue title in the tracker — e.g., `#124`).
 
 Examples:

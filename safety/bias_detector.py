@@ -1,6 +1,5 @@
 """Bias detection in generated feedback."""
 
-import re
 import structlog
 
 logger = structlog.get_logger()
@@ -9,19 +8,46 @@ logger = structlog.get_logger()
 class BiasDetector:
     """Detect biased language in feedback."""
 
-    # Genuinely dismissive phrases about educational background
-    DISMISSIVE_PATTERNS = [
-        r"(?:bootcamp|self-taught|online\s+course)\s+(?:education|training)\s+is\s+(?:insufficient|inadequate|lacks)",
-        r"(?:bootcamp|self-taught)\s+(?:graduates?|developers?)\s+(?:lack|missing)\s+(?:rigor|fundamentals|proper\s+training)",
-        r"(?:bootcamp|coding\s+bootcamp)\s+(?:doesn't|does\s+not)\s+prepare\s+(?:you|developers?)",
-        r"(?:self-taught|bootcamp)\s+is\s+(?:not|never)\s+(?:equal|comparable)\s+to\s+(?:university|traditional|formal)",
+    EDUCATIONAL_SUBJECTS = [
+        "bootcamp",
+        "coding bootcamp",
+        "self-taught",
+        "online course",
+        "education",
+        "training",
+        "attendance",
+        "graduates",
     ]
 
-    # Demographic assumptions (about age, background, identity)
-    DEMOGRAPHIC_PATTERNS = [
-        r"(?:young|old|aged)\s+(?:person|developer|programmer)\s+(?:can't|cannot|won't|will\s+not)",
-        r"(?:person\s+from|coming\s+from)\s+(?:poor|rich|working[\s-]?class)",
-        r"(?:immigrant|international|foreign)\s+developers?.*(?:can't|cannot|won't|struggle)",
+    DEMOGRAPHIC_SUBJECTS = [
+        "young",
+        "old",
+        "aged",
+        "immigrant",
+        "international",
+        "foreign",
+        "poor",
+        "rich",
+        "working class",
+        "working-class",
+    ]
+
+    NEGATIVE_PREDICATES = [
+        "can't",
+        "cannot",
+        "won't",
+        "will not",
+        "doesn't",
+        "does not",
+        "struggle",
+        "lack",
+        "lacks",
+        "missing",
+        "insufficient",
+        "inadequate",
+        "not equal",
+        "not comparable",
+        "never comparable",
     ]
 
     @staticmethod
@@ -29,23 +55,31 @@ class BiasDetector:
         """Detect biased language in feedback.
 
         Args:
-            text: Feedback text
+            text: Feedback text.
 
         Returns:
-            Tuple of (is_biased, reason)
+            Tuple of whether bias was detected and the corresponding reason.
         """
-        # Check for dismissive language about education
-        for pattern in BiasDetector.DISMISSIVE_PATTERNS:
-            if re.search(pattern, text, re.IGNORECASE):
-                reason = "Dismissive language about educational background"
-                logger.warning("bias_detected", reason=reason)
-                return True, reason
+        normalized_text = text.lower()
 
-        # Check for demographic assumptions
-        for pattern in BiasDetector.DEMOGRAPHIC_PATTERNS:
-            if re.search(pattern, text, re.IGNORECASE):
-                reason = "Demographic assumptions detected"
-                logger.warning("bias_detected", reason=reason)
-                return True, reason
+        has_demographic_subject = any(
+            subject in normalized_text for subject in BiasDetector.DEMOGRAPHIC_SUBJECTS
+        )
+        has_educational_subject = any(
+            subject in normalized_text for subject in BiasDetector.EDUCATIONAL_SUBJECTS
+        )
+        has_negative_predicate = any(
+            predicate in normalized_text for predicate in BiasDetector.NEGATIVE_PREDICATES
+        )
+
+        if has_demographic_subject and has_negative_predicate:
+            reason = "Demographic assumptions detected"
+            logger.warning("bias_detected", reason=reason)
+            return True, reason
+
+        if has_educational_subject and has_negative_predicate:
+            reason = "Dismissive language about educational background"
+            logger.warning("bias_detected", reason=reason)
+            return True, reason
 
         return False, ""
