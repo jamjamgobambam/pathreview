@@ -41,4 +41,58 @@ so the /health endpoint always reports Redis as unhealthy.
 Not fully sure yet if redis.Redis.from_url is the correct method to use with
 this project's version of the redis package. Also unsure if I should fix the
 unrelated mypy errors already present in health.py, since they blocked my
-commit and I had to use --no-verify to get past them this week.
+commit and I had to use --no-verify to get past them this week.## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Reproduced the issue and wrote PLAN.md in Week 8. Implemented the fix in
+api/routes/health.py, changing the Redis client to use redis.Redis.from_url
+with settings.redis_url, instead of the missing redis_host and redis_port
+fields.
+
+**Next steps:**
+Update the reproduction test to check the fixed, healthy behavior. Run
+make check and make test-unit, confirm no new failures. Open the PR.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [to be added once opened]
+
+**Branch:** fix/155-redis-host-config
+
+**What you built:**
+Fixed the /health endpoint's Redis check, which previously always failed
+with an AttributeError because it read settings.redis_host and
+settings.redis_port, fields that do not exist on Settings. The fix builds
+the Redis client with redis.Redis.from_url(settings.redis_url), the setting
+that actually exists, so the health check now correctly reports Redis
+status instead of always failing.
+
+**Tests added or updated:**
+Updated tests/unit/test_health.py. It now has two tests, one confirming
+Redis reports healthy when the ping succeeds, and one confirming Redis
+still correctly reports unhealthy, without crashing, when Redis is
+unreachable.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Notes on pre-existing failures:**
+make check flags one pre-existing issue in api/routes/health.py, a B008
+warning about using Depends() in an argument default. This pattern is used
+in every route file in the project (profiles.py, reviews.py, etc.), and is
+unrelated to issue #155, so it was left as is.
+
+make test-unit shows 53 pre-existing failing tests, unrelated to this fix,
+spread across bias_detector, pii_scrubber, resume_parser, readme_scorer,
+review_service, and others. These are separate known bugs in the codebase,
+matching several other tier-1 issues in the tracker (for example #146,
+#147, #153). Both tests in test_health.py pass, and none of the 53
+pre-existing failures reference health.py or redis.
+
+**Draft PR feedback received from:** none
