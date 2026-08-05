@@ -51,3 +51,27 @@ The checker should handle a context chunk containing `{"text": None}` without cr
 Normalize missing or null context text inside `FaithfulnessChecker.check()` while preserving valid text and leaving the scoring algorithm unchanged. The similar behavior in `RelevanceScorer` is outside the scope of issue #153.
 
 **Walkthrough video:** [ ] Optional video completed
+
+## Week 9 — Build and pull request
+
+### Check-in 1 — Implementation and draft PR
+
+**Progress:**
+I implemented the fix for issue #153 by normalizing missing or null context text to an empty string before joining the chunks. I strengthened the existing regression test and added a test confirming that a null chunk does not discard text from another valid chunk.
+
+**Verification:**
+
+- Focused regression tests: 2 passed
+- Full faithfulness test file: 20 passed, 3 pre-existing scoring failures
+- `make check`: 182 pre-existing errors before and after the change
+- `make test-unit` before: 53 failed, 375 passed
+- `make test-unit` after: 52 failed, 377 passed
+- No new test failures were introduced
+
+**Draft pull request:** https://github.com/ascherj/pathreview/pull/919
+
+**Current blockers:**
+The repository still has pre-existing lint, typing, and unrelated unit-test failures. They do not block the issue-specific correction.
+
+**Next step:**
+Request peer feedback, respond to the review, run the final checks, and mark the pull request ready for review.
