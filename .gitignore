@@ -9,6 +9,7 @@ build/
 .eggs/
 .venv/
 venv/
+.py311local/
 *.egg
 
 # Environment
