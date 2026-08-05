@@ -53,12 +53,19 @@ async def create_review(
 
     if profile is not None:
         content_hash = compute_content_hash(profile)
-        cached_stmt = select(Review).where(
-            and_(
-                Review.profile_id == profile_id,
-                Review.content_hash == content_hash,
-                Review.status == "complete",
+        cached_stmt = (
+            select(Review)
+            .where(
+                and_(
+                    Review.profile_id == profile_id,
+                    Review.content_hash == content_hash,
+                    Review.status == "complete",
+                )
             )
+            # Concurrent submits can complete twice with the same hash (see
+            # #82), so pin the hit to the newest matching review.
+            .order_by(Review.created_at.desc())
+            .limit(1)
         )
         cached_result = await db.execute(cached_stmt)
         cached: Review | None = cached_result.scalars().first()
@@ -253,7 +260,7 @@ async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[di
     Run ingestion pipeline to extract data from profile sources.
     Returns list of ingested source data.
     """
-    sources = []
+    sources: list[dict] = []
 
     # Ingest from GitHub if available
     if profile.github_username:
