@@ -108,3 +108,114 @@ large headed sections. Documents with headings are completely unaffected.
   (`make test-unit` with `.venv` set up confirms all pass)
 
 **Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback arrived before the end of the course window. The PR
+(https://github.com/ascherj/pathreview/pull/353) remains open. This is normal for a
+volunteer open-source project — maintainers prioritize their own roadmap, and a small
+bug-fix PR from an unfamiliar contributor can sit in the queue for days or weeks without
+any negative signal about the quality of the work.
+
+**How you responded:**
+No response required as no feedback was received. If feedback arrives after the course
+ends, I would address it the same way I would any professional review: acknowledge the
+comment, ask clarifying questions if the intent is unclear, make any changes I agree with,
+and push back respectfully with reasoning on anything I don't.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part wasn't the code — it was resisting the urge to fix more than I was
+supposed to. When I read through `_extract_sections()` to understand the bug, I found
+several other things I wanted to clean up: the guard condition could be clearer, the
+"save final section" block was duplicated logic, the method had no docstring. None of that
+was my job. Staying inside the scope of the issue — one fallback block, one test — felt
+uncomfortable, but it was the right call. A PR that sneaks in unrelated changes is harder
+to review, harder to revert, and signals that the contributor doesn't understand the
+separation between "fix the bug" and "improve the codebase." Learning to stop when the
+issue is resolved, even when you can see more to do, is a discipline I had to actively
+practice here.
+
+The GitHub authentication setup was also a real friction point. I had the fix ready to
+push before I had a personal access token configured, which created a blocker at the
+worst possible moment — end of implementation, when I wanted momentum. That was a
+planning failure, not a technical one. Tooling setup belongs at the start of the project,
+not the end.
+
+**What did you learn about working in a large codebase?**
+
+The biggest difference between contributing to someone else's production code and building
+your own project is that you can't hold the whole system in your head — and you have to
+make decisions anyway. On my own projects I have full context. Here I had to build a
+mental model from scratch, and I had to know when my model was complete enough to act
+safely and when it wasn't.
+
+The thing that helped most was reading in a specific order: failing test first (to
+understand the contract), then the implementation (to find the deviation), then the
+callers (to understand the blast radius). That sequence works because each step narrows
+what you need to care about. If I'd started with the implementation and tried to understand
+the whole file, I'd have wasted time on code paths that had nothing to do with the bug.
+
+I also learned that "pre-existing" is load-bearing language in a PR. When `make check`
+failed with ~100 ruff errors and 5 mypy errors, the natural instinct is to either fix
+them all or feel bad about submitting. Neither is right. The correct move is to
+verify that none of them are in files you touched, document that clearly in the PR
+description, and move on. A reviewer who sees "pre-existing, not caused by this PR,
+verified" trusts you. A reviewer who has to figure that out themselves doesn't.
+
+**How did AI tools help — and where did they fall short?**
+
+AI was genuinely useful for two things: reading unfamiliar code quickly and drafting
+the PLAN.md structure. When I needed to understand what `SemanticChunker` did with
+inherited metadata, I could describe the code and get a clear explanation of the flow
+in seconds rather than tracing it manually. For PLAN.md, having a structured template
+to fill in forced me to articulate the risk analysis and edge cases before writing any
+code — that's where I caught the `strategy_selector.py` dependency question that I
+needed to resolve before implementing.
+
+Where AI fell short: it can't tell you what the maintainer intended. The guard
+`if heading_stack or current_section_lines` in `_extract_sections()` is ambiguous —
+it could mean "only collect content inside heading sections" or it could mean "this is
+an optimization that happens to be wrong." An AI can explain what the code does; it
+can't tell you which interpretation the original author had in mind. That answer lives
+in the commit history, the issue tracker, and eventually in reviewer feedback. No tool
+shortcuts that.
+
+**What would you do differently if you started over?**
+
+Two things.
+
+First, set up push access to the fork on day one, not as the last step before submission.
+This is a five-minute task that I let become a blocker at the worst possible time.
+
+Second, write the sub-chunking regression test before implementing the fix, not after.
+I added `test_large_heading_free_document_is_sub_chunked` after the fix was already
+working, which meant I was writing a test for a path I'd already seen pass. Writing it
+first would have forced me to be precise about the expected output — specifically, that
+`heading_level` should be `0` and that `source` metadata must survive the `SemanticChunker`
+delegation — before I touched the production code. That precision matters because it's
+exactly the kind of thing that could silently break if the metadata inheritance behavior
+in `SemanticChunker` ever changed.
+
+**What are you most proud of from this module?**
+
+The PLAN.md. Not because it's long, but because I wrote it before touching the
+implementation and it turned out to be right. The risk analysis identified `strategy_selector.py`
+as a potential dependency on the broken behavior — I checked it, confirmed it wasn't a
+problem, and documented that. The edge case table covered the empty-string and
+whitespace-only inputs before I wrote a line of code. The "inputs and outputs" section
+specified `heading_level=0` for the fallback chunk, which became the assertion in the
+regression test. Good planning made the implementation feel easy, and that's the point.
+Planning isn't bureaucracy — it's the thing that lets you move fast without breaking
+things you didn't mean to break.
