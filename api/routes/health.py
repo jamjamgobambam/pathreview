@@ -3,6 +3,7 @@ import structlog
 from datetime import datetime, timedelta
 
 from core.database import get_db
+from safety.monitoring import SafetyMonitor
 
 log = structlog.get_logger()
 
@@ -36,18 +37,19 @@ async def health_check(db=Depends(get_db)):
         health_status["dependencies"]["postgres"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
+    redis_client = None
     try:
         # Check Redis (if available)
         import redis
         from core.config import settings
 
-        r = redis.Redis(
+        redis_client = redis.Redis(
             host=settings.redis_host,
             port=settings.redis_port,
             db=0,
             decode_responses=True,
         )
-        r.ping()
+        redis_client.ping()
         health_status["dependencies"]["redis"] = "healthy"
         log.debug("redis_health_check_passed")
     except Exception as exc:
@@ -72,12 +74,19 @@ async def health_check(db=Depends(get_db)):
         health_status["dependencies"]["vector_db"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
-    # Count safety events in last hour (placeholder)
+    # Count safety events in the last hour
     try:
-        # This would be populated by actual safety event logging
-        health_status["safety_events_last_hour"] = 0 # safety_event_last_hour is defaulted to 0
+        if redis_client is not None:
+            safety_monitor = SafetyMonitor(redis_client)
+            health_status["safety_events_last_hour"] = safety_monitor.get_total_event_count(
+                window_hours=1
+            )
+        else:
+            # Redis is unavailable, so safety event counts can't be retrieved.
+            health_status["safety_events_last_hour"] = None
     except Exception as exc:
         log.error("safety_events_check_failed", error=str(exc))
+        health_status["safety_events_last_hour"] = None
 
     # Return 503 if any critical dependency is down
     if health_status["status"] == "unhealthy":
