@@ -1,12 +1,16 @@
+import redis
+import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
-import structlog
+from fastapi.responses import JSONResponse
 
+from api.middleware.rate_limit import RateLimitMiddleware
 from api.middleware.request_id import RequestIDMiddleware
-from api.routes import auth, profiles, reviews, health
+from api.routes import auth, health, profiles, reviews
+from core.config import settings
 from core.database import init_db
+from safety.rate_limiter import RateLimiter
 
 log = structlog.get_logger()
 
@@ -30,9 +34,7 @@ def custom_openapi():
         routes=app.routes,
     )
 
-    openapi_schema["info"]["x-logo"] = {
-        "url": "https://pathreview.example.com/logo.png"
-    }
+    openapi_schema["info"]["x-logo"] = {"url": "https://pathreview.example.com/logo.png"}
 
     app.openapi_schema = openapi_schema
     return app.openapi_schema
@@ -50,7 +52,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add request ID middleware
+# Add rate limit middleware. Constructed once at startup so all requests share a
+# single connection pool; from_url() does not connect eagerly, so an unreachable
+# Redis at import time will not block boot — the RateLimiter fails open per its
+# own error handling in safety/rate_limiter.py.
+redis_client = redis.Redis.from_url(settings.redis_url, decode_responses=True)
+rate_limiter = RateLimiter(redis_client)
+app.add_middleware(
+    RateLimitMiddleware,
+    limiter=rate_limiter,
+    limit=settings.rate_limit_per_minute,
+    window_seconds=60,
+)
+
+# Add request ID middleware. Registered LAST so it wraps everything else — this
+# guarantees the request_id is bound to structlog context before RateLimitMiddleware
+# emits any log lines (Starlette runs the last-added middleware first at request time).
 app.add_middleware(RequestIDMiddleware)
 
 
