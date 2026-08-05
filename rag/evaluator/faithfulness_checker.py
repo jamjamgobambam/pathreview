@@ -30,10 +30,9 @@ class FaithfulnessChecker:
             logger.info("faithfulness_no_claims_extracted")
             return 0.5  # Default to neutral if no extractable claims
 
-        # Concatenate context text
-        context_text = " ".join([
-            chunk.get("text", "") for chunk in context_chunks
-        ])
+        # Concatenate context text. Chunk "text" may be absent, None, or a
+        # non-string value, so normalize each to a string before joining.
+        context_text = " ".join(self._normalize_chunk_text(chunk) for chunk in context_chunks)
 
         # Check each claim for support
         supported = 0
@@ -47,6 +46,23 @@ class FaithfulnessChecker:
                    supported_count=supported, score=score)
 
         return score
+
+    @staticmethod
+    def _normalize_chunk_text(chunk: dict) -> str:
+        """Return a chunk's text as a string, treating bad values as empty.
+
+        A context chunk may have an absent ``text`` key, a ``text`` of ``None``,
+        or a non-string ``text`` value. Any of these is coerced to an empty
+        string so concatenation with other chunk text never raises a TypeError.
+
+        Args:
+            chunk: A retrieved context chunk.
+
+        Returns:
+            The chunk's ``text`` when it is a string, otherwise an empty string.
+        """
+        text = chunk.get("text")
+        return text if isinstance(text, str) else ""
 
     @staticmethod
     def _extract_claims(text: str) -> list[str]:
