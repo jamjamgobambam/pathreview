@@ -82,7 +82,7 @@ none
 
 **PR link:** 
 <!-- [link to your submitted pull request] -->
-https://github.com/Kiniec/pathreview.git/tree/test/88-post-review-endpoint
+https://github.com/ascherj/pathreview/pull/951
 
 **Branch:** 
 <!-- [the branch name you worked on, e.g. `fix/123-short-description`] -->
