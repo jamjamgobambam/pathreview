@@ -18,12 +18,42 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+        A comprehensive project description that explains the problem solved,
+        the target audience, and how the product can be used in real-world
+        scenarios.
+
+        ## Overview
+        This README provides a detailed overview of the project architecture,
+        deployment strategy, and the expected user experience. It is meant to
+        serve as a reference for contributors, maintainers, and end users who
+        need a clear and concise summary of what the project does.
+
+        This project uses a modular design with separate components for API
+        handling, data ingestion, and machine learning evaluation. Each
+        component is designed to be independently deployable and easily
+        testable. The documentation includes instructions for local development,
+        environment setup, and how to run the full test suite.
+
+        The architecture section also includes performance expectations,
+        scalability goals, and the manner in which the system separates
+        concerns between storage, business logic, and presentation layers.
 
         ## Installation
         ```bash
         pip install package
         ```
+
+        To install the package from source, clone the repository, create a Python
+        virtual environment, and install the required dependencies. The
+        requirements file contains all of the packages needed for development,
+        testing, and production usage.
+
+        For reproducible development environments, the repository also includes
+        a Docker Compose configuration to start the local services, including
+        the database, cache, and worker processes. Installation notes cover
+        Python version compatibility, virtual environment activation,
+        dependency pinning, and the recommended upgrade path for third-party
+        libraries.
 
         ## Usage
         ```python
@@ -31,21 +61,122 @@ class TestReadmeScorer:
         package.run()
         ```
 
+        The usage section includes sample commands and code snippets. Users can
+        execute the main entry point, configure the application through
+        environment variables, and run one-off tasks using the command line
+        interface.
+
+        Additional usage examples demonstrate how to run the HTTP API locally,
+        how to invoke background jobs, and how to use the package in a larger
+        orchestration pipeline. Each usage example includes expected output,
+        optional debug flags, and troubleshooting tips for common environment
+        issues.
+
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+        - Feature 1: Structured data ingestion with automatic normalization and
+          validation.
+        - Feature 2: Configurable pipeline processing using clear chunking and
+          embedding strategies.
+        - Feature 3: Real-time scoring and feedback for README quality, badge
+          detection, and demo link validation.
+        - Feature 4: Comprehensive error handling and retry logic for external
+          API calls.
+        - Feature 5: Modular architecture supporting both REST and event-driven
+          patterns.
+        - Feature 6: Pluggable provider adapters for third-party services and
+          custom storage backends.
+        - Feature 7: Built-in logging, metrics, and health-check endpoints for
+          service observability.
 
         ## Tech Stack
         - Python 3.9
         - FastAPI
         - PostgreSQL
+        - SQLAlchemy
+        - Redis
+        - Docker
+        - TypeScript for frontend utilities
+        - GitHub Actions for continuous integration
+
+        This section further explains how each technology is used in the
+        project. Python is the primary implementation language for backend
+        services, FastAPI provides a lightweight web framework, PostgreSQL
+        stores persistent state, and Redis is used for caching and messaging.
+
+        The frontend and developer tooling are built with modern libraries that
+        support incremental builds, type-safe configuration, and automated
+        linting. Docker ensures consistent environments across local development
+        and continuous integration.
+
+        The repository also documents how to use GitHub Actions for test
+        execution, linting, release packaging, and deployment previews. It
+        explains the relationship between local developer workflows and CI
+        pipelines, including how feature branches are validated before merge.
+
+        ## Configuration
+        Configuration is managed through environment variables, a configuration
+        file, and optional secret management. The README details the available
+        options, default values, and examples for local and cloud deployments.
+
+        Example configuration includes database connection settings, Redis
+        cache TTL values, service endpoint URLs, and feature flag definitions.
+        There are instructions for managing credentials securely in
+        development, staging, and production environments.
+
+        The configuration section also includes a sample `.env.example` file,
+        descriptions of each setting, and guidance on which options are required
+        versus optional. It highlights best practices for keeping sensitive
+        values out of version control and for validating configuration on
+        application startup.
+
+        ## Contribution
+        Contributions are welcome. The repository includes guidelines for
+        submitting issues, pull requests, and code reviews. The project uses a
+        standard branching strategy and includes instructions for running the
+        test suite before opening a PR.
+
+        Contributors can follow the contribution guide to understand how to
+        format commit messages, write descriptive change summaries, and assign
+        reviewers. The README also documents the code style conventions, the
+        preferred issue labeling scheme, and the process for proposing
+        architecture changes.
+
+        ## Testing
+        Automated tests cover unit, integration, and end-to-end scenarios. The
+        README outlines how to execute tests, run linting checks, and generate
+        coverage reports.
+
+        The project includes a dedicated test directory with fixture data, mock
+        services, and scripts for running the test matrix locally. There are
+        instructions for running `pytest` with coverage output, checking style
+        with the linter, and validating documentation builds.
+
+        The README also details how to interpret common failures, how to re-run
+        flaky tests, and how to add new test cases when changing existing
+        functionality.
+
+        ## Troubleshooting
+        Common troubleshooting topics are covered here, including how to handle
+        dependency conflicts, database migrations, and environment drift between
+        local and staging systems.
+
+        The troubleshooting section provides pointers for resolving
+        authentication issues, restoring service connectivity, and debugging
+        unexpected failures during startup. It also includes links to external
+        resources for the tooling and services used by the project.
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
+        ![License](https://example.com/license.svg)
 
         ## Live Demo
         [Try it here](https://demo.example.com)
+
+        ## Additional Resources
+        For additional details, see the API documentation, architecture decision
+        records, and setup guides included in the repository. This README is
+        intentionally verbose to support newcomers and longtime maintainers
+        alike.
         """
 
         result = scorer.execute({"readme_content": readme})
