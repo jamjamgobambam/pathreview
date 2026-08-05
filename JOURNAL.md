@@ -34,3 +34,37 @@ Added `tests/unit/test_orchestrator_session_state.py`, which runs `Orchestrator.
 
 **Blockers or open questions:**
 Need to confirm whether any other part of the app reads the Redis `session:{profile_id}` key expecting cumulative history across reviews (would affect how aggressively I can change the keying/merge behavior) — see Risks & unknowns in PLAN.md.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the core fix from PLAN.md step 2(a): `Orchestrator.run()` (`agent/orchestrator.py`) no longer loads the previous session blob and merges it with `session_state.update(results)` before persisting. It now writes only the current run's `results` back to the session store, so a tool that isn't part of this review's plan can no longer survive as leftover state from a prior review of the same `profile_id`. Grepped the codebase for other call sites that construct `Orchestrator`/call `session_store.get(`/`set(` outside the test file and found none, so the narrower fix (no new per-review session ID) is sufficient — resolves the "Risks & unknowns" open question from Week 8. The reproduction test in `tests/unit/test_orchestrator_session_state.py` now passes.
+
+**Next steps:**
+Add the companion test from PLAN.md step 5 asserting that legitimate intra-session continuity (same session, same input hash) still works via `ContextManager`, so the fix doesn't overcorrect. Then self-review against `docs/CONTRIBUTING.md`, run `make check`, and open a draft PR.
+
+**Blockers:**
+None currently.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** `fix/43-session-state-not-cleared`
+
+**What you built:**
+`Orchestrator.run()` (`agent/orchestrator.py`) no longer loads the previous session state from Redis and merges it into the current run's results before persisting. It now writes only the current run's tool results back to the session store, so a tool that was part of an earlier review's plan but not this one can no longer linger in Redis under the same `profile_id`.
+
+**Tests added or updated:**
+`tests/unit/test_orchestrator_session_state.py`:
+- `test_stale_tool_result_carried_into_review_where_tool_did_not_run` — reproduction test that runs two reviews for the same `profile_id` where the second review's plan omits `tech_detector`, and asserts the persisted session state no longer contains `tech_detector` afterward. Previously failing, now passes.
+- `test_repeated_call_within_same_session_still_hits_context_cache` (new, added per PLAN.md step 5) — guards against overcorrecting: calls `run()` twice on the *same* `Orchestrator` instance with identical input and asserts the tool only executes once (`call_count == 1`), i.e. legitimate intra-session memoization via `ContextManager` still works after removing the cross-review `SessionStore` merge.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Confirmed via `git stash` comparison: baseline on this branch before the fix was 32 failed/257 passed on `test-unit`, with 8 unrelated files failing to collect due to pre-existing missing dev dependencies — `numpy`, `sqlalchemy`, `jose`, `tiktoken`, `pypdf`, `rank_bm25` — and 175 pre-existing repo-wide ruff errors, none in the file I changed. After the fix: 31 failed/258 passed — only the reproduction test flipped, no new failures. `ruff`, `black`, and `mypy` all pass cleanly on `agent/orchestrator.py`.)
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
