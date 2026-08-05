@@ -46,7 +46,7 @@ none
 
 ### Check-in 2 (end of week)
 
-**PR link:** [not yet opened — compare link: https://github.com/ascherj/pathreview/compare/main...Muta4ever:pathreview:fix/resume-section-leading-whitespace?expand=1]
+**PR link:** https://github.com/ascherj/pathreview/pull/879
 
 **Branch:** `fix/resume-section-leading-whitespace`
 
@@ -59,4 +59,4 @@ No new tests added — the existing `test_detect_sections` in `tests/unit/test_r
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 Neither passes clean, but confirmed via `git stash` that all failures are pre-existing across the repo and unrelated to this change (53 unit test failures and 182 lint errors before my change vs. 50 and 180 after — the delta is exactly the 3 tests/2 lint issues this fix resolved). `ingestion/parsers/resume_parser.py` itself passes ruff, black, and mypy individually.
 
-**Draft PR feedback received from:** none yet — PR not opened
+**Draft PR feedback received from:** none yet
