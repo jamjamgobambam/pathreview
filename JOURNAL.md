@@ -43,3 +43,5 @@ Establish the pre-existing `make check` / `make test-unit` baseline, commit the 
 
 **Blockers:**
 None.
+
+**Draft PR opened:** https://github.com/ascherj/pathreview/pull/946 (not yet marked ready for review — awaiting peer/mentor feedback before finalizing per Check-in 2 below).
