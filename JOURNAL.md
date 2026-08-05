@@ -23,3 +23,39 @@ Executed `curl http://localhost:8000/health` against the local application. Obse
 **PLAN.md link:** https://github.com/ssolvin/pathreview/blob/fix/155-health-redis-settings/PLAN.md
 
 **Blockers or open questions:** None
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+- Refactored `api/routes/health.py` to connect to Redis using `settings.redis_url` via `redis.Redis.from_url`.
+- Written async unit test in `tests/unit/test_health.py` mocking `Redis.from_url`. Tested and verified passing with `pytest`.
+- Pushed branch `fix/155-health-redis-settings` and created Draft PR #155 on upstream repository.
+
+**Next steps:**
+- Share Draft PR link in Slack cohort channel for peer/mentor review if time permits.
+- Address any incoming review feedback.
+- Run final `make check` and `make test-unit` sanity checks prior to marking ready for review.
+- Complete Check-in 2 and submit branch URL before Sunday deadline.
+
+**Blockers:**
+- None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/973
+
+**Branch:** `fix/155-health-redis-settings`
+
+**What you built:**
+Fixed an issue in `api/routes/health.py` where Redis health checks failed due to referencing missing `redis_host` and `redis_port` properties on `Settings`. Updated the endpoint to connect via `settings.redis_url` using `redis.Redis.from_url()`.
+
+**Tests added or updated:**
+`tests/unit/test_health.py`: added unit test patching `redis.Redis.from_url` to verify settings usage and health payload assertions.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** None
