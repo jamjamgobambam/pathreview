@@ -45,3 +45,34 @@ Establish the pre-existing `make check` / `make test-unit` baseline, commit the 
 None.
 
 **Draft PR opened:** https://github.com/ascherj/pathreview/pull/946 (not yet marked ready for review — awaiting peer/mentor feedback before finalizing per Check-in 2 below).
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No comments came in on PR #946 by the end of the week. Per the Su26 note, reviewer feedback isn't a feature this term, so this is expected rather than a sign the PR was overlooked.
+
+**How you responded:**
+N/A — nothing to respond to. I re-read my own diff once more with a few days' distance and didn't find anything I wanted to change; the worked example and the note about max-of-result-set (not global) normalization still held up.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Verifying my own claims against the code was slower than writing the prose. It would have been easy to write "min-max normalization" from memory since that's the standard term, but `hybrid.py:57-59` only divides by the max of the current result set — there's no subtraction of a min, and the "max" isn't global, it's scoped to whatever chunks happened to come back for that query. Getting that distinction right meant re-reading the function multiple times and building a small mental test case rather than trusting my first read. The same thing happened with the worked example: I initially assumed both scores lived on a 0-1 scale, and only caught that BM25 scores are unbounded (routinely >1.0 before normalization) by actually reading `keyword_search.py` instead of assuming symmetry between the two retrieval methods.
+
+**What did you learn about working in a large codebase?**
+Documentation issues in an unfamiliar codebase are deceptively code-heavy. I expected a "docs" ticket to mostly be writing, but the actual work was almost entirely reading — tracing `HybridRetriever.retrieve` line by line, checking call sites to confirm the default weights weren't overridden anywhere, and cross-referencing `vector_store.py` and `keyword_search.py` to describe scores accurately. In a codebase I didn't write, I couldn't rely on intuition about what "should" be true; every claim in the doc needed a line number backing it up, because a plausible-sounding but wrong explanation is worse than no explanation at all.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for structure and pacing — drafting the shape of the new subsection, keeping the plan/journal/PR narrative consistent, and catching when I was about to state something ("min-max normalization") that didn't match the code. Where it fell short was exactly the part that mattered most: confirming the score ranges and default-weight usage required actually grepping call sites and reading the arithmetic, not something I could shortcut by asking for a summary. The value was in using AI to organize and sanity-check my own verification work, not to replace it.
+
+**What would you do differently if you started over?**
+I'd grep for `HybridRetriever(` call sites and check the actual BM25 score range in Week 7, before finalizing the issue selection, rather than deferring that discovery to the Week 9 build. Both turned out fine, but I got a bit lucky that neither uncovered something that would have changed the scope of the doc section — for a "tier 1" issue I picked partly for low risk, I should have de-risked the unknowns earlier rather than closer to the PR deadline.
+
+**What are you most proud of from this module?**
+Catching the min-max-normalization mislabeling before it went into the doc. It's a small detail, but it's exactly the kind of subtly-wrong statement that would have quietly misled the next contributor who trusted the architecture doc instead of the source — and the whole point of the issue was to stop that from happening.
