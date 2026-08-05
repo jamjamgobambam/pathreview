@@ -1,25 +1,75 @@
-from uuid import UUID
-import structlog
+import hashlib
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
 
+def compute_content_hash(profile: Profile) -> str:
+    """
+    Hash the profile content fields the review pipeline consumes.
+
+    Profiles with identical content hash identically regardless of row
+    identity, so a completed review can be reused when nothing has changed.
+    JSON canonicalization gives a stable field order and represents missing
+    fields explicitly as null.
+    """
+    content = json.dumps(
+        {
+            "github_username": profile.github_username,
+            "portfolio_url": profile.portfolio_url,
+            "resume_filename": profile.resume_filename,
+            "resume_text": profile.resume_text,
+        },
+        sort_keys=True,
+    )
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()
+
+
 async def create_review(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
     """
-    Create a new review with status="pending".
+    Create a new review with status="pending", unless a completed review
+    already exists for the profile's current content — then return that
+    review instead (cache hit). Callers can tell the two apart by status:
+    a cache hit is always "complete", a fresh review is always "pending".
     """
+    stmt = select(Profile).where(Profile.id == profile_id)
+    result = await db.execute(stmt)
+    profile = result.scalars().first()
+
+    if profile is not None:
+        content_hash = compute_content_hash(profile)
+        cached_stmt = select(Review).where(
+            and_(
+                Review.profile_id == profile_id,
+                Review.content_hash == content_hash,
+                Review.status == "complete",
+            )
+        )
+        cached_result = await db.execute(cached_stmt)
+        cached: Review | None = cached_result.scalars().first()
+        if cached is not None:
+            log.info(
+                "review_cache_hit",
+                review_id=str(cached.id),
+                profile_id=str(profile_id),
+            )
+            return cached
+
     review = Review(
         profile_id=profile_id,
         status="pending",
@@ -33,22 +83,23 @@ async def create_review(
 
 
 async def get_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    review: Review | None = result.scalars().first()
+    return review
 
 
 async def list_reviews(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     page: int = 1,
     page_size: int = 20,
@@ -74,13 +125,13 @@ async def list_reviews(
         .limit(page_size)
     )
     result = await db.execute(stmt)
-    reviews = result.scalars().all()
+    reviews = list(result.scalars().all())
 
     return reviews, total
 
 
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
@@ -117,8 +168,11 @@ async def process_review(
             await db.commit()
             return
 
-        # Step 1: Set status to processing
+        # Step 1: Set status to processing. The hash is taken from the profile
+        # as fetched here, so it reflects the content this run actually
+        # processes even if the profile is edited while the pipeline runs.
         review.status = "processing"
+        review.content_hash = compute_content_hash(profile)
         db.add(review)
         await db.commit()
 
@@ -194,7 +248,7 @@ async def process_review(
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
 
-async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
+async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[dict]:
     """
     Run ingestion pipeline to extract data from profile sources.
     Returns list of ingested source data.

@@ -34,6 +34,9 @@ class Review(Base):
     sections: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Structured review output
     overall_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    content_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True
+    )  # sha256 of the profile content this review was generated from
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=datetime.utcnow
     )
@@ -48,6 +51,7 @@ class Review(Base):
         Index("ix_reviews_profile_id", "profile_id"),
         Index("ix_reviews_status", "status"),
         Index("ix_reviews_created_at", "created_at"),
+        Index("ix_reviews_content_hash", "content_hash"),
     )
 
     def __repr__(self) -> str:

@@ -12,7 +12,7 @@ review exists at all. The cache lookup is expected to key on
 """
 
 from collections.abc import Callable, Sequence
-from typing import Any, cast
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -116,11 +116,10 @@ class TestContentHash:
 
     def _hash(self) -> Callable[[Profile], str]:
         # Imported lazily so a missing helper fails these tests without
-        # breaking collection of the rest of the module. The type ignore
-        # comes off once the helper exists.
-        from core.services.review_service import compute_content_hash  # type: ignore[attr-defined]
+        # breaking collection of the rest of the module.
+        from core.services.review_service import compute_content_hash
 
-        return cast(Callable[[Profile], str], compute_content_hash)
+        return compute_content_hash
 
     def test_identical_content_produces_identical_hash(self) -> None:
         compute_content_hash = self._hash()
