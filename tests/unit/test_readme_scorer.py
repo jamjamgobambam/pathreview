@@ -18,34 +18,94 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+
+        A comprehensive, production-ready project that demonstrates a complete
+        application setup with clear documentation, testing, and deployment
+        guidance. This README is intentionally thorough so that new contributors
+        can become productive quickly without having to read the source first.
+
+        ## Overview
+
+        This project provides a small but complete example of a modern web
+        service. It exposes a REST API, persists data in a relational database,
+        and ships with a full automated test suite. The goal of the project is
+        to serve as a reference implementation and a learning resource for
+        engineers who want to understand how the individual pieces fit together.
+
+        ## Features
+        - Feature 1: fast, asynchronous request handling for high throughput
+        - Feature 2: schema migrations managed through a versioned migration tool
+        - Feature 3: structured logging and observability enabled out of the box
+        - Feature 4: comprehensive unit and integration test coverage
+        - Feature 5: reproducible local development using containers
 
         ## Installation
+        Getting started is straightforward. Clone the repository, create a
+        virtual environment, and install the dependencies as shown below.
+
         ```bash
-        pip install package
+        git clone https://example.com/project.git
+        cd project
+        pip install -e ".[dev]"
         ```
 
         ## Usage
+        Once the dependencies are installed you can run the application locally
+        and start sending requests. The example below shows the typical
+        quickstart workflow that most users will follow.
+
         ```python
         import package
-        package.run()
+
+        client = package.Client()
+        client.connect()
+        result = client.run()
+        print(result)
         ```
 
-        ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+        ## Configuration
+        Configuration is handled through environment variables so that the same
+        image can be promoted across development, staging, and production without
+        code changes. Copy the example environment file and adjust the values to
+        match your environment before starting the service for the first time.
 
         ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
+        - Python 3.9 for the application runtime
+        - FastAPI for the HTTP layer and automatic API documentation
+        - PostgreSQL for durable relational storage
+        - Redis for caching and background task coordination
+
+        ## Architecture
+        The system is organized into small, focused modules with clear
+        boundaries. Requests flow from the API layer into a service layer that
+        contains the business logic, which in turn talks to the persistence
+        layer. This separation keeps each component easy to test in isolation
+        and makes it simple to swap implementations when requirements change.
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
 
         ## Live Demo
-        [Try it here](https://demo.example.com)
+        A hosted demo is available so you can explore the project without any
+        local setup. [Try it here](https://demo.example.com) and experiment with
+        the interactive endpoints directly from your browser.
+
+        ## Roadmap
+        The near-term roadmap focuses on improving the developer experience and
+        expanding test coverage. Planned work includes richer example
+        applications, additional database backends, and more detailed
+        performance benchmarks so that users can make well informed decisions.
+
+        ## Contributing
+        Contributions are welcome and appreciated. Please open an issue to
+        discuss any significant change before submitting a pull request, and make
+        sure the full test suite passes locally. We follow conventional commits
+        and expect new functionality to be accompanied by appropriate tests.
+
+        ## License
+        This project is distributed under the MIT license. See the LICENSE file
+        in the repository root for the full text and additional details about
+        permitted use, distribution, and the applicable warranty disclaimers.
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -116,6 +176,26 @@ class TestReadmeScorer:
         assert data["word_count"] > 500
         assert data["word_count_category"] == "comprehensive"
 
+    def test_word_count_category_boundary_499_is_adequate(self, scorer):
+        """Test word_count_category boundary: exactly 499 words = adequate."""
+        readme = " ".join(["word"] * 499)  # one below the comprehensive cutoff
+
+        result = scorer.execute({"readme_content": readme})
+
+        data = result.data
+        assert data["word_count"] == 499
+        assert data["word_count_category"] == "adequate"
+
+    def test_word_count_category_boundary_500_is_comprehensive(self, scorer):
+        """Test word_count_category boundary: exactly 500 words = comprehensive."""
+        readme = " ".join(["word"] * 500)  # the comprehensive cutoff is inclusive
+
+        result = scorer.execute({"readme_content": readme})
+
+        data = result.data
+        assert data["word_count"] == 500
+        assert data["word_count_category"] == "comprehensive"
+
     def test_installation_section_detection(self, scorer):
         """Test detection of installation section."""
         readme_with_install = """
@@ -157,9 +237,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +299,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +315,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
