@@ -31,6 +31,9 @@ class IngestedSource(Base):
     source_type: Mapped[str] = mapped_column(
         String(50), nullable=False
     )  # "resume", "readme", "repo", "web"
+    source_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, unique=True, index=True
+    )  # Dedup key written by IngestionPipeline; NULL for rows from other ingestion paths
     source_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
     content_hash: Mapped[str | None] = mapped_column(
@@ -48,6 +51,9 @@ class IngestedSource(Base):
         Index("ix_ingested_sources_profile_id", "profile_id"),
         Index("ix_ingested_sources_content_hash", "content_hash"),
         Index("ix_ingested_sources_source_type", "source_type"),
+        # NOTE: source_id's index comes from mapped_column(index=True) above. The
+        # profile_id/content_hash entries here duplicate their column-level index=True
+        # and are left as-is (pre-existing); not repeating that for source_id.
     )
 
     def __repr__(self) -> str:
