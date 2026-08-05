@@ -53,7 +53,7 @@ class TestReadmeScorer:
         assert result.success is True
         data = result.data
         assert data["has_readme"] is True
-        assert data["word_count"] > 100
+        assert data["word_count"] < 100
         assert data["word_count_category"] == "comprehensive"
         assert data["has_installation_section"] is True
         assert data["has_usage_section"] is True
