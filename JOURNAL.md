@@ -31,3 +31,39 @@ I reproduced the issue with a file list containing real Python files plus genera
 
 **Blockers or open questions:**
 No code blockers. The remaining course deliverable is recording and adding the Loom walkthrough link.
+
+## Week 9 - Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the issue #150 fix from `PLAN.md`. The tech detector now filters ignored directories by normalized path parts, so root-relative and nested paths such as `node_modules/lib/index.js` and `build/bundle.js` do not affect language detection. Added/updated unit coverage in `tests/unit/test_tech_detector.py`, including a regression test for vendored and build-output JavaScript files not dominating a Python project.
+
+**Next steps:**
+Open a pull request from `fix/150-exclude-vendored-build-files` to `ascherj/pathreview:main`, paste the completed PR description, request peer or mentor feedback, and update this journal with the final PR link.
+
+**Blockers:**
+`make` is not installed in this PowerShell environment, so I could not run the literal `make check` or `make test-unit` commands here. Running the equivalent checks directly showed pre-existing repo-wide failures outside this issue's files: `ruff check .` reports 173 unrelated lint issues, and `python -m pytest tests/unit -v -m unit` reports 50 failed, 348 passed, and 31 errors. The issue-specific checks pass.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** TODO - add the GitHub pull request link after opening the PR.
+
+**What you built:**
+The fix normalizes repository paths, splits them into directory/file parts, and skips files when any path part matches ignored dependency, vendor, build, cache, virtualenv, or git metadata directories. It also chooses the primary language from counted real source/config signals instead of a sorted set, which prevents ignored generated JavaScript from skewing the result.
+
+**Tests added or updated:**
+Updated `tests/unit/test_tech_detector.py`. The new regression coverage verifies that JavaScript files under `node_modules` and `build` are ignored and that Python remains the only detected language for the reproduction case.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+Direct validation completed because `make` is unavailable in this shell:
+
+- [x] `ruff check agent/tools/tech_detector.py tests/unit/test_tech_detector.py` passes
+- [x] `python -m pytest tests/unit/test_tech_detector.py -v -m unit` passes: 28 passed
+- [ ] Repo-wide `ruff check .` passes: currently fails with pre-existing unrelated lint issues
+- [ ] Repo-wide `python -m pytest tests/unit -v -m unit` passes: currently 50 failed, 348 passed, 31 errors in unrelated areas
+
+**Draft PR feedback received from:** TODO - add reviewer name/handle, or `none` if no peer or mentor feedback is received before submission.
