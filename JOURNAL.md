@@ -38,3 +38,56 @@ I ran an AST-based audit over every public function in `core/services/` and repr
 
 **Blockers or open questions:**
 The issue names `core/services/notification_service.py`, but that file does not exist in this checkout, so I plan not to create a new service unless the maintainer identifies a renamed or omitted target. I also want to confirm whether the issue expects a literal `Raises:` section on `process_review`; that function catches ordinary processing exceptions and records failure internally, so claiming that those exceptions propagate would be inaccurate.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I completed the three implementation sub-tasks from `PLAN.md`: added a failing
+AST-based regression test, documented all four public profile service functions,
+and documented all four public review service functions. The focused test now
+passes, and I opened [draft PR #859](https://github.com/ascherj/pathreview/pull/859)
+for early review.
+
+**Next steps:**
+Push the three local implementation commits so they appear in the draft PR,
+request peer or mentor feedback in the cohort Slack channel, address any agreed
+feedback, rerun the focused and repository-wide verification commands, and mark
+the PR ready for review.
+
+**Blockers:**
+The repository baseline has 182 Ruff errors, and `make test-unit` has 52 failures
+plus 31 errors unrelated to this documentation-only issue. The Week 9 comparison
+will confirm that this branch introduces no additional failures. Pushing also
+requires the local SSH-key password, so I must perform that step directly.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [PR #859 — add service method docstrings](https://github.com/ascherj/pathreview/pull/859)
+
+**Branch:** `docs/119-add-service-docstrings`
+
+**What you built:**
+I added complete Google-style contracts to all eight existing public functions
+in `core/services/`, covering their arguments, return values, and raised
+exceptions without changing runtime behavior. I also added structural regression
+coverage that automatically checks every current and future public service
+function for the required sections.
+
+**Tests added or updated:**
+Added `tests/unit/test_service_docstrings.py`, an AST-only unit test that discovers
+public top-level functions under `core/services/` and requires a summary plus
+`Args:`, `Returns:`, and `Raises:` sections. The focused test passes without
+importing the application or requiring external services.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+Per the course's pre-existing-failure policy, “passes” means this contribution
+introduces no new failures. `make check` improved from 182 to 180 existing Ruff
+errors, while `make test-unit` remained at 52 failures and 31 errors and increased
+from 345 to 346 passing tests because the new focused test passes.
+
+**Draft PR feedback received from:** Pending peer or mentor review

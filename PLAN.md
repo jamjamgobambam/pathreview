@@ -58,7 +58,7 @@ Expected behavior is complete, semantically accurate developer documentation wit
 - Consumes: Python source files under `core/services/`.
 - Produces: pytest assertions that every public top-level function has a description, `Args:`, and `Returns:`, plus `Raises:` when ordinary exceptions can propagate.
 
-- [ ] **Step 1: Create the AST-based test.**
+- [x] **Step 1: Create the AST-based test.**
 
 ```python
 """Structural tests for public service docstrings."""
@@ -69,7 +69,6 @@ from pathlib import Path
 import pytest
 
 SERVICE_DIR = Path("core/services")
-NO_PROPAGATED_EXCEPTIONS = {"review_service.py:process_review"}
 
 
 def _public_functions(path: Path) -> list[ast.FunctionDef | ast.AsyncFunctionDef]:
@@ -103,15 +102,14 @@ def test_public_service_functions_have_google_style_docstrings() -> None:
                 f"{qualified_name} has no Returns section"
             )
 
-            if qualified_name not in NO_PROPAGATED_EXCEPTIONS:
-                assert "\nRaises:" in docstring, (
-                    f"{qualified_name} has no Raises section"
-                )
+            assert "\nRaises:" in docstring, (
+                f"{qualified_name} has no Raises section"
+            )
 
     assert discovered == 8, f"expected 8 public service functions, found {discovered}"
 ```
 
-- [ ] **Step 2: Run the focused test and verify the reproduction remains red.**
+- [x] **Step 2: Run the focused test and verify the reproduction remains red.**
 
 Run:
 
@@ -121,7 +119,7 @@ Run:
 
 Expected: one failing test whose first assertion identifies `profile_service.py:create_profile` as missing `Args:`. The failure proves the test detects the reproduced gap before docstrings are changed.
 
-- [ ] **Step 3: Commit the red test.**
+- [x] **Step 3: Commit the red test.**
 
 ```bash
 git add tests/unit/test_service_docstrings.py
@@ -140,7 +138,7 @@ git commit -m "test: require Google-style service docstrings"
 - Consumes: `AsyncSession`-compatible `db`, UUID ownership identifiers, `ProfileCreate`, and `ProfileUpdate`.
 - Produces: unchanged `Profile`, `Profile | None`, and `bool` runtime results with accurate developer-facing contracts.
 
-- [ ] **Step 1: Replace the four short profile docstrings with these Google-style contracts.**
+- [x] **Step 1: Replace the four short profile docstrings with these Google-style contracts.**
 
 ```python
 """Create and persist a profile for a user.
@@ -209,7 +207,7 @@ Raises:
 """
 ```
 
-- [ ] **Step 2: Run the focused test.**
+- [x] **Step 2: Run the focused test.**
 
 Run:
 
@@ -219,7 +217,7 @@ Run:
 
 Expected: still FAIL because the public functions in `review_service.py` remain undocumented. No profile-service function should appear in the failure.
 
-- [ ] **Step 3: Commit the profile documentation.**
+- [x] **Step 3: Commit the profile documentation.**
 
 ```bash
 git add core/services/profile_service.py
@@ -238,7 +236,7 @@ git commit -m "docs: document public profile services"
 - Consumes: `AsyncSession`-compatible `db`, review/profile/user UUIDs, and pagination integers.
 - Produces: unchanged `Review`, `Review | None`, `tuple[list[Review], int]`, and `None` runtime results with accurate status/error-handling documentation.
 
-- [ ] **Step 1: Replace the four short review docstrings with these Google-style contracts.**
+- [x] **Step 1: Replace the four short review docstrings with these Google-style contracts.**
 
 ```python
 """Create and persist a pending review for a profile.
@@ -303,10 +301,13 @@ Args:
 
 Returns:
     None.
+
+Raises:
+    CancelledError: If the background task is cancelled during processing.
 """
 ```
 
-- [ ] **Step 2: Run the focused test and verify it turns green.**
+- [x] **Step 2: Run the focused test and verify it turns green.**
 
 Run:
 
@@ -316,7 +317,7 @@ Run:
 
 Expected: PASS with one test passed and no external services required.
 
-- [ ] **Step 3: Commit the review documentation.**
+- [x] **Step 3: Commit the review documentation.**
 
 ```bash
 git add core/services/review_service.py
@@ -337,7 +338,7 @@ git commit -m "docs: document public review services"
 - Consumes: the completed docstrings and structural test from Tasks 1–3.
 - Produces: formatter-, linter-, type-checker-, and unit-test evidence suitable for the Week 9 journal and pull request.
 
-- [ ] **Step 1: Confirm the semantic AST regression test reports no undocumented public functions.**
+- [x] **Step 1: Confirm the semantic AST regression test reports no undocumented public functions.**
 
 Run:
 
@@ -345,17 +346,22 @@ Run:
 .venv/bin/pytest tests/unit/test_service_docstrings.py -v
 ```
 
-Expected: PASS. The original reproduction audit in `REPRODUCTION.md` intentionally mirrors the issue's literal all-sections wording; the regression test applies the semantically accurate exception for `process_review`, which catches ordinary processing exceptions instead of propagating them.
+Expected: PASS. `process_review` documents task cancellation, which is not
+caught by its ordinary-exception handler, while its description explains that
+ordinary processing failures are recorded rather than propagated.
 
-- [ ] **Step 2: Run the repository's complete required checks.**
+- [x] **Step 2: Run the repository's complete required checks.**
 
 ```bash
 make check && make test-unit
 ```
 
-Expected: Ruff, Black, mypy, and all unit tests exit 0.
+Expected: No failures beyond the baseline recorded before implementation. The
+current checkout starts with 182 Ruff errors and 52 unit-test failures plus 31
+errors, so Week 9 success means this documentation-only change introduces no
+additional failures.
 
-- [ ] **Step 3: Review the final diff for documentation-only scope.**
+- [x] **Step 3: Review the final diff for documentation-only scope.**
 
 ```bash
 git diff main...HEAD -- core/services tests/unit/test_service_docstrings.py
@@ -364,7 +370,7 @@ git diff --check
 
 Expected: only the new structural test and docstring bodies differ; no function signature, query, status transition, or control-flow change appears, and `git diff --check` exits 0.
 
-- [ ] **Step 4: Record final commands and any plan changes in the Week 9 journal entry, then commit.**
+- [x] **Step 4: Record final commands and any plan changes in the Week 9 journal entry, then commit.**
 
 ```bash
 git add PLAN.md JOURNAL.md
@@ -380,7 +386,7 @@ git commit -m "docs: record issue 119 implementation results"
 ### Risks & unknowns
 
 - `core/services/notification_service.py` is named in issue #119 but absent from the branch. Creating it would expand a documentation issue into a new feature, so the plan excludes it; confirm with the maintainer if that file was renamed or omitted accidentally.
-- The issue wording lists `Raises` for all methods, but `process_review` catches ordinary `Exception` instances and records failure internally. Adding a false `Raises` section would be misleading, so the plan documents its suppression behavior and exempts only that function from the structural `Raises:` assertion unless maintainers require an explicit no-propagation convention.
+- The issue wording lists `Raises` for all methods, but `process_review` catches ordinary `Exception` instances and records failure internally. Its `Raises:` section therefore documents task cancellation, which derives from `BaseException` and remains intentionally uncaught, while the description explains the suppression of ordinary failures.
 - `create_review` accepts `user_id` but does not read it. The docstring must describe it as caller context without claiming the function currently performs an ownership check; changing that behavior is outside issue #119.
 - SQLAlchemy may wrap driver-specific failures as different subclasses. Use `SQLAlchemyError` as the public documentation boundary for uncaught query/commit/refresh failures, and do not promise narrower exception classes without a targeted failure test.
 - `resume_filename` and `resume_text` default to `None` despite being annotated as `str`. Document the observed optional behavior but leave annotation cleanup for a separately scoped issue.
