@@ -59,7 +59,7 @@ I still need to confirm whether any part of the product intentionally relies on 
 ### Check-in 2 (end of week)
 
 
-**PR link:** Pending — branch was created locally as `fix/43-clear-agent-session-state` but push to GitHub failed due to network/auth. See commands below to push and open the PR.
+**PR link:** https://github.com/ascherj/pathreview/pull/924
 
 **Branch:** fix/43-clear-agent-session-state
 
@@ -73,7 +73,7 @@ A guard in `agent/orchestrator.py` to avoid loading persisted session state by d
 
 Note: The repository contains several pre-existing lint/type/test failures. I ran `make check` and `make test-unit` before and after my change and confirmed my change did not introduce new failures — per the project guidance, this is documented here and in the PR.
 
-**Draft PR feedback received from:** none
+Draft PR feedback received from: none
 
 ---
 
