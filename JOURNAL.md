@@ -48,6 +48,61 @@ python3 -m pytest tests/unit/test_resume_parser.py -k "test_parse_single_column_
 ```
 Result: `3 failed, 7 deselected`
 
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md: updated the four regex patterns in `_detect_sections()`
+(`ingestion/parsers/resume_parser.py`) to allow leading whitespace (`[ \t]*`) between the
+line anchor and the section keyword. Added `test_detect_sections_with_leading_whitespace`
+covering the issue's exact reproduction case. Confirmed the three originally-failing tests
+now pass, with no new regressions (two pre-existing, unrelated test failures in
+`_strip_markdown` remain unchanged). Ran `make check`/local lint and type checks — `ruff`
+and `black` are clean on changed files; documented a pre-existing `mypy` gap unrelated to
+this fix (see PR notes). Committed the fix and opened a draft PR (#1), already shared for
+peer/mentor review.
+
+**Next steps:**
+Incorporate any peer/mentor feedback from the draft PR, then mark it ready for review.
+Confirm the PR's base branch is correct (currently targets my own fork's `main`; need to
+verify with instructor whether it should target `ascherj/pathreview:main` instead).
+
+**Blockers:**
+None currently — flagged but not blocked by a repo tooling inconsistency (local
+pre-commit `mypy` hook checks `tests/`, but `make typecheck` excludes it), documented in
+the PR description rather than fixed, since it's out of scope for issue #147.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [PR #1](https://github.com/sumanbista/pathreview/pull/1)
+
+**Branch:** `fix/147-resume-section-leading-whitespace`
+
+**What you built:**
+Fixed `_detect_sections()` in `ingestion/parsers/resume_parser.py` so it correctly
+detects resume section headers (Education, Skills, Experience, etc.) on lines with
+leading whitespace, which is common in PDF-extracted text. The fix adds an optional
+`[ \t]*` between the line anchor and the section keyword in each of the four detection
+regex patterns, without changing the existing anchor/suffix matching logic.
+
+**Tests added or updated:**
+`tests/unit/test_resume_parser.py` — added `test_detect_sections_with_leading_whitespace`,
+using the issue's exact reproduction input, asserting `Education` and `Skills` are
+detected. Confirmed the three previously-failing tests named in the issue
+(`test_parse_single_column_resume_text`, `test_parse_resume_no_work_experience`,
+`test_detect_sections`) now pass, with no new regressions elsewhere in the file.
+
+**Self-review confirmation:** [x] make check passes*  [x] make test-unit passes*
+*with two documented pre-existing, unrelated failures (see PR description): a
+`_strip_markdown` test issue and a local pre-commit `mypy` hook checking `tests/`
+(which `make typecheck` itself excludes) — both predate this change and are unaffected
+by it.
+
+**Draft PR feedback received from:** None.
+
 **Root cause confirmed:** `_detect_sections()` in `ingestion/parsers/resume_parser.py`
 (lines 132–144). The regex patterns anchor the section keyword directly against `^`/`\n`
 with no `\s*` allowance for leading whitespace, so indented lines like `"    Education:"`
