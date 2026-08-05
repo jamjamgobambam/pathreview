@@ -99,7 +99,7 @@ zero new failures.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(TODO: paste the submitted PR URL here after opening it)_
+**PR link:** https://github.com/ascherj/pathreview/pull/949
 
 **Branch:** `fix/156-readme-scorer-word-count-fixture`
 
