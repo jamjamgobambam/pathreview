@@ -2,8 +2,8 @@
 
 import pytest
 
-from ingestion.chunking.structural_chunker import StructuralChunker
 from ingestion.chunking.base import Chunk
+from ingestion.chunking.structural_chunker import StructuralChunker
 
 
 @pytest.mark.unit
@@ -33,6 +33,54 @@ class TestStructuralChunker:
         assert len(result) >= 1
         assert isinstance(result[0], Chunk)
         assert all(isinstance(c, Chunk) for c in result)
+        # The document content must survive, not just the chunk count
+        assert "plain text without any markdown headings" in result[0].text
+
+    def test_heading_less_document_has_empty_heading_path(self, chunker):
+        """Test heading-less content is labelled with an empty path and level 0."""
+        text = "A short document that never uses a markdown heading."
+        result = chunker.chunk(text, {"source": "test"})
+
+        assert len(result) == 1
+        assert result[0].metadata["heading_path"] == ""
+        assert result[0].metadata["heading_level"] == 0
+
+    def test_heading_less_document_preserves_source_metadata(self, chunker):
+        """Test source metadata is preserved for heading-less documents."""
+        text = "Plain content with no headings at all."
+        result = chunker.chunk(text, {"source": "readme", "version": 2})
+
+        assert len(result) >= 1
+        for chunk in result:
+            assert chunk.metadata["source"] == "readme"
+            assert chunk.metadata["version"] == 2
+
+    def test_large_heading_less_document_sub_chunked(self, chunker):
+        """Test heading-less doc over the token limit is sub-chunked."""
+        text = "This is a plain paragraph with a good deal of content in it. " * 90
+        assert len(chunker.encoder.encode(text)) > chunker.SECTION_TOKEN_LIMIT
+
+        result = chunker.chunk(text, {"source": "test"})
+
+        # Should route through the semantic chunker rather than emit one huge chunk
+        assert len(result) > 1
+        for chunk in result:
+            assert chunk.metadata["heading_path"] == ""
+            assert chunk.metadata["heading_level"] == 0
+
+    def test_preamble_before_first_heading_preserved(self, chunker):
+        """Test content before the first heading is not dropped."""
+        text = """Introductory preamble that precedes any heading.
+
+# Title
+Body under the title.
+"""
+        result = chunker.chunk(text, {})
+
+        assert any("Introductory preamble" in c.text for c in result)
+        # The preamble leads the document and sits outside any heading
+        assert result[0].metadata["heading_path"] == ""
+        assert result[0].metadata["heading_level"] == 0
 
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
@@ -82,12 +130,18 @@ Content under grandchild.
                     # Should have " > " as separator if it has parent
                     found_path = True
                     assert isinstance(path, str)
+                    assert " > " in path
+
+        assert found_path, "expected at least one chunk nested under 'Child'"
 
     def test_large_section_sub_chunked(self, chunker):
         """Test large section (> 800 tokens) gets sub-chunked."""
         # Create a large section
-        large_section = """# Large Section
-""" + "This is a paragraph with lots of content. " * 50
+        large_section = (
+            """# Large Section
+"""
+            + "This is a paragraph with lots of content. " * 50
+        )
 
         result = chunker.chunk(large_section, {})
 
@@ -172,6 +226,8 @@ Content here.
                 # Should contain the hierarchy
                 if "Installation" in path or "Prerequisites" in path:
                     found_full_path = True
+
+        assert found_full_path, "expected the heading breadcrumb to include ancestors"
 
     def test_chunks_have_text_content(self, chunker):
         """Test that all chunks have text content."""
