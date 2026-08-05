@@ -84,3 +84,48 @@ detection works on indented resume text and that no other tests break.
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** Charlie
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No maintainer review or comments have come in yet. 
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The code change was small, but defining its boundaries took more care than I
+expected. I had to trace both PDF and Markdown parsing paths, identify all four
+section-header patterns, and notice that `_strip_markdown()` had the same
+leading-whitespace assumption. I also needed tests for spaces, tabs, and
+indented Markdown headers without changing the parser's public behavior.
+
+**What did you learn about working in a large codebase?**
+I learned to start from the reported behavior, follow the existing call path,
+and make the smallest change that fits the project's conventions. In someone
+else's codebase, a locally correct fix is not enough: it needs focused regression
+coverage, must preserve existing APIs, and has to pass the repository's unit,
+integration, lint, and type-check workflows before it is ready for review.
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped me locate the related regex patterns, reason about the anchors,
+draft a reproduction plan, and identify useful edge cases for the regression
+tests. They could not replace checking the actual parser flow, repository
+conventions, test output, and final diff. I still had to verify that the proposed
+regex change solved the real failure without expanding the scope unnecessarily.
+
+**What would you do differently if you started over?**
+I would add the focused failing tests for space-indented, tab-indented, and
+Markdown headers before changing the implementation, then use those tests to
+drive the fix. 
+
+**What are you most proud of from this module?**
+I am most proud of turning a real PDF-text parsing edge case into a narrow fix
+with regression coverage while keeping the public API and return shape unchanged.
