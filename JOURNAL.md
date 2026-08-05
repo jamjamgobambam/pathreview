@@ -68,3 +68,19 @@ Open a draft PR and request peer/mentor review. The live-DB smoke test (confirmi
 **Blockers:**
 - **Live-DB check blocked — Docker will not run locally.** Docker Desktop is installed but its daemon does not become ready when launched, and the `docker` / `docker compose` command-line tools are not operational in this environment (commands hang / the CLI is unavailable). Because docker compose can't bring up Postgres, the live GET /health smoke test could not be performed. It remains pending until Docker is working (or the check is run on another machine). This does not affect the code fix, which is covered by the unit tests above.
 - Out-of-scope discovery: the /health redis probe reads settings.redis_host / settings.redis_port, which aren't defined on Settings, so redis always reports unhealthy independent of #154 — noted in PLAN.md as a follow-up.
+
+### Check-in 2 (end of week)
+
+**PR link:** _<paste the PR URL here after opening it — e.g. https://github.com/ascherj/pathreview/pull/NNN>_
+
+**Branch:** fix/154-health-check-textual-sql
+
+**What was built:**
+Fixed the /health endpoint's Postgres probe, which passed a raw SQL string to db.execute() and raised sqlalchemy.exc.ArgumentError under SQLAlchemy 2.x — causing Postgres to be misreported as "unhealthy" even when the database was up. The fix wraps the query in sqlalchemy.text("SELECT 1") in api/routes/health.py, so the probe runs and reflects real connectivity.
+
+**Tests:**
+Updated `tests/unit/test_health.py` with two tests: `test_health_check_reports_postgres_healthy_when_query_succeeds` — asserts the probe reports `dependencies.postgres == "healthy"` once the query succeeds, and guards against regression by asserting the executed statement is a SQLAlchemy `text()` clause rather than a raw `str`; and `test_health_check_reports_postgres_unhealthy_on_real_db_error` — asserts a genuine DB connection error is still reported as "unhealthy" (HTTP 503), so the fix doesn't mask real outages.
+
+**Self-review:**
+- [x] `make test-unit` — this change introduces **no new failures**: identical `53 failed / 377 passed` before and after (the 53 are pre-existing and unrelated to /health; baseline captured before any change), and the two updated test_health.py tests pass.
+- [x] `make check` — this change introduces **no new lint/type errors**: both changed files are clean under `black`, add zero new `ruff` errors (repo total actually dropped 183 → 182), and `mypy` output is byte-for-byte identical to baseline. (The repo has pre-existing ruff/mypy debt unrelated to #154, left untouched to keep the diff minimal.)
