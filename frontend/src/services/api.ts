@@ -1,4 +1,12 @@
-import { AuthResponse, Profile, Review, ReviewListResponse } from '../types'
+// import { AuthResponse, Profile, Review, ReviewListResponse } from '../types'
+import {
+  AuthResponse,
+  Profile,
+  PublicReview,
+  Review,
+  ReviewListResponse,
+  ReviewShareResponse
+} from '../types'
 
 const API_BASE = '/api'
 
@@ -42,7 +50,7 @@ class ApiClient {
       method: 'POST',
       body: formData,
       headers: {
-        'Accept': 'application/json'
+        Accept: 'application/json'
       }
     })
 
@@ -57,7 +65,9 @@ class ApiClient {
   async register(email: string, password: string): Promise<string> {
     const response = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ email, password })
     })
 
@@ -103,16 +113,42 @@ class ApiClient {
     return this.request(`/reviews/${id}`)
   }
 
+  async createReviewShareLink(id: string): Promise<ReviewShareResponse> {
+    return this.request(`/reviews/${id}/share`, {
+      method: 'POST'
+    })
+  }
+
+  async getPublicReview(shareToken: string): Promise<PublicReview> {
+    const response = await fetch(
+      `${API_BASE}/reviews/public/${encodeURIComponent(shareToken)}`
+    )
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(
+        error.detail || `Request failed with status ${response.status}`
+      )
+    }
+
+    return response.json()
+  }
+
   async getReviewStatus(id: string): Promise<Review> {
     return this.request(`/reviews/${id}/status`)
   }
 
-  async listReviews(page: number = 1, pageSize: number = 10): Promise<ReviewListResponse> {
+  async listReviews(
+    page: number = 1,
+    pageSize: number = 10
+  ): Promise<ReviewListResponse> {
     return this.request(`/reviews?page=${page}&page_size=${pageSize}`)
   }
 
   async deleteProfile(id: string): Promise<void> {
-    return this.request(`/profiles/${id}`, { method: 'DELETE' })
+    return this.request(`/profiles/${id}`, {
+      method: 'DELETE'
+    })
   }
 }
 

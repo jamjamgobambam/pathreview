@@ -28,6 +28,21 @@ class ReviewResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ReviewShareResponse(BaseModel):
+    share_token: str
+    share_url: str
+    expires_at: datetime
+
+
+class PublicReviewResponse(BaseModel):
+    id: UUID
+    status: str
+    sections: list[FeedbackSection] | None
+    overall_score: float | None
+
+    model_config = {"from_attributes": True}
+
+
 class ReviewListResponse(BaseModel):
     items: list[ReviewResponse]
     total: int

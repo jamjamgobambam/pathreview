@@ -1,15 +1,32 @@
-from uuid import UUID
-import structlog
-import json
-from datetime import datetime
-from sqlalchemy import select, and_
+# from uuid import UUID
+# import structlog
+# import json
+# from datetime import datetime
+# from sqlalchemy import select, and_
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+# from core.models.review import Review
+# from core.models.profile import Profile
+# from core.models.ingested_source import IngestedSource
+# from api.schemas.review import FeedbackSection
+
+# log = structlog.get_logger()
+
+import json
+import secrets
+from datetime import UTC, datetime, timedelta
+from uuid import UUID
+
+import structlog
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
+
+SHARE_LINK_TTL = timedelta(days=30)
 
 
 async def create_review(
@@ -40,11 +57,110 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
     return result.scalars().first()
+
+
+async def create_share_link(
+    db,
+    review_id: UUID,
+    user_id: UUID,
+) -> Review | None:
+    """
+    Create or refresh a public share link for a completed review.
+
+    The review must belong to the current user and have status="complete".
+    The generated token expires 30 days after creation.
+
+    Args:
+        db: Async database session.
+        review_id: ID of the review to share.
+        user_id: ID of the authenticated user.
+
+    Returns:
+        The updated Review if it exists and belongs to the user, otherwise None.
+
+    Raises:
+        ValueError: If the review is not complete.
+    """
+    review = await get_review(
+        db=db,
+        review_id=review_id,
+        user_id=user_id,
+    )
+
+    if not review:
+        return None
+
+    if review.status != "complete":
+        raise ValueError("Only completed reviews can be shared")
+
+    review.share_token = secrets.token_urlsafe(32)
+    review.share_expires_at = datetime.now(UTC) + SHARE_LINK_TTL
+    review.updated_at = datetime.now(UTC)
+
+    db.add(review)
+    await db.commit()
+    await db.refresh(review)
+
+    log.info(
+        "review_share_link_created",
+        review_id=str(review.id),
+        user_id=str(user_id),
+        expires_at=review.share_expires_at.isoformat(),
+    )
+
+    return review
+
+
+async def get_public_review(
+    db,
+    share_token: str,
+) -> Review | None:
+    """
+    Get a completed review using a public share token.
+
+    Authentication is not required. The token must exist and must not
+    be expired.
+
+    Args:
+        db: Async database session.
+        share_token: Public share token associated with the review.
+
+    Returns:
+        The Review if the token is valid and unexpired, otherwise None.
+    """
+    stmt = select(Review).where(
+        and_(
+            Review.share_token == share_token,
+            Review.status == "complete",
+        )
+    )
+
+    result = await db.execute(stmt)
+    review = result.scalars().first()
+
+    if not review or not review.share_expires_at:
+        return None
+
+    expires_at = review.share_expires_at
+
+    # PostgreSQL normally returns an aware datetime for timezone=True,
+    # but this keeps tests and older database values safe.
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=UTC)
+
+    if expires_at <= datetime.now(UTC):
+        log.info(
+            "review_share_link_expired",
+            review_id=str(review.id),
+        )
+        return None
+
+    return review
 
 
 async def list_reviews(

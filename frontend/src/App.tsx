@@ -1,5 +1,6 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
+
 import { useAuth } from './context/AuthContext'
 import { NavBar } from './components/NavBar'
 import { LoginPage } from './pages/LoginPage'
@@ -8,8 +9,11 @@ import { DashboardPage } from './pages/DashboardPage'
 import { NewProfilePage } from './pages/NewProfilePage'
 import { ReviewPage } from './pages/ReviewPage'
 import { ReviewHistoryPage } from './pages/ReviewHistoryPage'
+import SharedReviewPage from './pages/SharedReviewPage'
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
+  children
+}) => {
   const { user, isLoading } = useAuth()
 
   if (isLoading) {
@@ -45,13 +49,28 @@ function App() {
   return (
     <>
       <NavBar />
+
       <Routes>
         <Route
           path="/"
-          element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
+          element={
+            user ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
         />
+
         <Route path="/login" element={<LoginPage />} />
+
         <Route path="/register" element={<RegisterPage />} />
+
+        <Route
+          path="/shared-reviews/:shareToken"
+          element={<SharedReviewPage />}
+        />
+
         <Route
           path="/dashboard"
           element={
@@ -60,6 +79,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/profiles/new"
           element={
@@ -68,6 +88,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/reviews"
           element={
@@ -76,6 +97,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/reviews/:reviewId"
           element={

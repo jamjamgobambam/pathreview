@@ -29,12 +29,32 @@ export const ReviewPage: React.FC = () => {
 
   const currentReview = fullReview || statusReview
 
-  const handleShare = () => {
-    const url = window.location.href
-    navigator.clipboard.writeText(url).then(() => {
-      alert('Review link copied to clipboard!')
-    })
+  // const handleShare = () => {
+  //   const url = window.location.href
+  //   navigator.clipboard.writeText(url).then(() => {
+  //     alert('Review link copied to clipboard!')
+  //   })
+  // }
+  const handleShare = async () => {
+  if (!reviewId) return
+
+  try {
+    const share = await apiClient.createReviewShareLink(reviewId)
+    const publicUrl = `${window.location.origin}${share.share_url}`
+
+    await navigator.clipboard.writeText(publicUrl)
+
+    alert('Public review link copied to clipboard!')
+  } catch (error) {
+    console.error('Failed to create share link:', error)
+
+    alert(
+      error instanceof Error
+        ? error.message
+        : 'Failed to create share link'
+    )
   }
+}
 
   const handleExport = () => {
     if (!fullReview || !fullReview.sections) return
