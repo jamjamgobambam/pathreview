@@ -89,7 +89,9 @@ DATABASE_URL=postgresql+asyncpg://pathreview:pathreview@localhost:5433/pathrevie
 If you have PostgreSQL installed natively on Windows (e.g. from a previous project), it will occupy port 5432 and intercept connections meant for Docker. The `docker-compose.yml` already maps around this — just ensure your `.env` was copied from `.env.example` after cloning.
 
 **"Out of memory" during setup:**
+
 - Close other applications to free RAM
+
 - In Docker Desktop: Settings → Resources → set Memory to at least 4 GB
 
 **`make setup` fails on Apple Silicon:**
