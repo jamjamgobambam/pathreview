@@ -190,6 +190,14 @@ class TestPIIScrubber:
 
         assert "[REDACTED]" in scrubbed
 
+    def test_phone_with_country_code_and_parens(self, scrubber):
+        """Test parenthesized phone number with a leading country code."""
+        text = "Reach me at +1 (555) 123-4567 anytime."
+        scrubbed = scrubber.scrub(text)
+
+        assert "[REDACTED]" in scrubbed
+        assert "555" not in scrubbed
+
     def test_address_variations(self, scrubber):
         """Test various street address formats."""
         addresses = [
