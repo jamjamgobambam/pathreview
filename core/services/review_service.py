@@ -1,13 +1,14 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
@@ -17,8 +18,18 @@ async def create_review(
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
-    """
-    Create a new review with status="pending".
+    """Create and persist a pending review for a profile.
+
+    Args:
+        db: Async SQLAlchemy session used to persist the review.
+        profile_id: Unique identifier of the profile being reviewed.
+        user_id: Identifier of the authenticated user initiating the review.
+
+    Returns:
+        The newly persisted and refreshed pending review.
+
+    Raises:
+        SQLAlchemyError: If the review cannot be committed or refreshed.
     """
     review = Review(
         profile_id=profile_id,
@@ -37,11 +48,21 @@ async def get_review(
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
+    """Return a review when its profile belongs to the requesting user.
+
+    Args:
+        db: Async SQLAlchemy session used to query reviews.
+        review_id: Unique identifier of the review to retrieve.
+        user_id: Unique identifier of the expected profile owner.
+
+    Returns:
+        The matching review, or None when no owned review is found.
+
+    Raises:
+        SQLAlchemyError: If the review query fails.
     """
-    Get a review by ID, checking that it belongs to the user's profile.
-    """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
     return result.scalars().first()
@@ -53,9 +74,19 @@ async def list_reviews(
     page: int = 1,
     page_size: int = 20,
 ) -> tuple[list[Review], int]:
-    """
-    List reviews for a user with pagination.
-    Returns (reviews, total_count).
+    """Return one page of a user's reviews and the unpaginated count.
+
+    Args:
+        db: Async SQLAlchemy session used to query reviews.
+        user_id: Unique identifier of the profile owner.
+        page: One-based page number used to calculate the query offset.
+        page_size: Maximum number of reviews returned on the page.
+
+    Returns:
+        A tuple containing the page of reviews and total matching review count.
+
+    Raises:
+        SQLAlchemyError: If either review query fails.
     """
     offset = (page - 1) * page_size
 
@@ -84,16 +115,22 @@ async def process_review(
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
-    """
-    Background task to process a review.
-    Steps:
-    1. Set status="processing"
-    2. Run ingestion pipeline on profile's sources
-    3. Run agent orchestration
-    4. Run RAG retrieval + generation
-    5. Run safety checks on output
-    6. Set status="complete", store sections in review.sections
-    7. On exception: set status="failed", log error
+    """Process a review through ingestion, analysis, RAG, and safety checks.
+
+    The review advances from pending to processing and then to complete. Missing
+    records, failed safety checks, and ordinary processing errors leave or set
+    the review to failed and are logged instead of being propagated.
+
+    Args:
+        db: Async SQLAlchemy session used throughout review processing.
+        review_id: Unique identifier of the review being processed.
+        profile_id: Unique identifier of the source profile.
+
+    Returns:
+        None.
+
+    Raises:
+        CancelledError: If the background task is cancelled during processing.
     """
     try:
         # Get the review
