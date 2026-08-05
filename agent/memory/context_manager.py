@@ -55,6 +55,15 @@ class ContextManager:
         """
         return dict(self.results)
 
+    def clear(self) -> None:
+        """Drop all memoized tool results.
+
+        Used to reset the in-memory cache between reviews so a long-lived
+        orchestrator does not replay a previous review's tool outputs.
+        """
+        self.results.clear()
+        logger.info("context_cleared")
+
     @staticmethod
     def hash_input(input_data: dict) -> str:
         """Hash input data for consistent memoization.
