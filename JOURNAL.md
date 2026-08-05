@@ -67,7 +67,7 @@ the repo-wide gates red even though the changed files pass on their own.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [to be added — PR not yet opened]
+**PR link:** https://github.com/ascherj/pathreview/pull/868
 
 **Branch:** `fix/151-bias-detector-patterns`
 
