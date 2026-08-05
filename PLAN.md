@@ -18,11 +18,13 @@
 
 ### Plan
 
-1. In `_extract_sections()`, keep the existing heading-walk logic untouched (it already passes 14/15 tests) — the fix belongs in `chunk()`, not in the extraction loop itself.
-2. In `chunk()`, after calling `_extract_sections(text)`, check if `sections` is empty. If it is (and the input text wasn't blank — that early-return at line 35-36 stays as-is), delegate the whole `text` to `self.semantic_chunker.chunk(text, metadata)` and return its result directly, instead of returning `[]`.
-3. Decide what metadata the fallback chunks carry: since there's no heading, they won't have `heading_path`/`heading_level` — confirm no downstream consumer assumes those keys always exist (see Risks).
-4. Extend `tests/unit/test_structural_chunker.py`: strengthen `test_document_with_no_headings` to assert the returned chunk(s) actually contain the original text (not just `len(result) >= 1`), and add a case for a headingless document long enough to exceed `SECTION_TOKEN_LIMIT` (800 tokens) to confirm it gets sub-chunked via `SemanticChunker` rather than returned as one giant chunk.
-5. Run `pytest tests/unit/test_structural_chunker.py -v` and `make test-unit` to confirm the fix doesn't regress the 14 currently-passing tests or anything else in the suite.
+> **Update (Week 9):** Implemented differently than originally planned, and broader in one respect — see notes under each step.
+
+1. ~~Keep `_extract_sections()` untouched, fix only in `chunk()`~~ — **changed:** the fix actually belongs in `_extract_sections()` itself. Instead of a `chunk()`-level fallback that delegates the whole text to `SemanticChunker` when `sections` comes back empty, I removed the faulty guard directly in the extraction loop (`if heading_stack or current_section_lines:` → always collect) and changed section-saving to check for actual content instead of a non-empty `heading_stack`. This is a smaller, more targeted diff and it **also fixes the preamble-before-first-heading bug** (see Risks below) for free, since both symptoms come from the exact same guard.
+2. `chunk()` still changed, but differently: instead of a special-case fallback branch, I made `heading_path`/`heading_level` metadata conditional on `section["path"]` being non-empty. A headingless section (or a preamble section) now flows through the *existing* per-section loop — including the existing `SECTION_TOKEN_LIMIT` sub-chunking branch — with no separate code path needed.
+3. Metadata shape: confirmed via `grep -rn "heading_path"` that no code outside this file reads it unconditionally, so chunks without a heading path are safe (this resolved the risk noted below, unchanged from original plan).
+4. Extended `tests/unit/test_structural_chunker.py`: strengthened `test_document_with_no_headings` to assert actual content survives and that no `heading_path` key is added; added `test_large_headingless_document_is_sub_chunked`, `test_preamble_before_first_heading_is_not_dropped`, and `test_heading_with_no_body_produces_no_chunk_for_it`.
+5. Ran `pytest tests/unit/test_structural_chunker.py -v` (18/18 pass, was 14/15) and `make test-unit` (379 passed / 52 failed, vs. a 375/53 baseline — exactly the fix plus 3 new tests, zero regressions elsewhere).
 
 ### Inputs & outputs
 
@@ -33,8 +35,9 @@
 ### Risks & unknowns
 
 - **Metadata shape assumption:** verified via `grep -rn "heading_path" --include="*.py" .` that no code outside `structural_chunker.py` reads `heading_path` — `ingestion/chunking/base.py:20` even documents it as "heading_path if applicable," and the existing tests already guard with `if "heading_path" in chunk.metadata`. So fallback chunks without `heading_path` are safe; this risk is resolved, not open.
-- **Preamble-before-first-heading is a related but separate bug:** I confirmed (see JOURNAL.md Week 8) that text appearing *before* the first heading in a document that otherwise has headings is also silently dropped, by the same `heading_stack or current_section_lines` condition. My planned fix (checking `if not sections`) does **not** cover this case, since `sections` would be non-empty. Open question for Week 9: fix both in one PR since they share a root cause, or keep this PR scoped strictly to what #149 reports and file a follow-up.
-- **`SECTION_TOKEN_LIMIT` interplay:** need to verify the fallback path correctly hits the existing sub-chunking branch (line 49) for large headingless documents rather than accidentally bypassing it, since I'm calling `semantic_chunker.chunk()` directly rather than going through the `sections` loop.
+- **Preamble-before-first-heading — resolved, fixed in the same PR:** confirmed (see JOURNAL.md Week 8) that text before a document's first heading was dropped by the same guard. Since the actual fix changed the guard in `_extract_sections()` directly (rather than adding a `chunk()`-level fallback), this case is fixed as a natural consequence, not a separate change — covered by `test_preamble_before_first_heading_is_not_dropped`.
+- **`SECTION_TOKEN_LIMIT` interplay — resolved:** because headingless/preamble sections now flow through the same per-section loop in `chunk()` as normal sections, they automatically hit the existing sub-chunking branch when oversized — no separate fallback path to keep in sync. Verified with `test_large_headingless_document_is_sub_chunked`.
+- **Pre-commit's mypy hook** reports missing type annotations in `structural_chunker.py` and `semantic_chunker.py` (untouched) — confirmed identical on `origin/main` before this change and part of a project-wide pattern (every test file in `tests/unit/` has the same gap). Documented in the PR rather than fixed, to avoid unrelated scope creep across files this issue doesn't touch.
 
 ### Edge cases
 
