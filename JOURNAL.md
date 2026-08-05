@@ -78,3 +78,65 @@ also still passes, confirming no regression to existing React detection.
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none yet (submitting slightly late; will incorporate any feedback that comes in)
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was received. Per the course's Su26 note, reviewer feedback
+was not an active feature this term.
+
+**How you responded:**
+N/A — no feedback was received to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the local environment running took far longer than the actual code fix.
+I hit a chain of issues just to get Docker Desktop working — it wasn't installed,
+then failed with a "virtualization not detected" error that turned out to require
+enabling Virtual Machine Platform in Windows and virtualization in BIOS. Then I had
+to sort out `make` not existing on Windows, install it via winget, and switch from
+PowerShell to Git Bash since many commands only worked there. By the time I could
+actually run `make setup` and `make run`, I'd spent more time on tooling than on
+understanding the bug itself. It was a good reminder that "environment setup" is a
+real skill, not a formality to skip past.
+
+**What did you learn about working in a large codebase?**
+Reproducing the issue precisely before touching any code made a huge difference —
+running the exact failing tests first showed me exactly what was expected vs. actual,
+instead of guessing. I also learned that a fix isn't just "make the failing test pass" —
+I had to check the full test suite (`make test-unit`) and lint/type checks (`make check`)
+before and after my change to prove I didn't break anything else. The codebase had 53
+pre-existing failing tests and 182 pre-existing lint errors that had nothing to do with
+my issue, and distinguishing "pre-existing and out of scope" from "caused by my change"
+was an important discipline I hadn't had to practice before.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for diagnosing the root cause quickly — reading the regex patterns
+in the skill extractor and explaining exactly why `require('fs')` didn't match
+`\b(import|require)\s+` (no space before the parenthesis), and why `.tsx`/`.jsx` filename
+mentions were causing false-positive React detections. It also helped me write the new
+detection patterns and catch a whitespace bug in my own Dockerfile regex before I wasted
+time debugging it manually. Where it fell short: it couldn't run commands for me or see
+my actual terminal state, so a lot of back-and-forth was just me pasting error output
+and getting the next step — useful, but slower than if I'd understood the Windows/Docker/
+Git Bash toolchain better going in.
+
+**What would you do differently if you started over?**
+I'd set up and verify my full local environment (Docker, WSL2, virtualization, Git Bash,
+`make`) before browsing the issue tracker at all, instead of discovering each missing
+piece one at a time while trying to move forward. I'd also check the linked PRs on an
+issue before claiming it, to confirm it wasn't already being solved by someone else.
+
+**What are you most proud of from this module?**
+Getting a clean, root-cause fix rather than a surface patch — the JS/TS detection bug
+had a real underlying reason (an overly narrow regex and unrelated false-positive
+trigger), and I traced it down to that instead of just special-casing the failing test
+inputs. Confirming with the full test suite that I introduced zero new failures felt
+like real engineering discipline, not just "make the assignment pass."
