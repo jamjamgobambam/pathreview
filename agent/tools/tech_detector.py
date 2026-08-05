@@ -1,6 +1,7 @@
 """Technology stack detector tool."""
 
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -56,6 +57,30 @@ class TechDetector(BaseTool):
         "cmake": ("CMake", "Build"),
     }
 
+    # Directory names to exclude from language/framework detection.
+    # Matched as whole path segments (not substrings), so this only
+    # excludes an actual vendored/build directory anywhere in the path —
+    # not a file or directory that merely contains one of these names
+    # (e.g. "src/rebuild/main.py" is not skipped).
+    SKIP_DIRECTORIES = {
+        "node_modules",
+        "vendor",
+        "dist",
+        "build",
+        ".git",
+        "__pycache__",
+        ".venv",
+        "venv",
+        "target",
+        ".next",
+        ".nuxt",
+        ".pytest_cache",
+        ".mypy_cache",
+        ".ruff_cache",
+        ".tox",
+        ".eggs",
+    }
+
     def execute(self, input_data: dict) -> ToolResult:
         """Detect tech stack from files.
 
@@ -75,7 +100,7 @@ class TechDetector(BaseTool):
                     "primary_language": "Unknown",
                     "all_languages": [],
                     "frameworks": [],
-                }
+                },
             )
 
         try:
@@ -84,11 +109,7 @@ class TechDetector(BaseTool):
 
         except Exception as e:
             logger.error("tech_detector_error", error=str(e))
-            return ToolResult(
-                success=False,
-                data={},
-                error=str(e)
-            )
+            return ToolResult(success=False, data={}, error=str(e))
 
     def _detect_tech(self, files: list[str]) -> dict:
         """Detect technologies from file list.
@@ -100,10 +121,7 @@ class TechDetector(BaseTool):
             Dict with detected languages and frameworks
         """
         # Filter out vendor/build directories
-        filtered_files = [
-            f for f in files
-            if not self._should_skip_file(f)
-        ]
+        filtered_files = [f for f in files if not self._should_skip_file(f)]
 
         languages = set()
         frameworks = set()
@@ -131,8 +149,12 @@ class TechDetector(BaseTool):
         all_languages = sorted(languages)
         all_frameworks = sorted(frameworks)
 
-        logger.info("tech_detected", primary_lang=primary,
-                   languages_count=len(all_languages), frameworks_count=len(all_frameworks))
+        logger.info(
+            "tech_detected",
+            primary_lang=primary,
+            languages_count=len(all_languages),
+            frameworks_count=len(all_frameworks),
+        )
 
         return {
             "primary_language": primary,
@@ -140,9 +162,15 @@ class TechDetector(BaseTool):
             "frameworks": all_frameworks,
         }
 
-    @staticmethod
-    def _should_skip_file(filepath: str) -> bool:
+    @classmethod
+    def _should_skip_file(cls, filepath: str) -> bool:
         """Check if file should be skipped.
+
+        Matches directory names as whole path segments after normalizing
+        separators, so it catches a vendored/build directory whether it's
+        at the repo root or nested, and whether the path uses "/" or "\\"
+        (see issue #150 — the previous substring-based check required a
+        leading "/", which missed both of those cases).
 
         Args:
             filepath: File path
@@ -150,15 +178,13 @@ class TechDetector(BaseTool):
         Returns:
             True if file should be skipped
         """
-        skip_patterns = [
-            "/node_modules/",
-            "/vendor/",
-            "/dist/",
-            "/build/",
-            "/.git/",
-            "/__pycache__/",
-            "/.venv/",
-            "/venv/",
-        ]
+        normalized = filepath.replace("\\", "/")
+        # Only check directory segments, not the filename itself, so a
+        # file literally named e.g. "build" isn't mistaken for the
+        # "build/" directory.
+        directory_segments = normalized.split("/")[:-1]
 
-        return any(pattern in filepath for pattern in skip_patterns)
+        return any(
+            segment in cls.SKIP_DIRECTORIES or segment.endswith(".egg-info")
+            for segment in directory_segments
+        )
