@@ -120,20 +120,38 @@ No feedback received yet.
 ### Reflection
 
 **What was harder than you expected?**
-[Be specific — what part of the process, codebase, or workflow
-surprised you?]
+The part I found most difficult is trying to make the precommit hook pass 
+so that I could commit my changes, despite the existing check errors. 
+I spent probably almost half of my time trying to identify all the existing
+errors and mitigate some that crossed path with my changes. 
 
 **What did you learn about working in a large codebase?**
-[What's different about contributing to someone else's production code
-vs. building your own project?]
+Since I have worked on larger codebases before, this one is actually smaller.
+But there were still something I got to learn as I see multiple packages
+inside the same repo (core, ingestion, rag, safety, frontend, etc.) and seeing
+how JavaScript frontend project is mixed into the same repo as Python backend.
 
 **How did AI tools help — and where did they fall short?**
-[Where was AI assistance most useful this module? Where did you need
-to go beyond what AI could give you?]
+After the thorough planning, I had the AI generated the code changes based on
+the planned directions. And I got to review the code and adapt certain changes
+while having to reject some others. I also had to catch more missing cases as
+I went and added new action item to the plan for more code fix generation.
 
 **What would you do differently if you started over?**
-[Issue selection, planning, implementation, or process — anything
-you'd change?]
+I would actually start by reading the general architecture of the repo to 
+understand the general flow first before moving on to reading through each
+issue to understand the scope clearer before I decide to pick a specific
+issue to work on. Instead of jumping to the issue to claim it first based
+on my interests solely. And I would like to ensure the issue I take would
+fit into my schedule and other commitments as well.
+
+On the implementation side, I would commit after each step instead of letting
+changes accumulate — this time steps 2 and 3 ended up in the same commit
+because I forgot.
 
 **What are you most proud of from this module?**
-[One thing — it doesn't have to be the PR itself.]
+Well, it might sound odd, but the one thing I'm most proud of is actually
+understanding the scope of the initial tier 3 issue that I was trying to
+take and knowing that I do not have enough capacity to actually finish it.
+That has given me a better judgment exercise and allowed me to downgrade
+the issue tier to balance other courses I am taking and the outside life.
