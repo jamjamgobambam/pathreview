@@ -101,4 +101,4 @@ Added 7 new tests to `tests/unit/test_skill_extractor.py`: `test_js_extension_in
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
