@@ -48,6 +48,6 @@ Fixed the phone_us regex in safety/pii_scrubber.py to correctly detect and redac
 **Tests added or updated:**
 No new test files added. Fix verified manually against parenthesized and dashed phone number formats.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [ ] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
