@@ -37,7 +37,7 @@ Confirmed that `tests/unit/test_prompt_templates.py::TestPromptTemplates::test_t
 Implemented the fix from `PLAN.md`'s Plan steps 1-4: replaced the toothless `isinstance`/`len()` assertions in `test_template_snapshot_content_hash` with real per-(template, version) pinned MD5 hashes (`EXPECTED_TEMPLATE_HASHES`), plus a companion assertion that catches a template/version being added or removed without a corresponding hash entry. Verified the fix actually catches drift by repeating the Week 8 reproduction (appending text to `skills_feedback` v1) against the *fixed* test — it now fails with a message naming the exact template, then passes again after reverting. Ran full `make check` / `make test-unit` baselines before and after: identical 53 pre-existing test failures and 19 pre-existing `ruff` findings in the touched file, both unrelated to this issue — no new failures introduced. Also caught and reverted an unrelated `frontend/package-lock.json` diff that had been accidentally staged.
 
 **Next steps:**
-Self-review against `docs/CONTRIBUTING.md` is done (see Check-in 2). Remaining: get the student's go-ahead to commit, push, and open the PR; then request peer/mentor feedback in Slack per Phase 8.
+Self-review against `docs/CONTRIBUTING.md` is done (see Check-in 2). Commit pushed and draft PR opened (#853). Remaining: request peer/mentor feedback in the instructor Slack channel per Phase 8, address any feedback, then mark the PR ready for review.
 
 **Blockers:**
 None — the two open questions from Week 8 (branch name, pinning mechanism) are resolved above.
@@ -46,7 +46,7 @@ None — the two open questions from Week 8 (branch name, pinning mechanism) are
 
 ### Check-in 2 (end of week)
 
-**PR link:** [PENDING — not yet opened; awaiting approval to push and open the PR]
+**PR link:** https://github.com/ascherj/pathreview/pull/853
 
 **Branch:** `fix/37-add-snapshot-tests-for-prompt-templates`
 
