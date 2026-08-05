@@ -292,3 +292,101 @@ charset, and share-token lookup success / unknown-token / empty-token cases.
 > the Week 9 guidance, "passes" here means my changes introduce no new failures.
 
 **Draft PR feedback received from:** none (draft PR opened for peer review in Slack)
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback came in on PR #634 by the end of the week.
+Per the Summer 2026 course note, reviewer feedback on the upstream repo
+(`ascherj/pathreview`) is not an active feature this term, so none was expected.
+The PR remains open against upstream `main` with the full public-review-sharing
+implementation and my 7 new unit tests.
+
+**How you responded:**
+No changes were required, since no feedback arrived. I did a final self-review
+pass on the branch to confirm the PR is still in a mergeable, reviewable state:
+the diff stays scoped to the review-sharing subsystem (model + migration,
+service functions, two routes, schemas, frontend client/route/page), my new
+Python files remain black-clean, and my 7 tests still pass on top of the same
+53 documented pre-existing failures — no new failures introduced.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part wasn't the feature logic — it was working *around* the state of
+the codebase and local environment rather than *in* it. Two things surprised me.
+First, the local environment was subtly broken in ways that had nothing to do
+with my issue: the project virtualenv (and copies of `docs/` and `.github/`) had
+been nested under `core/`, the Makefile expected a root `.venv` that didn't
+exist, and the console-script shebangs pointed at a stale path — so I had to run
+every tool in module form (`core/.venv/bin/python -m pytest|ruff|black`) instead
+of the normal `make` targets. Second, `make check` and `make test-unit` had
+heavy *pre-existing* failures (53 failing tests, 182 ruff errors, 52 unformatted
+files, missing mypy stubs) before I touched anything. Separating "failures I
+caused" from "failures that were already there" took real discipline and became
+the whole basis of how I had to phrase my self-review. The actual token +
+endpoint + button work was the *smaller* half of the effort.
+
+**What did you learn about working in a large codebase?**
+That "matching the house style" often matters more than writing what you'd
+consider the cleanest code. In `api/routes/reviews.py`, the existing endpoints
+uniformly use `Depends()` in default arguments (which ruff flags as B008), raise
+bare `HTTPException` in except blocks (B904), and pass `current_user.id` as a
+string where services annotate `UUID`. My instinct was to "fix" those in my new
+handlers — but doing so would have made my code inconsistent with every other
+endpoint and would have signaled to a reviewer that I didn't understand the
+conventions. So I deliberately matched the existing patterns and documented that
+choice. Contributing to someone else's production code is much more about
+*fitting in* — respecting existing decisions, keeping the diff small and
+scoped, and not surprising the maintainer — than about building my own project,
+where I own every convention and can refactor freely. I also learned to design
+for boundaries I couldn't see initially: sanitizing the public response so it
+omits owner fields, keeping every existing private endpoint auth-protected, and
+making token creation idempotent so re-clicking "Copy link" doesn't rotate a
+link someone already shared.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for *orientation and boilerplate*: quickly tracing the call
+path (ReviewPage → handleShare → clipboard; the `/reviews/:reviewId` protected
+route; the auth-gated backend endpoints), scaffolding the Alembic migration and
+the new Pydantic schemas, and drafting test cases for the token flow. That
+compressed hours of reading into minutes. Where it fell short was anything that
+depended on the *specific broken state* of this repo — AI happily suggested
+`make check` and `make test-unit` as if they'd pass cleanly, and couldn't have
+known that the venv was misplaced or that 53 tests were already red for reasons
+unrelated to my work. It also couldn't make the judgment call about whether to
+match the existing B008/B904 "code smells" or fix them; that required
+understanding the social context of a PR (don't surprise the maintainer), not
+just the code. The security-sensitive decisions — using `secrets.token_urlsafe`
+for the token, deciding which fields are safe to expose publicly — were things I
+had to reason through and verify myself, not take on faith.
+
+**What would you do differently if you started over?**
+I'd validate the local environment *before* writing any code — run the test
+suite on a clean checkout first to capture the true baseline, so I'd know from
+day one exactly which failures were pre-existing instead of discovering it
+mid-implementation. That baseline turned out to be the single most important
+fact for my whole self-review, and I established it later than I should have.
+I'd also open the draft PR earlier in the week to leave a real window for peer
+feedback in Slack, rather than finishing most of the implementation first. On
+planning, PLAN.md held up well, but I'd add an explicit "environment / tooling"
+section to it next time, since that's where the actual friction lived.
+
+**What are you most proud of from this module?**
+The clarity and honesty of the self-review. It would have been easy to write
+"make check passes" and move on, or to panic at 53 failing tests. Instead I
+took the time to establish a real before/after baseline (53 failed / 375 passed
+→ 53 failed / **382 passed**), prove my 7 new tests all pass, and document
+precisely why the pre-existing failures aren't mine — including keeping my new
+files black-clean and matching the existing lint patterns deliberately rather
+than accidentally. Being able to defend exactly what my change does and doesn't
+affect, in a messy real-world repo, is the skill I most wanted to build this
+module.
