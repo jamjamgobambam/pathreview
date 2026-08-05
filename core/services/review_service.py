@@ -1,13 +1,15 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
+from core.services.profile_service import get_profile
 
 log = structlog.get_logger()
 
@@ -16,10 +18,15 @@ async def create_review(
     db,
     profile_id: UUID,
     user_id: UUID,
-) -> Review:
+) -> Review | None:
     """
     Create a new review with status="pending".
+    Returns None if the profile does not exist or does not belong to user_id.
     """
+    profile = await get_profile(db, profile_id, user_id)
+    if profile is None:
+        return None
+
     review = Review(
         profile_id=profile_id,
         status="pending",
@@ -40,8 +47,8 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
     return result.scalars().first()
