@@ -1,31 +1,25 @@
-"""Reproduction for issue #68 — Add a safety event count to the health check endpoint.
+"""Regression tests for issue #68 — safety event count on the health check endpoint.
 
 Issue: https://github.com/ascherj/pathreview/issues/68
 
-Scenario reproduced here
-------------------------
-The ``/health`` endpoint exposes a ``safety_events_last_hour`` field, but it is
-hardcoded to ``0`` (see ``api/routes/health.py`` lines 25 and 78, commented as a
-"placeholder"). The endpoint never consults ``SafetyMonitor``, which is the class
-that actually records safety events (PII detections, injection attempts, etc.) in
-Redis. So even when real safety events have occurred, ``/health`` always reports 0.
+Background
+----------
+The ``/health`` endpoint used to hardcode ``safety_events_last_hour`` to ``0`` and
+never consult ``SafetyMonitor`` (the class that records safety events in Redis), so
+the field never reflected real activity. This file started as the reproduction for
+that bug; the fix wires the endpoint to ``SafetyMonitor.get_total_event_count()``,
+and these tests now guard against a regression:
 
-These tests prove both halves of the bug:
-
-    * ``test_safety_monitor_actually_counts_events`` (passes today) -- the data
-      exists: ``SafetyMonitor`` records events and can count them back.
-    * ``test_health_endpoint_reports_recorded_safety_events`` (xfail today) -- the
-      endpoint ignores that data and reports 0.
-
-The second test is marked ``xfail(strict=True)`` so CI stays green while the bug is
-documented. When the Week 9 fix wires the endpoint to the safety counts and it
-starts passing, strict xfail will flag it so the marker can be removed.
+    * ``test_safety_monitor_actually_counts_events`` -- SafetyMonitor records events
+      and can count them back.
+    * ``test_health_endpoint_reports_recorded_safety_events`` -- the endpoint reports
+      the recorded count instead of a hardcoded 0.
 """
 
 import asyncio
+from unittest.mock import patch
 
 import pytest
-from unittest.mock import patch
 
 from api.routes import health as health_mod
 from safety.monitoring import SafetyMonitor
@@ -63,13 +57,13 @@ def _call_health(shared_redis: FakeRedis) -> dict:
 
     Dependency health is irrelevant to this bug, so if the endpoint raises a 503
     we still return the payload (it is attached to the HTTPException's ``detail``).
-    ``redis.Redis`` is patched to return ``shared_redis`` so that a *fixed*
-    endpoint reading the same counters would see the recorded events.
+    ``redis.Redis.from_url`` is patched to return ``shared_redis`` so the endpoint
+    reads the same counters the test recorded events into.
     """
     from fastapi import HTTPException
 
     async def run() -> dict:
-        with patch("redis.Redis", return_value=shared_redis):
+        with patch("redis.Redis.from_url", return_value=shared_redis):
             try:
                 return await health_mod.health_check(db=FakeDB())
             except HTTPException as exc:
@@ -93,13 +87,12 @@ def test_safety_monitor_actually_counts_events() -> None:
 
 
 @pytest.mark.unit
-@pytest.mark.xfail(
-    strict=True,
-    reason="Issue #68: /health hardcodes safety_events_last_hour=0 and never reads "
-    "SafetyMonitor. Fix lands in Week 9.",
-)
 def test_health_endpoint_reports_recorded_safety_events() -> None:
-    """After safety events are recorded, /health should report them (not 0)."""
+    """After safety events are recorded, /health reports them (not 0).
+
+    Was the reproduction for issue #68 (previously xfail); now a regression test
+    that passes because the endpoint reads the count from SafetyMonitor.
+    """
     shared_redis = FakeRedis()
     monitor = SafetyMonitor(shared_redis)
     monitor.log_event("pii_detected", {"field": "email"})
@@ -109,6 +102,5 @@ def test_health_endpoint_reports_recorded_safety_events() -> None:
 
     health = _call_health(shared_redis)
 
-    # Desired behavior: the endpoint surfaces the recorded events.
-    # Today it returns 0, so this xfails and documents the reproduced bug.
+    # The endpoint now surfaces the recorded events instead of a hardcoded 0.
     assert health["safety_events_last_hour"] == recorded
