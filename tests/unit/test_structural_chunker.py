@@ -2,8 +2,8 @@
 
 import pytest
 
-from ingestion.chunking.structural_chunker import StructuralChunker
 from ingestion.chunking.base import Chunk
+from ingestion.chunking.structural_chunker import StructuralChunker
 
 
 @pytest.mark.unit
@@ -26,13 +26,62 @@ class TestStructuralChunker:
         assert result == []
 
     def test_document_with_no_headings(self, chunker):
-        """Test document with no headings returns single chunk."""
-        text = "This is plain text without any markdown headings. " * 20
+        """Test headingless documents fall back to semantic chunking."""
+        text = "This is plain text without any markdown headings."
+        metadata = {"source": "test", "filename": "plain-text.md"}
+        result = chunker.chunk(text, metadata)
+
+        assert metadata == {"source": "test", "filename": "plain-text.md"}
+        assert len(result) == 1
+        assert all(isinstance(c, Chunk) for c in result)
+        assert result[0].text == text
+        assert result[0].metadata["source"] == "test"
+        assert result[0].metadata["filename"] == "plain-text.md"
+        assert "heading_path" not in result[0].metadata
+        assert "heading_level" not in result[0].metadata
+
+    def test_large_document_with_no_headings_uses_semantic_chunks(self, chunker):
+        """Test large headingless documents produce multiple semantic chunks."""
+        sentences = [
+            f"Sentence {index} provides enough plain text for semantic chunking."
+            for index in range(100)
+        ]
+        text = " ".join(sentences)
+        metadata = {"source": "test", "filename": "large-plain-text.md"}
+
+        result = chunker.chunk(text, metadata)
+
+        assert len(result) > 1
+        assert all(isinstance(chunk, Chunk) for chunk in result)
+        assert all(chunk.text.strip() for chunk in result)
+        assert all(chunk.metadata["source"] == "test" for chunk in result)
+        assert all(chunk.metadata["filename"] == "large-plain-text.md" for chunk in result)
+        assert all("heading_path" not in chunk.metadata for chunk in result)
+        assert all("heading_level" not in chunk.metadata for chunk in result)
+        combined_chunk_text = "".join(chunk.text for chunk in result)
+        assert all(sentence in combined_chunk_text for sentence in sentences)
+
+    def test_headingless_bullet_list_falls_back_to_semantic_chunking(self, chunker):
+        """Test headingless bullet lists are retained by the semantic fallback."""
+        text = "- First item\n* Second item\n\u2022 Third item\n\u25aa Fourth item"
         result = chunker.chunk(text, {"source": "test"})
 
-        assert len(result) >= 1
-        assert isinstance(result[0], Chunk)
-        assert all(isinstance(c, Chunk) for c in result)
+        assert len(result) == 1
+        assert result[0].text == text
+        assert result[0].metadata["source"] == "test"
+        assert "heading_path" not in result[0].metadata
+        assert "heading_level" not in result[0].metadata
+
+    def test_hashtag_without_space_is_not_treated_as_heading(self, chunker):
+        """Test a hashtag without a space falls back to semantic chunking."""
+        text = "#hashtag is ordinary content, not a Markdown heading."
+        result = chunker.chunk(text, {"source": "test"})
+
+        assert len(result) == 1
+        assert result[0].text == text
+        assert result[0].metadata["source"] == "test"
+        assert "heading_path" not in result[0].metadata
+        assert "heading_level" not in result[0].metadata
 
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
@@ -82,12 +131,16 @@ Content under grandchild.
                     # Should have " > " as separator if it has parent
                     found_path = True
                     assert isinstance(path, str)
+        assert found_path
 
     def test_large_section_sub_chunked(self, chunker):
         """Test large section (> 800 tokens) gets sub-chunked."""
         # Create a large section
-        large_section = """# Large Section
-""" + "This is a paragraph with lots of content. " * 50
+        large_section = (
+            """# Large Section
+"""
+            + "This is a paragraph with lots of content. " * 50
+        )
 
         result = chunker.chunk(large_section, {})
 
@@ -172,6 +225,7 @@ Content here.
                 # Should contain the hierarchy
                 if "Installation" in path or "Prerequisites" in path:
                     found_full_path = True
+            assert found_full_path
 
     def test_chunks_have_text_content(self, chunker):
         """Test that all chunks have text content."""
@@ -238,3 +292,4 @@ Content for 3
 
         # Should not crash on empty sections
         assert isinstance(result, list)
+        assert all(chunk.text.strip() for chunk in result)

@@ -202,6 +202,7 @@ class TestPIIScrubber:
             text = f"Address: {addr}"
             scrubbed = scrubber.scrub(text)
             # Should attempt to redact addresses
+            assert addr not in scrubbed
 
     def test_empty_text(self, scrubber):
         """Test with empty text."""
@@ -252,3 +253,4 @@ class TestPIIScrubber:
 
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
+        assert detected == []

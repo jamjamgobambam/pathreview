@@ -2,8 +2,8 @@
 
 import pytest
 
-from ingestion.chunking.semantic_chunker import SemanticChunker
 from ingestion.chunking.base import Chunk
+from ingestion.chunking.semantic_chunker import SemanticChunker
 
 
 @pytest.mark.unit
@@ -78,12 +78,15 @@ class TestSemanticChunker:
 
     def test_bullet_points_not_split_mid_bullet(self, chunker):
         """Test that bullet points are not split mid-bullet."""
-        text = """
+        text = (
+            """
         Key features:
         - Feature one with detailed explanation that goes on for a while
         - Feature two with another long explanation
         - Feature three is important
-        """ * 10
+        """
+            * 10
+        )
 
         result = chunker.chunk(text, {})
 
@@ -145,7 +148,8 @@ class TestSemanticChunker:
 
     def test_paragraph_boundaries_respected(self, chunker):
         """Test that paragraph boundaries are respected."""
-        text = """
+        text = (
+            """
         First paragraph with multiple sentences. This is still the first paragraph.
         It continues here.
 
@@ -153,7 +157,9 @@ class TestSemanticChunker:
         More content in the second paragraph.
 
         Third paragraph is separate.
-        """ * 5
+        """
+            * 5
+        )
 
         result = chunker.chunk(text, {})
 

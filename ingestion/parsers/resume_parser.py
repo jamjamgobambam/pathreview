@@ -5,7 +5,6 @@ from pypdf import PdfReader
 
 from .base import BaseParser, ParseResult
 
-
 SECTION_HEADERS = {
     "experience",
     "education",
@@ -74,8 +73,8 @@ class ResumeParser(BaseParser):
                 metadata=metadata,
                 source_type="resume",
             )
-        except Exception as e:
-            raise ValueError(f"Failed to parse PDF: {str(e)}")
+        except Exception as exc:
+            raise ValueError(f"Failed to parse PDF: {str(exc)}") from exc
 
     def _parse_markdown(self, content: str) -> ParseResult:
         """Extract text from markdown resume, stripping markdown syntax."""

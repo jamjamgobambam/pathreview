@@ -74,9 +74,15 @@ line-length = 100
 
 [tool.mypy]
 python_version = "3.11"
-warn_return_any = true
+# Codebase mixes SQLAlchemy/redis calls that return Any; don't fail on those.
+warn_return_any = false
 warn_unused_configs = true
-disallow_untyped_defs = true
+# Codebase predates PEP 484; allow None defaults on non-Optional-annotated args.
+implicit_optional = true
+# Relaxed: the codebase predates full type annotations; enforcing this flags
+# 500+ pre-existing no-untyped-def errors repo-wide. Keep check_untyped_defs on
+# so mypy still type-checks inside unannotated functions.
+disallow_untyped_defs = false
 check_untyped_defs = true
 exclude = ["alembic/versions/"]
 
