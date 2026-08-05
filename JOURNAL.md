@@ -48,3 +48,22 @@ Open a draft PR early this week and share it for peer/mentor feedback per the We
 
 **Blockers:**
 Hit two infrastructure snags worth noting (both resolved, neither blocking): (1) my machine was memory-constrained enough that `pytest`/`mypy` runs intermittently stalled for minutes at a time — resolved by closing other apps; (2) a `pre-commit` run got killed mid-hook by a tool timeout and stashed my unstaged test file edits without restoring them — recovered by rewriting the files from scratch since I had the exact content. Also discovered that instantiating `TestClient(app)` twice in the same integration test file breaks the second instance (the async SQLAlchemy engine is a module-level singleton bound to the first `TestClient`'s event loop) — unrelated to issue #155, so I dropped the redundant negative-path integration test rather than expand scope into fixing that isolation issue, and kept the negative-path coverage in the Docker-free unit test instead.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/975
+
+**Branch:** fix/155-health-check-redis-host
+
+**What you built:**
+Fixed `/health`'s Redis probe to build its client from `settings.redis_url` via `redis.Redis.from_url()` instead of the nonexistent `settings.redis_host`/`redis_port`, so the endpoint now correctly reports Redis's real connectivity instead of always failing with a caught `AttributeError`.
+
+**Tests added or updated:**
+`tests/unit/test_health_check.py` — two new unit tests that call `health_check()` directly with a mocked db/Redis client, asserting the client is built from `redis_url` and that both the healthy and failed-ping paths report the correct status (Docker-free). `tests/integration/test_health.py` — updated the existing test to assert `/health` reports Redis `"healthy"` against the real docker-compose Redis container.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both pass in the sense required by the Week 9 pre-existing-failures guidance: this change introduces zero new `ruff`/`mypy`/`test-unit` failures, confirmed by diffing before/after runs. The repo has pre-existing `mypy`/`ruff` issues in `health.py` and 53 pre-existing `test-unit` failures elsewhere, all unrelated to and unchanged by this PR — documented in the PR description.)
+
+**Draft PR feedback received from:** none — opened the PR and moved straight to marking it ready for review due to time constraints this week, so it did not go through peer/mentor review before finalizing.
