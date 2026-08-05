@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -39,6 +39,63 @@ class SkillExtractor:
         "await",
         "class",
     }
+
+    # Content signals for JavaScript, as (pattern, evidence) pairs. These are
+    # matched against the raw text so a snippet is recognised even when no
+    # filename is available. Patterns are deliberately anchored (word
+    # boundaries, a required operator or paren) to keep prose from matching.
+    JS_SIGNALS = (
+        (r"\brequire\s*\(", "CommonJS require() call"),
+        (r"\bimport\b[^;\n]*\bfrom\s*['\"]", "ES6 import statement"),
+        (
+            r"\bexport\s+(default|const|let|var|function|class|interface|type|enum|\{)",
+            "ES6 export statement",
+        ),
+        (r"\b(const|let)\s+\w+\s*=", "const/let declaration"),
+        (r"(\w|\))\s*=>", "Arrow function"),
+        (r"\bfunction\s*\w*\s*\(", "function declaration"),
+        (r"\bconsole\.(log|error|warn|info)\s*\(", "console logging"),
+    )
+
+    # Signals that only appear in TypeScript, never in plain JavaScript.
+    # Structural patterns require their opening brace or `=` so that Python's
+    # `from enum import Enum` and similar prose do not match.
+    TS_SIGNALS = (
+        (r"\binterface\s+\w+\s*(\{|extends\b)", "TypeScript interface declaration"),
+        (r"\btype\s+\w+\s*=", "TypeScript type alias"),
+        (r"\benum\s+\w+\s*\{", "TypeScript enum declaration"),
+        (r":\s*(string|number|boolean|any|unknown|never|void)\b", "TypeScript type annotation"),
+        (r":\s*Promise\s*<", "TypeScript Promise return type"),
+        (r"\bas\s+(string|number|boolean|const)\b", "TypeScript type assertion"),
+    )
+
+    # Dockerfile instructions other than FROM. Matched case-sensitively at the
+    # start of a line, and only trusted in pairs, so prose is not misread.
+    DOCKERFILE_DIRECTIVES = (
+        "RUN",
+        "CMD",
+        "EXPOSE",
+        "ENTRYPOINT",
+        "COPY",
+        "ADD",
+        "WORKDIR",
+        "ENV",
+        "VOLUME",
+        "ARG",
+        "LABEL",
+        "USER",
+    )
+
+    # Keys that identify a docker-compose service block.
+    COMPOSE_SERVICE_KEYS = (
+        "image",
+        "build",
+        "ports",
+        "volumes",
+        "networks",
+        "depends_on",
+        "container_name",
+    )
 
     REACT_INDICATORS = {
         "import React",
@@ -105,7 +162,7 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -116,7 +173,7 @@ class SkillExtractor:
         Returns:
             List of detected skills with confidence scores
         """
-        detected_skills = {}
+        detected_skills: dict[str, SkillDetection] = {}
 
         # Detect languages first
         self._detect_languages(text, filename, detected_skills)
@@ -143,7 +200,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -171,23 +228,38 @@ class SkillExtractor:
             )
 
         # JavaScript/TypeScript detection
-        js_evidence = []
-        if ".js" in str(filename or "").lower():
-            js_evidence.append("JavaScript file extension (.js)")
-        if ".ts" in str(filename or "").lower():
-            js_evidence.append("TypeScript file extension (.ts)")
-        if re.search(r"\b(import|require)\s+", text):
-            js_evidence.append("CommonJS or ES6 imports")
-        if "package.json" in text_lower:
-            js_evidence.append("package.json found")
+        #
+        # Detection is content-driven so that a raw snippet with no filename is
+        # still recognised. TypeScript is a superset of JavaScript, so any
+        # TypeScript signal wins and the text is reported once, as TypeScript,
+        # with the JavaScript evidence folded in.
+        filename_lower = str(filename or "").lower()
 
-        if js_evidence:
-            confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
-            skills_dict[lang] = SkillDetection(
-                name=lang,
+        js_evidence = []
+        if filename_lower.endswith((".js", ".jsx", ".mjs", ".cjs")):
+            js_evidence.append("JavaScript file extension")
+        if filename_lower.endswith("package.json") or "package.json" in text_lower:
+            js_evidence.append("package.json found")
+        js_evidence.extend(self._match_signals(text, self.JS_SIGNALS))
+
+        ts_evidence = []
+        if filename_lower.endswith((".ts", ".tsx", ".mts", ".cts")):
+            ts_evidence.append("TypeScript file extension")
+        ts_evidence.extend(self._match_signals(text, self.TS_SIGNALS))
+
+        if ts_evidence:
+            combined_evidence = ts_evidence + js_evidence
+            skills_dict["TypeScript"] = SkillDetection(
+                name="TypeScript",
                 category="Language",
-                confidence=confidence,
+                confidence=min(0.95, 0.6 + len(combined_evidence) * 0.1),
+                evidence=combined_evidence,
+            )
+        elif js_evidence:
+            skills_dict["JavaScript"] = SkillDetection(
+                name="JavaScript",
+                category="Language",
+                confidence=min(0.95, 0.6 + len(js_evidence) * 0.1),
                 evidence=js_evidence,
             )
 
@@ -203,7 +275,6 @@ class SkillExtractor:
             ".swift": ("Swift", 0.95),
         }
 
-        filename_lower = str(filename or "").lower()
         for ext, (lang, confidence) in extension_langs.items():
             if ext in filename_lower:
                 skills_dict[lang] = SkillDetection(
@@ -212,6 +283,56 @@ class SkillExtractor:
                     confidence=confidence,
                     evidence=[f"{lang} file extension"],
                 )
+
+    @staticmethod
+    def _match_signals(text: str, signals: tuple[tuple[str, str], ...]) -> list[str]:
+        """Collect the evidence for every signal whose pattern matches the text.
+
+        Args:
+            text: The source text to search.
+            signals: Pairs of (regular expression, human-readable evidence).
+
+        Returns:
+            The evidence string for each signal that matched, in declaration order.
+        """
+        return [evidence for pattern, evidence in signals if re.search(pattern, text)]
+
+    def _detect_docker_content(self, text: str) -> list[str]:
+        """Detect Docker from Dockerfile or Compose structure rather than by name.
+
+        Dockerfiles and docker-compose files almost never contain the literal
+        string "docker", so they are recognised from their directives instead.
+
+        Args:
+            text: The source text to analyse.
+
+        Returns:
+            Evidence strings describing what matched, or an empty list if the
+            text does not look like a Dockerfile or a Compose file.
+        """
+        evidence = []
+
+        # FROM is the mandatory first instruction of every Dockerfile, so an
+        # uppercase line-leading FROM stands on its own. Other directives are
+        # ambiguous individually, so at least two must co-occur.
+        if re.search(r"^[ \t]*FROM[ \t]+\S+", text, re.MULTILINE):
+            evidence.append("Dockerfile FROM instruction")
+
+        matched = [
+            directive
+            for directive in self.DOCKERFILE_DIRECTIVES
+            if re.search(rf"^[ \t]*{directive}[ \t]+\S", text, re.MULTILINE)
+        ]
+        if len(matched) >= 2:
+            evidence.append(f"Dockerfile directives ({', '.join(matched)})")
+
+        # A compose file needs a services block plus at least one service key.
+        if re.search(r"^[ \t]*services:", text, re.MULTILINE):
+            keys = "|".join(self.COMPOSE_SERVICE_KEYS)
+            if re.search(rf"^[ \t]*({keys}):", text, re.MULTILINE):
+                evidence.append("docker-compose services definition")
+
+        return evidence
 
     def _detect_frameworks(self, text: str, skills_dict: dict) -> None:
         """Detect frameworks and libraries."""
@@ -274,3 +395,18 @@ class SkillExtractor:
                         confidence=confidence,
                         evidence=[f"Found '{tool}' reference in content"],
                     )
+
+        # The loop above is a substring match on the tool name, which misses
+        # Dockerfiles and compose files because they do not spell out "docker".
+        docker_evidence = self._detect_docker_content(text)
+        if docker_evidence:
+            existing = skills_dict.get("Docker")
+            if existing is None:
+                skills_dict["Docker"] = SkillDetection(
+                    name="Docker",
+                    category="Tool",
+                    confidence=self.TOOLS["docker"],
+                    evidence=docker_evidence,
+                )
+            else:
+                existing.evidence.extend(docker_evidence)
