@@ -183,7 +183,7 @@ Nothing at the moment.
 ### Check-in 2 (end of week)
 
 **PR link:** [link to your submitted pull request]
-https://github.com/ascherj/pathreview/pull/913
+https://github.com/ascherj/pathreview/pull/952
 
 **Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
 https://github.com/mmim14/pathreview/tree/test/90-add-tests-authentication
@@ -208,6 +208,7 @@ Screenshot of auth integratiob tests passed:
 ![integration tests passed](image.png)
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
 There was errors that was outside the scope of my issue. My changes didn't affect them.
 
 `make check` before my change:
@@ -238,4 +239,4 @@ RuntimeWarning: Enable tracemalloc to get the object allocation traceback
 make: *** [Makefile:40: test-unit] Error 1
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
-I'm waiting for someone to review my draft PR. 
+TF Esha Mehta reviewed my PR. 
