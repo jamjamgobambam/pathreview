@@ -42,7 +42,7 @@ Format your response as JSON with these fields:
 - language_proficiency: dict mapping languages to proficiency level
 - framework_expertise: list of mastered frameworks
 - tool_proficiency: list of tools used effectively
-"""
+""",
     },
     "projects_feedback": {
         "v1": """Evaluate the quality and presentation of projects in the portfolio.
@@ -64,7 +64,7 @@ Format as JSON:
 - project_quality_score: overall 0-1 score
 - complexity_level: beginner/intermediate/advanced
 - presentation_notes: suggestions for improvement
-"""
+""",
     },
     "presentation_feedback": {
         "v1": """Evaluate the overall presentation quality of the portfolio.
@@ -86,7 +86,7 @@ Format as JSON:
 - profile_completeness: percentage
 - organization_score: 0-1
 - presentation_suggestions: list of improvements
-"""
+""",
     },
     "gaps_feedback": {
         "v1": """Identify skill gaps relative to job market demands.
@@ -108,7 +108,7 @@ Format as JSON:
 - underrepresented_areas: areas with low portfolio coverage
 - market_alignment_score: 0-1
 - recommended_learning_areas: prioritized list
-"""
+""",
     },
     "first_impression": {
         "v1": """Provide a 2-3 sentence overall first impression of this portfolio.
@@ -125,7 +125,7 @@ Write a concise, professional summary capturing:
 - Immediate opportunities for growth
 
 Provide only the summary text, no JSON formatting needed.
-"""
+""",
     },
 }
 
