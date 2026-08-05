@@ -1,11 +1,11 @@
 """Tests for resume_parser.py"""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
+from unittest.mock import Mock, patch
 
-from ingestion.parsers.resume_parser import ResumeParser
+import pytest
+
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.resume_parser import ResumeParser
 
 
 @pytest.mark.unit
@@ -142,6 +142,52 @@ class TestResumeParser:
         assert any("experience" in s for s in sections_lower)
         assert any("education" in s for s in sections_lower)
         assert any("skills" in s for s in sections_lower)
+
+    def test_detect_sections_with_leading_spaces(self, parser) -> None:
+        """Test section headers indented with leading spaces are still detected (issue #147)."""
+        text = """
+            Education:
+            - B.S. Computer Science
+
+            Skills: Python, JavaScript
+        """
+        sections = parser._detect_sections(text)
+
+        sections_lower = [s.lower() for s in sections]
+        assert any("education" in s for s in sections_lower)
+        assert any("skills" in s for s in sections_lower)
+
+    def test_detect_sections_with_leading_tabs(self, parser) -> None:
+        """Test section headers indented with leading tabs are still detected (issue #147)."""
+        text = "\tEducation:\n\t- B.S. Computer Science\n\n\tSkills: Python, JavaScript\n"
+        sections = parser._detect_sections(text)
+
+        sections_lower = [s.lower() for s in sections]
+        assert any("education" in s for s in sections_lower)
+        assert any("skills" in s for s in sections_lower)
+
+    def test_detect_sections_no_leading_whitespace_still_works(self, parser) -> None:
+        """Test section headers with no indentation are still detected (no regression)."""
+        text = "Education:\n- B.S. Computer Science\n\nSkills: Python, JavaScript\n"
+        sections = parser._detect_sections(text)
+
+        sections_lower = [s.lower() for s in sections]
+        assert any("education" in s for s in sections_lower)
+        assert any("skills" in s for s in sections_lower)
+
+    def test_detect_sections_no_false_positive_mid_sentence(self, parser) -> None:
+        """Test a section keyword embedded mid-sentence is not falsely detected as a header."""
+        text = "        In my free time I like to discuss my Skills in woodworking with friends.\n"
+        sections = parser._detect_sections(text)
+
+        sections_lower = [s.lower() for s in sections]
+        assert not any("skills" in s for s in sections_lower)
+
+    def test_detect_sections_empty_string(self, parser) -> None:
+        """Test empty input returns an empty list without erroring."""
+        sections = parser._detect_sections("")
+
+        assert sections == []
 
     def test_strip_markdown_syntax(self, parser):
         """Test markdown syntax stripping."""
