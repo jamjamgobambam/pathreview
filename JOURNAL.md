@@ -162,3 +162,20 @@ https://github.com/mmim14/pathreview/blob/test/90-add-tests-authentication/PLAN.
 [Anything you're still uncertain about going into Week 9, or leave blank]
 
 What type of test am I creating? There are 4 subfolders under /tests: bechmarks, integration, security and unit. There are only unit tests. My hunch is the tests for authentication should be under /security. 
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+
+I have added 23 integration test cases for and created 5 files. All of the tasks from PLAN.md are done. 
+
+**Next steps:**
+[What are you working on for the rest of the week?]
+I will be working on getting my PR draft reviewed by a TF. 
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+Nothing at the moment. 
