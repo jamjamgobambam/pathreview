@@ -363,3 +363,88 @@ class TestTechDetector:
 
         data = result.data
         # Should detect C++ (from .cpp files)
+
+    def test_root_level_node_modules_excluded(self, detector):
+        """Top-level node_modules/ (no leading path) is excluded (#150)."""
+        files = [
+            "main.py",
+            "utils.py",
+            "node_modules/a/index.js",
+            "node_modules/b/lib.js",
+            "node_modules/c/vendor.js",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+        assert "JavaScript" not in data["all_languages"]
+
+    def test_root_level_dist_excluded(self, detector):
+        """Top-level dist/ build output is excluded (#150)."""
+        files = [
+            "src/main.py",
+            "dist/bundle.js",
+            "dist/vendor.js",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+        assert "JavaScript" not in data["all_languages"]
+
+    def test_root_level_vendor_excluded(self, detector):
+        """Top-level vendor/ directory is excluded (#150)."""
+        files = [
+            "app.py",
+            "vendor/lib.go",
+            "vendor/pkg.go",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+        assert "Go" not in data["all_languages"]
+
+    def test_root_level_venv_excluded(self, detector):
+        """Top-level .venv/ directory is excluded (#150)."""
+        files = [
+            "app.py",
+            ".venv/lib/python3.11/site-packages/pkg/mod.py",
+            "venv/bin/script.rb",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+        assert "Ruby" not in data["all_languages"]
+
+    def test_filename_containing_skip_keyword_not_excluded(self, detector):
+        """Files whose names merely contain a keyword are NOT skipped (#150)."""
+        files = [
+            "src/rebuild.py",
+            "src/vendored_data.py",
+            "distance.py",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+        assert "Python" in data["all_languages"]
+
+    def test_fully_vendored_repo_is_unknown(self, detector):
+        """A repo consisting only of vendored files resolves to Unknown (#150)."""
+        files = [
+            "node_modules/a/index.js",
+            "build/bundle.js",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Unknown"
+        assert data["all_languages"] == []
