@@ -49,6 +49,40 @@ Found that VectorStore.add_chunks was dead code with a broken interface. Worked 
 
 **PR link:** https://github.com/ascherj/pathreview/pull/554
 
+**PR description (copied here for reference):**
+
+## Summary
+Before this change, `scripts/run_evals.py` was an empty stub. It printed messages saying the evaluation was complete, but it did not actually run anything, and it never created `eval_results.json`. This PR replaces it with a script that loads a set of sample portfolios, runs each one through retrieval and generation, scores the results, and writes a real JSON report. A new deterministic mock review generator lets the whole pipeline run offline, with no real API key or network access needed.
+
+## Issue
+Closes #40
+
+## Changes
+- Replaced the stub in `scripts/run_evals.py` with a full pipeline: load fixtures, embed and index chunks, retrieve, generate, evaluate, write JSON report
+- Added `rag/generator/mock_generator.py`, a deterministic mock review generator that mirrors the existing `MockEmbeddingProvider` pattern
+- Added three sample benchmark portfolios in `tests/fixtures/sample_profiles/`
+- Added `scripts/__init__.py` so the script can be imported cleanly in tests
+- Added `tests/unit/test_mock_generator.py` and `tests/unit/test_run_evals.py`
+
+## Testing
+- Unit tests pass (make test-unit) — new tests pass; 53 pre-existing failures unrelated to this change remain, unchanged from before this PR
+- Integration tests pass (make test-integration) — not run, no integration tests touch this code path
+- Linter passes (make lint) — new files are lint-clean; 182 pre-existing lint errors in unrelated files remain, unchanged from before this PR
+- Type checker passes (make typecheck) — new files are clean under the project's .venv mypy; pre-commit's isolated mypy hook (a different, older mypy version) surfaces unrelated pre-existing annotation gaps in files this PR does not touch
+- New/updated tests cover the changes
+
+Manual verification steps:
+1. .venv/bin/python scripts/run_evals.py
+2. Confirm it prints "Evaluation complete. Results written to eval_results.json"
+3. cat eval_results.json
+4. Confirm the file exists and contains real scores for three sample profiles (bench_fullstack_01, bench_junior_02, bench_datascience_03), each with relevance_score, faithfulness_score, and overall_score
+
+## Notes for Reviewers
+`VectorStore.add_chunks()` is dead code with a mismatched interface (expects `Chunk` objects with attributes that don't exist on the actual `Chunk` dataclass). This PR bypasses it and inserts chunks directly via the collection API instead of fixing that unrelated bug, to stay in scope for #40.
+
+The mock generator's scores are intentionally low (faithfulness near 0), since its placeholder text doesn't reference real chunk content. This is expected and shows the pipeline works correctly end to end, not a bug in the eval logic itself.
+
+
 **Branch:** feat/40-offline-eval-runner
 
 **What you built:**
