@@ -54,7 +54,7 @@ count in `safety/monitoring.py` is never surfaced. The test is marked
 `xfail(strict=True)` so it documents the bug now and will flip to a passing
 signal once the fix wires the two files together.
 
-**PLAN.md link:** [link to PLAN.md in your fork]
+**PLAN.md link:** [PLAN.md](https://github.com/jesswsong/pathreview/blob/feat/68-Add-a-safety-event-count-to-the-health-check-endpoint/PLAN.md)
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
 
@@ -108,7 +108,8 @@ previously-broken Redis health check.
 `tests/unit/test_health_safety_events.py` — two unit tests covering the health endpoint's
 safety count: one asserting the total of recorded events, one asserting `0` when none exist.
 
-**Self-review confirmation:** [-] make check passes  [-] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Repo has documented pre-existing failures unrelated to this issue — see the PR description's baseline table. My changed files pass ruff/black/mypy individually, and `make test-unit` introduces no new failures vs. the recorded baseline.)
 
 **Draft PR feedback received from:** ayc325
 
