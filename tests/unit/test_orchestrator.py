@@ -2,6 +2,8 @@
 
 from unittest.mock import Mock, patch
 
+import pytest
+
 from agent.orchestrator import Orchestrator
 from agent.tools.base import ToolResult
 
@@ -105,8 +107,8 @@ def test_run_preserves_failed_tool_result_and_does_not_log_success() -> None:
     )
 
 
-def test_run_retries_raised_exception_then_returns_error_result() -> None:
-    """A raised tool error is retried, then converted to an error by run()."""
+def test_run_retries_then_surfaces_exhausted_exception() -> None:
+    """An exhausted tool exception should be logged and re-raised by run()."""
     tool = RaisingTool()
     orchestrator = Orchestrator(tools={tool.name: tool})
 
@@ -117,11 +119,14 @@ def test_run_retries_raised_exception_then_returns_error_result() -> None:
             return_value=[(tool.name, {"test": True})],
         ),
         patch("agent.error_handling.time.sleep"),
+        patch("agent.orchestrator.logger") as mock_logger,
+        pytest.raises(RuntimeError, match="forced tool exception"),
     ):
-        result = orchestrator.run(profile_id="test-profile", profile_data={})
+        orchestrator.run(profile_id="test-profile", profile_data={})
 
     assert tool.execute.call_count == 2
-    assert result["tool_results"][tool.name] == {
-        "error": "forced tool exception",
-        "success": False,
-    }
+    mock_logger.error.assert_any_call(
+        "tool_execution_failed",
+        tool=tool.name,
+        error="forced tool exception",
+    )
