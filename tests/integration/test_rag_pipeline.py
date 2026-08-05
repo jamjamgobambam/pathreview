@@ -24,11 +24,22 @@ SECTION_MARKERS = (
     ("first impression", "first_impression"),
 )
 
+JSON_SECTIONS = (
+    "skills_feedback",
+    "projects_feedback",
+    "presentation_feedback",
+    "gaps_feedback",
+)
+
+PROSE_RESPONSE = "A focused backend portfolio with room to grow."
+
 CHUNK_TEXTS = [
     "Python FastAPI backend service with pytest coverage and Docker deployment",
+    "Python Flask backend API with pytest fixtures and Docker packaging",
     "React TypeScript frontend dashboard built with Tailwind and Vite",
     "Machine learning pipeline in Python using scikit-learn and pandas",
     "Go microservice exposing gRPC endpoints with Kubernetes manifests",
+    "Terraform modules provisioning managed Postgres and Redis instances",
 ]
 
 FENCE = "```json"
@@ -121,7 +132,7 @@ class FakeOpenAIClient:
         # The first_impression template explicitly asks for prose, not JSON, so this
         # exercises the parser's plaintext fallback alongside the four JSON sections.
         if section_name == "first_impression":
-            return FakeResponse("A focused backend portfolio with room to grow.")
+            return FakeResponse(PROSE_RESPONSE)
 
         # Each section must answer under its own top-level key: generate_section() takes
         # the section name from the parsed payload, and _consolidate_feedback() then
@@ -139,6 +150,11 @@ class FakeOpenAIClient:
 class TestRagPipeline:
     """Test suite for the end-to-end RAG pipeline."""
 
+    @pytest.fixture(autouse=True)
+    def offline(self, monkeypatch):
+        """Keep Chroma from phoning home so the pipeline runs fully offline."""
+        monkeypatch.setenv("ANONYMIZED_TELEMETRY", "False")
+
     @pytest.fixture
     def embedder(self):
         """Return the deterministic mock embedding provider."""
@@ -146,9 +162,9 @@ class TestRagPipeline:
 
     @pytest.fixture
     def chunk_records(self):
-        """Return chunk records for the seeded profile."""
+        """Return chunk records for the seeded profile, one source each."""
         return [
-            StoredChunk(id=f"chunk_{i}", text=text, source_id=f"repo_{i % 2}", chunk_index=i)
+            StoredChunk(id=f"chunk_{i}", text=text, source_id=f"repo_{i}", chunk_index=i)
             for i, text in enumerate(CHUNK_TEXTS)
         ]
 
@@ -181,13 +197,26 @@ class TestRagPipeline:
     @pytest.fixture
     def empty_retriever(self, tmp_path):
         """Build a HybridRetriever with no vectors and no keyword index."""
-        store = VectorStore(persist_dir=str(tmp_path / "chroma_empty"))
+        store = VectorStore(persist_dir=str(tmp_path / "chroma_ghost"))
         return HybridRetriever(store, KeywordSearcher())
 
     @pytest.fixture
     def profile_data(self):
         """Return profile metadata passed to the generator."""
         return {"github_username": PROFILE_ID, "projects": [{"name": "a"}, {"name": "b"}]}
+
+    @staticmethod
+    def synthetic_chunks(count):
+        """Return retriever-shaped chunk dicts with one distinct source each."""
+        return [
+            {
+                "id": f"synthetic_{i}",
+                "text": f"Synthetic portfolio evidence number {i}",
+                "metadata": {"source_id": f"source_{i}", "chunk_index": i, "section": "readme"},
+                "score": 0.9 - i / 100,
+            }
+            for i in range(count)
+        ]
 
     @staticmethod
     def run_generation(fake_client, profile_data, chunks):
@@ -207,9 +236,13 @@ class TestRagPipeline:
     def test_retrieval_blends_vector_and_keyword_scores(self, retriever, embedder):
         """Test that retrieved chunks carry blended scores from both retrieval arms."""
         query = CHUNK_TEXTS[0]
-        results = retriever.retrieve(query, PROFILE_ID, embedder.embed([query])[0], max_chunks=5)
+        results = retriever.retrieve(
+            query, PROFILE_ID, embedder.embed([query])[0], max_chunks=len(CHUNK_TEXTS)
+        )
 
-        assert len(results) == len(CHUNK_TEXTS)
+        # Deliberately a range, not an exact count: how many chunks clear min_score
+        # depends on the vector score conversion, which is not what this test pins.
+        assert 1 <= len(results) <= len(CHUNK_TEXTS)
         for chunk in results:
             assert set(chunk) == {
                 "id",
@@ -219,22 +252,44 @@ class TestRagPipeline:
                 "vector_score",
                 "keyword_score",
             }
-            # Metadata survived the round-trip through Chroma.
-            assert chunk["metadata"]["source_id"].startswith("repo_")
             assert chunk["score"] == pytest.approx(
                 0.7 * chunk["vector_score"] + 0.3 * chunk["keyword_score"]
             )
             assert chunk["vector_score"] > 0
-            assert chunk["keyword_score"] > 0
+            # BM25 legitimately scores zero for a chunk sharing no query terms.
+            assert chunk["keyword_score"] >= 0
 
-        assert results[0]["id"] == "chunk_0"
-        assert results[0]["text"] == CHUNK_TEXTS[0]
+        top = results[0]
+        assert top["id"] == "chunk_0"
+        assert top["text"] == CHUNK_TEXTS[0]
+        # Metadata survived the round-trip through Chroma with its values intact.
+        assert top["metadata"] == {"source_id": "repo_0", "chunk_index": 0, "section": "readme"}
+        # The query is chunk 0's own text, so the keyword arm must have contributed.
+        assert top["keyword_score"] > 0
         scores = [chunk["score"] for chunk in results]
         assert scores == sorted(scores, reverse=True)
 
+    def test_min_score_threshold_filters_weak_matches(self, retriever, embedder):
+        """Test that min_score is applied to blended scores rather than ignored."""
+        query = CHUNK_TEXTS[0]
+        embedding = embedder.embed([query])[0]
+        lenient = retriever.retrieve(query, PROFILE_ID, embedding, max_chunks=len(CHUNK_TEXTS))
+        assert lenient
+
+        # Both arms are max-normalised, so no blended score can exceed 0.7 + 0.3; a
+        # threshold above that must filter everything however scores are computed.
+        assert retriever.retrieve(query, PROFILE_ID, embedding, min_score=1.01) == []
+
+        strict = retriever.retrieve(
+            query, PROFILE_ID, embedding, max_chunks=len(CHUNK_TEXTS), min_score=0.9
+        )
+        assert len(strict) <= len(lenient)
+        for chunk in strict:
+            assert chunk["score"] >= 0.9
+
     def test_pipeline_produces_all_sections_with_citations(self, retriever, embedder, profile_data):
         """Test that retrieval feeds generation and yields five distinct cited sections."""
-        query = "python backend testing"
+        query = "python backend pytest docker"
         chunks = retriever.retrieve(query, PROFILE_ID, embedder.embed([query])[0], max_chunks=3)
         assert chunks
 
@@ -248,19 +303,25 @@ class TestRagPipeline:
             "gaps_feedback",
             "first_impression",
         ]
-        # Asserting count and distinctness rather than the literal names: the generator
-        # currently takes each name from the parsed payload, so the plaintext section
-        # comes back named "general_feedback". This holds either way.
         assert len(sections) == 5
-        assert len({section.section_name for section in sections}) == 5
+        by_name = {section.section_name: section for section in sections}
+        assert set(JSON_SECTIONS) <= set(by_name)
+
+        # The prose section is matched on content, not name: generate_section() takes the
+        # name from the parsed payload, so the plaintext reply keeps the parser's own
+        # label. Asserting content holds whether or not that is later corrected.
+        prose = [section for section in sections if section.content.startswith(PROSE_RESPONSE)]
+        assert len(prose) == 1
+        assert prose[0].confidence == pytest.approx(0.7)
 
         expected = sorted({chunk["metadata"]["source_id"] for chunk in chunks[:5]})
+        assert len(expected) == len(chunks)
         for section in sections:
             assert section.content.endswith("Sources: " + ", ".join(expected))
 
     def test_json_response_parses_into_structured_section(self, retriever, embedder, profile_data):
         """Test that fenced JSON responses become high-confidence parsed sections."""
-        query = CHUNK_TEXTS[2]
+        query = CHUNK_TEXTS[3]
         chunks = retriever.retrieve(query, PROFILE_ID, embedder.embed([query])[0])
         sections = self.run_generation(FakeOpenAIClient(), profile_data, chunks)
         # Keyed by the payload's section name, which the fake echoes back deliberately.
@@ -283,13 +344,32 @@ class TestRagPipeline:
 
         first = client.calls[0]["kwargs"]
         prompt = first["messages"][1]["content"]
-        assert chunks[0]["text"] in prompt
-        assert "Source: " + chunks[0]["metadata"]["source_id"] in prompt
+        for position, chunk in enumerate(chunks, start=1):
+            assert chunk["text"] in prompt
+            assert "Source: " + chunk["metadata"]["source_id"] in prompt
+            assert f"[{position}] (relevance:" in prompt
         assert "GitHub Username: " + PROFILE_ID in prompt
         assert "Project Count: 2" in prompt
         assert first["model"] == "test-model"
         assert first["temperature"] == pytest.approx(0.2)
         assert first["max_tokens"] == 256
+
+    def test_every_context_chunk_reaches_prompt_and_citations_cap_at_five(self, profile_data):
+        """Test that all chunks reach the prompt while citations stop at five sources."""
+        chunks = self.synthetic_chunks(6)
+        client = FakeOpenAIClient()
+        sections = self.run_generation(client, profile_data, chunks)
+
+        prompt = client.calls[0]["kwargs"]["messages"][1]["content"]
+        for position, chunk in enumerate(chunks, start=1):
+            assert chunk["text"] in prompt
+            assert f"[{position}] (relevance:" in prompt
+
+        expected = sorted(chunk["metadata"]["source_id"] for chunk in chunks[:5])
+        assert len(expected) == 5
+        for section in sections:
+            assert section.content.endswith("Sources: " + ", ".join(expected))
+            assert chunks[5]["metadata"]["source_id"] not in section.content
 
     def test_empty_retrieval_still_generates_uncited_sections(
         self, empty_retriever, embedder, profile_data
@@ -309,7 +389,7 @@ class TestRagPipeline:
 
     def test_single_section_llm_failure_yields_placeholder(self, retriever, embedder, profile_data):
         """Test that one failing LLM call degrades only that section."""
-        query = CHUNK_TEXTS[1]
+        query = CHUNK_TEXTS[2]
         chunks = retriever.retrieve(query, PROFILE_ID, embedder.embed([query])[0])
         client = FakeOpenAIClient(fail_sections={"gaps_feedback"})
         sections = self.run_generation(client, profile_data, chunks)
