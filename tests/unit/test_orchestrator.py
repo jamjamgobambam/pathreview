@@ -130,3 +130,34 @@ def test_run_retries_then_surfaces_exhausted_exception() -> None:
         tool=tool.name,
         error="forced tool exception",
     )
+
+
+def test_execute_tool_does_not_cache_failed_result() -> None:
+    """A failed ToolResult should be executed again for the same input."""
+    tool = FailedResultTool()
+    orchestrator = Orchestrator(tools={tool.name: tool})
+    tool_input = {"test": True}
+
+    with patch.object(tool, "execute", wraps=tool.execute) as mock_execute:
+        first_result = orchestrator._execute_tool(tool.name, tool_input)
+        second_result = orchestrator._execute_tool(tool.name, tool_input)
+
+    assert first_result.success is False
+    assert second_result.success is False
+    assert mock_execute.call_count == 2
+    assert orchestrator.context_manager.get_all_results() == {}
+
+
+def test_execute_tool_caches_successful_result() -> None:
+    """A successful ToolResult should be reused for the same input."""
+    tool = SuccessfulResultTool()
+    orchestrator = Orchestrator(tools={tool.name: tool})
+    tool_input = {"test": True}
+
+    with patch.object(tool, "execute", wraps=tool.execute) as mock_execute:
+        first_result = orchestrator._execute_tool(tool.name, tool_input)
+        second_result = orchestrator._execute_tool(tool.name, tool_input)
+
+    assert second_result is first_result
+    assert mock_execute.call_count == 1
+    assert list(orchestrator.context_manager.get_all_results().values()) == [first_result]

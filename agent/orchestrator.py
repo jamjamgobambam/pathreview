@@ -175,8 +175,9 @@ class Orchestrator:
         try:
             result = self._execute_with_timeout(tool, tool_input)
 
-            # Cache result
-            self.context_manager.store_tool_result(tool_name, input_hash, result)
+            # Cache only successful results
+            if not isinstance(result, ToolResult) or result.success:
+                self.context_manager.store_tool_result(tool_name, input_hash, result)
 
             return result
 
