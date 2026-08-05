@@ -124,3 +124,30 @@ Slack for peer feedback, then finalize Check-in 2.
 
 **Blockers:**
 None.
+
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/851
+
+**Branch:** fix/157-relevance-scorer-partial-overlap-fixture
+
+**What was built:**
+Fixed the fixture data in `test_query_with_partial_overlap` so the chunk
+text no longer contains all 4 query terms. Changed "Django is a Python web
+framework for rapid development" to "Django is a high-level web framework
+for rapid development," making the overlap genuinely partial (3/4 = 0.75)
+instead of full (4/4 = 1.0).
+
+**Tests added or updated:**
+Modified `tests/unit/test_relevance_scorer.py` — updated the chunk text
+in `test_query_with_partial_overlap` so it tests a real partial-overlap
+scenario (3 of 4 query terms present) instead of an accidental full-overlap
+case. All 19 tests in the file now pass; full suite dropped from 53 to 52
+pre-existing failures, confirming no regressions.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** N/A
