@@ -37,8 +37,8 @@ class RaisingTool:
         self.execute = Mock(side_effect=RuntimeError("forced tool exception"))
 
 
-def test_run_distinguishes_successful_and_failed_tool_results() -> None:
-    """ToolResult.success should determine the status recorded in the log."""
+def test_run_logs_successful_and_failed_tool_results_separately() -> None:
+    """ToolResult.success should select the appropriate execution log."""
     successful_tool = SuccessfulResultTool()
     failed_tool = FailedResultTool()
     orchestrator = Orchestrator(
@@ -61,14 +61,21 @@ def test_run_distinguishes_successful_and_failed_tool_results() -> None:
     ):
         orchestrator.run(profile_id="test-profile", profile_data={})
 
-    tool_execution_logs = [
+    successful_execution_logs = [
         call.kwargs
         for call in mock_logger.info.call_args_list
         if call.args and call.args[0] == "tool_executed"
     ]
-    assert tool_execution_logs == [
-        {"tool": successful_tool.name, "success": True},
-        {"tool": failed_tool.name, "success": False},
+    failed_execution_logs = [
+        call.kwargs
+        for call in mock_logger.error.call_args_list
+        if call.args and call.args[0] == "tool_execution_failed"
+    ]
+    assert successful_execution_logs == [
+        {"tool": successful_tool.name, "success": True}
+    ]
+    assert failed_execution_logs == [
+        {"tool": failed_tool.name, "error": "forced tool failure"}
     ]
 
 
@@ -91,9 +98,10 @@ def test_run_preserves_failed_tool_result_and_does_not_log_success() -> None:
         "success": False,
         "error": "forced tool failure",
     }
-    assert not any(
-        call.kwargs.get("tool") == tool.name and call.kwargs.get("success") is True
-        for call in mock_logger.info.call_args_list
+    mock_logger.error.assert_any_call(
+        "tool_execution_failed",
+        tool=tool.name,
+        error="forced tool failure",
     )
 
 
