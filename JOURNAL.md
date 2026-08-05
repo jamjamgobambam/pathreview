@@ -76,3 +76,20 @@ Request peer or mentor feedback on the draft PR in Slack. Address any feedback r
 
 **Blockers:**
 None currently.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/827
+
+**Branch:** fix/146-pii-scrubber-parenthesized-phone
+
+**What you built:**
+Fixed the `phone_us` regex in `safety/pii_scrubber.py` to accept whitespace as a separator after the closing parenthesis, in addition to hyphen and period, so parenthesized US phone numbers like "(555) 123-4567" are now correctly detected and redacted.
+
+**Tests added or updated:**
+No new test files added; the existing tests in `tests/unit/test_pii_scrubber.py` already covered this case (`test_us_phone_number_redaction`, `test_us_phone_formats`, `test_detect_phone_pii`, `test_phone_at_start_of_text`) and now pass with the fix.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Note: `mypy` passes clean; `ruff`/`black` flag pre-existing style issues on unmodified lines, documented in PR description. No new failures introduced by this change; one pre-existing unrelated failure, `test_mixed_pii_and_text`, documented in PR description.)
+
+**Draft PR feedback received from:** none — requested in Slack, no response received by submission deadline
