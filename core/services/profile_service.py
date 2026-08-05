@@ -1,11 +1,12 @@
 from uuid import UUID
+
 import structlog
 from sqlalchemy import select
 
+from api.schemas.profile import ProfileCreate, ProfileUpdate
+from core.models.ingested_source import IngestedSource
 from core.models.profile import Profile
 from core.models.review import Review
-from core.models.ingested_source import IngestedSource
-from api.schemas.profile import ProfileCreate, ProfileUpdate
 
 log = structlog.get_logger()
 
@@ -41,9 +42,7 @@ async def get_profile(
     """
     Get a profile by ID, checking ownership.
     """
-    stmt = select(Profile).where(
-        (Profile.id == profile_id) & (Profile.user_id == user_id)
-    )
+    stmt = select(Profile).where((Profile.id == profile_id) & (Profile.user_id == user_id))
     result = await db.execute(stmt)
     return result.scalars().first()
 
@@ -76,9 +75,11 @@ async def delete_profile(
     db,
     profile_id: UUID,
     user_id: UUID,
+    vector_store,
 ) -> bool:
     """
-    Delete a profile and cascade delete reviews and ingested sources.
+    Delete a profile and cascade delete reviews, ingested sources, and
+    the profile's vector store embeddings.
     Returns True if deleted, False if not found.
     """
     profile = await get_profile(db, profile_id, user_id)
@@ -105,6 +106,19 @@ async def delete_profile(
         await db.commit()
 
         log.info("profile_deleted_cascade", profile_id=str(profile_id))
+
+        # Vector store isn't part of the SQL transaction, so a cleanup
+        # failure here shouldn't undo or fail the already-committed delete.
+        try:
+            vector_store.delete_collection(f"profile_{profile_id}")
+            log.info("profile_vector_collection_deleted", profile_id=str(profile_id))
+        except Exception as vector_exc:
+            log.error(
+                "profile_vector_cleanup_failed",
+                profile_id=str(profile_id),
+                error=str(vector_exc),
+            )
+
         return True
 
     except Exception as exc:

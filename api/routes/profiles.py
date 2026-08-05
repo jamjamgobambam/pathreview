@@ -1,19 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from uuid import UUID
-import structlog
 import mimetypes
+from uuid import UUID
 
-from api.schemas.profile import ProfileCreate, ProfileResponse, ProfileUpdate
+import structlog
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.profile import Profile
+from api.schemas.profile import ProfileCreate, ProfileResponse, ProfileUpdate
 from core.database import get_db
+from core.models.user import User
 from core.services.profile_service import (
     create_profile,
+    delete_profile,
     get_profile,
     update_profile,
-    delete_profile,
 )
+from rag.retriever.vector_store import VectorStore, get_vector_store
 
 log = structlog.get_logger()
 
@@ -59,10 +60,9 @@ async def create_profile_endpoint(
             if file_mime == "application/pdf":
                 try:
                     import PyPDF2
+
                     pdf_reader = PyPDF2.PdfReader(content)
-                    resume_text = "\n".join(
-                        page.extract_text() for page in pdf_reader.pages
-                    )
+                    resume_text = "\n".join(page.extract_text() for page in pdf_reader.pages)
                 except Exception as exc:
                     log.error("pdf_parsing_failed", error=str(exc))
                     raise HTTPException(
@@ -198,9 +198,11 @@ async def delete_profile_endpoint(
     profile_id: UUID,
     current_user: User = Depends(get_current_user),
     db=Depends(get_db),
+    vector_store: VectorStore = Depends(get_vector_store),
 ):
     """
-    Delete a profile and cascade delete reviews and ingested sources.
+    Delete a profile and cascade delete reviews, ingested sources, and
+    vector store embeddings.
     Returns 404 if not found or not owned by current user.
     """
     try:
@@ -208,6 +210,7 @@ async def delete_profile_endpoint(
             db=db,
             profile_id=profile_id,
             user_id=current_user.id,
+            vector_store=vector_store,
         )
 
         if not success:
