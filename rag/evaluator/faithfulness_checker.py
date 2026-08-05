@@ -28,7 +28,7 @@ class FaithfulnessChecker:
             )
             return 0.0
 
-        # Extract key claims from feedback (sentences)
+        # Extract independently scorable claims from feedback
         claims = self._extract_claims(feedback)
         if not claims:
             logger.info("faithfulness_no_claims_extracted")
@@ -53,13 +53,17 @@ class FaithfulnessChecker:
 
     @staticmethod
     def _extract_claims(text: str) -> list[str]:
-        """Extract key claims from feedback text.
+        """Extract independently scorable claims from feedback text.
+
+        Sentence punctuation, commas, and conjunctions separate claims so
+        feedback containing mixed evidence can receive partial credit. Short
+        claims are retained when they contain at least one alphanumeric token.
 
         Args:
             text: Feedback text
 
         Returns:
-            List of claims (sentences)
+            List of claim fragments, limited to the first 10 items.
         """
         # Treat sentence, conjunction, and list boundaries as separate claims so
         # mixed feedback can receive partial credit.
@@ -87,9 +91,9 @@ class FaithfulnessChecker:
         claim_tokens = set(re.findall(token_pattern, claim.lower()))
         context_tokens = set(re.findall(token_pattern, context.lower()))
 
-        # Require at least some meaningful overlap
+        # Require at least one distinctive overlapping term.
         overlap = claim_tokens & context_tokens
-        # Filter out common stop words
+        # Generic vocabulary cannot establish support by itself.
         generic_words = {
             "a",
             "an",
