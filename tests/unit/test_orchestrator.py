@@ -46,16 +46,16 @@ class TestOrchestratorExceptionLogging:
         )
         return orch
 
-    def test_orchestrator_swallows_tool_failure_without_logging_exc_info(
+    def test_orchestrator_logs_exc_info_on_tool_failure(
         self, orchestrator: Orchestrator
     ) -> None:
-        """run() must not propagate a crashing tool's exception, but the
-        error log it emits is missing exc_info/stack trace context -
-        reproducing issue #44.
+        """run() must not propagate a crashing tool's exception, and the
+        error log it emits must retain exc_info/stack trace context -
+        verifying the fix for issue #44.
         """
         with capture_logs() as captured_logs:
-            # This must complete normally - the bug is that the orchestrator
-            # never lets the exception reach the caller.
+            # This must complete normally - the orchestrator swallows the
+            # exception internally and records a failure result instead.
             result = orchestrator.run("profile-123", {"files": ["app.py"]})
 
         # The orchestrator swallowed the crash and kept going.
@@ -74,8 +74,12 @@ class TestOrchestratorExceptionLogging:
 
         for entry in failure_entries:
             assert entry["error"] == "Simulated tool crash"
-            # ... but none of the entries carry exception/stack trace context,
-            # which is exactly the diagnostic gap issue #44 is about: logging
-            # str(e) instead of passing exc_info=True.
-            assert "exc_info" not in entry
-            assert "exception" not in entry
+            # ... and now carries exception/stack trace context. Depending on
+            # the configured processor chain, structlog surfaces this as
+            # either a truthy "exc_info" flag (the raw kwarg, when no
+            # exception-formatting processor runs) or a rendered "exception"
+            # traceback string (once one does) - either is proof the fix for
+            # issue #44 is in place.
+            assert entry.get("exc_info") or entry.get("exception"), (
+                "expected exception/stack trace context to be present"
+            )
