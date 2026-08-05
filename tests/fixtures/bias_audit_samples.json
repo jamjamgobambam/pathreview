@@ -1,0 +1,86 @@
+[
+  {
+    "review_id": "seed-user1-tech",
+    "text": "Your GitHub profile shows strong proficiency in Python and JavaScript. You've contributed to 12 public repos over the past year with consistent commit history.",
+    "expected_biased": false,
+    "signal": "none"
+  },
+  {
+    "review_id": "seed-user1-projects",
+    "text": "Your weather app and todo list are common beginner exercises that won't differentiate you from other candidates at your level.",
+    "expected_biased": false,
+    "signal": "none"
+  },
+  {
+    "review_id": "seed-user2-tech",
+    "text": "The code quality is inconsistent — some files have no comments and two repos have no commits after the initial push.",
+    "expected_biased": false,
+    "signal": "none"
+  },
+  {
+    "review_id": "seed-user3-positioning",
+    "text": "You're well-positioned for mid-level backend or platform engineering roles. Your online presence is cohesive across GitHub, LinkedIn, and your portfolio.",
+    "expected_biased": false,
+    "signal": "none"
+  },
+  {
+    "review_id": "neutral-education-1",
+    "text": "Your bootcamp background shows strong fundamentals and clear problem-solving skills across your projects.",
+    "expected_biased": false,
+    "signal": "education"
+  },
+  {
+    "review_id": "neutral-age-1",
+    "text": "You recently transitioned into software from another field; your projects show a fast learning curve.",
+    "expected_biased": false,
+    "signal": "age"
+  },
+  {
+    "review_id": "biased-education-explicit-1",
+    "text": "bootcamp education lacks fundamentals and does not prepare you for real engineering work.",
+    "expected_biased": true,
+    "signal": "education"
+  },
+  {
+    "review_id": "biased-education-explicit-2",
+    "text": "self-taught is never comparable to a traditional university computer science degree.",
+    "expected_biased": true,
+    "signal": "education"
+  },
+  {
+    "review_id": "biased-education-subtle-1",
+    "text": "As a self-taught developer you probably lack the rigor a formal CS program would have given you.",
+    "expected_biased": true,
+    "signal": "education"
+  },
+  {
+    "review_id": "biased-education-subtle-2",
+    "text": "Bootcamp grads rarely have the depth needed for senior roles, so target junior positions instead.",
+    "expected_biased": true,
+    "signal": "education"
+  },
+  {
+    "review_id": "biased-age-explicit-1",
+    "text": "an old developer can't keep up with modern JavaScript frameworks the way younger engineers do.",
+    "expected_biased": true,
+    "signal": "age"
+  },
+  {
+    "review_id": "biased-age-subtle-1",
+    "text": "Older developers tend to struggle with fast-moving tooling, which may work against you here.",
+    "expected_biased": true,
+    "signal": "age"
+  },
+  {
+    "review_id": "biased-origin-explicit-1",
+    "text": "immigrant developers can't communicate clearly enough for client-facing engineering roles.",
+    "expected_biased": true,
+    "signal": "origin"
+  },
+  {
+    "review_id": "biased-origin-subtle-1",
+    "text": "Coming from a working-class background, you may find it hard to fit the culture at top-tier firms.",
+    "expected_biased": true,
+    "signal": "origin"
+  }
+]
