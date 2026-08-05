@@ -74,7 +74,7 @@ class Orchestrator:
 
             except Exception as e:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
-                results[tool_name] = {"error": str(e), "success": False}
+                raise
 
         # Persist state
         if self.session_store:
