@@ -56,7 +56,7 @@ I will implement the actual test case and run the test suite to ensure that it p
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [link to your submitted pull request] https://github.com/ascherj/pathreview/pull/890
 
 **Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
 test/88-unit-test-review-routes
