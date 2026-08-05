@@ -1,0 +1,92 @@
+## Week 7 — Issue selection
+
+**Issue link:** [Issue #150](https://github.com/ascherj/pathreview/issues/150)
+
+**Issue title:** Tech detector counts vendored and build-output files, skewing language detection
+
+**Tier:** [X] Tier 1
+
+**Problem summary:**
+`tech_detector.py` is counting files from folders like `node_modules/` and `build/` when figuring out what the primary language a project uses. These folders usually contain downloaded libraries or generated files (i.e. not the code written by the developer) so they can make the detector pick the wrong language. For example, a Python project with bundled JavaScript files may incorrectly be detected as a JavaScript project. The fix should make the tech detector ignore these directories so that language detection is based only on the project's own source code, allowing the related tests in `tests/unit/test_tech_detector.py` to pass.
+
+**Branch name:** fix/150-ignore-vendored-build-files
+
+**Setup confirmation:** [X] App runs locally at localhost:5173
+
+**Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** c052e64
+
+**Reproduction summary:**
+Ran `.venv/bin/pytest tests/unit/test_tech_detector.py -v -m unit`. 2 of 27 tests fail: `test_node_modules_excluded` and `test_build_directory_excluded`, both expecting `primary_language == "Python"` but getting `"JavaScript"`. Root cause: `_should_skip_file` in `agent/tools/tech_detector.py` checks for substrings like `"/node_modules/"` and `"/build/"` which require a leading slash, but repo-relative paths (e.g. `node_modules/lib/index.js`, `build/bundle.js`) have no leading slash, so the skip patterns never match and vendored/build files aren't filtered out.
+
+**PLAN.md link:** [Click Here](PLAN.md)
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md: rewrote `_should_skip_file` in `agent/tools/tech_detector.py` to split each filepath on `/` and check directory segments (`parts[:-1]`) against a skip-dir set, instead of the old leading-slash substring check. Both target tests (`test_node_modules_excluded`, `test_build_directory_excluded`) now pass. Only sub-task from PLAN.md, so implementation is done.
+
+**Next steps:**
+Run full unit suite to confirm no regressions, self-review with `make check`/`make test-unit`, write PR description, push branch and open PR.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [PR #875](https://github.com/ascherj/pathreview/pull/875)
+
+**Branch:** `fix/150-ignore-vendored-build-files`
+
+**What you built:**
+Fixed `_should_skip_file` in `agent/tools/tech_detector.py` so it matches skip directories (`node_modules`, `vendor`, `dist`, `build`, `.git`, `__pycache__`, `.venv`, `venv`) by path segment rather than by leading-slash substring, so vendored/build files are correctly excluded from language detection at any depth, including root-level paths.
+
+**Tests added or updated:**
+None added or modified. `tests/unit/test_tech_detector.py::test_node_modules_excluded` and `::test_build_directory_excluded` already encoded the expected behavior; the implementation fix was sufficient to make them pass.
+
+**Self-review confirmation:** [X] make test-unit passes (`.venv/bin/pytest tests/unit/test_tech_detector.py -m unit`: 27/27 pass; full `tests/unit` suite: 51 pre-existing unrelated failures, down from 53 before this fix, confirmed on main)  [ ] make check passes (182 pre-existing lint errors repo-wide, unrelated to this change; `agent/tools/tech_detector.py` itself has one pre-existing import-sort warning, not introduced by this fix)
+
+**Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in on [PR #875](https://github.com/ascherj/pathreview/pull/875) yet.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Writing the PR description was harder than expected. Cramming enough detail to justify the fix (root cause, design tradeoffs, test evidence) into something concise, without padding it out just to look thorough, took more revision than the actual code fix did. Gave me a lot more respect for how open-source maintainers hold that bar consistently, especially pre-AI tooling.
+
+**What did you learn about working in a large codebase?**
+I didn't read the full codebase, but tracking down the files named in the issue was straightforward, and reading the source alongside the pytest tests made the bug's behavior clear quickly. The real gap versus my own projects: on my own code, I already know the layout because I built it. Here I had to lean on the issue description and test names to orient myself instead of prior context.
+
+**How did AI tools help — and where did they fall short?**
+Mainly useful for scaffolding the plan (PLAN.md) and drafting the PR/journal writeups once I'd already pinned down the root cause myself. The issue was scoped tightly enough that I didn't get much signal on where AI would fall short. I'd expect that to show up more on a harder issue with ambiguous root cause or cross-file changes.
+
+**What would you do differently if you started over?**
+Pick a harder issue, ideally something touching APIs or a multi-file change, rather than a single-function bug fix. Given more time, I'd also spend a session just reading through the codebase's architecture and system design, since that's the part I find most interesting and it's a purely additive/exploratory session.
+
+**What are you most proud of from this module?**
+Nailing down the actual root cause (leading-slash substring match silently failing on root-relative paths) before touching any code, so the fix ended up being a small, well-justified change instead of a guess-and-check patch.
