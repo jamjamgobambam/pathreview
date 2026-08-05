@@ -89,3 +89,15 @@ PDF-extracted resume text commonly has leading whitespace on each line. The 4 re
 - [x] Pre-existing failures in other modules are unrelated to this PR
 
 **Branch URL:** https://github.com/lavgolla/pathreview/tree/fix/147-resume-parser-index-error
+
+---
+
+## Week 10 — Reviewer Feedback
+
+**PR link:** https://github.com/ascherj/pathreview/pull/232
+
+**Feedback received:** None — no comments from reviewers or maintainers as of end of week.
+
+**Note:** Per course instructions, reviewer feedback is not a feature in Summer 2026. This section is included for completeness and will be expanded in Fall 2026.
+
+**Status:** PR remains open. No changes needed this week. Moving on.
