@@ -62,7 +62,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [to be added once opened]
+**PR link:** https://github.com/ascherj/pathreview/pull/958
 
 **Branch:** fix/155-redis-host-config
 
