@@ -10,12 +10,7 @@ import pytest
 
 from safety.prompt_defense import PromptDefense
 
-
-FIXTURE_DIRECTORY = (
-    Path(__file__).resolve().parents[1]
-    / "fixtures"
-    / "injection_attempts"
-)
+FIXTURE_DIRECTORY = Path(__file__).resolve().parents[1] / "fixtures" / "injection_attempts"
 
 
 def load_fixture_cases(filename: str) -> list[dict[str, Any]]:
@@ -42,6 +37,7 @@ def load_fixture_cases(filename: str) -> list[dict[str, Any]]:
 ATTACK_CASES = load_fixture_cases("attacks.json")
 BENIGN_CASES = load_fixture_cases("benign.json")
 KNOWN_BYPASS_CASES = load_fixture_cases("known_bypasses.json")
+
 
 @pytest.mark.security
 class TestPromptInjectionRedTeam:
@@ -77,6 +73,7 @@ class TestPromptInjectionRedTeam:
             f"Description: {case['description']}"
         )
 
+
 @pytest.mark.security
 class TestPromptInjectionKnownBypasses:
     """Document prompt injection attacks the current defense does not yet block."""
@@ -95,7 +92,5 @@ class TestPromptInjectionKnownBypasses:
         actual = PromptDefense.is_injection_attempt(case["payload"])
 
         assert actual is case["expected_detected"], (
-            f"Known bypass '{case['id']}' remains undetected. "
-            f"Reason: {case['reason']}"
+            f"Known bypass '{case['id']}' remains undetected. " f"Reason: {case['reason']}"
         )
-        

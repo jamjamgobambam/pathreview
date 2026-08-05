@@ -1,0 +1,35 @@
+name: Security Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "safety/**"
+      - "tests/security/**"
+      - "tests/fixtures/injection_attempts/**"
+      - ".github/workflows/security.yml"
+  push:
+    branches: [main]
+    paths:
+      - "safety/**"
+      - "tests/security/**"
+      - "tests/fixtures/injection_attempts/**"
+      - ".github/workflows/security.yml"
+
+jobs:
+  prompt-injection-red-team:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Run prompt injection red-team suite
+        run: pytest tests/security/test_prompt_injection.py -v -m security
