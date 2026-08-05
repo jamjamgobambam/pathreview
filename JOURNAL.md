@@ -1,0 +1,85 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/157 
+
+**Issue title:** Relevance scorer “partial overlap” test fixture actually has full query overlap
+
+**Tier:** [X] Tier 1  [ ] Tier 2  [ ] Tier 3
+
+**Problem summary:**
+The test test_query_with_partial_overlap is meant to verify that the relevance scorer correctly discounts results with incomplete keyword overlap, but its fixture data doesn't actually exercise that case. The query "Python Django web framework" is tested against a chunk that contains all four query terms, meaning the overlap is complete, not partial — so the scorer's correct output of 1.0 gets flagged as a failure against an assertion that expects a score below 0.9. This makes the test fail even though the scoring logic in the relevance scorer is behaving correctly; the bug is in the test fixture, not the implementation. A successful fix would update the chunk text (or query terms) so only some of the query terms are present, giving a genuine partial-overlap scenario that correctly validates the scorer's partial-match behavior. This affects the relevance scorer's test suite, specifically the fixtures used for keyword-overlap scoring tests.
+
+**Branch name:** test/157-relevance-scorer-test-fixture
+
+**Setup confirmation:** [X] App runs locally at localhost:5173
+
+**Cohort ledger:** [X] Issue added to cohort ledger
+
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/nickventu/pathreview/commit/5c57afab565fec645c1998e0f971768d5885978d
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_relevance_scorer.py -q` and confirmed
+`test_query_with_partial_overlap` fails with `assert 1.0 < 0.9`. The
+scorer is behaving correctly — the fixture chunk ("Django is a Python
+web framework for rapid development") contains all 4 query terms, so
+full-coverage scoring of 1.0 is correct. The bug is in the test fixture,
+not the scorer.
+
+**PLAN.md link:**  https://github.com/nickventu/pathreview/blob/test/157-relevance-scorer-test-fixture/PLAN.md
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Rewrote chunk text so it overlaps on only some of the 4 query terms. (following step 1 of PLAN.md)
+
+**Next steps:**
+Actual implementation of the change in test_relevance_scorer
+
+**Blockers:**
+
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/837
+
+**Branch:** test/157 relevance scorer test fixture
+
+**What you built:**
+Fixed a mislabeled test fixture in `test_query_with_partial_overlap` for the RelevanceScorer test suite. The chunk text had full coverage of all 4 query terms, so the scorer correctly scored it 1.0, however the test asserted a mid-range "partial overlap" score, a premise the chunk didn't actually satisfy. Corrected the chunk text so it reflects true partial overlap; no scorer logic changed.
+
+**Tests added or updated:**
+Updated `tests/unit/test_relevance_scorer.py` — specifically `test_query_with_partial_overlap`. Covers the scorer's behavior when a query and chunk share some but not all terms, verifying the score falls in the expected 0.3–0.9 range rather than saturating to 1.0.
+
+**Self-review confirmation:** [ ] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reflection
+
+**What was harder than you expected?**
+Set up was a bit difficult with the Docker but that was it. I expected reproduction to be a chore after my experience with it in module 2 but in this case all I had to do was run the test.
+
+**What did you learn about working in a large codebase?**
+You have to be even more careful to not break something because someone else might have built that. Also while it can be faster (more people to work on more things) it can also slow stuff down considerably compared to working solo (necessary to review, communicate, etc.)
+
+**How did AI tools help — and where did they fall short?**
+Getting quick instructions on how to do simple troubleshooting I was just unfamiliar with like submitting the PR or how to get Docker working.
+
+**What would you do differently if you started over?**
+Issue selection, I would pick something more difficult/substantial if this wasn't my first time.
+
+**What are you most proud of from this module?**
+How fast I was able to orient myself in the codebase and easily navigate through it.
