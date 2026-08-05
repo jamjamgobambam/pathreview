@@ -87,7 +87,11 @@ class FaithfulnessChecker:
             True if claim is supported
         """
         # Normalize punctuation and casing before checking keyword overlap.
-        token_pattern = r"[a-z0-9]+(?:[+#./-][a-z0-9+#./-]*)?"
+        # Internal separators are kept so terms such as "node.js" and
+        # "scikit-learn" survive tokenization, and a trailing "+" or "#" is kept
+        # for "c++" and "c#". Sentence punctuation is never absorbed, so
+        # "Django." and "Django" produce the same token.
+        token_pattern = r"[a-z0-9]+(?:[./-][a-z0-9]+)*[+#]*"
         claim_tokens = set(re.findall(token_pattern, claim.lower()))
         context_tokens = set(re.findall(token_pattern, context.lower()))
 

@@ -152,6 +152,24 @@ class TestFaithfulnessChecker:
 
         assert supported is False
 
+    def test_sentence_final_term_supports_claim(self, checker):
+        """Test trailing sentence punctuation does not hide a supporting term."""
+        supported = checker._is_supported("Uses Django", "The developer knows Django.")
+
+        assert supported is True
+
+    def test_compound_technical_terms_survive_tokenization(self, checker):
+        """Test terms containing separators are matched as single tokens."""
+        assert checker._is_supported("Knows C++", "Strong C++ background.") is True
+        assert checker._is_supported("Uses Node.js", "Built services with Node.js.") is True
+        assert checker._is_supported("Knows scikit-learn", "Applied scikit-learn models.") is True
+
+    def test_separator_does_not_create_false_support(self, checker):
+        """Test a shared prefix before a separator is not treated as a match."""
+        supported = checker._is_supported("Uses Node.js", "Documented the node.py helper.")
+
+        assert supported is False
+
     def test_case_insensitive_support_check(self, checker):
         """Test that support check is case insensitive."""
         claim = "PYTHON PROGRAMMING SKILLS"
