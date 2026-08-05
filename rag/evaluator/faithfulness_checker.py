@@ -35,10 +35,10 @@ class FaithfulnessChecker:
             return 0.5  # Default to neutral if no extractable claims
 
         # Concatenate context text
-        # REPRODUCED (Week 8): TypeError when chunk["text"] is None - .get()'s
-        # default only applies when the key is missing, not when it's present
-        # with value None. See issue #153.
-        context_text = " ".join([chunk.get("text", "") for chunk in context_chunks])
+        # FIX (issue #153): use `or ""` instead of `.get("text", "")` so both
+        # a missing "text" key and a present-but-None value fall through to
+        # an empty string. `.get()`'s default only covers the missing-key case.
+        context_text = " ".join([chunk.get("text") or "" for chunk in context_chunks])
 
         # Check each claim for support
         supported = 0
