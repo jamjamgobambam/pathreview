@@ -1,0 +1,11 @@
+{
+  "profile_id": "bench_junior_02",
+  "github_username": "sample-dev-02",
+  "projects": ["todo-app", "weather-widget"],
+  "query": "How is this candidate's overall portfolio?",
+  "chunks": [
+    {"source_id": "readme_todo_app", "section": "overview", "text": "todo-app is a simple to-do list built with vanilla JavaScript and localStorage. No tests included."},
+    {"source_id": "readme_weather_widget", "section": "overview", "text": "weather-widget fetches weather data from a public API and displays it. Built as a learning project."},
+    {"source_id": "resume", "section": "experience", "text": "Recent bootcamp graduate with no professional experience. Comfortable with HTML, CSS, and JavaScript basics."}
+  ]
+}

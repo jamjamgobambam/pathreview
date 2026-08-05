@@ -1,0 +1,11 @@
+{
+  "profile_id": "bench_fullstack_01",
+  "github_username": "sample-dev-01",
+  "projects": ["task-tracker-api", "react-dashboard", "cli-tool"],
+  "query": "How is this candidate's overall portfolio?",
+  "chunks": [
+    {"source_id": "readme_task_tracker", "section": "overview", "text": "task-tracker-api is a REST API built with FastAPI and PostgreSQL for managing project tasks. Includes JWT authentication and full test coverage."},
+    {"source_id": "readme_react_dashboard", "section": "overview", "text": "react-dashboard is a React and TypeScript frontend that visualizes analytics data using Recharts. Deployed on Vercel."},
+    {"source_id": "resume", "section": "experience", "text": "Backend developer with 2 years of experience building APIs in Python. Familiar with Docker and CI pipelines."}
+  ]
+}
