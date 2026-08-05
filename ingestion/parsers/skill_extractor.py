@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -40,6 +40,39 @@ class SkillExtractor:
         "class",
     }
 
+    JS_TS_SYNTAX_PATTERNS = [
+        r"\bconst\s+\w+\s*=",
+        r"\blet\s+\w+\s*=",
+        r"\bfunction\s+\w+\s*\(",
+        r"=>",
+        r"\brequire\(",
+        r"\bexport\s+(default\s+)?(class|function|interface|const)",
+        r"console\.log\(",
+    ]
+
+    TS_SPECIFIC_PATTERNS = [
+        r"\binterface\s+\w+\s*\{",
+        r":\s*(string|number|boolean)\b",
+        r"\bexport\s+class\s+\w+",
+        r"Promise<\w+>",
+        r"<\w+>\(",
+    ]
+
+    DOCKERFILE_INDICATORS = [
+        r"^\s*FROM\s+\w+",
+        r"^\s*RUN\s+",
+        r"^\s*EXPOSE\s+\d+",
+        r"^\s*COPY\s+",
+        r"^\s*WORKDIR\s+",
+    ]
+
+    DOCKER_COMPOSE_INDICATORS = [
+        r"^\s*version:\s*['\"]?\d",
+        r"^\s*services:",
+        r"^\s*build:",
+        r"^\s*ports:",
+    ]
+
     REACT_INDICATORS = {
         "import React",
         "useState",
@@ -51,8 +84,6 @@ class SkillExtractor:
         "useRef",
         "createContext",
         "ReactDOM.render",
-        ".jsx",
-        ".tsx",
     }
 
     FRAMEWORKS = {
@@ -105,7 +136,7 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -116,7 +147,7 @@ class SkillExtractor:
         Returns:
             List of detected skills with confidence scores
         """
-        detected_skills = {}
+        detected_skills: dict[str, SkillDetection] = {}
 
         # Detect languages first
         self._detect_languages(text, filename, detected_skills)
@@ -143,7 +174,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -172,20 +203,37 @@ class SkillExtractor:
 
         # JavaScript/TypeScript detection
         js_evidence = []
+        ts_evidence = []
+
         if ".js" in str(filename or "").lower():
             js_evidence.append("JavaScript file extension (.js)")
         if ".ts" in str(filename or "").lower():
-            js_evidence.append("TypeScript file extension (.ts)")
-        if re.search(r"\b(import|require)\s+", text):
+            ts_evidence.append("TypeScript file extension (.ts)")
+        if re.search(r"\b(import|require)\s*\(", text) or re.search(r"\bimport\s+", text):
             js_evidence.append("CommonJS or ES6 imports")
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
-        if js_evidence:
+        for pattern in self.JS_TS_SYNTAX_PATTERNS:
+            if re.search(pattern, text):
+                js_evidence.append(f"JS/TS syntax pattern: {pattern}")
+
+        for pattern in self.TS_SPECIFIC_PATTERNS:
+            if re.search(pattern, text):
+                ts_evidence.append(f"TypeScript syntax pattern: {pattern}")
+
+        if ts_evidence:
+            confidence = min(0.95, 0.6 + len(ts_evidence) * 0.1)
+            skills_dict["TypeScript"] = SkillDetection(
+                name="TypeScript",
+                category="Language",
+                confidence=confidence,
+                evidence=ts_evidence,
+            )
+        elif js_evidence:
             confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
-            skills_dict[lang] = SkillDetection(
-                name=lang,
+            skills_dict["JavaScript"] = SkillDetection(
+                name="JavaScript",
                 category="Language",
                 confidence=confidence,
                 evidence=js_evidence,
@@ -274,3 +322,21 @@ class SkillExtractor:
                         confidence=confidence,
                         evidence=[f"Found '{tool}' reference in content"],
                     )
+
+        # Dockerfile / docker-compose syntax detection (doesn't require the word "docker")
+        dockerfile_evidence = [
+            p for p in self.DOCKERFILE_INDICATORS if re.search(p, text, re.MULTILINE)
+        ]
+        compose_evidence = [
+            p for p in self.DOCKER_COMPOSE_INDICATORS if re.search(p, text, re.MULTILINE)
+        ]
+        if (dockerfile_evidence or compose_evidence) and "Docker" not in skills_dict:
+            evidence = [
+                f"Dockerfile/compose syntax: {p}" for p in dockerfile_evidence + compose_evidence
+            ]
+            skills_dict["Docker"] = SkillDetection(
+                name="Docker",
+                category="Tool",
+                confidence=min(0.9, 0.6 + len(evidence) * 0.1),
+                evidence=evidence,
+            )
