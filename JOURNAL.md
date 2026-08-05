@@ -51,3 +51,20 @@ Finalize PR description documenting the pre-existing failures, open the PR for p
 
 **Blockers:**
 None.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/872
+
+**Branch:** fix/146-pii-scrubber-parenthesized-phone
+
+**What you built:**
+Fixed the phone_us regex in safety/pii_scrubber.py so parenthesized US phone numbers (e.g. (555) 123-4567) are correctly redacted and detected, matching the behavior already working for dashed formats.
+
+**Tests added or updated:**
+tests/unit/test_pii_scrubber.py — added test_parenthesized_phone_edge_cases covering no-space and dash-after-paren variants; confirmed the 4 previously-failing tests now pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(no new failures introduced — pre-existing failures documented in PR description)
+
+**Draft PR feedback received from:** None
