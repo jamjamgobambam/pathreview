@@ -101,3 +101,37 @@ note any pre-existing failures you saw and that your branch doesn't add
 new ones, per the "Pre-existing failures" guidance above]
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [✅] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The most unexpectedly difficult part of this setting up. I had issues with running `make setup` and `make run`,  as I didn't know I needed Docker to be running, and I also had trouble with the Python version not being correct, which lead me down a rabbit hole of Python being half installed such that I couldn't reinstall it nor could I delete it. 
+
+
+**What did you learn about working in a large codebase?**
+Working in a much larger codebase compared to my own felt like navigating a new country. I could understand the code (kind of) like I could recognize buildings/people, but the overall structure was foreign and I didn't know what was going on, and how files connected. Still, through these past weeks, learning to work in this environment taught me that at the very least, having a rock-solid understanding of one part of the codebase that encompasses my task is significantly better than having a shallow understanding of the entire codebase, because I'd still be able to get the task done without missing anything.
+
+**How did AI tools help — and where did they fall short?**
+AI tools like Claude and Copilot were extremely helpful in helping me to navigate the codebase. It helped me to understand what files did, how different files connected, and pointed me towards where the issue needed to be fixed. 
+
+However, those tools didn't help me much when I was trying to fix push issues. I had difficulty committing because of the automated checks that needed to be ran, and AI tools weren't very helpful in deciphering the warnings that were returned, nor was it helpful in figuring out why they were going wrong. I had to go through the documentation to figure out that the errors were pre-existing, and had to ignore them in order to be able to push my changes.
+
+**What would you do differently if you started over?**
+If I started over, I'd create a document, or a Google Doc for notes, outlining all the connectors between files. I'd also extensively note down my task, what was required of my task, like related files, paths to those files, and what those files did, to ensure I had a good understanding of the issue. 
+
+**What are you most proud of from this module?**
+From all I did in this module, I was most proud of writing my final pull request. That PR was a culmination of all my work across the past three weeks, and it felt extremely satisfying breaking down my work, writing out what I did, and sending it off to be reviewed and merged. Seeing everything I'd built come together into one clean, well-documented submission made all the earlier tests and iteration feel worth it.
