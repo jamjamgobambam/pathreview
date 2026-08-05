@@ -1,0 +1,226 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/157
+
+**Issue title:** Relevance scorer "partial overlap" test fixture actually has full query overlap
+
+**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
+
+**Problem summary:**
+The bug is in `tests/unit/test_relevance_scorer.py`, in the test
+`test_query_with_partial_overlap`. The test is meant to check that when a
+query only partially matches a chunk of text, the relevance scorer returns a
+score in the middle range (0.3–0.9). But the fixture data doesn't actually
+create a partial-overlap scenario: the query "Python Django web framework"
+has all four of its terms present in the chunk text ("Django is a Python web
+framework for rapid development"), so it's really a full-overlap case. The
+scorer correctly returns 1.0 for full coverage, which makes the test's
+assertion (`0.3 < score < 0.9`) fail — not because the scorer logic is wrong,
+but because the fixture doesn't test what it claims to. A successful fix
+means rewriting the fixture (either the chunk or the query) so the overlap
+is genuinely partial, without changing any logic in
+`rag/evaluator/relevance_scorer.py`.
+
+**Selection reasoning ("Is this issue right for me?" checklist):**
+1. **Is it actually open?** Yes — I checked and #157 has no merged fix yet.
+   (Multiple people are allowed to work the same issue in this course,
+   so other claim comments doesn't disqualify my selection.)
+2. **Is the scope clear?** Yes — the problem is specific and reproducible.
+   Running `pytest tests/unit/test_relevance_scorer.py -q` reliably
+   reproduces the exact failure (`assert 1.0 < 0.9`), so there's no
+   ambiguity about what's broken.
+3. **Is it the right size?** Yes — this is a one-file, one-fixture change
+   in `tests/unit/test_relevance_scorer.py`. No changes needed to
+   `relevance_scorer.py` or any other service.
+4. **Is the maintainer active?** N/A for this course context — this is a
+   simulated/curated repo for the assignment, not a live upstream project
+   waiting on maintainer review.
+5. **Does it match where I am?** Yes — this only requires understanding
+   Python test fixtures and basic string/keyword overlap logic, both of
+   which I'm comfortable with. No unfamiliar language features or
+   frameworks involved, so it's a good low-risk first issue.
+
+**Branch name:** fix/157-relevance-scorer-partial-overlap-fixture
+
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+
+
+## Week 8 — Reproduction
+
+**Reproduction steps:**
+Ran the following command locally to confirm the issue exists in my environment:
+`pytest tests/unit/test_relevance_scorer.py -q`
+
+**Observed output:**
+```..F................                                                                      [100%]
+=========================================== FAILURES ===========================================
+_____________________ TestRelevanceScorer.test_query_with_partial_overlap ______________________
+
+self = <tests.unit.test_relevance_scorer.TestRelevanceScorer object at 0x10797a650>
+scorer = <rag.evaluator.relevance_scorer.RelevanceScorer object at 0x1079ea710>
+
+    def test_query_with_partial_overlap(self, scorer):
+        """Test query with partial overlap returns score between 0 and 1."""
+        query = "Python Django web framework"
+        chunks = [
+            {
+                "text": "Django is a Python web framework for rapid development"
+            },
+        ]
+    
+        score = scorer.score(query, chunks)
+    
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+>       assert 0.3 < score < 0.9  # Partial overlap should be in middle range
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 1.0 < 0.9
+
+tests/unit/test_relevance_scorer.py:60: AssertionError
+------------------------------------- Captured stdout call -------------------------------------
+2026-07-21 20:24:24 [info     ] relevance_scored               avg_score=1.0 chunks_count=1 query_len=4
+=================================== short test summary info ====================================
+FAILED tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_query_with_partial_overlap - assert 1.0 < 0.9
+1 failed, 18 passed in 0.32s
+```
+
+**Confirmation:** This confirms the bug described in issue #157 — the fixture
+query and chunk text overlap on all 4 terms ("Python", "Django", "web",
+"framework"), producing a full-overlap score of `1.0` instead of a genuine
+partial-overlap score, causing the test's `0.3 < score < 0.9` assertion to
+fail. The scorer itself behaves correctly; the fixture data is the problem.
+
+**PLAN.md link:** https://github.com/tahiya-nm/pathreview/blob/fix/157-relevance-scorer-partial-overlap-fixture/PLAN.md
+
+**Blockers or open questions:**
+Still need to confirm exactly how `RelevanceScorer.score()` calculates
+overlap (simple keyword match vs. something weighted) before finalizing
+the fixture edit.
+
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed PLAN.md steps 1–4: read `RelevanceScorer.score()` in
+`rag/evaluator/relevance_scorer.py` and confirmed it uses simple
+lowercase keyword overlap (`overlap / len(query_tokens)`). Edited the
+chunk text in `test_query_with_partial_overlap` from "Django is a Python
+web framework for rapid development" to "Django is a high-level web
+framework for rapid development" — removing "Python" so only 3 of 4
+query terms match, giving a score of 0.75 instead of 1.0. All 19 tests
+in `test_relevance_scorer.py` now pass. Verified with `make test-unit`
+(52 failed / 376 passed — down from 53/375 baseline) and `make check`
+(still 182 pre-existing errors) that no new failures were introduced.
+
+**Next steps:**
+Open PR against `ascherj/pathreview`, fill in PR template, share in
+Slack for peer feedback, then finalize Check-in 2.
+
+**Blockers:**
+None.
+
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/851
+
+**Branch:** fix/157-relevance-scorer-partial-overlap-fixture
+
+**What was built:**
+Fixed the fixture data in `test_query_with_partial_overlap` so the chunk
+text no longer contains all 4 query terms. Changed "Django is a Python web
+framework for rapid development" to "Django is a high-level web framework
+for rapid development," making the overlap genuinely partial (3/4 = 0.75)
+instead of full (4/4 = 1.0).
+
+**Tests added or updated:**
+Modified `tests/unit/test_relevance_scorer.py` — updated the chunk text
+in `test_query_with_partial_overlap` so it tests a real partial-overlap
+scenario (3 of 4 query terms present) instead of an accidental full-overlap
+case. All 19 tests in the file now pass; full suite dropped from 53 to 52
+pre-existing failures, confirming no regressions.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** N/A
+
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was received — reviewer feedback is not provided
+in the Summer 2026 cohort.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the local environment running was surprisingly the hardest part.
+I expected the actual code fix to be the challenge, but I spent more time
+debugging a Postgres/Docker connection error during `make setup` than I
+did on the fix itself. The Alembic migration tried to connect to port 5432
+before the database container was actually ready, and the error trace was
+80+ lines of SQLAlchemy/asyncpg internals that didn't immediately point to
+"Docker isn't running." Once I got past that, the pre-commit hooks were
+another unexpected friction point — Black reformatted my file mid-commit
+and mypy flagged 21 pre-existing type errors in `test_relevance_scorer.py`,
+which initially made it look like my change broke something when it hadn't.
+
+**What did you learn about working in a large codebase?**
+The biggest difference from my own projects is that most of the codebase
+is irrelevant to your task, and learning to pick out what is relevant to your 
+fix is a skill. PathReview has a FastAPI backend, RAG pipeline, React frontend, 
+Docker setup, and database migrations — but my entire fix was one word in one 
+test file. The challenge was building enough of a understanding of the logic in 
+`RelevanceScorer.score()` to know my fixture edit would produce a predictable 
+result (3/4 = 0.75), withoutgetting pulled into understanding the whole RAG 
+pipeline. I also learned that pre-existing failures are normal — 53 failing 
+tests and 182 lint errors existed before I made changes — and the contribution 
+standard isn't "make everything green," it's "don't make it worse."
+
+**How did AI tools help — and where did they fall short?**
+Claude was most useful for planning and documentation — drafting PLAN.md,
+structuring JOURNAL.md entries, and writing the PR description to match
+the template's expected sections. It was also helpful for interpreting the
+scorer's logic: I pasted `relevance_scorer.py` and Claude walked through
+the math (`overlap / len(query_tokens)`) to confirm that removing one term
+would produce exactly 0.75, which gave me confidence before editing. Where
+it fell short was environment-specific debugging — when `make setup` failed
+with the Postgres connection error, Claude could suggest likely causes
+(Docker not running, race condition, wrong port) but couldn't see my actual
+Docker state or `.env` file, so I still had to diagnose and fix it myself.
+
+**What would you do differently if you started over?**
+I would run `make test-unit` and `make check` on day one, before even
+picking an issue, to establish a baseline of pre-existing failures. I did
+this in Week 9 before my fix, but having it from Week 7 would have saved
+me the initial anxiety of seeing 53 test failures and wondering if my
+setup was broken. I'd also read the scorer's source code earlier — I listed
+it as step 1 in PLAN.md but could have done it during Week 7's issue
+selection to strengthen my problem summary from the start.
+
+**What are you most proud of from this module?**
+Writing a PLAN.md that I actually followed. In past projects I've jumped
+straight to coding, but breaking the fix into 5 sub-tasks — read the scorer,
+edit the fixture, calculate the expected score, run the tests, update the
+docstring — meant I knew exactly what to do at each step and could verify
+each one before moving on. The fix ended up being a single word change, but
+the planning process around it is what made me confident the change was
+correct and complete, not just a guess that happened to pass.
