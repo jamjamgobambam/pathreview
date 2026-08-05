@@ -1,0 +1,193 @@
+# JOURNAL.md
+
+## Week 7 — Issue selection
+
+**Issue link:** [https://github.com/ascherj/pathreview/issues/146](https://github.com/ascherj/pathreview/issues/146)
+
+**Issue title:** PII scrubber fails to redact parenthesized US phone numbers #146
+
+**Tier:** [✓] Tier 1  [ ] Tier 2  [ ] Tier 3
+
+**Problem summary:**
+
+The PII scrubber class in `safety/pii_scrubber.py` is not scrubbing phone
+numbers when they are not in an expected format, namely when the area code is in
+parentheses instead of followed by a hyphen. So `555-123-4567` is correctly
+redacted, but `(555) 123-4567` is not. This issue might be caused by the regex
+pattern `PIIScrubber.PII_PATTERNS["phone_us"]` not correctly matching
+parentheses, causing the `PIIScrubber.scrub()` class method to fail. 4 related
+unit tests in `test_pii_scrubber.py` fails.
+
+**Branch name:** `fix/146-pii-not-scrub-phone`
+
+**Setup confirmation:** [✓] App runs locally at `localhost:5173`
+
+**Cohort ledger:** [✓] Issue added to cohort ledger
+
+**Is This Issue Right for Me? checklist**
+
+Part 1 — Understanding the Issue
+
+- [x] I can explain the problem and the expected behavior in 2–3 sentences
+without reading the issue.
+- [x] I've located the relevant files and confirmed they exist in the codebase.
+- [x] I can describe a concrete before-and-after: what the user sees before the
+fix and what they see after.
+
+Part 2 — Tier Fit
+
+- [x] If this is my first open source contribution: I'm choosing Tier 1.
+- [ ] If I've contributed to large codebases before: Tier 2 or 3 is fair game.
+- [ ] I'm not choosing a Tier 3 issue to "challenge myself" if I haven't
+completed a Tier 1 or 2 first — scope surprises in Week 9 don't have a safety
+net.
+
+Part 3 — Codebase Readiness
+
+- [x] I've found and read the specific code the issue references (not just the
+file — the function or section).
+- [x] I've read enough surrounding context that I can write a rough plan for the
+fix without looking anything up.
+- [x] I've found the test file for my module and read at least one test
+end-to-end.
+
+Part 4 — Scope and Time
+
+- [x] I've checked the issue comments and the ledger's Claims count, and I'm
+fine with how many others are on this issue.
+- [x] I've estimated the time this will take and I'm confident I can complete it
+before the Week 9 deadline.
+- [x] This issue has no open blockers or dependencies on other unresolved
+issues.
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [`8fa4eee - docs(safety): add planning framework for fixing issue`](https://github.com/ru1nw/pathreview/commit/8fa4eee5f6b1579ffdc0055453c7c5cb49fe297a)
+
+**Reproduction summary:**
+
+I reproduced the issue using the unit test file, since the scrubber isn't
+actually used in the project just yet.
+
+Calling `pytest tests/unit/test_pii_scrubber.py` revealed that 4 of the test
+cases related to scrubbing US phone numbers weren't passing, and the failing
+formats all included the parenthesized format.
+
+After using Claude Code to understand the issue more, the issue turned out to
+be caused by the regex pattern not matching spaces in phone numbers, which the
+parenthesized format used.
+
+**PLAN.md link:** [`PLAN.md` in fork](https://github.com/ru1nw/pathreview/blob/fix/146-pii-not-scrub-phone/PLAN.md)
+
+**Walkthrough video (recommended):** none
+
+**Blockers or open questions:**
+
+If there's more time, I might include more formats and test cases to cover more
+bases.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (Jul 28)
+
+**Current progress:**
+
+Steps 1–4 from PLAN.md are done: I reproduced the failures, fixed the
+`phone_us` regex by broadening its separators from `[-.]` to `[-. ]` (a literal
+space, not `\s`), and confirmed the 4 phone tests now pass with no regressions.
+For step 4, I chose to keep the pattern permissive rather than adding stricter
+validation — over-redaction is safer than missing a real phone number, since a
+false negative leaks PII.
+
+**Next steps:**
+
+Finish step 5 by documenting the root cause in JOURNAL.md (the missing
+whitespace separator, not the parentheses as first hypothesized). I'll also add
+1–2 new test cases that specifically target space-separated phone numbers,
+which should pass now that the fix is in place.
+
+After finishing these, I will open a PR and ask for reviews.
+
+**Blockers:** none
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [Fix/146 pii not scrub phone - #392](https://github.com/ascherj/pathreview/pull/392)
+
+**Branch:** [ru1nw:fix/146-pii-not-scrub-phone](https://github.com/ru1nw/pathreview/tree/fix/146-pii-not-scrub-phone)
+
+**What you built:**
+A one-line fix to the `phone_us` regex in `safety/pii_scrubber.py` so US phone
+numbers that use spaces as separators (e.g. `(555) 123-4567` and
+`+1 555 123 4567`) are now redacted. It broadens the separator class from `[-.]`
+to `[-. ]` (a literal space) and moves the `\b` word boundary to after the
+optional `(` so the full number is matched without leaving a stray `(` or `+`
+behind.
+
+**Tests added or updated:**
+I added two tests to `tests/unit/test_pii_scrubber.py`:
+`test_space_separated_phone_formats_no_leak`, which scrubs the space/paren
+formats and asserts no digit fragments leak through, and
+`test_detect_space_separated_phone`, which checks `detect()` flags a
+space-separated number as `phone_us` and captures its full value.
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+
+**Draft PR feedback received from:** [Syoko3](https://github.com/ascherj/pathreview/pull/392#issuecomment-5135681148)
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+
+*No feedback*
+
+**How you responded:**
+
+*No feedback*
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+It surprised me how difficult it is to understand a codebase fully,
+especially when the codebase is huge with many different tools used.
+I was trying to find out how the PIIScrubber is used, which led me
+down a rabbit hole of figuring out how APIs, models, services, etc.
+are connected together, which wasted a lot of time.
+
+**What did you learn about working in a large codebase?**
+
+Don't try to understand every single aspect of it. Focus just on the
+current issue and its tests, and write good specs and tests on it.
+
+**How did AI tools help — and where did they fall short?**
+
+Claude was good at reading code and figuring out how it works, but it
+needed extra instructions to incorporate project-specific contributing
+rules such as linting.
+
+**What would you do differently if you started over?**
+
+I would pick a more advanced issue to solve, maybe something that
+requires a more thorough understanding to the codebase. I was worried
+that since this is the first time I'm trying this workflow I would
+struggle, but it turned out to accelerate the work, leaving more time
+that could be spent on working on a high-level issue.
+
+**What are you most proud of from this module?**
+
+Using Claude Code to contribute to an open-source project.
