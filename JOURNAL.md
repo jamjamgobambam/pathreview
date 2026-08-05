@@ -68,3 +68,36 @@ No new test files were needed — `tests/unit/test_resume_parser.py` already con
 **Self-review confirmation:** [x] make check passes (no new findings)  [x] make test-unit passes (3 target tests green, 2 pre-existing unrelated failures documented)
 
 **Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer comments came in by the end of the week. Per the Su26 course note, reviewer feedback is not a feature in Summer 2026.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Establishing a clean baseline before touching any code. When I first ran the full unit suite, 16 test files failed to collect due to missing dependencies, and two tests in `test_resume_parser.py` were already failing for a completely unrelated bug in `_strip_markdown()`. Untangling which failures were pre-existing versus caused by my change took more effort than I anticipated — I had to `git stash` my fix and re-run the suite just to get a trustworthy before/after comparison. I expected the hard part to be writing the fix; it turned out to be proving the fix didn't break anything else.
+
+**What did you learn about working in a large codebase?**
+The fix itself was four characters added in four lines. Everything around it — reading the call chain from `_parse_pdf` down to `_detect_sections`, understanding why `re.MULTILINE` meant `^` should work, checking whether `\s*` could cause false positives on mid-sentence keywords, verifying that two existing test failures predated my change — took significantly longer. In my own projects I jump straight to writing; here I learned that reading and verifying are the real work. Contributing to someone else's production codebase means your change has to make sense in context, not just pass the tests you ran.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for navigating the codebase quickly — tracing the call chain, understanding what `re.MULTILINE` does with `^`, and drafting the PR description with the right level of detail. Where it fell short was in judgment calls that required running the actual environment: figuring out which of the 16 collection errors were real blockers versus missing dev dependencies, and deciding whether the two `_strip_markdown` failures were mine or pre-existing. Those required actually running commands and reading real output. AI gave me the map; I still had to walk the terrain.
+
+**What would you do differently if you started over?**
+Run `make test-unit` on the unmodified codebase before writing a single line — before even reading the issue description in depth. A clean baseline snapshot of exactly which tests fail and which pass takes two minutes and saves a lot of confusion later. I also would have scoped my PLAN.md edge cases more tightly to the regex change itself; a couple of them (like "section keyword inside an email address") were theoretically interesting but not worth investigating for a four-line patch.
+
+**What are you most proud of from this module?**
+The PR description. It's easy to submit a fix and let the diff speak for itself, but taking the time to explain the pre-existing failures, document the manual reproduction steps, and note exactly which lines changed — and why `\s*` belongs before the keyword rather than after the anchor — is the kind of context that makes a maintainer's review fast and confident. That felt like the difference between dropping code over a wall and actually contributing.
