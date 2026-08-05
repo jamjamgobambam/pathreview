@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+
 import structlog
 
 logger = structlog.get_logger()
@@ -14,8 +15,7 @@ class ContextManager:
         """Initialize context manager."""
         self.results = {}
 
-    def store_tool_result(self, tool_name: str, input_hash: str,
-                         result) -> None:
+    def store_tool_result(self, tool_name: str, input_hash: str, result) -> None:
         """Store tool execution result.
 
         Args:

@@ -73,6 +73,7 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
         """Initialize OpenAI client."""
         try:
             from openai import OpenAI
+
             self.client = OpenAI()
         except ImportError:
             raise ImportError("openai package is required for OpenAIEmbeddingProvider")
@@ -121,6 +122,5 @@ def get_embedding_provider(provider_name: str) -> EmbeddingProvider:
         return OpenAIEmbeddingProvider()
     else:
         raise ValueError(
-            f"Unknown embedding provider: {provider_name}. "
-            "Supported: 'mock', 'openai'"
+            f"Unknown embedding provider: {provider_name}. " "Supported: 'mock', 'openai'"
         )

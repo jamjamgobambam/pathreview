@@ -52,11 +52,13 @@ class SemanticChunker(BaseChunker):
             if current_tokens + sentence_tokens > self.TARGET_CHUNK_TOKENS and current_chunk:
                 chunk_text = " ".join(current_chunk)
                 chunk_metadata = metadata.copy()
-                chunk_metadata.update({
-                    "chunk_index": len(chunks),
-                    "char_start": char_start,
-                    "char_end": char_start + len(chunk_text),
-                })
+                chunk_metadata.update(
+                    {
+                        "chunk_index": len(chunks),
+                        "char_start": char_start,
+                        "char_end": char_start + len(chunk_text),
+                    }
+                )
                 chunks.append(Chunk(text=chunk_text, metadata=chunk_metadata))
 
                 # Move to next chunk with overlap
@@ -71,19 +73,19 @@ class SemanticChunker(BaseChunker):
             # Maintain overlap buffer
             if current_tokens > self.TARGET_CHUNK_TOKENS:
                 overlap_buffer = current_chunk[-2:] if len(current_chunk) >= 2 else current_chunk
-                overlap_tokens = sum(
-                    len(self.encoder.encode(s)) for s in overlap_buffer
-                )
+                overlap_tokens = sum(len(self.encoder.encode(s)) for s in overlap_buffer)
 
         # Add final chunk if not empty
         if current_chunk:
             chunk_text = " ".join(current_chunk)
             chunk_metadata = metadata.copy()
-            chunk_metadata.update({
-                "chunk_index": len(chunks),
-                "char_start": char_start,
-                "char_end": char_start + len(chunk_text),
-            })
+            chunk_metadata.update(
+                {
+                    "chunk_index": len(chunks),
+                    "char_start": char_start,
+                    "char_end": char_start + len(chunk_text),
+                }
+            )
             chunks.append(Chunk(text=chunk_text, metadata=chunk_metadata))
 
         return chunks

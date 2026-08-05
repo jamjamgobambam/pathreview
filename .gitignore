@@ -44,3 +44,4 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+failing_test.md
