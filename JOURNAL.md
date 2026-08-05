@@ -49,16 +49,16 @@ As the llm_provider defaults to "mock", in the case that this is to run offline 
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [https://github.com/ascherj/pathreview/pull/862](https://github.com/ascherj/pathreview/pull/862)
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `fix/34-re-ranking-LLM-retriever-step`
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+I built a mandatory second layer to the chunking algorithm within the RAG feature of this project. This new layer uses an LLM to reranker retrieved chunks in order of relevance. I also implemented a mock reranker that permits the layer to run without connection to a network/LLM API.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+I added tests in their own separate file for the reranker under the name `test_reranker.py`. The test suite utilized a non-network reliant mock client and data to probe reranker behavior in various scenarios and edge cases.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
