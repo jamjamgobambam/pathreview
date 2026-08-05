@@ -1,6 +1,6 @@
 ## Week 7 — Issue selection
 
-**Issue link:** https://github.com/ascherj/pathreview/issues/150
+**Issue link:** [Issue #150](https://github.com/ascherj/pathreview/issues/150)
 
 **Issue title:** Tech detector counts vendored and build-output files, skewing language detection
 
@@ -46,7 +46,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/ascherj/pathreview/pull/875
+**PR link:** [PR #875](https://github.com/ascherj/pathreview/pull/875)
 
 **Branch:** `fix/150-ignore-vendored-build-files`
 
@@ -59,3 +59,34 @@ None added or modified. `tests/unit/test_tech_detector.py::test_node_modules_exc
 **Self-review confirmation:** [X] make test-unit passes (`.venv/bin/pytest tests/unit/test_tech_detector.py -m unit`: 27/27 pass; full `tests/unit` suite: 51 pre-existing unrelated failures, down from 53 before this fix, confirmed on main)  [ ] make check passes (182 pre-existing lint errors repo-wide, unrelated to this change; `agent/tools/tech_detector.py` itself has one pre-existing import-sort warning, not introduced by this fix)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in on [PR #875](https://github.com/ascherj/pathreview/pull/875) yet.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Writing the PR description was harder than expected. Cramming enough detail to justify the fix (root cause, design tradeoffs, test evidence) into something concise, without padding it out just to look thorough, took more revision than the actual code fix did. Gave me a lot more respect for how open-source maintainers hold that bar consistently, especially pre-AI tooling.
+
+**What did you learn about working in a large codebase?**
+I didn't read the full codebase, but tracking down the files named in the issue was straightforward, and reading the source alongside the pytest tests made the bug's behavior clear quickly. The real gap versus my own projects: on my own code, I already know the layout because I built it. Here I had to lean on the issue description and test names to orient myself instead of prior context.
+
+**How did AI tools help — and where did they fall short?**
+Mainly useful for scaffolding the plan (PLAN.md) and drafting the PR/journal writeups once I'd already pinned down the root cause myself. The issue was scoped tightly enough that I didn't get much signal on where AI would fall short. I'd expect that to show up more on a harder issue with ambiguous root cause or cross-file changes.
+
+**What would you do differently if you started over?**
+Pick a harder issue, ideally something touching APIs or a multi-file change, rather than a single-function bug fix. Given more time, I'd also spend a session just reading through the codebase's architecture and system design, since that's the part I find most interesting and it's a purely additive/exploratory session.
+
+**What are you most proud of from this module?**
+Nailing down the actual root cause (leading-slash substring match silently failing on root-relative paths) before touching any code, so the fix ended up being a small, well-justified change instead of a guess-and-check patch.
