@@ -37,14 +37,34 @@ Read `docs/ARCHITECTURE.md`'s RAG System section end to end and confirmed it nev
 **Blockers or open questions:**
 `rag/retriever/hybrid.py` fetches all chunks for keyword search but I don't see where `KeywordSearcher.index()` actually gets called before `retrieve()` uses it — need to confirm where/whether the BM25 index is built (likely during ingestion) before finalizing the doc's description of the keyword-search step. This looks like a separate, unrelated bug and is out of scope for issue #36.
 
-## Week 9 — Implementation
+## Week 9 — Solution building & PR submission
 
-**Implementation commit link:** https://github.com/shanhe2/pathreview/commit/fdf8c1a
+### Check-in 1 (mid-week)
 
-**Open-question follow-up:** Grepped the repo for `.index(` calls on `KeywordSearcher` — the only call site is in `tests/unit/test_keyword_search.py`; nothing in the ingestion or retrieval code path builds the BM25 index before `HybridRetriever.retrieve()` calls `keyword_searcher.search()`. Confirms this is a real, separate bug (the keyword-search branch appears unreachable in practice) but it's out of scope for issue #36's doc-only fix, so the new section describes the scoring formula as designed without asserting the BM25 half is currently wired up end-to-end.
+**Current progress:**
+Implemented the fix from `PLAN.md`: replaced the issue #36 reproduction comment in `docs/ARCHITECTURE.md` with a full "Hybrid Retrieval Scoring" subsection covering the two normalized inputs, the min-max-per-result-set caveat, the weighted-sum formula, default weights (`vector_weight=0.7`, `keyword_weight=0.3`) with a one-line rationale, the `min_score` filter step, a note on missing-side chunks scoring 0, and the worked A/B example from `PLAN.md` as a table (commit `fdf8c1a`). Re-read `rag/retriever/hybrid.py` line by line against the new section to confirm the formula, defaults, and normalization order match exactly. Also resolved the open question from Week 8: grepped for `.index(` calls on `KeywordSearcher` and found the only call site is in `tests/unit/test_keyword_search.py` — nothing in the real ingestion/retrieval path builds the BM25 index before `retrieve()` uses it. That's a real, separate bug, out of scope for this doc-only fix.
 
-**What changed:** Replaced the issue #36 reproduction comment in `docs/ARCHITECTURE.md` with a full "Hybrid Retrieval Scoring" subsection: the two normalized inputs, the min-max-per-result-set caveat, the weighted-sum formula, default weights (`vector_weight=0.7`, `keyword_weight=0.3`) with a one-line rationale, the `min_score` filter step, a note on missing-side chunks scoring 0, and the worked A/B example from `PLAN.md` as a table. No code changes — matches the issue's docs-only scope.
+**Next steps:**
+Open the PR against `main`, fill out the PR template, get a draft review from a classmate/mentor, address feedback, then mark it ready for review and submit by Sunday.
 
-**Testing:** No unit tests apply (docs-only change). Ran `make test-unit` and `make check` before and after; both show the same 53 pre-existing test failures and 182 pre-existing lint errors, none in files this change touches (`docs/ARCHITECTURE.md` is the only file modified) — confirming this change introduces no new failures.
+**Blockers:**
+None.
 
-**Self-review:** Re-read `rag/retriever/hybrid.py` line by line against the new doc section to confirm the formula, defaults, and normalization order match exactly; proofread the worked example arithmetic.
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/733 (currently draft — will update once marked ready for review)
+
+**Branch:** docs/36-hybrid-retrieval-scoring-formula
+
+**What you built:**
+Added a "Hybrid Retrieval Scoring" subsection to `docs/ARCHITECTURE.md` that documents the exact scoring formula `HybridRetriever` uses to blend vector and BM25 search results (per-result-set min-max normalization, weighted sum with 0.7/0.3 defaults, min-score filtering), plus a worked numeric example. Docs-only change — no application code modified.
+
+**Tests added or updated:**
+None — this is a documentation-only fix with no code path changes, so no test files were touched.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+(Both commands were run before and after this change; the same 53 pre-existing test failures and 182 pre-existing lint errors appear in both runs, none in `docs/ARCHITECTURE.md` — confirming no new failures were introduced. Checkboxes left unchecked here since the pre-existing failures mean the commands don't pass outright; see PR description for the documented baseline.)
+
+**Draft PR feedback received from:** none yet.
