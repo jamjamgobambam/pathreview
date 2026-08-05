@@ -235,11 +235,27 @@ class TestFaithfulnessChecker:
             {"text": None}
         ]
 
+        # Should not raise: a None text is treated as empty context.
         score = checker.check(feedback, context_chunks)
 
-        # Should handle gracefully
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
+        # No usable context means nothing supports the claim.
+        assert score == 0.0
+
+    def test_none_text_mixed_with_valid_chunk(self, checker):
+        """Test a None-text chunk is ignored while valid chunks are still scored."""
+        feedback = "The developer has Python and Docker skills."
+        context_chunks = [
+            {"text": None},
+            {"text": "Python and Docker expertise shown in projects."},
+        ]
+
+        score = checker.check(feedback, context_chunks)
+
+        # The valid chunk still supports the claim despite the None chunk.
+        assert isinstance(score, float)
+        assert score > 0.5
 
     def test_missing_text_key_in_chunk(self, checker):
         """Test handling of missing 'text' key in context chunk."""
