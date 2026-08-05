@@ -2,6 +2,20 @@
 
 **Issue:** Health check DB probe passes a raw SQL string, which fails under SQLAlchemy 2.x — https://github.com/ascherj/pathreview/issues/154
 
+### Status — ✅ Implemented as planned
+
+The core fix is done on branch `fix/154-health-check-textual-sql`:
+
+- `api/routes/health.py` now imports `text` and calls `await db.execute(text("SELECT 1"))` (commit `bee7833`).
+- `tests/unit/test_health.py` was updated to assert the Postgres probe reports "healthy" when the query succeeds, plus a regression test that a genuine DB error still reports "unhealthy" (commit `410f6ae`).
+- Baseline vs. after `make test-unit`: identical **53 failed / 377 passed** — all 53 failures are pre-existing and unrelated to #154; **no new failures introduced**. `ruff`/`black`/`mypy` output is unchanged versus baseline (ruff count actually dropped by 1 after tidying the test's imports).
+
+**What changed from the original plan once the code was written:**
+
+- The plan assumed the fixed endpoint would return a clean 200 "healthy". In practice the `/health` endpoint still returns **503** in the unit tests because of a **separate, pre-existing bug**: the redis probe reads `settings.redis_host` / `settings.redis_port`, which are **not defined** on `Settings` (only `redis_url` is), so redis always reports "unhealthy". This is out of scope for #154, so the tests assert on `dependencies["postgres"]` specifically rather than the overall status/HTTP code. (Worth filing as a follow-up issue.)
+- Plan step 5 (grep for other raw-string `execute()` call sites) is confirmed: `api/routes/health.py` was the **only** one — every other `execute()` in the codebase already passes a `select()` / prepared statement.
+- Still outstanding (next check-in): manual verification against a live Postgres (`docker compose up`) that `GET /health` reports `postgres: "healthy"`.
+
 ### Understand
 `health_check()` in `api/routes/health.py` probes Postgres connectivity with
 `await db.execute("SELECT 1")` (line 31), passing a bare Python string. Under

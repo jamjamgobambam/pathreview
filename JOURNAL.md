@@ -50,3 +50,16 @@ Added a unit test that exercises the health check's Postgres probe with a mocked
 **Walkthrough video (recommended):**
 
 **Blockers or open questions:**
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in api/routes/health.py (wrapped the raw SQL string in sqlalchemy.text()) and updated tests/unit/test_health.py to assert the health check now reports postgres as healthy. All sub-tasks from PLAN.md's core fix are done; ran make check and make test-unit with no new failures introduced versus baseline.
+
+**Next steps:**
+Open a draft PR, request peer/mentor review, and confirm the app reports a healthy postgres status when run against a live database (docker-compose up) before marking the PR ready for review.
+
+**Blockers:**
+None on the fix itself. One out-of-scope discovery: the /health redis probe reads settings.redis_host / settings.redis_port, which aren't defined on Settings, so redis always reports unhealthy independent of #154 — noted in PLAN.md as a follow-up.
