@@ -98,6 +98,36 @@ received, then mark the PR ready for review and complete Check-in 2.
 **Blockers:**
 None currently.
 
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/846
+
+**Branch:** fix/153-faithfulness-checker-none-text
+
+**What you built:**
+Fixed a `TypeError` in `FaithfulnessChecker.check()` that occurred when a
+context chunk's `"text"` key was present but set to `None`. Changed
+`chunk.get("text", "")` to `chunk.get("text") or ""` in
+`rag/evaluator/faithfulness_checker.py`, since `.get()`'s default only
+applies to a missing key, not a present key with value `None`. This handles
+both the missing-key and `None`-value cases identically.
+
+**Tests added or updated:**
+No new test files were needed - `tests/unit/test_faithfulness_checker.py`
+already contained `test_none_context_chunk_text` (previously failing) and
+`test_missing_text_key_in_chunk` (previously passing). Both now pass.
+Confirmed 3 pre-existing, unrelated test failures in the same file remain
+identical before and after my change (verified via `git stash`).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+(Note: `make check` and `make test-unit` both surface pre-existing failures
+unrelated to this change - documented in the PR description. Scoped
+`ruff`/`black`/`mypy` runs on the changed file pass cleanly, and the 2
+relevant unit tests for this issue pass.)
+
+**Draft PR feedback received from:** none
+
 ## Week 10 - Iteration & reflection
 
 ### Reviewer feedback
