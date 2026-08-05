@@ -14,14 +14,18 @@ class GitHubTool(BaseTool):
     name = "github_tool"
     description = "Fetch repository metadata from GitHub"
 
-    def __init__(self, api_token: str | None = None):
+    def __init__(
+        self, api_token: str | None = None, base_url: str = "https://api.github.com"
+    ) -> None:
         """Initialize GitHub tool.
 
         Args:
             api_token: GitHub API token (optional for unauthenticated requests)
+            base_url: Root URL of the GitHub API. Defaults to the public API;
+                override it to point the tool at a mock server in tests.
         """
         self.api_token = api_token
-        self.base_url = "https://api.github.com"
+        self.base_url = base_url
 
     def execute(self, input_data: dict) -> ToolResult:
         """Fetch GitHub repository metadata.
