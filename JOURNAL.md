@@ -26,3 +26,53 @@ I inspected health.py and confirmed safety_events_last_hour was hardcoded to 0 w
 
 
 **Blockers or open questions:**
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+- **`safety/monitoring.py`** — Reworked `SafetyMonitor` to store events in hourly Redis buckets (`safety:events:{event_type}:{YYYYMMDDHH}`, 48h expiry) instead of a single counter with a resetting TTL. Rewrote `get_event_count(event_type, window_hours)` to sum the buckets covering the requested window, and added `get_total_event_count(window_hours)` to aggregate counts across all event types.
+
+- **`api/routes/health.py`** — Wired `SafetyMonitor` into the `/health` endpoint: it's now instantiated with the same Redis client used for the Redis dependency check, and `safety_events_last_hour` is set from `get_total_event_count(window_hours=1)` instead of a hardcoded `0`. If Redis is unreachable, the field returns `None` rather than a misleading `0`.
+
+**Next steps:**
+My next steps are adding tests to check my changes. I want to add the following tests:
+
+- **`tests/test_safety_monitoring.py`** — Unit tests for the bucketed counting logic (correct bucket keys, expiry, per-type isolation, window inclusion/exclusion, Redis-failure handling).
+
+- **`tests/test_health.py`** — Endpoint tests verifying `/health` wiring: the field comes from `SafetyMonitor`, reuses the existing Redis client, and degrades gracefully (`None`) on Redis/SafetyMonitor failures.
+
+**Blockers:**
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+My fix populates the previously hardcoded safety_events_last_hour field in the /health endpoint with a real count, by reworking SafetyMonitor to store events in hourly Redis buckets (safety:events:{event_type}:{YYYYMMDDHH}) instead of a single counter with a resetting TTL. health.py now instantiates SafetyMonitor with the same Redis client used for the Redis dependency check and calls a new get_total_event_count(window_hours=1) method, which sums the relevant hourly buckets across all event types; if Redis is unreachable, the field returns None instead of a misleading 0.
+
+**Tests added or updated:**
+**`tests/test_safety_monitoring.py`** — Unit tests for `SafetyMonitor` (`safety/monitoring.py`), using a dict-backed mock Redis client and frozen time. Covers:
+- `log_event` writes to the correct hourly bucket key and sets the 48h expiry
+- same-type events in the same hour accumulate; different types get separate keys
+- unknown event types are ignored and never written to Redis
+- Redis failures in `log_event`/`get_event_count` are caught, not raised
+- `get_event_count` correctly includes/excludes hours based on `window_hours` — the core regression test for the old unbounded-rolling-total bug
+- `get_total_event_count` sums correctly across all five event types, respects the window, and isn't broken by one flaky event type
+
+**`tests/test_health.py`** — Endpoint tests for `/health` (`api/routes/health.py`) using FastAPI's `TestClient`, with `SafetyMonitor` mocked so these stay focused on wiring rather than duplicating the logic above. Covers:
+- `safety_events_last_hour` reflects `SafetyMonitor.get_total_event_count(window_hours=1)`, not a hardcoded value
+- `SafetyMonitor` is constructed with the same Redis client used for the Redis dependency check
+- Postgres down → 503 with `postgres: unhealthy`
+- Redis down → `safety_events_last_hour` is `None` (not `0`), and `SafetyMonitor` is never constructed
+- missing `vector_db_url` → `unavailable`, doesn't flip overall status
+- `get_total_event_count` raising mid-request → degrades to `None` instead of a 500
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+
+**Draft PR feedback received from:** none
