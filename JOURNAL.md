@@ -115,3 +115,72 @@ threshold tests (`minimal`/`adequate`/`comprehensive`) were left untouched.
 it to the cohort Slack channel, but did not receive peer/mentor feedback before
 the submission deadline.
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments arrived on PR #385 by the end of the week.
+(Reviewer feedback is not an active feature in Summer 2026, and I did not receive
+peer feedback in Slack before the deadline either.)
+
+**How you responded:**
+I asked AI to check if there were any issues in my PR, but the respone didn't have any major red flags. Mostly stylistic choices so I filled in the real PR link (#385) and pushed update to the branch.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part wasn't the code — my actual change was one fixture string. It
+was everything *around* the code. Two things blindsided me. First, when I ran the
+full unit suite I found **53 tests already failing** and briefly assumed I'd
+broken the repo; it took a set-diff of the failing tests before/after to convince
+myself my change added zero new failures. Second, committing was a fight: the
+pre-commit `black` hook (pinned to 24.1.0) and my venv's `black` (26.5.1)
+disagreed about one unrelated line and put my commit in an infinite reformat
+loop, and the `mypy` hook rejected the whole file over 24 pre-existing untyped
+test functions. None of that was "the fix" — it was the environment, tooling
+versions, and process, which is where most of my time actually went.
+
+**What did you learn about working in a large codebase?**
+"Passing" doesn't mean a green suite — it means *do no harm*, measured against a
+documented baseline. In my own projects a failing test means I broke something;
+here, most failures pre-dated me and the real bar was "introduce no new
+failures." I also learned to keep the change surgical: I only touched the test
+fixture and left `readme_scorer.py` alone once I confirmed the thresholds were
+deliberate, because unrelated edits create review noise and regression risk in
+code other people own. And I learned that a project can hold *conflicting*
+standards at once — `make check` excludes `tests/` from strict typing while the
+pre-commit hook did not — and that resolving the inconsistency (a `tests.*` mypy
+override) is a legitimate contribution, not a hack.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for *investigation and verification*: mapping how the scorer
+categorizes word counts, drafting a 606-word fixture and checking it cleared 500
+words before I committed, and running the before/after failing-test diff that
+proved I added no new failures. Where it fell short was the judgment calls that
+depended on context AI couldn't see — deciding whether to annotate 24 functions
+vs. add a mypy override (a trade-off about diff size and reviewer perception),
+and diagnosing that the "black won't stop reformatting" loop was a *tool-version
+mismatch* rather than a code problem. AI could explain the mechanics once I asked
+the right question, but framing the right question — and owning the decision —
+was on me.
+
+**What would you do differently if you started over?**
+Open the draft PR **early in the week**, not at the deadline. I did solid work but
+never got peer review because I opened it too late, and that's a real gap in the
+contribution cycle — the PR is the artifact teammates interact with. I'd also
+treat the JOURNAL/PR-template fields as blocking checklist items from the start. Finally, I'd run the *full* suite and record the baseline on day one,
+so the pre-existing failures don't become an issue mid-task.
+
+**What are you most proud of from this module?**
+Debugging discipline. I correctly diagnosed that the bug was in the *test*, not
+the production code — traced it through the scorer's real thresholds — and kept my
+change to the smallest thing that fixed it, then *proved* with a baseline diff that
+I hadn't made anything worse. Resisting the urge to "fix" the scorer or clean up
+unrelated failures, and instead making one well-scoped, well-evidenced change, is
+the habit I most want to carry into real contribution work.
+
