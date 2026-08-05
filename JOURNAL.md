@@ -54,3 +54,73 @@ log anywhere, matching the issue's reported symptom exactly.
   numpy/mypy stub incompatibility under Python 3.14) independent of this
   issue; unconfirmed whether CI hits the same problem. Needs checking before
   the Week 9 PR.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from `PLAN.md`: `Orchestrator.run()` (`agent/orchestrator.py`)
+now branches on `result.success` instead of unconditionally logging
+`success=True` and storing `result.data`; a failing tool now logs
+`tool_execution_failed` at error level and stores `{"error": ..., "success":
+False}`. `_execute_tool()` no longer caches failed results (resolves the
+caching risk from `PLAN.md`). `retry_with_backoff(max_retries=0)` in
+`agent/error_handling.py` now raises `ValueError` instead of silently
+returning `None`. All 5 `PLAN.md` sub-tasks are done. Test coverage expanded
+from 1 to 7 cases in `tests/unit/test_orchestrator.py`, plus 4 new cases in
+`tests/unit/test_error_handling.py` -- 11 total, all passing. Baseline
+established before touching anything (`make check` / `make test-unit`); full
+suite after the change is 53 failed / 386 passed, matching the documented
+pre-existing 53-failure baseline exactly, with zero new failures.
+
+**Next steps:**
+Open the draft PR, request peer/mentor review through the course Slack
+workflow, and address any feedback before marking it ready for review.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/903
+
+**Branch:** `fix/44-log-tool-call-failures`
+
+**What you built:**
+`Orchestrator.run()` no longer trusts a tool call to have succeeded just
+because it didn't raise. Every tool in `agent/tools/` catches its own
+exceptions and returns `ToolResult(success=False, error=...)` instead of
+raising, so the orchestrator now checks `result.success` explicitly: on
+failure it logs an error with the real error message and stores a
+distinguishable failure shape instead of an empty dict tagged as a success.
+Also fixed a related bug where failed results were being cached and replayed
+as false "cache hits," and a latent `max_retries=0` bug in the retry
+decorator that silently returned `None`.
+
+**Tests added or updated:**
+`tests/unit/test_orchestrator.py` (expanded 1 -> 7 cases: the original
+reproduction now passing, a success-path regression check, a tool that
+raises directly, the pre-existing unknown-tool path, independent multi-tool
+outcomes, and both directions of the caching fix) and new
+`tests/unit/test_error_handling.py` (4 cases: the `max_retries=0` guard plus
+baseline retry/success/exhaustion behavior that had zero prior coverage).
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+Neither box is checked as a blanket pass -- both commands fail
+**repo-wide** due to a large pre-existing baseline unrelated to this issue
+(documented in the PR's "Notes for Reviewers" and in Week 7/8 entries above):
+182 pre-existing `ruff` errors, 52 files needing `black` reformatting, `mypy`
+crashing on a numpy/Python-3.14 stub incompatibility in this local venv
+before it reaches any changed file, and 53 pre-existing unrelated
+`test-unit` failures. What's verified instead: this contribution introduces
+**zero new failures** against that baseline -- confirmed failure counts
+before and after for every check, see the PR description for exact numbers
+and commands.
+
+**Draft PR feedback received from:** none yet -- PR was just opened as a
+draft; peer/mentor review through the course Slack workflow is still
+outstanding, and the PR will stay in draft until that feedback is addressed.
