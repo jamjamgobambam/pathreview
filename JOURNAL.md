@@ -149,11 +149,11 @@ confirming the failure was pre-existing and unrelated to my changes.
 
 ### Reviewer feedback
 
-**Feedback received:** [ ] Yes  [x] No — still awaiting review (not a feature in Summer 2026)
+**Feedback received:** [x] Yes  [] No 
 
 **Summary of feedback:**
-No reviewer feedback was available this term, per the course note. PR #688
-remains open as a draft on branch `fix/151-bias-detector-pattern-matching`.
+No reviewer feedback was available this term, per the course note. However, PR #688
+was merged to `fix/151-bias-detector-pattern-matching`.
 
 **How you responded:**
 N/A — no feedback arrived to respond to.
