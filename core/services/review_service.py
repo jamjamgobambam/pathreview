@@ -1,15 +1,83 @@
-from uuid import UUID
-import structlog
+import hashlib
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
+
+
+def compute_profile_content_hash(profile: Profile) -> str:
+    """Compute a deterministic content hash for a profile.
+
+    The hash covers only the profile's content-bearing fields, so two
+    submissions of the same portfolio produce the same hash and any change to
+    the content produces a different one. Volatile metadata (ids, timestamps) is
+    intentionally excluded.
+
+    Args:
+        profile: Profile whose content should be hashed.
+
+    Returns:
+        A 64-character hex SHA-256 digest of the canonicalized content.
+    """
+    payload = json.dumps(
+        {
+            "github_username": profile.github_username,
+            "portfolio_url": profile.portfolio_url,
+            "resume_text": profile.resume_text,
+            "resume_filename": profile.resume_filename,
+        },
+        sort_keys=True,
+        ensure_ascii=False,
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+async def _find_cached_review(
+    db: AsyncSession,
+    profile_id: UUID,
+    content_hash: str,
+    exclude_review_id: UUID,
+) -> Review | None:
+    """Find a prior completed review for this profile with a matching hash.
+
+    Only reviews with ``status="complete"`` are eligible, so in-progress or
+    failed runs are never served from cache. The current review is excluded so a
+    review can never be a cache hit against itself.
+
+    Args:
+        db: Async database session.
+        profile_id: Profile the review must belong to.
+        content_hash: Hash the cached review must match.
+        exclude_review_id: Id of the review currently being processed.
+
+    Returns:
+        The most recent matching completed review, or None on a cache miss.
+    """
+    stmt = (
+        select(Review)
+        .where(
+            and_(
+                Review.profile_id == profile_id,
+                Review.content_hash == content_hash,
+                Review.status == "complete",
+                Review.id != exclude_review_id,
+            )
+        )
+        .order_by(Review.created_at.desc())
+    )
+    result = await db.execute(stmt)
+    cached: Review | None = result.scalars().first()
+    return cached
 
 
 async def create_review(
@@ -40,8 +108,8 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
     return result.scalars().first()
@@ -117,6 +185,26 @@ async def process_review(
             await db.commit()
             return
 
+        # Cache check: if this exact portfolio was already reviewed and is
+        # unchanged, reuse the stored result instead of re-running the pipeline.
+        content_hash = compute_profile_content_hash(profile)
+        cached = await _find_cached_review(db, profile_id, content_hash, review_id)
+        if cached is not None:
+            review.status = "complete"
+            review.sections = cached.sections
+            review.overall_score = cached.overall_score
+            review.content_hash = content_hash
+            review.updated_at = datetime.utcnow()
+            db.add(review)
+            await db.commit()
+            log.info(
+                "review_served_from_cache",
+                review_id=str(review_id),
+                cached_review_id=str(cached.id),
+                content_hash=content_hash,
+            )
+            return
+
         # Step 1: Set status to processing
         review.status = "processing"
         db.add(review)
@@ -168,6 +256,8 @@ async def process_review(
         review.status = "complete"
         review.sections = [s.model_dump() for s in sections]
         review.overall_score = rag_output.get("overall_score", None)
+        # Persist the content hash so a future identical submission is a cache hit.
+        review.content_hash = content_hash
         review.updated_at = datetime.utcnow()
 
         db.add(review)
