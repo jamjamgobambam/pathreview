@@ -35,3 +35,22 @@ FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_javascript_d
 
 **Blockers or open questions:**
 Still need to confirm whether `test_devops_tool_detection` and `test_docker_compose_detection` failures (mentioned in the original issue) share the same root cause or are separate — haven't reproduced those yet.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in `ingestion/parsers/skill_extractor.py` — added JS/TS syntax
+pattern detection, TypeScript-specific patterns, removed the .tsx/.jsx false-positive
+React trigger, and added Dockerfile/docker-compose syntax detection. All 4 target
+failing tests now pass. Ran full test suite — 49 failed/379 passed, down from the
+53/375 baseline, confirming no regressions. Ran make check and make test-unit to
+confirm a clean diff. Opened draft PR #898.
+
+**Next steps:**
+Share PR in Slack for peer/mentor feedback, address any feedback received, mark PR
+as ready for review, and complete Check-in 2 by Sunday.
+
+**Blockers:**
+None currently.
