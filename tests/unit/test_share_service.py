@@ -46,7 +46,7 @@ class TestShareService:
     async def test_create_share_link_mints_new_link_when_none_exists(self, mock_db_session):
         """A completed review with no existing link gets a fresh token + 30-day expiry."""
         review_id = uuid4()
-        user_id = uuid4()
+        user_id = str(uuid4())
 
         review = Mock()
         review.status = "complete"
@@ -71,7 +71,7 @@ class TestShareService:
     async def test_create_share_link_reuses_existing_unexpired_link(self, mock_db_session):
         """If an unexpired link already exists, it is reused (no new row)."""
         review_id = uuid4()
-        user_id = uuid4()
+        user_id = str(uuid4())
 
         review = Mock()
         review.status = "complete"
@@ -93,7 +93,7 @@ class TestShareService:
     async def test_create_share_link_raises_when_review_not_found(self, mock_db_session):
         """A review that doesn't exist / isn't owned by the user raises ReviewNotFoundError."""
         review_id = uuid4()
-        user_id = uuid4()
+        user_id = str(uuid4())
 
         mock_db_session.execute = AsyncMock(side_effect=[self._result(None)])
 
@@ -106,7 +106,7 @@ class TestShareService:
     async def test_create_share_link_raises_when_review_not_complete(self, mock_db_session):
         """A review that isn't complete raises ReviewNotShareableError."""
         review_id = uuid4()
-        user_id = uuid4()
+        user_id = str(uuid4())
 
         review = Mock()
         review.status = "processing"
@@ -122,7 +122,7 @@ class TestShareService:
     async def test_create_share_link_generates_unique_tokens(self, mock_db_session):
         """Two mint operations produce different tokens."""
         review_id = uuid4()
-        user_id = uuid4()
+        user_id = str(uuid4())
 
         review = Mock()
         review.status = "complete"
