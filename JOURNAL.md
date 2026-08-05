@@ -121,6 +121,8 @@ before it reaches any changed file, and 53 pre-existing unrelated
 before and after for every check, see the PR description for exact numbers
 and commands.
 
-**Draft PR feedback received from:** none yet -- PR was just opened as a
-draft; peer/mentor review through the course Slack workflow is still
-outstanding, and the PR will stay in draft until that feedback is addressed.
+**Draft PR feedback received from:** none. A peer/mentor review request was
+prepared for the course Slack workflow, but review was not obtained before
+the submission deadline. With the deadline close, I made the call to submit
+without it rather than hold the PR in draft indefinitely -- noting this
+openly here rather than marking the review step as complete.
