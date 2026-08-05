@@ -60,3 +60,22 @@ Open a draft PR, fill in the template (Summary/Issue/Changes/Testing/Notes for R
 
 **Blockers:**
 None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/905
+
+**Branch:** fix/149-structural-chunker-no-headings
+
+**What you built:**
+Fixed a root-cause bug in `ingestion/chunking/structural_chunker.py` where `StructuralChunker.chunk()` silently returned `[]` for any document with no markdown headings, instead of chunking it. The guard in `_extract_sections()` only started collecting content once it had already seen a heading; I changed it to always collect content and save a section based on whether it has content, not on whether a heading was seen. This also fixed a related bug found in Week 8 — content before a document's first heading was dropped by the same guard — as a side effect of the same one-line-root-cause fix.
+
+**Tests added or updated:**
+`tests/unit/test_structural_chunker.py` — strengthened `test_document_with_no_headings` to assert the original text actually reaches the output (not just a non-empty result) and that no `heading_path` metadata is added. Added three new tests: `test_large_headingless_document_is_sub_chunked` (a headingless document over the 800-token section limit still gets split via the existing semantic sub-chunker), `test_preamble_before_first_heading_is_not_dropped` (covers the related bug), and `test_heading_with_no_body_produces_no_chunk_for_it` (documents the intentional behavior when a heading has no content under it). 18/18 tests pass in this file (was 14/15 before the fix); the full suite went from 375 passed/53 failed (baseline, confirmed via `git stash` against `main`) to 379 passed/52 failed — exactly the fix plus 3 new tests, with zero new failures anywhere else.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+*(both touched files are fully clean of new lint/format errors; the aggregate `make check`/`make test-unit` commands still exit non-zero because of pre-existing, unrelated failures documented and verified against `origin/main` in the PR's "Notes for Reviewers" section — my change introduces no new failures.)*
+
+**Draft PR feedback received from:** none yet — posted in cohort Slack asking for review; PR was marked ready for review before feedback came in per instructor/workflow timing, will address any comments that come in during Week 10.
