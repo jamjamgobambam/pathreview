@@ -1,11 +1,11 @@
 """Tests for resume_parser.py"""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
+from unittest.mock import Mock, patch
 
-from ingestion.parsers.resume_parser import ResumeParser
+import pytest
+
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.resume_parser import ResumeParser
 
 
 @pytest.mark.unit
@@ -142,6 +142,19 @@ class TestResumeParser:
         assert any("experience" in s for s in sections_lower)
         assert any("education" in s for s in sections_lower)
         assert any("skills" in s for s in sections_lower)
+
+    def test_detect_sections_with_leading_whitespace(self, parser: ResumeParser) -> None:
+        """Test section detection when every line has leading indentation (issue #147)."""
+        text = (
+            "\n    John Smith\n    john@example.com\n\n"
+            "    Education:\n    - B.S. Computer Science\n\n"
+            "    Skills: Python\n"
+        )
+        sections = parser._detect_sections(text)
+
+        sections_lower = [s.lower() for s in sections]
+        assert "education" in sections_lower
+        assert "skills" in sections_lower
 
     def test_strip_markdown_syntax(self, parser):
         """Test markdown syntax stripping."""
