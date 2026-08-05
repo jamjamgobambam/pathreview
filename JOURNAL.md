@@ -274,3 +274,104 @@ have broken the test; also that `keyword_score > 0` relied on `rank_bm25`'s nega
 epsilon floor, that a `source_id` mis-attribution would have slipped through a
 `startswith("repo_")` check, and that context truncation past the first chunk was
 unasserted. All four were addressed in commit `d45627d` before the PR was opened.
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No — still awaiting review
+
+**Summary of feedback:**
+No review arrived. As of August 4, 2026, PR
+[#881](https://github.com/ascherj/pathreview/pull/881) has zero reviews, zero inline review
+comments and zero conversation comments, and GitHub reports `reviewDecision:
+REVIEW_REQUIRED` — no maintainer has looked at it yet. CI has not run either: every workflow
+run on the branch sits at `action_required` with 0 jobs and 0s duration, which is GitHub's
+first-time-contributor gate — a maintainer with write access has to approve workflow runs
+before `lint`, `typecheck`, `test-unit`, `test-integration` or `frontend` will execute. So
+the PR shows no check results, which is a permissions gate rather than anything failing in
+the code. This matches the course guidance that reviewer feedback is not a feature of the
+Summer 2026 cohort.
+
+**How you responded:**
+Nothing to respond to, so no changes were made after submission. The PR is left open and
+marked ready for review, with the pre-existing `make check` / `make test-unit` failures and
+the four seam issues I found already documented in the PR description so a maintainer can
+pick it up without needing to ask. The four items raised on the draft before submission were
+already addressed in commit `d45627d`. If feedback does arrive after the course closes, the
+branch is still in a state where I can act on it.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The test itself was the easy part; the environment and the ground truth were not. `make`
+isn't installed on my Windows machine, and the venv's `.venv/Scripts/pytest.exe` shim exits
+1 with completely empty output — even for `--version` — so I lost real time to a "failing"
+test run that was actually a broken launcher, and ended up running every Makefile recipe as
+`python -m pytest` / `-m ruff` / `-m black` / `-m mypy` instead. The bigger surprise came
+when I baselined the repo before writing anything: `main` already had **53 failing unit
+tests and 182 ruff errors**, which meant the deliverable "make check passes" could not be
+taken literally and had to be reinterpreted as "introduces no new failures." That reframing
+is what made capturing a before/after baseline mandatory rather than a nice-to-have — without
+the diff of failing test names, I had no way to prove which failures were mine.
+
+**What did you learn about working in a large codebase?**
+That the seams between components can be broken even when every unit test passes, which is
+exactly the gap issue #38 exists to close. Three concrete examples I hit: `VectorStore.add_chunks`
+reads `chunk.id`, `chunk.source_id`, `chunk.chunk_index` and `chunk.section`, but `Chunk`
+in `ingestion/chunking/base.py` only defines `text` and `metadata` — so no object in the
+repo actually satisfies that method; `rag/retriever/hybrid.py:50` computes
+`_get_all_chunks()` and then throws the result away, so the BM25 half of the "hybrid"
+retriever is silently dead unless the caller indexes the searcher itself; and
+`_consolidate_feedback` de-duplicates sections by a name that comes from the LLM's own
+response, so a model answering every section under one key collapses a five-section review
+into one. I also found there was no orchestration to test through at all —
+`core/services/review_service.py::_run_rag_retrieval_generation` is a stub returning
+hardcoded data — so the test had to do the wiring itself. The discipline that was new to me
+was *not* fixing any of it: I kept the PR test-only and wrote all four findings up in Notes
+for Reviewers, because unrequested changes to someone else's production code make a PR
+harder to review and easier to reject.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest at mapping unfamiliar code quickly — pulling exact signatures and return
+shapes across `HybridRetriever`, `VectorStore`, `ReviewGenerator` and `parse_review_output`,
+and establishing that each was referenced only inside its own defining file, which is what
+confirmed the coverage gap was real. It was consistently weakest on what code actually
+*does* at runtime as opposed to what it looks like it does: it saw the `_get_all_chunks()`
+call at `hybrid.py:50` and assumed the result fed the keyword index, and it assumed the
+repo's `Chunk` would satisfy `add_chunks` — both plausible from reading, both wrong, and
+both only exposed by executing the code. The sharpest example was the mock: the obvious move
+is `MagicMock`, but a `MagicMock`'s `.choices[0].message.content` is itself a `Mock`, which
+`parse_review_output` quietly routes through its plaintext fallback — I would have gotten a
+green test that asserted essentially nothing. Hand-writing `FakeOpenAIClient` was the fix,
+and the general lesson was that AI accelerates locating and summarizing, but anything it
+claims about behaviour has to be run before I believe it.
+
+**What would you do differently if you started over?**
+Three things. First, baseline `make check` and `make test-unit` on day one instead of in
+Week 9 — I spent time unsure whether failures were mine, and one command up front would have
+answered it. Second, read `VectorStore.add_chunks` against `Chunk` *before* writing
+`PLAN.md`'s fixture plan; my plan's risk list confidently named the wrong seam, and I only
+caught it when the fixtures wouldn't work. Third, and most importantly, verify the issue text
+against the actual code before planning around it: issue #38 describes "retrieval →
+reranking → generation → parsing," but there is no reranker anywhere in `rag/` and zero
+matches for `rerank` in the repo, so a scope reduction I could have identified in Week 7 had
+to be carved out and explained later. I'd also weigh how contested an issue is — nine other
+students claimed #38, and PRs #429 and #586 target it, which I didn't consider when picking.
+
+**What are you most proud of from this module?**
+Not that the eight tests pass — that they demonstrably would have failed if the pipeline
+broke. I mutation-tested the suite by deliberately breaking eight production behaviours one
+at a time (renaming the returned `text` key, truncating `_format_context` to one chunk,
+removing citation appending, changing the blend weights from 0.7/0.3 to 0.5/0.5, removing
+the per-section `try/except`, writing a wrong `source_id`, disabling the `min_score` filter)
+and confirmed each one made a specific test fail before reverting it. That turned "8 passed"
+from a claim into evidence, and it's what I put in the PR so a reviewer could repeat it. The
+second thing is that when feedback came back on the draft I reworked the assertions instead
+of defending them — the exact-count assertion became a threshold test that holds whether or
+not `VectorStore.query`'s cosine-distance bug ever gets fixed, which is a better test than
+the one I was attached to.
