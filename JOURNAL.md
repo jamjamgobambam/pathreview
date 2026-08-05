@@ -30,3 +30,35 @@ Wrote `tests/unit/test_orchestrator.py`, instantiating `Orchestrator` with a rea
 
 **Blockers or open questions:**
 Unsure whether the fix should make `run()` fail loud (raise) on total failure vs. always fail soft with a status field — leaning toward fail-soft, but want a mentor's take before committing to the API shape. Also need to decide whether failed tool results should still be persisted to `session_store`/`context_manager` as-is.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented all of `PLAN.md`'s sub-tasks: `tool_results` entries now always have the uniform shape `{"success", "data", "error"}`; `run()` returns a top-level `"status"` (`"complete"` / `"partial"` / `"failed"`) and `"failed_tools"` list; `_build_plan()` now skips (and logs a warning for) tools not registered in `self.tools` instead of queuing them to fail with an opaque `"Unknown tool"` error; and `api/main.py` now actually calls `core.logging.configure_logging()` at startup. Rewrote `tests/unit/test_orchestrator.py` (8 tests) to cover all-success, all-fail, mixed partial failure, `TimeoutError`, no `session_store`, and the unregistered-tool skip.
+
+**Next steps:**
+Ran `make check`/`make test-unit` before and after the change and diffed the results to confirm no regressions (same 53 pre-existing failing tests byte-for-byte; lint errors went from 182 to 178, all in unrelated files). Opened the PR and worked through the self-review checklist.
+
+**Blockers:**
+None remaining — the fail-soft vs. fail-loud question from Week 8 is resolved (went with fail-soft + explicit `status` field, documented as an open discussion point for reviewers in the PR description).
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/842
+
+**Branch:** fix/44-orchestrator-silent-exception-handling
+
+**What you built:**
+Fixed `Orchestrator.run()` so a failing tool call is surfaced instead of silently swallowed: every `tool_results` entry now has a uniform `{"success", "data", "error"}` shape, and the run's return value gains a top-level `"status"` and `"failed_tools"` so callers don't have to inspect every entry to detect a failure. Also fixed `_build_plan()` queuing unregistered tools (e.g. `market_analyzer`) into that same silent-failure path, and wired up `configure_logging()` in `api/main.py`, which was never actually called at server startup.
+
+**Tests added or updated:**
+`tests/unit/test_orchestrator.py` — rewritten with 8 tests covering: a failing tool doesn't raise out of `run()`; a failed tool is reported via `failed_tools`/`status` with the same result shape as a success; all-success → `"complete"`; all-fail → `"failed"`; `TimeoutError` handled the same as other exceptions; failure reporting works with no `session_store`; an unregistered tool is skipped instead of queued to fail; and a registered-but-failing tool vs. an unregistered tool are both surfaced consistently.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both commands still surface the same pre-existing, unrelated failures documented in the PR description — 53 pre-existing failing tests, identical before/after; lint errors actually dropped from 182 to 178. No new failures were introduced by this change, and zero remaining errors touch any file this PR modifies.)
+
+**Draft PR feedback received from:** none — moved straight to ready-for-review without a Slack peer-review pass this week.
