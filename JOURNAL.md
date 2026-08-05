@@ -123,3 +123,34 @@ After Changes was 53 failed, 386 passed, 2 warnings in 5.00s
 As a result no changes caused pre-existing tests to fail. 
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+The feedback that was provided said that I properly recognized that there were components in the codebase that were not utilized for example the config settings for the RateLimiter and the RateLimiter class itself. It said utilizing JWT and IP as a fallback was a thoughtful design choice and keeping my scope related to the issue. What I could have improve on was running the entire test-suite and adding more tests to the pre-exisiting RateLimiter as the Middleware relies on that component to be working properly.
+
+**How you responded:**
+I think I remembered running the entire test-suite before and after the implementation of the RateLimit Middleware, but I did not mention it in the `JOURNAL.md` or my PR. Additionally, I provided Claude the tests for the RateLimiter and it thought that the tests were pretty comprehensive during a prompt. I think next time I should have confirmed it myself and try to think of more edge cases to test the limits of the RateLimiter.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+I thought that having a week to decide on what issues to work on made a huge impact on the scope of the project. I was either deciding from choosing tier 1 or tier 2 issues from GitHub since I've never contributed to an open source repo, but I've taken a class that worked with large codebases that taught me how to navigate the project. Since many of the tier 1 seemed really simple I went with tier 2. I was originally worried that the issue can easily extend out of scope and I was worrying too many cases that were not originally part of the issue. After tracing what components were related to the RateLimiter, I realized that majority of the RateLimiter was already implemented, but the middleware was not created that uses the RateLimiter. Using AI to help me understand how to implement a middleware and having it explain some ways to approach this problem, it made decision making a lot easier. For example I asked how should I track per user for managing the limits and it provided some options that reused pre-exisiting tools like the JWT per user.
+
+**What did you learn about working in a large codebase?**
+I learned that there's a specific format for commit messages and it helped me realize that the messages and specifying each commits helps organize the iterative changes and provides useful information to the developer or AI that can be working in a large codebase.
+
+**How did AI tools help — and where did they fall short?**
+AI helped provide options of implemenations, help me reason through pros and cons, and help me use code functions that I've never knew about or unfamiliar with. The main part that can fall short is that AI tends to do more than asked to, so sometimes I may need to tell it to focus on a certain implementation before continuing. Additionally there were times where I had to correct on some hallucinations when the chat goes long. I think with each commit of a certain implementation and then testing it with another commits help me iteratively build the overall function and ensures that I will run into less issues later on.
+
+**What would you do differently if you started over?**
+If I were to start over, I think I would like to use AI to do a complete scan of the codebase and summarize of what it can do, then use the summary as a context of what the codebase is and prevent it from rescanning the codebase multiple times. This would overall reduce the token usage. 
+
+**What are you most proud of from this module?**
+I am most proud of the iterative implementation of the RateLimiting Middleware because it helps me develop better coding styles when working with AI. I tend to commit and push an entire feature and trying to get AI to one-shot the implementation. This tend to lead me to undo some features that AI tries to add. The iterative commits allows me to go back to code that was working originally and slowly build the feature.
