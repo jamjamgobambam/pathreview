@@ -151,3 +151,76 @@ pre-existing failures, confirming no regressions.
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** N/A
+
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was received — reviewer feedback is not provided
+in the Summer 2026 cohort.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the local environment running was surprisingly the hardest part.
+I expected the actual code fix to be the challenge, but I spent more time
+debugging a Postgres/Docker connection error during `make setup` than I
+did on the fix itself. The Alembic migration tried to connect to port 5432
+before the database container was actually ready, and the error trace was
+80+ lines of SQLAlchemy/asyncpg internals that didn't immediately point to
+"Docker isn't running." Once I got past that, the pre-commit hooks were
+another unexpected friction point — Black reformatted my file mid-commit
+and mypy flagged 21 pre-existing type errors in `test_relevance_scorer.py`,
+which initially made it look like my change broke something when it hadn't.
+
+**What did you learn about working in a large codebase?**
+The biggest difference from my own projects is that most of the codebase
+is irrelevant to your task, and learning to pick out what is relevant to your 
+fix is a skill. PathReview has a FastAPI backend, RAG pipeline, React frontend, 
+Docker setup, and database migrations — but my entire fix was one word in one 
+test file. The challenge was building enough of a understanding of the logic in 
+`RelevanceScorer.score()` to know my fixture edit would produce a predictable 
+result (3/4 = 0.75), withoutgetting pulled into understanding the whole RAG 
+pipeline. I also learned that pre-existing failures are normal — 53 failing 
+tests and 182 lint errors existed before I made changes — and the contribution 
+standard isn't "make everything green," it's "don't make it worse."
+
+**How did AI tools help — and where did they fall short?**
+Claude was most useful for planning and documentation — drafting PLAN.md,
+structuring JOURNAL.md entries, and writing the PR description to match
+the template's expected sections. It was also helpful for interpreting the
+scorer's logic: I pasted `relevance_scorer.py` and Claude walked through
+the math (`overlap / len(query_tokens)`) to confirm that removing one term
+would produce exactly 0.75, which gave me confidence before editing. Where
+it fell short was environment-specific debugging — when `make setup` failed
+with the Postgres connection error, Claude could suggest likely causes
+(Docker not running, race condition, wrong port) but couldn't see my actual
+Docker state or `.env` file, so I still had to diagnose and fix it myself.
+
+**What would you do differently if you started over?**
+I would run `make test-unit` and `make check` on day one, before even
+picking an issue, to establish a baseline of pre-existing failures. I did
+this in Week 9 before my fix, but having it from Week 7 would have saved
+me the initial anxiety of seeing 53 test failures and wondering if my
+setup was broken. I'd also read the scorer's source code earlier — I listed
+it as step 1 in PLAN.md but could have done it during Week 7's issue
+selection to strengthen my problem summary from the start.
+
+**What are you most proud of from this module?**
+Writing a PLAN.md that I actually followed. In past projects I've jumped
+straight to coding, but breaking the fix into 5 sub-tasks — read the scorer,
+edit the fixture, calculate the expected score, run the tests, update the
+docstring — meant I knew exactly what to do at each step and could verify
+each one before moving on. The fix ended up being a single word change, but
+the planning process around it is what made me confident the change was
+correct and complete, not just a guess that happened to pass.
