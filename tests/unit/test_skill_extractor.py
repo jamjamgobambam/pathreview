@@ -197,6 +197,98 @@ class TestSkillExtractor:
         skill_names = [s.name for s in result]
         assert any("docker" in s.lower() for s in skill_names)
 
+    def test_require_detected_with_and_without_space(self, extractor):
+        """Test that require is detected whether or not a space precedes the paren."""
+        for snippet in ["const fs = require('fs');", "var fs = require ('fs');"]:
+            result = extractor.extract_skills(snippet)
+
+            skill_names = [s.name for s in result]
+            assert "JavaScript" in skill_names, f"Got skills: {skill_names} for {snippet!r}"
+
+    def test_javascript_detected_from_arrow_function_only(self, extractor):
+        """Test JavaScript detection from an arrow function with no import or require."""
+        text = """
+        const double = (x) => x * 2;
+        [1, 2, 3].map(double);
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert "JavaScript" in skill_names
+
+    def test_typescript_detected_from_type_alias_without_filename(self, extractor):
+        """Test TypeScript detection from a type alias when no filename is given."""
+        text = "type UserId = string;"
+        result = extractor.extract_skills(text, filename=None)
+
+        skill_names = [s.name for s in result]
+        assert "TypeScript" in skill_names
+
+    def test_typescript_detected_from_ts_extension_alone(self, extractor):
+        """Test that a .ts filename still yields TypeScript when the body has no code."""
+        result = extractor.extract_skills("", filename="empty.ts")
+
+        skill_names = [s.name for s in result]
+        assert "TypeScript" in skill_names
+
+    def test_typescript_supersedes_javascript(self, extractor):
+        """Test that text with both JS and TS signals is reported once, as TypeScript."""
+        text = """
+        export interface Config { port: number }
+        const app = require('express')();
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert "TypeScript" in skill_names
+        assert "JavaScript" not in skill_names
+
+    def test_dockerfile_detected_from_from_instruction_alone(self, extractor):
+        """Test Docker detection from a lone FROM instruction."""
+        result = extractor.extract_skills("FROM python:3.9")
+
+        skill_names = [s.name for s in result]
+        assert "Docker" in skill_names
+
+    def test_docker_detected_without_literal_docker_string(self, extractor):
+        """Test that Compose content is detected even though it never says 'docker'."""
+        text = """
+        services:
+          web:
+            image: nginx
+        """
+        assert "docker" not in text.lower()
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert "Docker" in skill_names
+
+    def test_prose_not_detected_as_code(self, extractor):
+        """Test that prose containing code-like words is not misdetected."""
+        text = """
+        Copy the export FROM the previous page and ADD it to your notes.
+        The class was about how to import ideas from other teams.
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        for language in ["JavaScript", "TypeScript", "Docker"]:
+            assert language not in skill_names, f"Got skills: {skill_names}"
+
+    def test_content_detections_carry_evidence(self, extractor):
+        """Test that content-based detections explain themselves with evidence."""
+        text = """
+        interface User { id: string }
+        FROM node:20
+        RUN npm ci
+        """
+        result = extractor.extract_skills(text)
+
+        detected = {s.name: s for s in result}
+        for name in ["TypeScript", "Docker"]:
+            assert name in detected, f"Got skills: {list(detected)}"
+            assert detected[name].evidence, f"{name} was detected with no evidence"
+
     def test_aws_gcp_azure_detection(self, extractor):
         """Test cloud platform detection."""
         text = """
