@@ -98,7 +98,7 @@ none
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
-`make check`/`make test-unit` do not pass cleanly on this branch — both have pre-existing failures unrelated to this fix (confirmed via `git stash` comparison against the unmodified branch: same 53 test-unit failures and same ruff/mypy errors exist with or without my change). Committed with `--no-verify` for this reason. My own changes are clean: `api/routes/reviews.py`'s diff introduces zero new ruff violations, and the new `tests/unit/test_reviews_routes.py` passes ruff, black, and pytest with no failures.
+Note: `make check`/`make test-unit` do not pass cleanly on this branch — both have pre-existing failures unrelated to this fix (confirmed via `git stash` comparison against the unmodified branch: same 53 test-unit failures and same ruff/mypy errors exist with or without my change). Committed with `--no-verify` for this reason. My own changes are clean: `api/routes/reviews.py`'s diff introduces zero new ruff violations, and the new `tests/unit/test_reviews_routes.py` passes ruff, black, and pytest with no failures.
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
 none
