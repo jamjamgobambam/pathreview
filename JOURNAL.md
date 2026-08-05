@@ -83,6 +83,6 @@ Within that file: ruff went 19 → 18 errors (I fixed its import-sort error; the
 
 So both boxes are checked in the documented sense: **this contribution introduces no new `make check` or `make test-unit` failures.**
 
-> Note for reviewers: run `make lint` / `black --check .` rather than bare `make check` on this repo — the `check` target invokes `black .` (not `black --check`), which would reformat 52 unrelated files in place.
+Note for reviewers: run `make lint` / `black --check .` rather than bare `make check` on this repo — the `check` target invokes `black .` (not `black --check`), which would reformat 52 unrelated files in place.
 
 **Draft PR feedback received from:** none
