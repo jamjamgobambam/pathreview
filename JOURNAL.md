@@ -63,3 +63,23 @@ Updated `tests/unit/test_relevance_scorer.py` — specifically `test_query_with_
 **Self-review confirmation:** [ ] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reflection
+
+**What was harder than you expected?**
+Set up was a bit difficult with the Docker but that was it. I expected reproduction to be a chore after my experience with it in module 2 but in this case all I had to do was run the test.
+
+**What did you learn about working in a large codebase?**
+You have to be even more careful to not break something because someone else might have built that. Also while it can be faster (more people to work on more things) it can also slow stuff down considerably compared to working solo (necessary to review, communicate, etc.)
+
+**How did AI tools help — and where did they fall short?**
+Getting quick instructions on how to do simple troubleshooting I was just unfamiliar with like submitting the PR or how to get Docker working.
+
+**What would you do differently if you started over?**
+Issue selection, I would pick something more difficult/substantial if this wasn't my first time.
+
+**What are you most proud of from this module?**
+How fast I was able to orient myself in the codebase and easily navigate through it.
