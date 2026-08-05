@@ -86,3 +86,41 @@ I investigated Issue #88 by locating the current review-related tests in the rep
 - Located the current review test file: `tests/unit/test_review_service.py`.
 - Reviewed all existing review tests.
 - Confirmed there is no test for the "profile exists but has no ingested documents" scenario.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented handling for profiles with no ingested documents during review processing. Added a regression unit test covering this edge case.
+
+**Next steps:**
+Run the project tests, create the pull request, and submit the final branch URL.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:**
+<https://github.com/ascherj/pathreview/pull/914>
+
+**Branch:**
+feature/issue-88-review-test
+
+**What you built:**
+Added handling for the case where a profile has no ingested documents during review processing. If no documents are available, the review is marked as failed and an error message is stored. Also added a regression unit test covering this scenario.
+
+**Tests added or updated:**
+Updated `tests/unit/test_review_service.py` with a regression test for profiles without ingested documents.
+
+**Self-review confirmation:**
+[x] make check run
+[x] make test-unit run
+
+Note: The repository contains pre-existing unrelated test failures. My changes do not introduce additional failures.
+
+**Draft PR feedback received from:**
+None
