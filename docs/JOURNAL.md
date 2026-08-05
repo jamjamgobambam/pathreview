@@ -60,3 +60,33 @@ Fixed issue #37 by rewriting `test_template_snapshot_content_hash` in `tests/uni
 *(Both commands still surface only the same pre-existing, unrelated failures documented in the PR description — 19 pre-existing `ruff` findings in this file, 53 pre-existing unit-test failures repo-wide, none touching `prompt_templates.py` — with zero new failures introduced.)*
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+
+**Summary of feedback:**
+As of this entry, PR #853 is still in draft with no comments beyond my own PR description, no reviewers requested, and no approvals or change requests on GitHub.
+
+**How you responded:**
+N/A — no feedback is needed for this iteration.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Understanding the bug itself took longer than I expected, mostly because the broken test didn't look obviously broken. `test_template_snapshot_content_hash` computes a real MD5 hash of the template content, so at a glance it looks like a working snapshot test. The actual problem is that it only asserts `isinstance(content_hash, str)` and `len(content_hash) == 32` — both true for any hash of any input — so it never compares against a pinned value. I only really believed this once I reproduced it myself: temporarily appending a sentence to the `skills_feedback` v1 template, rerunning `pytest tests/unit/test_prompt_templates.py -v -m unit`, and watching all 37 tests pass anyway, including the "snapshot" one. Seeing a test suite go green on a change that should have been caught was more convincing than just reading the assertion lines.
+
+**What did you learn about working in a large codebase?**
+Before touching anything, I had to confirm that `PROMPT_TEMPLATES` and `get_template()` weren't used anywhere outside `rag/generator/prompt_templates.py` and its test file — otherwise a "test-only" fix could have had a wider blast radius than it looked like. I also ran into a real inconsistency between the project's layers of tooling: CI's `typecheck` job only runs `mypy` against `api/ core/ ingestion/ rag/ agent/ safety/`, but the local pre-commit hook runs `mypy` with `disallow_untyped_defs = true` against whatever file is staged, tests included. That meant a commit could fail locally for reasons CI would never flag. I hadn't thought about "passing checks" as something that could differ between environments in the same repo. I also had to be careful about scope creep that wasn't really about my change at all — an unrelated `frontend/package-lock.json` diff had gotten staged from a stray `npm install`, and a chunk of `black` reformatting on lines I never touched crept into the diff. Reverting both to keep the diff to just the fix was as much a part of "editing a shared codebase" as writing the fix itself.
+
+**How did AI tools help — and where did they fall short?**
+The AI did most of the mechanical work this week: reproducing the bug, drafting the three possible fix designs (a single combined hash, per-template-version hashes, or adopting a snapshot library like `syrupy`), writing the actual test rewrite, and later machine-editing all 37 test methods to add `-> None` annotations once the pre-commit hook demanded it. My own role was mostly making the calls it surfaced — picking per-template hashes over the other two options, deciding to fix the pre-existing lint/type issues rather than bypass the hook with `--no-verify`, and reviewing the diffs it showed me before approving each step. I didn't personally catch a specific mistake in what it produced this week; I mostly reviewed and agreed with what it proposed. That's worth being honest about as a limitation of how I used it: I got a working, well-tested fix, but I have less hands-on memory of things like resolving the `ruff` findings or writing the `mypy` fix myself than I would if I'd done that part by hand. The AI also couldn't finish the job on its own — it had no GitHub credentials in its environment, so I had to personally push the branch and open the PR.
+
+**What would you do differently if you started over?**
+I'd spend more time exploring `test_prompt_templates.py` and `prompt_templates.py` directly during the planning weeks, before locking in a plan. Since understanding the bug was the hardest part for me, getting more comfortable with exactly how `PROMPT_TEMPLATES`, `get_template()`, and the existing test patterns fit together earlier would have made the implementation week faster and made me rely less on the AI to explain things I could have figured out myself with more upfront reading.
+
+**What are you most proud of from this module?**
+I'm most proud that I understood the root cause well enough to actually direct the fix instead of just accepting whatever came first. When the AI laid out three different ways to pin the template hashes, I could reason about the tradeoff — a single combined hash would fail without saying which template changed, while per-template hashes would name the exact one — and pick the option that mattered for someone debugging a real failure later. That's a small decision, but it's the part of this module that felt like actual engineering judgment rather than just following instructions.
