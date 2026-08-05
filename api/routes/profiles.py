@@ -1,18 +1,28 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from uuid import UUID
-import structlog
 import mimetypes
+from uuid import UUID
 
-from api.schemas.profile import ProfileCreate, ProfileResponse, ProfileUpdate
+import structlog
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    status,
+)
+
+from api.dependencies.ingestion import run_portfolio_ingestion
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.profile import Profile
+from api.schemas.profile import ProfileCreate, ProfileResponse, ProfileUpdate
 from core.database import get_db
+from core.models.user import User
 from core.services.profile_service import (
     create_profile,
+    delete_profile,
     get_profile,
     update_profile,
-    delete_profile,
 )
 
 log = structlog.get_logger()
@@ -22,6 +32,7 @@ router = APIRouter(prefix="/profiles", tags=["profiles"])
 
 @router.post("", response_model=ProfileResponse)
 async def create_profile_endpoint(
+    background_tasks: BackgroundTasks,
     github_username: str = Form(default=None),
     portfolio_url: str = Form(default=None),
     resume_file: UploadFile = File(default=None),
@@ -59,10 +70,9 @@ async def create_profile_endpoint(
             if file_mime == "application/pdf":
                 try:
                     import PyPDF2
+
                     pdf_reader = PyPDF2.PdfReader(content)
-                    resume_text = "\n".join(
-                        page.extract_text() for page in pdf_reader.pages
-                    )
+                    resume_text = "\n".join(page.extract_text() for page in pdf_reader.pages)
                 except Exception as exc:
                     log.error("pdf_parsing_failed", error=str(exc))
                     raise HTTPException(
@@ -94,6 +104,14 @@ async def create_profile_endpoint(
             profile_id=str(new_profile.id),
             user_id=str(current_user.id),
         )
+
+        # Ingest portfolio content in the background if a URL was provided.
+        if new_profile.portfolio_url:
+            background_tasks.add_task(
+                run_portfolio_ingestion,
+                str(new_profile.id),
+                new_profile.portfolio_url,
+            )
 
         return ProfileResponse.model_validate(new_profile)
 
@@ -148,6 +166,7 @@ async def get_profile_endpoint(
 async def update_profile_endpoint(
     profile_id: UUID,
     data: ProfileUpdate,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db=Depends(get_db),
 ):
@@ -179,6 +198,14 @@ async def update_profile_endpoint(
             profile_id=str(profile_id),
             user_id=str(current_user.id),
         )
+
+        # Re-ingest portfolio content when a URL was provided in this update.
+        if data.portfolio_url and updated_profile.portfolio_url:
+            background_tasks.add_task(
+                run_portfolio_ingestion,
+                str(updated_profile.id),
+                updated_profile.portfolio_url,
+            )
 
         return ProfileResponse.model_validate(updated_profile)
 
