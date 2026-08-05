@@ -64,10 +64,13 @@ cache key is a hash of those fields.
 3. **Cache lookup in `create_review()`.** Compute the hash from the profile,
    query for a `complete` review with the same `profile_id` and
    `content_hash`, and return it on a hit. On a miss, create the pending
-   review with the hash stored, as today. Return a flag (or tuple) so the
-   route knows whether to queue `process_review`. Annotate the signatures of
-   the functions this step touches so the changes pass the pre-commit mypy
-   gate (`disallow_untyped_defs`), which the module currently fails.
+   review as today; `process_review` stores the hash when processing starts,
+   so it reflects the content actually processed. The signature stays
+   `-> Review` (as the step-1 tests pin it): status is the hit/miss signal,
+   since a hit is always `complete` and a miss always `pending`, so the
+   route queues `process_review` only for `pending`. Annotate the signatures
+   of the functions this step touches so the changes pass the pre-commit
+   mypy gate (`disallow_untyped_defs`), which the module currently fails.
 4. **Wire the route and verify invalidation.** Skip the background task on a
    hit. Editing any hashed profile field changes the hash, so the next submit
    misses and regenerates — confirm with the invalidation test from step 1.
