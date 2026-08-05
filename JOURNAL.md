@@ -99,4 +99,76 @@ regressions in previously-passing tests.
 (both confirmed clean on the changed file; pre-existing unrelated failures
 elsewhere in the codebase documented in the PR description)
 
-**Draft PR feedback received from:** none yet
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback arrived — the course confirmed reviewer feedback isn't
+a feature this term (Summer 2026). I did post my draft PR in the #ai-engineers
+Slack channel asking for peer feedback but did not receive any responses
+before this deadline.
+
+**How you responded:**
+N/A — no feedback was received to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Environment setup took far longer than I expected — not because of the
+actual issue fix, but because of a chain of unrelated failures: Docker
+wasn't installed at all, Postgres was mapped to a non-default port (5433
+instead of 5432) that I had to notice from `docker compose ps` output, and
+the ChromaDB container crashed on every startup because its entrypoint
+script force-reinstalled `chroma-hnswlib` and pulled in NumPy 2.0, which
+broke on `np.float_` being removed. None of that was related to my actual
+issue — it was just getting the project to run at all. I didn't expect
+"getting the app running" to take longer than diagnosing and fixing the
+actual bug.
+
+**What did you learn about working in a large codebase?**
+The actual code change was tiny — four regex patterns, one word (`\s*`)
+added four times — but confirming it was safe took real effort: running the
+full test suite before and after, checking for regressions, and figuring
+out which of the pre-existing failing tests were related to my change versus
+just pre-existing noise in the codebase (I found 53 failing tests and 182
+lint errors that had nothing to do with my issue). In a codebase you own,
+you'd just fix things as you notice them. In someone else's production
+codebase, scope discipline matters — I found a second bug in
+`_strip_markdown()` with the same root-cause pattern (regex anchored to `^`
+without accounting for whitespace) while investigating, but left it alone
+since it wasn't part of my issue, rather than expanding the PR.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for fast diagnosis under uncertainty — reading stack
+traces (SQLAlchemy/asyncpg connection errors, the NumPy AttributeError) and
+narrowing down root causes quickly instead of me googling each error
+individually. It was also useful for keeping the regex fix minimal and
+explaining tradeoffs (e.g., why `\s*` was the right scope, not a rewrite).
+Where it fell short: it couldn't actually see my terminal state, so several
+times I had to paste back real output before it could correct a wrong
+assumption (e.g., assuming a fix had been applied when it hadn't, or
+guessing at a file path). It also has no way to know undocumented,
+project-specific details on its own — like the Docker port mapping or which
+Slack channel to post in — I had to supply that context directly.
+
+**What would you do differently if you started over?**
+I'd run `make check` and `make test-unit` for a full baseline immediately
+after environment setup, before even reading the issue in detail. I only
+did this at the start of Week 9, but having that baseline earlier would have
+let me identify the "182 pre-existing lint errors, 53 pre-existing test
+failures" context from day one instead of discovering it midway through
+implementation.
+
+**What are you most proud of from this module?**
+Getting the local environment fully working despite three unrelated,
+stacked failures (missing Docker, wrong Postgres port, and a genuinely
+broken NumPy pin in the ChromaDB image) that had nothing to do with my
+actual issue. It would have been easy to get stuck or give up before ever
+reaching the code I was supposed to fix, and instead I diagnosed each
+layer systematically until the whole stack came up clean.
