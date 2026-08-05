@@ -88,7 +88,7 @@ describe('ReviewPage', () => {
 
     const { container } = render(<ReviewPage />)
 
-    await screen.findByText('Portfolio Review')
+    await screen.findByText('Overall Score')
 
     expect(await axe(container)).toHaveNoViolations()
   })
