@@ -117,3 +117,84 @@ assertion in `test_list_reviews_ordered_by_created_at`. The file now passes
 > introduced by this test-only change. Details in the PR description.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback came in. Per the Summer 2026 course note, maintainer
+review is not part of the program this term, and PR #158
+(https://github.com/ascherj/pathreview/pull/371) shows no comments — only the
+expected "review required / merging blocked" status that applies to any
+outside contributor without write access.
+
+**How you responded:**
+No changes required, since no feedback arrived. The PR remains open and Ready
+for review (not draft) so a maintainer could pick it up. If a reviewer had
+asked for the shared-fixture refactor I flagged as an optional follow-up, I
+would have added a `mock_result_first` / `mock_result_all` fixture to remove
+the repeated mock setup across the 13 tests.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The bug looked like a one-line swap, but understanding *why* it was wrong took
+real care. The trap is that `db.execute` and the result object need *opposite*
+mock types: `execute` is awaited so it must stay an `AsyncMock`, but the
+result proxy is used synchronously (`result.scalars().first()`), so it must be
+a `MagicMock`. With an `AsyncMock`, `scalars()` silently returns a coroutine
+instead of erroring at the mock, and the failure only surfaces later as
+`AttributeError: 'coroutine' object has no attribute 'first'`. The harder part
+was that fixing the 13 mocks exposed a *second*, undocumented bug the issue
+never mentioned: `test_list_reviews_ordered_by_created_at` asserted
+`execute.assert_called_once()`, but `list_reviews` runs two queries (count +
+page), so execute is called twice. That assertion had been masked all along
+because the test crashed on the `AttributeError` before ever reaching it.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's production code is mostly about *restraint*.
+Running `make test-unit` showed 53 pre-existing failures and `make check`
+flagged 182 ruff errors and 52 files black wanted to reformat — almost none of
+it related to #158. My instinct on my own project would be to "clean it all
+up," but here the right move was the opposite: keep the diff surgical (2 files,
+only the mock type and one assertion), *not* run `black`/`ruff --fix` across
+the file, and instead document the pre-existing state in the PR so a reviewer
+can see my change introduces zero new failures (53 → 40, all 13 fixed in one
+file). I also had to respect conventions I didn't set — Conventional Commit
+messages, the `fix/<issue>-<slug>` branch name, and the PR template — because
+in a shared repo those are contracts, not preferences.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest at *tracing and verifying*: reproducing the failure,
+explaining the AsyncMock-returns-a-coroutine mechanism, and running a tiny
+throwaway experiment (`good = MagicMock(); good.scalars().first()`) to prove
+the fix direction before touching the real file. Where it fell short was
+*judgment about contribution etiquette* — the decisions that weren't in the
+code: whether to commit with `--no-verify` when the pre-commit hooks fail on
+repo-wide debt I can't fix, whether fixing the second assertion bug was in
+scope for #158, and whether a minimal diff or a fully-formatted diff would
+serve the reviewer better. Those were trade-offs I had to reason through
+myself; AI could lay out the options but not decide what a maintainer of *this*
+repo would prefer.
+
+**What would you do differently if you started over?**
+I would run the *full* `make test-unit` and `make check` baseline on day one,
+before writing any code. I discovered the 53 pre-existing failures and the
+broken pre-commit hooks late, which forced some rework in how I framed the PR.
+Knowing the baseline up front would have let me plan the "no new failures"
+argument from the start. I'd also have read `test_list_reviews_ordered_by_created_at`
+more skeptically earlier — the double-execute behavior was visible in the
+service code the whole time.
+
+**What are you most proud of?**
+Catching and fixing the second assertion bug that wasn't in the issue at all.
+The issue asked me to rework the async mocks; getting all 19 tests green
+required noticing that one test's `assert_called_once()` was simply wrong about
+how `list_reviews` queries the database. Going one step past the literal ask —
+while still keeping the fix disciplined and well-documented — is the part that
+felt like real engineering rather than just following instructions.
