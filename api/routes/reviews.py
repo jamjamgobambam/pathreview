@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
 from core.database import get_db
+from core.models.user import User
 from core.services.review_service import (
     create_review,
     get_review,
@@ -38,6 +38,12 @@ async def create_review_endpoint(
             profile_id=data.profile_id,
             user_id=current_user.id,
         )
+
+        if not review:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found",
+            )
 
         # Add background task for processing
         background_tasks.add_task(process_review, db, review.id, data.profile_id)
