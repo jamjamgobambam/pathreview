@@ -68,3 +68,58 @@ Not recorded.
 **Blockers or open questions:**
 
 None at this time.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+I verified the README scorer thresholds and updated the README fixture
+to satisfy the comprehensive word-count category.
+The updated fixture now aligns with the production scoring logic.
+
+**Next steps:**
+
+Run the test suite again, review the pull request,
+and prepare the final submission.
+
+**Blockers:**
+
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:**
+
+https://github.com/ascherj/pathreview/pull/276
+
+**Branch:**
+
+fix/readme-scorer-fixture-156
+
+**What you built:**
+
+Updated the README test fixture so that it exceeds the
+"comprehensive" word-count threshold while preserving the existing
+quality signals. The production implementation was unchanged.
+
+**Tests added or updated:**
+
+Updated:
+
+tests/unit/test_readme_scorer.py
+
+The existing unit test now validates the intended behavior.
+
+**Self-review confirmation:**
+
+[x] make check passes
+
+[x] make test-unit passes
+
+**Draft PR feedback received from:**
+
+None
