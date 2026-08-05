@@ -182,21 +182,19 @@ class TestResumeParser:
         assert "Software Engineer" in result.text
         assert "Python" in result.text
 
-def test_parse_indented_section_headers():
-    """
-    Test that section headers with leading whitespace are correctly identified.
-    Prevents regression of Issue #147.
-    """
-    # Arrange — Set up a mock resume string with spaces before the headers
-    parser = ResumeParser()
-    content = "John Doe\n\n  Education:\nB.S. Computer Science\n\n   Skills:\nPython, Git"
+    def test_parse_indented_section_headers(self, parser):
+        """
+        Test that section headers with leading whitespace are correctly identified.
+        Prevents regression of Issue #147.
+        """
+        # Arrange — Set up a mock resume string with spaces before the headers
+        content = "John Doe\n\n  Education:\nB.S. Computer Science\n\n   Skills:\nPython, Git"
 
-    # Act — Run the string through your updated parser
-    result = parser.parse(content)
+        # Act — Run the string through your updated parser
+        result = parser.parse(content)
 
-    # Assert — Verify the parser successfully stripped the whitespace and found the sections
-    # (Adjust 'detected_sections' if your parser stores section keys differently!)
-    sections = result.metadata.get("detected_sections", [])
-    
-    assert "Education" in sections
-    assert "Skills" in sections
+        # Assert — Verify the parser successfully stripped the whitespace and found the sections
+        sections = result.metadata.get("detected_sections", [])
+        
+        assert "Education" in sections
+        assert "Skills" in sections
