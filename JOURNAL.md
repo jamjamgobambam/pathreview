@@ -37,10 +37,11 @@ model defines only `redis_url`.
 
 **Current progress:**
 Added the missing `redis_host` and `redis_port` settings required by the Redis health check and
-documented the reproduction and solution plan.
+documented the reproduction and solution plan. Added a focused unit test for the Redis probe and
+the health-route type annotations required by mypy.
 
 **Next steps:**
-Complete the final checks, respond to review feedback, and update the PR if changes are requested.
+Run the focused test and final quality checks, push the test commit, and respond to PR feedback.
 
 **Blockers:**
 None.
@@ -55,10 +56,13 @@ None.
 
 **What you built:**
 Added `redis_host` and `redis_port` to the application settings so the `/health` endpoint can
-construct a Redis client and accurately report Redis availability.
+construct a Redis client and accurately report Redis availability. Added explicit health-route
+types so the new test and route pass static analysis.
 
 **Tests added or updated:**
-No test files were added or updated.
+Added `tests/unit/test_health.py`. It mocks Redis, verifies that the health check constructs the
+client with `settings.redis_host` and `settings.redis_port`, confirms `PING` is called, and checks
+that Redis and the overall response are reported as healthy.
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 

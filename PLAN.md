@@ -16,10 +16,10 @@ continue to report a genuine connection failure as unhealthy.
 Files and functions involved:
 
 - `core/config.py`: add `redis_host` and `redis_port` settings with appropriate default values.
-- `api/routes/health.py`: verify that `health_check` consumes the newly defined settings as
-  intended; no functional change is expected in this file.
-- `tests/unit/test_health.py`: add focused tests for healthy and unavailable Redis behavior (new
-  file if no health-route test module exists).
+- `api/routes/health.py`: verify that `health_check` consumes the newly defined settings and add
+  the type annotations required for static checking; no functional change is expected.
+- `tests/unit/test_health.py`: add focused coverage for the successful Redis health probe and
+  verify that it uses the configured host and port.
 
 ### Plan
 
@@ -27,10 +27,11 @@ Files and functions involved:
 2. Add `redis_port: int` with a default value of `6379` to `core.config.Settings`.
 3. Preserve the current `PING` check and error handling so a failed connection marks Redis and
    the overall response as unhealthy.
-4. Add unit tests that mock the Redis client and verify successful and failed probes, including
-   HTTP 200 and HTTP 503 behavior.
+4. Add a unit test that mocks the Redis client, verifies the configured host and port are used,
+   and confirms a successful `PING` produces a healthy result.
 5. Convert the reproduction-only commented settings into active configuration and run the
-   focused tests plus linting and type checks.
+   focused test plus linting and type checks. Add the health-route type annotations required by
+   mypy.
 
 ### Inputs & outputs
 
