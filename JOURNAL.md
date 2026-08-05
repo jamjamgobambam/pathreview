@@ -85,4 +85,35 @@ This is a documentation-only change with no code modifications. However, I verif
 - Confirmed response schemas match Pydantic model structures in api/schemas/profile.py and api/schemas/review.py
 - Validated that documented validation rules match FastAPI route handler logic in api/routes/profiles.py and api/routes/reviews.py
 
-**Draft PR feedback received from:** [none - will add after creating PR]
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No
+
+**Summary of feedback:**
+No review comments have been received on PR #357 as of the Week 10 deadline.
+
+**How you responded:**
+N/A - no feedback to respond to at this time.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was making sure the docs matched the actual FastAPI behavior instead of just the obvious field names. I had to trace the route handlers, schema models, and request format details together, because the missing piece was not a code bug but an accuracy gap in the reference docs.
+
+**What did you learn about working in a large codebase?**
+I learned that small changes still need careful verification against the surrounding system. In a production codebase, it is not enough to update the visible file you started in; you have to confirm the change fits the real API contract, the existing conventions, and the project’s documentation style.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for quickly pointing me toward likely source files and helping me compare endpoint behavior with the docs. It fell short when I needed to confirm exact request shapes, validation details, and wording that had to be checked against the actual code rather than inferred.
+
+**What would you do differently if you started over?**
+I would validate the docs against the route signatures earlier, before writing the narrative plan. That would have reduced the back-and-forth and made the implementation checklist more directly tied to the actual request schema.
+
+**What are you most proud of from this module?**
+I’m most proud that the final documentation is concrete enough for another developer to use immediately. It does not just say what the endpoints do; it shows the request format, field requirements, and example calls in a way that matches the code.
