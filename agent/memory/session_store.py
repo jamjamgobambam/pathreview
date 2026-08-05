@@ -1,9 +1,9 @@
 """Redis-backed session store."""
 
-import redis
 import json
+
+import redis
 import structlog
-from typing import Optional
 
 logger = structlog.get_logger()
 
@@ -19,7 +19,7 @@ class SessionStore:
         """
         self.redis = redis_client
 
-    def get(self, session_id: str) -> Optional[dict]:
+    def get(self, session_id: str) -> dict | None:
         """Get session data.
 
         Args:
@@ -47,13 +47,22 @@ class SessionStore:
             logger.error("session_get_error", session_id=session_id, error=str(e))
             return None
 
-    def set(self, session_id: str, data: dict, ttl_seconds: int = 3600) -> None:
+    def set(self, session_id: str, data: dict, ttl_seconds: int = 3600) -> bool:
         """Store session data.
+
+        Writes the full value in one SETEX call, so Redis itself never
+        exposes a partially-written value even if this process crashes
+        mid-call: either the old value stays, or the new one fully lands.
 
         Args:
             session_id: Session identifier
             data: Session data dict
             ttl_seconds: Time to live in seconds (default 1 hour)
+
+        Returns:
+            True if the write succeeded, False otherwise. Callers that
+            need to know a checkpoint actually landed (rather than best-
+            effort session caching) should check this.
         """
         key = f"session:{session_id}"
 
@@ -61,9 +70,11 @@ class SessionStore:
             json_data = json.dumps(data)
             self.redis.setex(key, ttl_seconds, json_data)
             logger.info("session_stored", session_id=session_id, ttl_seconds=ttl_seconds)
+            return True
 
         except Exception as e:
             logger.error("session_set_error", session_id=session_id, error=str(e))
+            return False
 
     def delete(self, session_id: str) -> None:
         """Delete session data.
