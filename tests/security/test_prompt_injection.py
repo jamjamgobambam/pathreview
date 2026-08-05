@@ -41,7 +41,7 @@ def load_fixture_cases(filename: str) -> list[dict[str, Any]]:
 
 ATTACK_CASES = load_fixture_cases("attacks.json")
 BENIGN_CASES = load_fixture_cases("benign.json")
-
+KNOWN_BYPASS_CASES = load_fixture_cases("known_bypasses.json")
 
 @pytest.mark.security
 class TestPromptInjectionRedTeam:
@@ -76,3 +76,26 @@ class TestPromptInjectionRedTeam:
             f"Category: {case['category']}. "
             f"Description: {case['description']}"
         )
+
+@pytest.mark.security
+class TestPromptInjectionKnownBypasses:
+    """Document prompt injection attacks the current defense does not yet block."""
+
+    @pytest.mark.xfail(
+        strict=False,
+        reason="Known prompt injection bypasses documented by Issue #71.",
+    )
+    @pytest.mark.parametrize(
+        "case",
+        KNOWN_BYPASS_CASES,
+        ids=[case["id"] for case in KNOWN_BYPASS_CASES],
+    )
+    def test_known_bypass_should_be_detected(self, case: dict[str, Any]) -> None:
+        """Known bypasses should eventually be detected by PromptDefense."""
+        actual = PromptDefense.is_injection_attempt(case["payload"])
+
+        assert actual is case["expected_detected"], (
+            f"Known bypass '{case['id']}' remains undetected. "
+            f"Reason: {case['reason']}"
+        )
+        
