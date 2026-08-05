@@ -101,3 +101,69 @@ API failure handling, truncated tree handling, and metadata wiring.
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes (no new failures vs. baseline: 53 vs. 57 pre-existing)
 
 **Draft PR feedback received from:** None
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No
+
+**Summary of feedback:**
+I worked through the issue selection, reproduction,
+and implementation close to the deadline, which didn't leave enough time to
+share my draft PR in Slack and get peer feedback before finalizing. That's
+a timing tradeoff I'd fix if I started over — noted in the reflection below.
+
+**How you responded:**
+N/A 
+
+### Reflection
+
+**What was harder than you expected?**
+The issue itself described a fix in the wrong file. `_detect_tests` in
+repo_analyzer.py was already implemented correctly — the issue's suggested
+location (agent/tools/repo_analyzer.py) didn't even exist anymore, and the
+real bug was one layer upstream, in github_tool.py never populating the
+file_structure field the detection logic depended on. I expected issue
+descriptions to be a reliable map of what to change; instead, verifying the
+premise of the issue against the actual code was itself most of the work.
+I also underestimated how much of my time would go to environment setup
+(Docker, WSL, Git Bash vs. PowerShell, make not being installed) before I
+wrote a single line of the actual fix.
+
+**What did you learn about working in a large codebase?**
+I learned to trace data through a pipeline rather than trust a single
+file in isolation — the bug only became visible once I followed
+repo_data from where GitHubTool builds it through to where
+RepoAnalyzer.parse() consumes it. I also learned that existing test files
+(like test_readme_parser.py) are a better guide to a codebase's conventions
+than any style guide, since they show real patterns for fixtures, mocking,
+and naming that I matched rather than guessed at.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for quickly diagnosing tool errors (mypy/ruff/black
+failures, Docker/WSL setup issues) and for drafting boilerplate like test
+scaffolding once I'd already found the real bug. It fell short at the
+actual investigation — finding that file_structure was never populated
+required me to actually read both files side by side and reason about the
+data flow; that step needed my own attention on the specific codebase, not
+something I could shortcut.
+
+**What would you do differently if you started over?**
+I'd start earlier in the week rather than compressing issue selection,
+reproduction, and implementation close to the deadline — that timing
+crunch meant I didn't leave room to share my draft PR for peer feedback
+before finalizing, which the process explicitly recommends doing early.
+I'd also verify the issue's premise against the actual code before writing
+my Week 7 problem summary, rather than assuming the issue's suggested file
+paths were still accurate. And I'd set up my dev environment (Docker, make,
+correct shell) before selecting an issue, since that friction ate into time
+I could've spent on the actual investigation.
+
+**What are you most proud of from this module?**
+Finding that the bug wasn't where the issue said it was. The issue pointed
+at repo_analyzer.py, but the real problem was one layer upstream in
+github_tool.py, which never populated the file_structure field the
+detection logic depended on. Fixing that also silently fixed has_ci and
+tech_stack, which depended on the same missing data — that felt like real
+debugging, not just following instructions from the issue description.
