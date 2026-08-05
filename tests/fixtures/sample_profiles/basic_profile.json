@@ -1,0 +1,28 @@
+{
+  "github_username": "janedoe",
+  "resume": "# Jane Doe\nSoftware Engineer\njane.doe@example.com | github.com/janedoe\n\nExperience:\n- Senior Software Engineer at TechCorp (2022-2024)\n  Built REST APIs using Python, FastAPI, and PostgreSQL. Reduced latency by 20%.\n- Software Engineer at StartUpInc (2020-2022)\n  Developed frontend web applications using React, TypeScript, and Tailwind CSS.\n\nEducation:\n- B.S. Computer Science, State University (2020)\n\nSkills:\nPython, JavaScript, TypeScript, FastAPI, React, PostgreSQL, Docker, Redis, Git\n\nProjects:\n- Weather App: A weather app built with React.\n- Portfolio API: A backend API built with FastAPI.",
+  "repositories": [
+    {
+      "name": "weather-app",
+      "description": "A weather forecasting application built with React and TypeScript.",
+      "language": "TypeScript",
+      "stargazers_count": 5,
+      "forks_count": 1,
+      "open_issues_count": 0,
+      "readme_content": "# Weather App\n\nA weather forecasting application built with React and TypeScript.\n\n## Features\n- Current weather display\n- 5-day forecast\n- Location search\n\n## Tech Stack\n- React 18\n- TypeScript\n- Tailwind CSS\n- OpenWeatherMap API",
+      "file_structure": "package.json\ntsconfig.json\nsrc/App.tsx\nsrc/main.tsx\nsrc/components/WeatherDisplay.tsx\nsrc/components/__tests__/WeatherDisplay.test.tsx",
+      "pushed_at": "2026-07-01T12:00:00Z"
+    },
+    {
+      "name": "portfolio-api",
+      "description": "Backend API for my portfolio built with FastAPI and PostgreSQL.",
+      "language": "Python",
+      "stargazers_count": 12,
+      "forks_count": 3,
+      "open_issues_count": 2,
+      "readme_content": "# Portfolio API\n\nBackend API for my portfolio built with FastAPI and PostgreSQL.\n\n## Features\n- Profile management\n- Review tracking\n- User authentication\n\n## Tech Stack\n- Python 3.11\n- FastAPI\n- SQLAlchemy\n- PostgreSQL\n- Docker Compose",
+      "file_structure": "main.py\ncore/config.py\ncore/database.py\ncore/models/profile.py\nrequirements.txt\ndocker-compose.yml\ntests/test_main.py\n.github/workflows/ci.yml",
+      "pushed_at": "2026-07-05T14:30:00Z"
+    }
+  ]
+}
