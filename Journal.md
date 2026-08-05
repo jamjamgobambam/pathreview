@@ -36,3 +36,45 @@ Using the established testing client offered by fastapi and pytest, we are able 
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+I imported and integrated the text() wrapper offered by SQLAlchemy during update 2.xx for raw SQL text within the health.py file within the route folder. After doing so, I 
+had to run the text I implemented and I sadly learned that the assertion within the test_get_health.py file in the test/integration folder was failing, following the 
+procedure I detailing slightly in the Plan.md, I investigated the cause of this error to determine the cause of it to evaluate whether the cause of it was from the solution I implemented.
+Doing so, I learned that this was an error or situation caused by a separate bug that is highlighted in issue 43.
+
+**Next steps:**
+[What are you working on for the rest of the week?]
+Ask for clarification from TA's or the slack tech help channel whether I should fix the error and confirm if the error is in fact already existing or present.
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+I must wait for clarification from a TA or the tech help channel to know whether I should try to implement a fix that is blocking the get_health probe from passing or if I should narrow the 
+scope of the test I implemented to specifically target the error caused by SQLAlchemy. This would be the most likely situation given that the cause of the error is already documented as a seperate
+issue but I still wanted to be entirely sure that I can continue with my work.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/888
+
+**Branch:** fix/154-DB-Probe-SQL-Input-Error
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+I simply updated or altered the api/routes/health.py file to import the text() wrapper from the SQLAlchemy library and integrate it within the db.execute to wrap the "Select 1" SQL command so it can be 
+successfully executed. SQLAlchemy update 2.xx enforces that all raw SQL commands must be wrapped by their text() wrapper to ensure maintainability for the database.
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+To ensure that this change corrected the error this fix is targeting, I also implemented a test within test/integration/test_get_health.py that asserts that the response from the get_health route does not return a status of 503 that is more commonly attributed to SQLAlchemy errors. I updated this test case after encountering issue #54 which made it impossible to receive a successful status of 200 without implementing a fix for it, I then needed to change the scope of this test from asserting that it returns 200 to only checking that it doesn't return a status of 503.
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+
+**Draft PR feedback received from:** ["none"]
