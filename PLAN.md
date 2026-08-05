@@ -70,6 +70,6 @@ What inputs or states should your fix handle gracefully?
 - **States already covered that must keep passing:** empty README
   (`has_readme is False`, `word_count == 0`, "minimal"), whitespace-only README, title-only README,missing `readme_content` key, and the three `word_count_category` tests must stay green.
 - **Verification is the whole file, not the one test.** I will run
-  `pytest tests/unit/test_readme_scorer.py -q` (all 27 tests) rather than the
+  `pytest tests/unit/test_readme_scorer.py -q` (all tests) rather than the
   single test node, so that any inconsistency I introduce to the
   neighbouring tests with my fix surfaces immediately.
