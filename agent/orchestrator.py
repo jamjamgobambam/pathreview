@@ -55,13 +55,22 @@ class Orchestrator:
             try:
                 result = self._execute_tool(tool_name, tool_input)
                 if isinstance(result, ToolResult):
-                    results[tool_name] = result.data
-                    tool_succeeded = result.success
+                    if result.success:
+                        results[tool_name] = result.data
+                        logger.info("tool_executed", tool=tool_name, success=True)
+                    else:
+                        results[tool_name] = {
+                            "success": False,
+                            "error": result.error,
+                        }
+                        logger.error(
+                            "tool_execution_failed",
+                            tool=tool_name,
+                            error=result.error,
+                        )
                 else:
                     results[tool_name] = result
-                    tool_succeeded = True
-
-                logger.info("tool_executed", tool=tool_name, success=tool_succeeded)
+                    logger.info("tool_executed", tool=tool_name, success=True)
 
             except Exception as e:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
