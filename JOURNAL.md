@@ -37,28 +37,28 @@ Need to confirm the cleanest shared fixture pattern so execute() remains AsyncMo
 ### Check-in 1 (mid-week)
 
 **Current progress:**
-I reproduced the async-mock failure, updated the review-service unit tests so the mocked `execute` return value behaves like a real SQLAlchemy result object, and verified the targeted test file now passes.
+Reproduced the async-mock failure and updated `tests/unit/test_review_service.py` so the mock `execute` result now behaves like a real SQLAlchemy result object with synchronous `.scalars().first()` and `.scalars().all()` behavior. The branch is prepared for final validation and PR submission.
 
 **Next steps:**
-I’m finishing the week by running the relevant validation commands, checking the repo’s contribution standards, and preparing the PR summary and submission details.
+Finalize the PR template, mark the PR ready for review, and submit the branch URL to the course portal.
 
 **Blockers:**
-None at the moment.
+None.
 
 ---
 
 ### Check-in 2 (end of week)
 
-**PR link:** TBD
+**PR link:** https://github.com/ascherj/pathreview/pull/706
 
 **Branch:** `fix/158-review-service-async-mock-tests`
 
 **What you built:**
-I fixed the review-service unit tests by changing the mock result setup so `db.execute()` remains async while the returned result chain behaves like a normal SQLAlchemy result object. This removes the coroutine-related `first()` and `all()` failures that were breaking the tests.
+Fixed the review-service unit test mock setup so `db.execute()` remains awaitable while the returned result object behaves like SQLAlchemy’s synchronous result interface for `.scalars().first()` and `.scalars().all()`.
 
 **Tests added or updated:**
-Updated [tests/unit/test_review_service.py](tests/unit/test_review_service.py) to use a shared helper for query-result mocking and to assert the intended behavior for pagination/counting paths.
+Updated `tests/unit/test_review_service.py` to use `_mock_query_result(...)` for query-result mocking, covering `get_review` and `list_reviews` result behavior.
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-**Draft PR feedback received from:** none
+**Draft PR feedback received from:** Peer reviewer on GitHub PR #706 — confirmed the changes look well organized and the docs/async-mock test update are good, with a request to verify `make check` and `make test-unit` locally before merging.
