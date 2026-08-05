@@ -72,3 +72,34 @@ Added `tests/unit/test_fixtures.py`, which covers fixture file existence, JSON s
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+None — still awaiting review.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The first few assignments were harder than expected and took a lot more time than I initially thought. Setting up the environments, navigating the tooling dependencies, and figuring out my own system required significant initial effort.
+
+**What did you learn about working in a large codebase?**
+When working in a large codebase, I should spend time thoroughly learning about the architecture and existing patterns. Being careful with planning what I am specifically working on, and making sure my solution and commits are as detailed as possible.
+
+**How did AI tools help — and where did they fall short?**
+AI really helped with developing the plan, organizing the work and my thoughts, and explaining goals as I worked through the projects. However, it fell short when context limits required me to actively steer the AI back in the right direction.
+
+**What would you do differently if you started over?**
+I would start looking at the grading rubric earlier in the project lifecycle rather than later, and account for the initial setup and early tasks taking more time than anticipated.
+
+**What are you most proud of from this module?**
+I am most proud of the writing spec before coding aspect. That is becoming increasingly more important to provide the agent with the correct context and understanding the vision that I am creating. Overall, happy with successfully completing the projects to the standard of Codepath as I learn more about AI.
