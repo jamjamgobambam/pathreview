@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, TrendingUp, Calendar } from 'lucide-react'
+import { Plus, TrendingUp, Calendar, GitCompare } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { apiClient } from '../services/api'
 import { Review } from '../types'
@@ -42,6 +42,26 @@ export const DashboardPage: React.FC = () => {
           <p className="text-gray-600">
             Get AI-powered feedback on your portfolio and career trajectory
           </p>
+        </div>
+        <div className="flex flex-wrap gap-4 mb-12">
+          <button
+            onClick={() => navigate('/profiles/new')}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            Start a New Review
+          </button>
+
+          {/* Only show the comparison button if there are 2 or more reviews */}
+          {reviews.length >= 2 && (
+            <button
+              onClick={() => navigate('/compare')}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-lg transition-colors shadow-sm"
+            >
+              <GitCompare className="w-5 h-5" />
+              Compare Reviews
+            </button>
+          )}
         </div>
 
         <button

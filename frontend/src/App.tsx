@@ -8,6 +8,7 @@ import { DashboardPage } from './pages/DashboardPage'
 import { NewProfilePage } from './pages/NewProfilePage'
 import { ReviewPage } from './pages/ReviewPage'
 import { ReviewHistoryPage } from './pages/ReviewHistoryPage'
+import { ComparisonView } from './pages/ComparisonView'
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth()
@@ -81,6 +82,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ReviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/compare"
+          element={
+            <ProtectedRoute>
+              <ComparisonView />
             </ProtectedRoute>
           }
         />
