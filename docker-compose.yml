@@ -43,6 +43,8 @@ services:
       - chromadata:/chroma/chroma
     environment:
       ANONYMIZED_TELEMETRY: "false"
+    command: >
+      sh -c "pip install 'numpy<2.0' --quiet && uvicorn chromadb.app:app --host 0.0.0.0 --port 8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
       interval: 10s
