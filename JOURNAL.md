@@ -61,3 +61,37 @@ The pre-existing `uq_users_email` schema drift needs to be fixed as part of
 this PR (see PLAN.md Risks & unknowns) or the new CI check will fail
 immediately on `main` after merge — still deciding whether that fix belongs
 in this PR or a split-out follow-up issue.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All 5 sub-tasks from PLAN.md are implemented and committed on this branch:
+`scripts/validate_migrations.sh` (applies migrations to a fresh DB, then
+runs `alembic check` for model drift), a `make migrate-check` target,
+a new "Validate migrations" step wired into the `test-integration` CI job,
+the `uq_users_email` drift fix in `core/models/user.py` (resolved the open
+question from Week 8 — fixed in this PR, not split out, since the new CI
+check would otherwise fail immediately on `main`), and a CONTRIBUTING.md
+doc update. Along the way I found and fixed a second real bug: the
+`test-integration` job's `DATABASE_URL` used a plain `postgresql://` URL,
+which `create_async_engine()` in `core/database.py` rejects outright —
+latent until now because nothing in that job previously imported
+`core.database` or ran Alembic. Added `tests/unit/test_user_model.py` as a
+regression test for the constraint fix. Ran `make check` and
+`make test-unit` before and after my changes: pre-existing baseline is 182
+ruff errors, 52 files needing `black` reformatting, 1 mypy error (a numpy
+stub/Python-3.12-syntax incompatibility, unrelated to this change), and 53
+failing unit tests — all unchanged after my changes, plus my 3 new tests
+passing.
+
+**Next steps:**
+Open a draft PR, fill out the PR template (including the pre-existing failures
+note above), and ask for peer/mentor review in Slack before marking it ready
+for review.
+
+**Blockers:**
+None on the implementation. I don't have GitHub CLI auth in my current
+working environment, so opening the PR itself is a manual step I'll do
+outside this session.
