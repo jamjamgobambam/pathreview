@@ -64,3 +64,34 @@ I changed `Orchestrator.run()` to checkpoint each tool's result to Redis immedia
 Note on what "passes" means here: this codebase has documented pre-existing failures (182 pre-existing ruff errors, 52 files needing black formatting, 13 pre-existing mypy errors in `error_handling.py`, `context_manager.py`, and two `orchestrator.py` functions I did not modify, and 53 pre-existing failing unit tests, none in files I touched). I confirmed my changes introduce zero new failures in any of these categories, and my own changed and added files are fully clean under ruff, black, and mypy. `make typecheck`'s full invocation cannot complete at all due to the pre-existing numpy/Python version issue described in Check-in 1, so I verified type safety with a scoped `mypy agent/` run and the actual pre-commit mypy hook instead. One commit (`620c68b`) uses `--no-verify` because of these pre-existing errors; documented in the commit message reasoning and in the PR description.
 
 **Draft PR feedback received from:** none.
+
+## Week 10 - Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No, still awaiting review
+
+**Summary of feedback:**
+No feedback has come in on PR #877. Per the course note, reviewer feedback isn't a feature for Summer 2026, so this is expected.
+
+**How you responded:**
+N/A, no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating and understanding the codebase itself was the hard part, not the fix. Once I understood what was going on, the actual change was straightforward: check the tool's state after each individual tool runs instead of waiting until all tools finish, since waiting until the end is exactly what made an in-progress run vulnerable to losing everything on a crash. But getting to that understanding took real work. Figuring out how the codebase was laid out, where `SessionStore` was actually defined, what methods each object exposed, and how the pieces called into each other took longer than I expected before I could even start reasoning about the fix.
+
+**What did you learn about working in a large codebase?**
+Getting properly oriented before touching anything matters a lot more than it seems like it should. One specific moment made this real for me: while investigating in Week 8, I found that `Orchestrator` had zero callers anywhere in the live app, `core/services/review_service.py` called a hardcoded placeholder stub instead of actually invoking `agent/orchestrator.py`. If I had jumped straight into fixing `Orchestrator`'s checkpointing logic without first tracing whether it was even wired into the app, I would have missed that my fix, as scoped, doesn't yet affect any review a real user could trigger. That's the kind of thing you only catch by mapping out the codebase first instead of assuming a file named in the issue is already connected the way it looks like it should be.
+
+**How did AI tools help, and where did they fall short?**
+AI tools were most useful for tracing how `Orchestrator`, `ContextManager`, and `SessionStore` connected to each other before I could reason about where to add checkpointing, and for quickly answering "where is X defined" type questions. I wouldn't say they fell short exactly, they did what they were supposed to do. But the moment that mattered most was still something I had to do myself: actually running `scripts/repro_issue47.py` against my fixed code and reading the real output line by line to confirm `tool_a` wasn't re-executed on the simulated restart, before I trusted the fix enough to write it into the PR's manual verification steps. Asking an AI to explain the code isn't a substitute for watching the actual behavior change with my own eyes.
+
+**What would you do differently if you started over?**
+I'd spend more time in the earlier weeks actually understanding the problem and the codebase in depth, rather than doing close to the minimum required for each week's deliverable. That approach ended up pushing a lot of the real understanding to the point where I actually had to implement the fix, which made that stage harder than it needed to be. Front-loading that understanding earlier would have made the whole process smoother, even though nothing about it was especially hard in an absolute sense.
+
+**What are you most proud of from this module?**
+Opening a real pull request against a codebase that closely resembles a real-world production repository, not a toy project. Even knowing it's a simulated repo, going through the full cycle (issue selection, reproduction, planning, implementation, and a properly documented PR) gave me real confidence that I could contribute to an actual open source project.
