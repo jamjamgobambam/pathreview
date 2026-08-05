@@ -5,8 +5,8 @@ import structlog
 from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
 from api.middleware.auth import get_current_user
 from core.models.user import User
-from core.models.review import Review
 from core.database import get_db
+from core.services.profile_service import get_profile
 from core.services.review_service import (
     create_review,
     get_review,
@@ -26,12 +26,70 @@ async def create_review_endpoint(
     current_user: User = Depends(get_current_user),
     db=Depends(get_db),
 ):
-    """
-    Create a new review for a profile.
-    Triggers ingestion pipeline and agent orchestration asynchronously.
-    Returns review with status="pending" immediately.
+    """Create a new review for a profile.
+
+    Verifies the profile exists, is owned by the current user, and has at
+    least one ingested document before any review row is created. Triggers
+    the ingestion pipeline and agent orchestration asynchronously and
+    returns the review with status="pending" immediately.
+
+    Args:
+        data: Review creation payload containing the target profile_id.
+        background_tasks: FastAPI background task queue.
+        current_user: The authenticated user, injected by dependency.
+        db: Async database session, injected by dependency.
+
+    Returns:
+        ReviewResponse: The newly created review with status="pending".
+
+    Raises:
+        HTTPException: 404 if the profile does not exist or is not owned by
+            the current user; 422 if the profile has no ingested documents;
+            500 on unexpected failure.
     """
     try:
+        profile = await get_profile(
+            db=db,
+            profile_id=data.profile_id,
+            user_id=current_user.id,
+        )
+
+        if not profile:
+            log.warning(
+                "review_profile_not_found",
+                profile_id=str(data.profile_id),
+                user_id=str(current_user.id),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found",
+            )
+
+        # A review needs at least one source to analyse. Empty and
+        # whitespace-only fields count as no documents; without any, the
+        # pipeline would generate feedback from no data at all.
+        has_documents = any(
+            value and value.strip()
+            for value in (
+                profile.github_username,
+                profile.portfolio_url,
+                profile.resume_text,
+            )
+        )
+
+        if not has_documents:
+            log.warning(
+                "review_rejected_no_ingested_documents",
+                profile_id=str(data.profile_id),
+                user_id=str(current_user.id),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=(
+                    "Profile has no ingested documents to review. Add a GitHub "
+                    "username, a portfolio URL, or upload a resume first."
+                ),
+            )
         # Create review with status="pending"
         review = await create_review(
             db=db,
