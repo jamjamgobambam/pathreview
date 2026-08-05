@@ -363,3 +363,30 @@ class TestTechDetector:
 
         data = result.data
         # Should detect C++ (from .cpp files)
+
+    def test_windows_separators_excluded(self, detector):
+        """Test vendored/build dirs with Windows path separators are excluded."""
+        files = [
+            "src\\main.py",
+            "node_modules\\pkg\\index.js",
+            "build\\bundle.js",
+            "utils.py",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+
+    def test_source_file_containing_skip_token_not_excluded(self, detector):
+        """Test a source file whose name merely contains a skip token is kept."""
+        files = [
+            "my_node_modules_helper.py",
+            "build_utils.py",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+        assert "Python" in data["all_languages"]

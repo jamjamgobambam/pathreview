@@ -161,4 +161,9 @@ class TechDetector(BaseTool):
             "/venv/",
         ]
 
-        return any(pattern in filepath for pattern in skip_patterns)
+        # Normalize Windows separators and prepend a leading slash so that
+        # root-level directories (e.g. "node_modules/lib/index.js") match the
+        # same patterns as nested ones (e.g. "src/node_modules/lib/index.js").
+        normalized = "/" + filepath.replace("\\", "/")
+
+        return any(pattern in normalized for pattern in skip_patterns)
