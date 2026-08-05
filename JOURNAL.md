@@ -91,3 +91,34 @@ I verified the implementation using `tests/unit/test_faithfulness_checker.py`. A
 - [x] `pytest tests/unit/test_faithfulness_checker.py -v` passes (22/22)
 
 **Draft PR feedback received from:** None
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was received during this module, so I did not have any comments to address.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Setting up the development environment and understanding an unfamiliar codebase took longer than I expected. It also took time to trace the bug and understand how the faithfulness checker worked before making any changes.
+
+**What did you learn about working in a large codebase?**
+I learned that contributing to an existing project requires understanding the current design and following the project's coding standards instead of simply writing code from scratch. Running tests and making sure changes do not affect other parts of the project is also very important.
+
+**How did AI tools help — and where did they fall short?**
+AI helped me understand the codebase, explain the issue, and debug failing tests more quickly. However, I still had to read the code myself, verify the suggestions, and test the implementation because AI could not automatically determine the correct solution for every situation.
+
+**What would you do differently if you started over?**
+I would spend more time exploring the project structure before choosing an issue and start testing earlier in the process. That would make it easier to understand how the different components work together.
+
+**What are you most proud of from this module?**
+I am most proud that I successfully reproduced the issue, implemented a working fix, and got all 22 faithfulness checker unit tests to pass while following the complete GitHub contribution workflow.
