@@ -1,0 +1,299 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/43
+
+**Issue title:** Agent session state is not cleared between reviews for the same user
+
+
+**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
+
+**Problem summary:**
+The agent caches tool results in Redis by profile/user ID via `session_store.py`,
+and the orchestrator reloads that state on later runs. When someone updates their
+portfolio and requests another review, the old session is still there, so stale
+tool results can be reused instead of analyzing the new data. A successful fix
+should clear (or otherwise isolate) session state at the start of each new review
+so tools always re-run against the current portfolio.
+
+**Branch name:** fix/43-stale-session-cache
+
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+---
+
+## "Is this right for me?" checklist reasoning
+
+### Part 1 — Understanding the Issue
+
+- [x] **I can explain the problem and expected behavior in 2–3 sentences without reading the issue.**  
+  Redis session state is keyed by profile/user ID and kept across reviews. After a portfolio update, a second review can reuse old tool results. Done means each new review starts with a clean session so tools re-run on current data.
+
+- [x] **I've located the relevant files and confirmed they exist in the codebase.**  
+  Primary: `agent/memory/session_store.py`. Also involved: `agent/orchestrator.py` (loads/merges/saves session) and `agent/memory/context_manager.py` (in-memory memoization that can also leak across runs on a long-lived orchestrator). Label: `agent`.
+
+- [x] **I can describe a concrete before-and-after.**  
+  Before: user updates portfolio → requests another review → analysis still reflects prior tool results. After: same flow → tools re-execute against the updated portfolio and the review reflects new data.
+
+### Part 2 — Tier Fit
+
+- [x] **The tier is a realistic match for where I am right now.**  
+  Tagged Tier 1 / good first issue. Scope is a localized cache/lifecycle fix in one small area of the agent system, not a multi-module feature. Good first OSS contribution: Tier 1 is the right pick.
+
+### Part 3 — Codebase Readiness
+
+- [x] **I've found and read the specific code the issue references.**  
+  Read `SessionStore.get` / `set` / `delete`, and `Orchestrator.run` where prior session is loaded, tools run, then `session_state.update(results)` is persisted under `profile_id`.
+
+- [x] **I've read enough surrounding context to write a rough plan for the fix.**  
+  Plan: clear Redis session (and in-memory context) at the start of each review; stop merging prior-review keys into the new session; add unit tests that a second `run()` for the same profile re-executes tools.
+
+- [x] **I've found how tests are structured for this area (or confirmed I'll add them).**  
+  No dedicated `test_session_store.py` / orchestrator tests exist yet. Pattern is clear from other files under `tests/unit/` (fixtures, mocks, `@pytest.mark.unit`). Fix should include at least one new test proving a second review starts clean.
+
+### Part 4 — Scope and Time
+
+- [x] **I've checked issue comments / ledger claims and I'm fine with how crowded it is.**  
+  Claims are non-exclusive; grade is on my own artifacts. Comfortable proceeding even if others pick the same issue.
+
+- [x] **I've estimated the time and can finish before the Week 9 deadline.**  
+  Issue lists 3–4 hours; my estimate is closer to 1–2 hours of focused work (clear session + tests), with buffer for review feedback. Fits Weeks 8–9.
+
+- [x] **No open blockers or dependencies on other unresolved issues.**  
+  Self-contained; does not require another issue to land first.
+
+### Verdict / scope notes
+
+All boxes checked — ready to claim and implement. Scope stays narrow: session lifecycle for a new review, not a full redesign of agent persistence (e.g. mid-review resume across restarts is a separate, larger issue). Success criteria: second review for the same user/profile does not reuse prior Redis/in-memory tool results.
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/tanisnus/pathreview/commit/78a2f1b
+
+**Reproduction summary:**
+
+Wrote two failing regression tests in tests/unit/test_orchestrator_stale_cache.py and ran python -m pytest tests/unit/test_orchestrator_stale_cache.py -v — no Redis needed. Both fail as expected: a reused Orchestrator serves stale in-memory ContextManager results on the second review (github_tool ran once, not twice — the input hash is byte-identical because tool_input never includes the edited content), and a tool dropped from a later plan still lingers in the persisted session state via session_state.update(results).
+
+**PLAN.md link:** https://github.com/tanisnus/pathreview/blob/fix/43-stale-session-cache/PLAN.md
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+[Anything you're still uncertain about going into Week 9, or leave blank]
+
+
+
+### Notes
+
+- The Orchestrator isn't wired into the API yet, so this is a design-level bug in the caching logic itself.
+
+- There are two separate caches in play, and the bug comes from how they interact.
+
+  - Layer 1 — Redis session store (session_store.py) — keyed by user/profile ID (session:{session_id}), persists across requests, 1-hour TTL.
+
+  - Layer 2 — In-memory ContextManager (context_manager.py) — a plain dict keyed by {tool_name}:{sha256(tool_input)}, used for within-run memoization.
+
+
+### Tracing 
+Trace `agent/orchestrator.py:31` for a user who just updated their portfolio:
+
+
+  1. Load prior session `(orchestrator.py:47-49)`:
+
+      session_state = self.session_store.get(profile_id) or {}
+      // This pulls last run's results out of Redis by user ID.
+
+
+  2. Execute the plan — each tool goes through agent/orchestrator.py:136, which checks the ContextManager first `(orchestrator.py:150-155)`:
+
+    input_hash = ContextManager.hash_input(tool_input)
+    cached_result = self.context_manager.get_tool_result(tool_name, input_hash)
+    if cached_result:
+        return cached_result   # <-- skips re-running the tool
+
+
+  3. Persist `(orchestrator.py:65-67)`:
+
+      session_state.update(results)
+      self.session_store.set(profile_id, session_state)
+
+
+
+### Problems
+
+
+  1. The cache key ignores the portfolio data. The ContextManager key is hash(tool_input). 
+  
+    Look at what actually goes into tool_input in `agent/orchestrator.py:78`:
+
+      github_tool gets {github_username, repo_name} (`orchestrator.py:94-97`) — if the user edits a project but the repo name/username is unchanged, the hash is identical → cache hit → the tool never re-runs, even though the repo content changed.
+
+      market_analyzer gets {"detected_skills": {}} (orchestrator.py:130) — a constant.
+      Its hash never changes, so after the very first run it is permanently a cache hit.
+
+      So the cache is keyed on a proxy (repo name) rather than on the actual content being analyzed. That's the core "stale tool results instead of re-running" bug.
+
+
+  2.  session_state.update(results) accumulates forever and never evicts. `(orchestrator.py:66)` It merges new results into the old dict. If the new plan contains fewer tools than before (say the user deleted the project that triggered github_tool), the old github_tool result stays in session_state and gets re-persisted to Redis indefinitely — stale data with no way to age out except the TTL.
+
+
+  3. The loaded session_state is loaded but functionally dead. `(orchestrator.py:49)` It's read from Redis, but nothing in run() reads it back to decide anything — it's only written to. 
+  
+  So the Redis layer today doesn't serve stale results directly; it just hoards them. 
+  
+  The layer that actually serves stale results is the in-memory ContextManager (problem 1) if the Orchestrator instance is reused across requests — since self.context_manager is created once in `agent/orchestrator.py:29` and survives between .run() calls on a long-lived instance.
+
+---
+
+## Reproduction (issue #43)
+
+Reliably reproduced via a failing regression test — no Redis required, since
+the stale results are served by the in-memory `ContextManager` on a reused
+`Orchestrator` instance (a long-lived service singleton).
+
+**Steps:**
+
+```bash
+source .venv/bin/activate
+python -m pytest tests/unit/test_orchestrator_stale_cache.py -v
+```
+
+**Result — both tests fail, capturing the two variants:**
+
+1. `test_second_review_reruns_tools_after_portfolio_update` — a reused
+   Orchestrator serves stale `ContextManager` results on the second review.
+   The tools run once, not twice (`assert 1 == 2`). The cache key
+   (`github_tool:d323f24e…`) is byte-identical across both reviews even though
+   the project content changed, because `tool_input` = `{github_username,
+   repo_name}` never includes the edited content (orchestrator.py:94-97).
+
+2. `test_stale_results_not_accumulated_in_session_state` — after a review that
+   drops the project from the plan, the old `github_tool` result still lingers
+   in the persisted session state via `session_state.update(results)`
+   (`orchestrator.py:66`).
+
+The failing test at `tests/unit/test_orchestrator_stale_cache.py` documents the
+exact location of the bug and acts as the regression guard for the fix.
+
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+The first 2 sub-tasks from PLAN.md are done:
+  1. **Add `ContextManager.clear()`** — reset `self.results = {}` with a log line.
+    Keeps memoization a *within-run* optimization instead of a cross-run cache.
+  2. **Reset the in-memory cache at the start of each review** — call
+    `self.context_manager.clear()` at the top of `Orchestrator.run` (before the
+    plan executes). This fixes variant 1: a reused orchestrator re-runs its tools
+    because the identical-hash cache entries from the previous review are gone.
+
+**Next steps:**
+Finish the remaining 2 sub-tasks from PLAN.md and confirm the two regression
+tests that were intentionally failing now pass after the changes.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/529
+
+**Branch:** `fix/43-stale-session-cache`
+
+**What you built:**
+Fixed issue #43 (session state not cleared between reviews) at both cache layers.
+Added `ContextManager.clear()` and call it at the top of `Orchestrator.run`, so
+the in-memory memoization is reset per review — a reused orchestrator now
+re-executes its tools instead of serving byte-identical-hash cache hits from the
+previous review (variant 1). Changed persistence to save only the current run's
+`results` (`self.session_store.set(profile_id, results)`) instead of
+`session_state.update(results)`, so a tool dropped from a later plan no longer
+lingers in the persisted session (variant 2). The now-dead session load/merge was
+removed.
+
+**Tests added or updated:**
+`tests/unit/test_orchestrator_stale_cache.py` — the two regression tests committed
+earlier as failing now pass: `test_second_review_reruns_tools_after_portfolio_update`
+(variant 1, in-memory stale cache) and `test_stale_results_not_accumulated_in_session_state`
+(variant 2, persisted-state accumulation). No other test files were changed.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+_Checked in the sense that this change introduces **zero** new failures: `make check`
+and `make test-unit` are already red on `main` before this branch, all in unrelated
+modules. Verified in isolation — stashing this fix gives 55 failed / 375 passed; with
+it, 53 failed / 377 passed, flipping exactly the two #43 regression tests from failing →
+passing. Full breakdown of the pre-existing failures is in the Notes for Reviewers
+below._
+
+### Notes for Reviewers
+
+**Pre-existing CI failures (not introduced by this PR):**
+
+`make check` and `make test-unit` are both red on `main` *before* this branch —
+all in modules this PR does not touch.
+
+- **Lint (`make check`):** 182 ruff errors repo-wide. The 4 that fall in the
+  files I edited are all pre-existing, on lines I did not change:
+  - `agent/memory/context_manager.py:3` — `I001` (import sorting)
+  - `agent/orchestrator.py:3` — `I001` (import sorting)
+  - `agent/orchestrator.py:17` — `UP045` (`Optional[...]` → `X | None`)
+  - `agent/orchestrator.py:172` — `UP045` (`Optional[...]` → `X | None`)
+
+  My changes (`ContextManager.clear()` ~`context_manager.py:59`, the `clear()`
+  call and persist edit in `orchestrator.py:43`/`63`) add **zero** new lint errors.
+
+- **Unit tests (`make test-unit`):** 53 pre-existing failures in unrelated
+  modules — `test_review_service`, `test_security`, `test_skill_extractor`,
+  `test_tech_detector`, `test_structural_chunker`.
+
+**Verified in isolation:** stashing this fix → 55 failed / 375 passed; with it →
+53 failed / 377 passed. It flips exactly the two #43 regression tests
+(`tests/unit/test_orchestrator_stale_cache.py`) from failing → passing and adds
+no new failures.
+
+I intentionally did **not** fix the unrelated lint/test failures to keep this PR
+scoped to issue #43.
+
+**Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+Note: No review came in
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+Note: No review came in
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating through a new codebase was harder than I expected because I was unfamiliar with the concepts from the issue #43. This was also my first time working with caching and Redis. Another difficult aspect was ensuring my solution to the issue did not intefere with existing code bugs. Specifically, I was struggling to identify if my solution was making more bugs or if those bugs are independent of my code solution.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's production code meant most of my time went to reading and tracing rather than writing. The actual fix was only ~20 lines, but understanding how the Orchestrator, ContextManager, and Redis session store interacted took far longer. I also learned to keep my change tightly scoped to the issue and leave the unrelated pre-existing bugs alone, rather than trying to fix everything I noticed.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for orienting me quickly in unfamiliar territory — explaining caching/Redis concepts and helping me trace how the two cache layers interacted. Where it fell short was judgment calls that needed the actual repo state: deciding which failing tests were mine versus pre-existing required me to run the suite with and without my change and verify the numbers myself.
+
+**What would you do differently if you started over?**
+I'd verify the baseline test/CI state before writing any code, so I'd know from the start which failures were pre-existing and wouldn't second-guess whether my solution introduced them. I'd also time-box the tracing phase, since I went deeper into documenting the bug than the fix strictly required. I'd also spend more time reading the documentations to have a better understanding of how this overall project is set up.
+**What are you most proud of from this module?**
+Writing the two regression tests as failing tests first, then proving in isolation (55 → 53 failures) that my fix flipped exactly those two and added zero new failures ,turning "I think this works" into evidence a reviewer can trust. Writing a descriptive Pull Request with a structure and learning about appropriate commit history message also gave me more confidence to work in a large codebase in the future.
+

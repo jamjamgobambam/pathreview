@@ -55,6 +55,19 @@ class ContextManager:
         """
         return dict(self.results)
 
+    def clear(self) -> None:
+        """Reset all memoized tool results.
+
+        Called at the start of each run so memoization stays a
+        within-run optimization and never serves cross-run stale data.
+
+        Returns:
+            None
+        """
+        count = len(self.results)
+        self.results = {}
+        logger.info("context_cleared", cleared_count=count)
+
     @staticmethod
     def hash_input(input_data: dict) -> str:
         """Hash input data for consistent memoization.

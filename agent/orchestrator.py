@@ -40,13 +40,12 @@ class Orchestrator:
         """
         logger.info("orchestrator_start", profile_id=profile_id)
 
+        # Reset in-memory memoization so this run can't serve cache
+        # entries left over from a previous profile's review.
+        self.context_manager.clear()
+
         # Build execution plan
         plan = self._build_plan(profile_data)
-
-        # Load previous session state if available
-        session_state = {}
-        if self.session_store:
-            session_state = self.session_store.get(profile_id) or {}
 
         # Execute plan
         results = {}
@@ -61,10 +60,10 @@ class Orchestrator:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
                 results[tool_name] = {"error": str(e), "success": False}
 
-        # Persist state
+        # Persist only this run's results so a tool dropped from the
+        # plan doesn't linger in the stored session state.
         if self.session_store:
-            session_state.update(results)
-            self.session_store.set(profile_id, session_state)
+            self.session_store.set(profile_id, results)
 
         logger.info("orchestrator_complete", profile_id=profile_id,
                    tools_executed=len(results))
