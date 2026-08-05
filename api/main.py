@@ -2,13 +2,18 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
+import redis
 import structlog
 
 from api.middleware.request_id import RequestIDMiddleware
 from api.routes import auth, profiles, reviews, health
 from core.database import init_db
+from safety.rate_limiter import RateLimiter
 
 log = structlog.get_logger()
+
+redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+rate_limiter = RateLimiter(redis_client)
 
 # Create FastAPI application
 app = FastAPI(
@@ -51,7 +56,7 @@ app.add_middleware(
 )
 
 # Add request ID middleware
-app.add_middleware(RequestIDMiddleware)
+app.add_middleware(RequestIDMiddleware, rate_limiter=rate_limiter)
 
 
 # Exception handler for unhandled exceptions
