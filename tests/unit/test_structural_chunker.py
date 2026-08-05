@@ -238,3 +238,29 @@ Content for 3
 
         # Should not crash on empty sections
         assert isinstance(result, list)
+
+    def test_large_heading_free_document_is_sub_chunked(self, chunker):
+        """Test that a heading-free document exceeding 800 tokens is sub-chunked.
+
+        Regression test for issue #149: before the fix, chunk() returned [] for
+        any document with no markdown headings.  This test additionally verifies
+        that the no-headings fallback path correctly hands off to SemanticChunker
+        when the document exceeds SECTION_TOKEN_LIMIT (800 tokens), producing
+        multiple chunks rather than one oversized chunk.
+        """
+        # ~1 400 tokens (verified with tiktoken: 100 reps × ~14 tokens/sentence = 1 401 tokens,
+        # which exceeds both SECTION_TOKEN_LIMIT=800 and SemanticChunker.TARGET_CHUNK_TOKENS=500)
+        sentence = "This is a sentence in a long plain-text document without any headings. "
+        large_text = sentence * 100
+
+        result = chunker.chunk(large_text, {"source": "plain-resume"})
+
+        # Must return more than one chunk — the fallback section exceeded 800 tokens
+        assert len(result) > 1
+        # Every element must be a proper Chunk with non-empty text
+        assert all(isinstance(c, Chunk) for c in result)
+        assert all(c.text.strip() for c in result)
+        # Source metadata must be preserved through sub-chunking
+        assert all(c.metadata.get("source") == "plain-resume" for c in result)
+        # heading_level should be 0 (no headings)
+        assert all(c.metadata.get("heading_level") == 0 for c in result)
