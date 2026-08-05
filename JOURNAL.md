@@ -68,3 +68,36 @@ Added 6 tests to `tests/unit/test_review_service.py` covering `create_share_link
 **Self-review confirmation:** [✔] make check passes  [✔] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [✔] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Honestly, the hardest part was setting up the environment before I could even begin to make any changes. I remember trying to use the Ubuntu terminal, updating it twice (from 20.04 to 24.04), and then realizing it would be easier to work with Git Bash since the instructions had outlined details specific to it. Setting up Docker was also challenging since I hadn't used it recently but eventually, I was able to set up the environment. I had in no way anticipated that that would have been such a challenge but I'm happy I was able to surmount it.
+
+**What did you learn about working in a large codebase?**
+I learnt a lot but perhaps the most important thing was following conventions outlined in production code. I had some VSCode extensions (Prettier for instance), that would entirely reformat code that fit the way I personally like to write my code, but was not in sync with the conventions of the codebase. And so learning to first identify what the standards were and then abiding by them was really important. It's also inspired me to define the standards I use for my own personal code so if someday somebody else contributes to it, they can understand what to do!
+
+**How did AI tools help — and where did they fall short?**
+AI tools were very helpful in first planning how we would implement the feature before actually writing the code. I think it's very important to have that plan beforehand, especially for an issue that touches on multiple parts of the system, so that you're grounded in the small, incremental steps you'll be implementing. In terms of where they fell short, I find that providing too much information to the AI tools can be overkill at times and so I opted to not provide the entire codebase to the tool. As a result, I was able to make decisions such as keeping the backend returning just the token for the shared review and having the front end build the full URL using `window.location.origin`, rather than adding new config just for this one feature.
+
+**What would you do differently if you started over?**
+Outside of making sure the environment is up and running, I'd definitely run the tests and all the `make` commands beforehand so that I would have some sort of baseline to reference my changes against, to see if any additional errors surface. I actually forgot to do that for this project and panicked a bit before learning I could run `git checkout` on an earlier commit hash, run whatever tests and commands I had to confirm and then return to my actual branch. I'm glad I was able to learrn something new but definitely, if I started over or when I contribute to new projects, I'll be hyper aware of making sure I know the current state of the system before I add features or make fixes.
+
+**What are you most proud of from this module?**
+I'm very proud of how much I was able to put all that I had previously learnt into practice in this module. For instance, I used my previous knowledge with frontend development to handle the UI for the share button, choosing to disable it when clicked and display a spinner while the review link is being generated. I also got to use the git commands I've learnt from working on projects throughout this class while implementing the feature I had chosen. I'm a huge fan of seeing how the stuff I've learnt translates into action and it was really great to see that show up here as well!
