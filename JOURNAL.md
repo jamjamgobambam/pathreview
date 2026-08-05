@@ -111,3 +111,34 @@ I added `tests/unit/test_bias_detector_issue_151.py`. The tests cover the longer
 
 **Draft PR feedback received from:** None
 
+
+## Week 10 — Iteration & Reflection
+
+### Reviewer Feedback
+
+**Feedback received:** [ ] Yes  [x] No — review was not required
+
+**Summary of feedback:**
+No reviewer feedback was received because the summer course did not require a formal review.
+
+**How you responded:**
+No reviewer feedback was received because the summer course did not require a formal review.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Reading and understanding the codebase was harder than I expected. I had worked with other people’s code and legacy code before, but I had never needed to understand a codebase almost entirely from scratch. Usually, someone was available to help explain how everything worked. In this project, I was sometimes only given the name of a file and had to examine several other files to understand how they were connected. Even with the help of AI tools, it took time to understand the different files, functions, and relationships within the project.
+
+**What did you learn about working in a large codebase?**
+I learned that understanding the codebase is essential. Only reading isolated sections of code makes it difficult to understand the larger system and can make the development process slower. You do not need to understand every part of the codebase perfectly, but you should understand the section you are working on and how it connects to other components that may be affected by your changes.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were especially helpful for summarizing code and explaining sections that I had difficulty understanding. They also helped me write certain parts of the implementation that would have taken me much longer to complete on my own. However, AI tools sometimes added, removed, or changed specific sections unnecessarily. Because of this, it was important to carefully review every suggestion and make corrections when necessary.
+
+**What would you do differently if you started over?**
+I would begin planning, commenting, and documenting my work earlier. At times, I started coding without creating a clear plan, which caused the work to become disorganized. Later in the module, I began planning before coding, and the process became much faster and easier. My comments and documentation also helped me remember what had already been completed and what still needed to be done whenever I stepped away from the computer and returned later.
+
+**What are you most proud of from this module?**
+I am most proud that I completed my first pull request. More specifically, I am proud of how much my commenting and documentation skills improved. I also learned a great deal about AI, but without improving my documentation skills, it would have been much more difficult to understand the project and successfully complete my contribution.
