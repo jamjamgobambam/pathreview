@@ -103,7 +103,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/ascherj/pathreview/pull/TBD
+**PR link:** https://github.com/ascherj/pathreview/pull/984
 
 **Branch:** `fix/150-tech-detector-vendor-build-files`
 
