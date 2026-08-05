@@ -32,3 +32,38 @@ I reproduced the issue by checking for `tests/fixtures/sample_profiles/basic_pro
 
 **Blockers or open questions:**
 Need to confirm the exact JSON shape expected by the skipped integration tests before writing the fixture. If those tests are not currently present or are also skipped/unfinished, I will model the fixture around the existing profile, resume, repository, and ingestion schemas so it remains realistic and reusable.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I restored the missing shared sample profile fixture for issue #106 at `tests/fixtures/sample_profiles/basic_profile.json`.
+[x] Run the fixture/integration test, `make test-unit`, and `make check`, then open the PR.
+
+Validation:
+- .venv/bin/pytest tests/integration/test_sample_profile_fixture.py -v: passes, 2 passed
+- make test-unit: fails with 53 existing unit test failures across unrelated modules; this fixture-only change does not modify those modules
+- make check: fails during ruff linting with 182 existing lint errors across unrelated files; this fixture-only change does not introduce Python lint changes
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [your PR link]
+
+**Branch:** `fix/106-user-prof-test-fixture`
+
+**What you built:**
+I restored the missing sample profile fixture used by integration tests. The fixture contains realistic fake portfolio data, including a GitHub username, resume content, and two repository entries.
+
+**Tests added or updated:**
+Added/restored `tests/fixtures/sample_profiles/basic_profile.json`; verified with `tests/integration/test_sample_profile_fixture.py`.
+
+**Self-review confirmation:** [ ] make check passes [ ] make test-unit passes
+
+**Draft PR feedback received from:** none
+
