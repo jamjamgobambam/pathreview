@@ -45,3 +45,36 @@ I fixed an `AttributeError` in the `/health` endpoint that crashed the applicati
 I created `tests/unit/test_health.py` and added `test_health_endpoint_resolves_without_crash` which uses a FastAPI `TestClient` to verify the endpoint returns a valid 200 or 503 status code instead of a 500 Internal Server Error.
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 **Draft PR feedback received from:** @fperezrugama (implemented their suggested from_url refactor and route testing)
+
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review. There was comment on it for the draft PR but nothing for the actual PR.
+
+**Summary of feedback:**
+There has beeen no review made on the PR
+
+**How you responded:**
+No changes made as no review for the PR was available. But, there was a review in draft PR which I found quite insightful as it was an easier solution to the problem than the one I had implemented. I changed my approach, implemented the suggestion from the reviewer, and pushed the changes to github.
+---
+
+### Reflection
+
+**What was harder than you expected?**
+My experience with python is in completely different domain than the work I was working on for this work. Interacting new tools such as redis, json and such tools which I do not normally use was a bit challenging in the beginning. 
+
+
+**What did you learn about working in a large codebase?**
+The scale of the work this time was definitely bigger than anything I had worked on before. So, it was a bit intimidating in the beginning. But with the help from claude and gemini, I was able to walk through the codebase. I learned how to navigate toml files, how to track the bug to the file relevant to it rather than getting stuck in the files that have nothing to do with the issue I was working on.
+
+**How did AI tools help — and where did they fall short?**
+I used claude and gemini to help me through the issue. When exposing the genAI agent to the whole project, it would tend to hallucinate sometimes but when I created a new session and would only pass it relevant information, that issue got resolved.
+
+**What would you do differently if you started over?**
+As it was a learning opportunity for me, I am glad about the mistakes I made as I got to learn from them. But, I would probably choose some issue to solve, that was close to the type of work I had done before to reduce the time spent on this work.
+
+**What are you most proud of from this module?**
+Although it is just a mock project, I am glad that I made some contributions to an open source work. This is something I always wanted to do, but would be intimidated by due to the size of open source software work in github. Hopefully, this work will lead to more open source contributions from me in the future.
