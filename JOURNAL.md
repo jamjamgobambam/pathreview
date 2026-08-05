@@ -65,3 +65,28 @@ Need to decide whether the scaled overlap threshold should count raw
 tokens or non-stopword tokens only, and whether the _extract_claims()
 length-filter bug is in scope for this issue or should be filed
 separately.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in _is_supported() / added _support_score() and
+_tokenize() in rag/evaluator/faithfulness_checker.py, per steps 1-2 of
+PLAN.md. Replaced the hardcoded ">=2 overlap" boolean check with a
+continuous overlap-ratio score (square-rooted), which also fixes
+punctuation not being stripped from tokens. Confirmed via repro_152.py
+that the reported bug is fixed, and confirmed via pytest that all 22
+existing tests in test_faithfulness_checker.py pass, including the three
+tests named in the issue that previously required this fix.
+
+**Next steps:**
+Run make check and make test-unit for full self-review, confirm no new
+failures introduced (49 pre-existing failures observed, all in unrelated
+modules), open a draft PR for peer/mentor feedback, then finalize and
+submit by Sunday.
+
+**Blockers:**
+None currently -- the codebase has pre-existing lint errors and test
+failures unrelated to this issue, documented in the PR description rather
+than blocking this work.
