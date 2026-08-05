@@ -117,7 +117,9 @@ class TestBiasDetector:
 
     def test_technical_feedback_not_flagged(self):
         """Test pure technical feedback not flagged."""
-        text = "Consider adding error handling to your API endpoints and documenting the parameters."
+        text = (
+            "Consider adding error handling to your API endpoints and documenting the parameters."
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -210,7 +212,9 @@ class TestBiasDetector:
 
     def test_multiple_bias_indicators(self):
         """Test text with multiple bias indicators."""
-        text = "young bootcamp graduates can't write code and immigrant developers lack fundamentals"
+        text = (
+            "young bootcamp graduates can't write code and immigrant developers lack fundamentals"
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -274,3 +278,42 @@ class TestBiasDetector:
 
         assert is_biased_obs is False  # Factual
         assert is_biased_ass is True  # Biased assumption
+
+    # --- Issue #151: common phrasings outside the old rigid templates ---
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "Bootcamp grads just aren't as capable as real CS majors.",
+            "Since you only did a bootcamp, you probably don't have the fundamentals.",
+            "A self-taught developer like you will always struggle with real engineering.",
+            "He's probably too old to pick up modern frameworks.",
+            "Given her age, this senior role might be too demanding for her.",
+            "Women tend to be less suited for low-level backend work.",
+            "Coming from a non-traditional background, you'll have a hard time keeping up.",
+            "As an international candidate, your communication just won't cut it here.",
+        ],
+    )
+    def test_common_biased_phrasings_detected(self, text: str) -> None:
+        """Common paraphrases of bias should be flagged, not just templates."""
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is True
+        assert reason != ""
+
+    def test_gender_bias_detected(self) -> None:
+        """Gender-based dismissive assumption is detected (new category)."""
+        text = "female developers can't handle systems programming"
+
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is True
+        assert "demographic" in reason.lower()
+
+    def test_negative_about_artifact_not_flagged(self) -> None:
+        """Critique of a work artifact is not mistaken for bias about a person."""
+        text = "Your bootcamp project is strong but lacks tests."
+
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is False
