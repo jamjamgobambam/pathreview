@@ -61,13 +61,13 @@ None.
 **Branch:** `feat/34-llm-reranker`
 
 **What you built:**
-Added `LLMReranker` in `rag/retriever/reranker.py` that prompts a Groq LLM (via the OpenAI-compatible SDK) to score each retrieved chunk's relevance to the query on a 0.0–1.0 scale and re-sorts results before the final slice. A `build_reranker()` factory returns `None` when `GROQ_API_KEY` is unset, making the feature fully opt-in. `HybridRetriever` in `hybrid.py` was updated to accept and call the optional reranker after blending vector and BM25 scores.
+Added `LLMReranker` in `rag/retriever/reranker.py` that scores all retrieved chunks in a single Groq LLM call (one prompt with a numbered list, JSON array response) and re-sorts results by relevance before the final slice. Scoring uses `temperature=0` for determinism and falls back to the original blended score per chunk if the LLM response is missing, unparseable, or out of range. A `build_reranker()` factory returns `None` when `GROQ_API_KEY` is unset, making the feature fully opt-in. `HybridRetriever` in `hybrid.py` was updated to accept and call the optional reranker after blending vector and BM25 scores.
 
 **Tests added or updated:**
-`tests/unit/test_reranker.py` — 9 tests covering: module existence, `rerank()` return type, `rerank_score` field added to chunks, empty-input handling, descending sort order, `HybridRetriever` accepting the optional reranker parameter, and `build_reranker()` returning `None` without an API key, returning an `LLMReranker` with one set, and using the configured Groq model.
+`tests/unit/test_reranker.py` — 21 tests across three classes: `TestLLMReranker` covers module existence, return type, `rerank_score` field, empty-input short-circuit, descending sort, single API call per rerank (batch efficiency), `temperature=0` enforcement, and LLM failure fallback; `TestParseScores` covers valid JSON array, out-of-range values falling back, non-JSON responses, wrong score count, and arrays embedded in surrounding text; `TestBuildReranker` covers the factory returning `None` without a key, returning an `LLMReranker` with one set, and using the configured Groq model.
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
-Note: `make check` has pre-existing ruff violations in `agent/`, `api/`, `core/`, and `ingestion/` unrelated to this PR. `make test-unit` has 53 pre-existing failures in unrelated test files. My changes introduce no new failures in either command.
+Note: `make check` has pre-existing ruff violations in `agent/`, `api/`, `core/`, and `ingestion/` unrelated to this PR — scoped run on changed files passes cleanly. `make test-unit` has 53 pre-existing failures in unrelated test files. My changes introduce no new failures in either command.
 
-**Draft PR feedback received from:** none
+**Draft PR feedback received from:** peer reviewer (GitHub PR comment) — feedback covered three code issues: (1) `_parse_score` regex grabbing the wrong number when the response contains a preamble (e.g. "Chunk 3 scores 0.4" → 1.0), fixed by switching to JSON array parsing with out-of-range fallback; (2) one API call per chunk causing unnecessary sequential round trips, fixed by batching all chunks into a single prompt; (3) missing `temperature=0` causing non-deterministic scores, fixed by adding it to the API call. Reviewer also noted a presentation nit about the checklist boxes not matching the pre-existing failure note in the summary, addressed in the note above.
