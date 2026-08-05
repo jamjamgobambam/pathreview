@@ -98,3 +98,43 @@ The repository contains pre-existing unrelated mypy errors and failing unit test
 **Draft PR feedback received from:**
 
 None
+
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+
+No reviewer or maintainer feedback was received before the end of the module. My pull request remains open for future review.
+
+**How you responded:**
+
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+I expected writing the code to be the hardest part, but it wasn't. The hardest part was understanding a codebase that someone else had written. At first, I couldn't even tell where the review process started or how the orchestrator, session store, and different tools were connected. I spent a lot more time reading code and tracing the execution flow than actually writing my solution. Once I understood the flow, the implementation itself felt much more manageable.
+
+**What did you learn about working in a large codebase?**
+
+When I work on my own projects, I already know why every file exists because I created it. Here, I had to understand other people's design decisions before making any changes. I learned that it's important not to jump into coding immediately. Spending time reading the existing code, looking at related modules, and understanding how everything fits together saves a lot of time later and reduces the chances of breaking something unintentionally.
+
+**How did AI tools help — and where did they fall short?**
+
+AI helped me understand unfamiliar code much faster. It was useful for explaining classes, suggesting where to look next, and helping me think through different implementation ideas. But it couldn't tell me the correct solution just by looking at the issue. I still had to verify everything against the actual codebase, understand why the bug existed, and decide whether a suggested change really fit the existing architecture.
+
+**What would you do differently if you started over?**
+
+I would spend the first day just exploring the codebase instead of trying to solve the issue immediately. I also think I chose a fairly challenging Tier 3 issue for my first open source contribution. Even though I managed to complete it, I underestimated how much time it would take just to understand the existing system. Next time, I would plan more time for reading and debugging before writing any code.
+
+**What are you most proud of from this module?**
+
+I'm most proud that I didn't give up when the project felt overwhelming at the beginning. There were times when I was confused about how everything connected, but by breaking the problem into smaller pieces, I was able to understand the workflow, implement the fix, write tests, and submit a real pull request. That gave me much more confidence about contributing to codebases that I didn't build myself.
