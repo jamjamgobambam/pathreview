@@ -17,7 +17,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [REPLACE WITH YOUR PR LINK AFTER SUBMITTING]
+**PR link:** https://github.com/ascherj/pathreview/pull/876
 
 **Branch:** `fix/68-safety-event-count-health-check`
 
@@ -27,6 +27,6 @@ The `/health` endpoint now returns a live `safety_events_last_hour` count instea
 **Tests added or updated:**
 Added `tests/unit/test_safety_monitor.py`. Tests cover: `get_event_count` returns 0 with no Redis data, returns the correct integer when data exists, returns 0 on Redis failure, `log_event` increments the Redis counter for valid event types, silently skips unknown event types, all valid types are accepted, and the health response includes a non-negative integer `safety_events_last_hour` field that sums all event type counts.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
