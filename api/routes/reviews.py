@@ -1,12 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
 from core.database import get_db
+from core.models.user import User
+
+# get_profile already checks that the profile exists AND is owned by the user,
+# so I reuse it here instead of re-implementing that lookup.
+from core.services.profile_service import get_profile
 from core.services.review_service import (
     create_review,
     get_review,
@@ -32,6 +36,30 @@ async def create_review_endpoint(
     Returns review with status="pending" immediately.
     """
     try:
+        # Validate BEFORE scheduling the background task. Processing runs after
+        # the HTTP response is sent, so it can no longer change the status code
+        # the caller sees — any rejection must happen here, synchronously.
+        profile = await get_profile(db=db, profile_id=data.profile_id, user_id=current_user.id)
+
+        # profile is None when it doesn't exist OR isn't owned by this user.
+        # We must handle it: reading .github_username off None would raise and
+        # surface as a 500. 404 matches how the profile routes report this.
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found",
+            )
+
+        # A profile with no GitHub username, resume, or portfolio URL has nothing
+        # to ingest or review. Reject it with 422 (well-formed request, but the
+        # resource isn't in a reviewable state) rather than silently creating a
+        # review that would only produce generic, content-less feedback.
+        if not (profile.github_username or profile.resume_text or profile.portfolio_url):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Profile has no content to review",
+            )
+
         # Create review with status="pending"
         review = await create_review(
             db=db,
