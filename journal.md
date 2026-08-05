@@ -84,34 +84,28 @@ No new tests were added as the existing failing tests in `tests/unit/test_tech_d
 
 ### Reviewer feedback
 
-**Feedback received:** [ ] Yes  [ ] No — still awaiting review
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
 
 **Summary of feedback:**
-[What did reviewers comment on? Or note that no review came in.]
+No review has been received yet.
 
 **How you responded:**
-[What changes did you make, or what did you reply? If no feedback,
-leave blank.]
 
 ---
 
 ### Reflection
 
 **What was harder than you expected?**
-[Be specific — what part of the process, codebase, or workflow
-surprised you?]
+I think the hardest aspect of this project for me was the fact that I had to read a lot of the documentation and codebase to understand the project before I could even think about fixing it. Even though I found the issue relatively easy to fix, it took me a while to get to that point as I had to read then test everything.
 
 **What did you learn about working in a large codebase?**
-[What's different about contributing to someone else's production code
-vs. building your own project?]
+I think the most important thing that I learned about working on this codebase is the importance of reading the docs first and testing the code. Another thing that I learned after working in such a big codebase was the imporance of being clear with your plan when submitting a PR. I think my PR was well documented and clearly stated what I did, however, it could've been better by adding more information
 
 **How did AI tools help — and where did they fall short?**
-[Where was AI assistance most useful this module? Where did you need
-to go beyond what AI could give you?]
+AI tools really helped me summarize and understand what went wrong with the codebase. I found that using AI really sped up the process that would have otherwise taken me hours.
 
 **What would you do differently if you started over?**
-[Issue selection, planning, implementation, or process — anything
-you'd change?]
+If I were to do this again, I would probably have picked a more complex issue so that I could learn and work more on the codebase. Even though a small fix can be make or break, I think it's less rewarding as I was able to finish everything very very quickly.
 
 **What are you most proud of from this module?**
-[One thing — it doesn't have to be the PR itself.]
+I think I'm most proud of the fact that I was able to contribute and fix something that will be used by others and the community. Working on this codebase really gave me the confidence to work on more complex issues and contribute to open source projects in the future.
