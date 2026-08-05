@@ -25,3 +25,27 @@ The issue that I am tackling for this project is one of documentation. Problem #
 There wasn't much to do when recreating this issue, as all I had to do was read through `API.md` and confirm that it did not have `curl` commands. 
 
 **PLAN.md link:** https://github.com/PokePonsh/pathreview/blob/docs/117-curl-commands-in-api-docs/PLAN.md
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All the subplans from PLAN.md have been completed, and everything needed has been implemented.
+
+**Next steps:**
+There isn't much to work on for the rest of the week up to this point.
+
+**Blockers:**
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/936
+
+**Branch:** https://github.com/PokePonsh/pathreview/tree/docs/117-curl-commands-in-api-docs
+
+**What you built:** I didn't exactly build anything for this project, as the issue I tackled was a documentation issue. I added necessary `curl` commands, their purposes, how to run them, and examples for them in `docs/API.md`
+
+**Self-review confirmation:** [x] `make check` passes [x] `make test-unit` passes
+
+**Draft PR feedback recieved from:** Mooli Eisenbach (My Dad) (extensive experience in programming, and program documentation).
