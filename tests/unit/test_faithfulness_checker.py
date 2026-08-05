@@ -44,6 +44,19 @@ class TestFaithfulnessChecker:
         assert isinstance(score, float)
         assert score < 0.5  # Should be low score
 
+    @pytest.mark.xfail(
+        strict=False,
+        reason=(
+            "Unsatisfiable as written, and not blocked on the #152 fix. The "
+            "fixture is a single sentence, so check() scores exactly one claim "
+            "and can only return 0.0 or 1.0 - never a value strictly inside "
+            "(0.2, 0.8). Partial credit would not rescue it either: the claim "
+            "overlaps the context on 1 of 6 meaningful tokens (python), so a "
+            "ratio-valued score would be 0.17, still below the lower bound. "
+            "Either the fixture needs a second sentence or the assertion needs "
+            "to be a set membership check - raised on issue #152."
+        ),
+    )
     def test_partial_support_returns_middle_score(self, checker):
         """Test partial support returns score between 0 and 1."""
         feedback = "The developer shows Python expertise and Kubernetes knowledge."
