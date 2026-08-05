@@ -6,7 +6,7 @@
 
 **Issue title:** Add snapshot tests for prompt templates to catch accidental changes
 
-**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
+**Tier:** [x] Tier 1 [ ] Tier 2 [ ] Tier 3
 
 **Problem summary:**
 PathReview's prompt templates directly shape the quality of the AI-generated
@@ -106,7 +106,7 @@ and added `test_every_template_version_matches_snapshot` and
 `test_no_untracked_template_versions`, backed by a new `EXPECTED_SNAPSHOTS` baseline and a
 `_hash_template()` helper.
 
-**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+**Self-review confirmation:** [x] make check passes [x] make test-unit passes
 
 > "Passes" here means my change introduces **no new failures** in a repo with documented
 > pre-existing failures. Baseline before my change: `53 failed, 375 passed` (`make test-unit`)
@@ -116,4 +116,84 @@ and added `test_every_template_version_matches_snapshot` and
 > `test_resume_parser.py`, `test_review_service.py`, `test_skill_extractor.py`) plus
 > pre-existing lint/type debt in the untouched portions of `test_prompt_templates.py`.
 
-**Draft PR feedback received from:** <!-- TODO: name or Slack handle, or "none" -->
+**Draft PR feedback received from:** None during the draft window. A detailed review
+arrived on the PR after it was marked ready for review — documented in the Week 10 entry
+below.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes [ ] No — still awaiting review
+
+**Summary of feedback:**
+TF Christopher Castro left a detailed, positive review on PR #448 with no requested
+changes in the breakout room. He noted that the PR did real root-cause debugging rather than surface-level
+patching —
+specifically that it diagnosed _why_ the existing test was a no-op and laid out all four
+defects (no baseline comparison, no stored hash, concatenation hiding which template
+broke, and no guard against untracked additions). They singled out the verification steps
+(bug reproduced on `main`, then the fix shown catching both a silent edit and a silent
+addition) as the kind of "prove it" rigor that makes a PR easy to trust, and praised
+separating pre-existing failures/lint errors from my own diff, keeping the change scoped
+to one file, and flagging the `EXPECTED_SNAPSHOTS` placement as an open question instead
+of guessing.
+
+**How you responded:**
+No code changes were warranted — the review requested none. I replied
+with a casual thank-you. I'm happy to move next to the templates if maintainers prefer, and left
+the thread open on that single point in case they want to weigh in. I did not force-push
+or alter the reviewed diff.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The tests themselves were the easy part; the hard part was everything around them.
+Orienting in an unfamiliar multi-service codebase (FastAPI + RAG + agent + safety +
+React) took real time before I could even trust that `rag/generator/prompt_templates.py`
+was the right file. The bigger surprise was the pre-existing breakage: `make test-unit`
+was already at `53 failed, 375 passed` and `make check` had 182 `ruff` errors _before_ I
+changed anything. Then the pre-commit hook blocked my very first commit because of
+pre-existing lint/type errors in the file I was editing — I had to understand why,
+capture a clean baseline, and decide to bypass the hook with `--no-verify` while
+documenting the pre-existing failures, rather than "fixing" 182 unrelated errors and
+blowing up my scope.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's production code is mostly about restraint and scope
+discipline, not clever code. My actual fix was ~40 lines; the real work was reproducing
+the bug, matching the project's conventions (branch naming, conventional commits,
+`black`/`ruff` at line-length 100), keeping the diff minimal, and cleanly separating my
+change from the repo's pre-existing debt. In my own projects I would have just reformatted
+the whole file — here that would have been review noise that hides the real change. I also
+learned that a red test/CI suite doesn't automatically mean the repo is broken for your
+purpose: you baseline first, then prove your change introduces no _new_ failures.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for orientation and mechanical work: mapping where the templates lived
+and who called them (`review_generator.py`), computing the sha256 baselines, drafting a
+test structure that matched the existing `@pytest.mark.unit` class style, and drafting the
+PR description. Where it fell short was judgment that needed context it didn't have:
+deciding where `EXPECTED_SNAPSHOTS` should live, choosing to keep the diff minimal instead
+of accepting `black`'s whole-file reformat, and drawing the line on what counted as "in
+scope" given the pre-existing failures. Most importantly, AI could produce a test that
+_passes_ but asserts the wrong thing — I had to run the reproduction myself (edit a
+template, watch the suite stay green, then confirm my test fails for the _right_ reason)
+to trust it. AI accelerated the work; it didn't replace verifying against reality.
+
+**What would you do differently if you started over?**
+I'd keep `JOURNAL.md` and `PLAN.md` on a separate branch (or on `main`) rather than on the
+contribution branch, so the PR to upstream contained only the fix instead of also carrying
+my course artifacts. I'd capture the `make check` / `make test-unit` baseline on day one
+instead of discovering the pre-existing failures mid-implementation. I'd also open the
+draft PR earlier in the week to leave more room for feedback — and I'd be more careful with
+GitHub's PR controls, since I accidentally closed the PR and had to reopen it.
+
+**What are you most proud of from this module?**
+The reproduction discipline, not the test code. I proved the old test was a genuine no-op
+by editing a template and watching all 37 tests stay green, then proved my fix fails for
+the right reason on _both_ a silent edit and a silent addition. That "prove it before you
+trust it" habit is exactly what the reviewer singled out, and it's something I didn't do
+consistently before this module — I used to assume a passing test meant a working guard.
