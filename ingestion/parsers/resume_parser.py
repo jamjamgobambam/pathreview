@@ -5,7 +5,6 @@ from pypdf import PdfReader
 
 from .base import BaseParser, ParseResult
 
-
 SECTION_HEADERS = {
     "experience",
     "education",
@@ -75,7 +74,7 @@ class ResumeParser(BaseParser):
                 source_type="resume",
             )
         except Exception as e:
-            raise ValueError(f"Failed to parse PDF: {str(e)}")
+            raise ValueError(f"Failed to parse PDF: {str(e)}") from e
 
     def _parse_markdown(self, content: str) -> ParseResult:
         """Extract text from markdown resume, stripping markdown syntax."""
@@ -130,12 +129,17 @@ class ResumeParser(BaseParser):
         text_lower = text.lower()
 
         for section in SECTION_HEADERS:
-            # Look for section header patterns
+            # Allow optional leading whitespace before the header (#147). With
+            # re.MULTILINE, "^" matches the start of every line, and "\s*"
+            # tolerates the indentation added by PDF extraction and manually
+            # indented text (e.g. "    Education:"). The header must still span
+            # the whole line -- ending the line or being followed by ":", "|"
+            # or "-" -- so indented body text such as "Experienced in Python"
+            # is not misdetected as a section header.
+            escaped = re.escape(section)
             patterns = [
-                rf"^{re.escape(section)}\s*$",
-                rf"^{re.escape(section)}\s*[:|-]",
-                rf"\n{re.escape(section)}\s*$",
-                rf"\n{re.escape(section)}\s*[:|-]",
+                rf"^\s*{escaped}\s*$",
+                rf"^\s*{escaped}\s*[:|-]",
             ]
 
             for pattern in patterns:

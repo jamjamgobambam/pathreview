@@ -1,11 +1,11 @@
 """Tests for resume_parser.py"""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
+from unittest.mock import Mock, patch
 
-from ingestion.parsers.resume_parser import ResumeParser
+import pytest
+
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.resume_parser import ResumeParser
 
 
 @pytest.mark.unit
@@ -181,3 +181,60 @@ class TestResumeParser:
         assert "John Doe" in result.text
         assert "Software Engineer" in result.text
         assert "Python" in result.text
+
+    def test_detect_sections_indented_headers(self, parser):
+        """Indented headers (leading spaces) are still detected (#147)."""
+        text = """
+            Education:
+            - B.S. Computer Science
+
+            Skills: Python, JavaScript
+        """
+        sections = parser._detect_sections(text)
+
+        sections_lower = [s.lower() for s in sections]
+        assert any("education" in s for s in sections_lower)
+        assert any("skills" in s for s in sections_lower)
+
+    def test_detect_sections_tab_indented_header(self, parser):
+        """Tab-indented headers are detected (\\s covers tabs)."""
+        text = "\tExperience\n\tSenior Developer at TechCorp"
+        sections = parser._detect_sections(text)
+
+        assert any("experience" in s.lower() for s in sections)
+
+    def test_detect_sections_mixed_indentation(self, parser):
+        """A mix of indented and non-indented headers are all detected."""
+        text = "Experience\n    Education:\n\t\tSkills: Python"
+        sections = parser._detect_sections(text)
+
+        sections_lower = [s.lower() for s in sections]
+        assert any("experience" in s for s in sections_lower)
+        assert any("education" in s for s in sections_lower)
+        assert any("skills" in s for s in sections_lower)
+
+    def test_detect_sections_header_on_first_line(self, parser):
+        """A header on the very first line (no preceding newline) is detected."""
+        text = "    Summary\nExperienced software engineer."
+        sections = parser._detect_sections(text)
+
+        assert any("summary" in s.lower() for s in sections)
+
+    def test_detect_sections_header_without_colon(self, parser):
+        """A header that occupies its own line without a trailing colon is detected."""
+        text = "    Projects\n    - Built a REST API"
+        sections = parser._detect_sections(text)
+
+        assert any("projects" in s.lower() for s in sections)
+
+    def test_detect_sections_indented_body_not_misdetected(self, parser):
+        """Indented body text containing a header word is NOT treated as a header."""
+        text = "    Experienced in Python and skills like React and Docker"
+        sections = parser._detect_sections(text)
+
+        assert sections == []
+
+    def test_detect_sections_empty_input(self, parser):
+        """Empty or whitespace-only input returns an empty list without error."""
+        assert parser._detect_sections("") == []
+        assert parser._detect_sections("   \n  \n\t") == []
