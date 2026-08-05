@@ -54,9 +54,9 @@ to download tokenizer data while network access is unavailable.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/Rura-M/pathreview/pull/1
 
-**Branch:** `tests/88-POST-/reviews-endpoint-has-no-test-for-when-the-profile-has-no-ingested-documents-`
+**Branch:** https://github.com/Rura-M/pathreview/tree/tests/88-POST-/reviews-endpoint-has-no-test-for-when-the-profile-has-no-ingested-documents-
 
 **What you built:**
 I updated `create_review_endpoint` to return `404` when the profile is missing
