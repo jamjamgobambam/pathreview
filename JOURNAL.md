@@ -33,3 +33,34 @@ I reproduced the issue by checking `Knows Python. Knows SQL.` against context co
 
 **Blockers or open questions:**
 I need to confirm whether the fix should also change `_extract_claims()`'s minimum-length rule, which currently removes valid short statements such as `Knows SQL`, or remain limited to the support calculation. I also need to choose between splitting compound claims and returning graded support per claim so partial evidence produces a middle score without increasing false positives.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I reviewed the Week 8 plan, recorded the existing faithfulness-test failures, and confirmed the two causes of issue #152: short claims can be discarded during extraction, and a fixed two-token overlap threshold rejects claims supported by one distinctive technical term. I also identified the existing `None` context failure as a small robustness case in the same function.
+
+**Next steps:**
+Add focused regression tests, implement the smallest short-claim-aware scoring change, run scoped and project-wide verification, and request feedback on a draft pull request.
+
+**Blockers:**
+The repository contains pre-existing lint findings, and the local Python environment hangs while importing `structlog` through `rich.traceback`, preventing normal pytest and pre-commit startup.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/977
+
+**Branch:** `fix/152-faithfulness-short-claims`
+
+**What you built:**
+I updated the faithfulness checker to retain short claims, split mixed sentence/list claims for partial scoring, normalize punctuation and casing, and accept support from one distinctive overlapping term while filtering generic vocabulary. Context chunks containing `None` text are now handled safely.
+
+**Tests added or updated:**
+Updated `tests/unit/test_faithfulness_checker.py` with regression coverage for retaining short claims, supporting `Knows Python` from `Python expert`, rejecting an unrelated Rust claim, filtering generic overlap, and accepting one distinctive meaningful term. Scoped Ruff and Black checks and direct behavioral assertions passed; normal pytest startup remained blocked by the documented local dependency import hang.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** none yet — draft PR opened for review
