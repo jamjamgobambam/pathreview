@@ -130,7 +130,7 @@ change.)
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(to be added when the PR is opened)_
+**PR link:** https://github.com/ascherj/pathreview/pull/907
 
 **Branch:** `fix/149-structural-chunker-no-headings`
 
