@@ -206,3 +206,96 @@ is pre-existing and untouched.)_
 personal course-note patterns unrelated to the fix. Addressed in `d352b04`: restored `.gitignore`
 to upstream and moved the personal ignores to `.git/info/exclude`, so the PR diff is now scoped to
 the fix + tests.
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+_(Course note: Summer 2026 provides no course-assigned reviewer. The feedback below is real
+peer/maintainer review on the live GitHub PR #367, which I'm documenting in place of the "No
+feedback" fallback.)_
+
+**Summary of feedback:**
+Two rounds of review came in on PR #367:
+
+- **Round 1 (Karen Calpo):** the `.gitignore` change in my branch carried personal course-note
+  patterns unrelated to the fix.
+- **Round 2:** a reviewer confirmed the core fix looked good but flagged two inaccurate claims in
+  the PR description:
+  1. The PR implied the live endpoint changes from **503 → 200**. It doesn't: the real route still
+     returns 503 because the Redis probe reads nonexistent `settings.redis_host` / `settings.redis_port`
+     (Settings only defines `redis_url`). My healthy-path test patches around that and calls the
+     handler directly, so it verifies the Postgres branch, not production HTTP behavior. Suggested
+     narrowing to *"Postgres is now reported as healthy."*
+  2. The claim that "both files are Ruff-clean" was inaccurate — Ruff still reports a pre-existing
+     **B008** at `health.py:15`. Suggested *"No new Ruff violations."*
+
+**How you responded:**
+
+- **Round 1:** Agreed and fixed in `d352b04` — restored `.gitignore` to upstream, moved my personal
+  ignores to `.git/info/exclude`, and replied on the thread confirming the diff was now scoped to
+  the fix + tests.
+- **Round 2:** I verified both claims against the source before responding. `core/config.py` does
+  define only `redis_url`, and `ruff check api/routes/health.py` does still report B008 on line 15 —
+  the reviewer was right on both counts. I agreed, corrected the PR description (narrowed the
+  Postgres claim to "Postgres is now reported as healthy," and changed "Ruff-clean" to "no new Ruff
+  violations"), and replied thanking them and reaffirming that the Redis-probe bug stays out of
+  scope for #154. The core `text()` fix and regression tests were unchanged — the corrections were
+  to wording accuracy, not the code.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Proving the bug was actually fixed — not just writing code that looked correct. My first instinct
+was mocked unit tests, but a mock accepts *any* argument, so my 200/503 tests passed whether the
+code used `text("SELECT 1")` or the broken raw string. A mentor pointed out that acknowledging that
+gap isn't the same as closing it. That reframed the whole task: I had to add a regression guard
+(`test_probe_uses_text_clause_not_raw_string`) that inspects the actual argument passed to
+`execute()` and asserts it's a SQLAlchemy `TextClause`, *and* reproduce the failure against a live
+Postgres stack — because the `ArgumentError` only fires against a real 2.x session, never a mock.
+The other surprise was that `make check` never passes cleanly on this repo (53 pre-existing test
+failures, 179 Ruff errors). Working against a permanently-red baseline made "did my change break
+anything?" genuinely hard to answer until I learned to capture the baseline first.
+
+**What did you learn about working in a large codebase?**
+Scope discipline is the whole game. While fixing the Postgres probe I found a second real bug — the
+Redis probe reads `settings.redis_host`/`redis_port`, which don't exist. The tempting move is to fix
+everything; the professional move is to fix exactly the issue you claimed, document what you found,
+and leave the rest as a follow-up. I also learned to record the repo's pre-existing failing baseline
+*before* touching anything, so my diff's effect is provable ("53 fail → 53 fail, +3 of my tests")
+rather than lost in the noise. And I matched existing conventions instead of inventing my own — the
+`AsyncMock` session pattern came straight from `tests/unit/test_review_service.py`, so my test reads
+like it belongs.
+
+**How did AI tools help — and where did they fall short?**
+AI was fastest at orientation in an unfamiliar codebase: locating `get_db`, confirming `SELECT 1`
+appears exactly once, surfacing the existing mock convention, and structuring the plan/tracker.
+Where it fell short was judgment and ground truth. It couldn't tell me the bug was *real* — only
+running the actual stack could, because a mock happily swallowed the broken string. And the calls
+that mattered were mine: whether to fix the Redis bug (no), how to phrase the 503 claim honestly,
+and — this week — whether the reviewer's two corrections were right (they were, and I verified
+against source rather than taking or dismissing them on faith). AI accelerates the mechanical work;
+the scoping, honesty, and verification judgment stayed human.
+
+**What would you do differently if you started over?**
+I'd write the regression guard *first*, TDD-style, instead of adding it after the mentor flagged the
+gap — it would have forced clarity about what "fixed" means from day one. I'd also be more precise in
+the PR description from the start: the reviewer caught two overstatements ("503 → 200," "Ruff-clean")
+that a more careful self-review would have caught myself. Writing an accurate PR is part of the fix,
+not an afterthought. I might also have picked a less crowded issue — #154 had multiple claimants and
+two competing open PRs (#160, #177) — though the SQLAlchemy-2.x fix was a clean, well-scoped Tier-1,
+which was the right difficulty for a first contribution.
+
+**What are you most proud of from this module?**
+The honesty of the record, more than the one-line fix. The regression guard genuinely fails when the
+bug is reintroduced (I checked). I documented the pre-existing baseline instead of hiding my change
+in it. I flagged the out-of-scope Redis bug rather than quietly patching or ignoring it. And when
+review came back, I verified the reviewer's claims against the code and agreed where they were right
+instead of getting defensive. The fix is one line; the thing I'm proud of is that every claim around
+it is one I can stand behind.
