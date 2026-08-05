@@ -34,14 +34,14 @@ fix/88-review-no-ingested-documents-test
 
 **Reproduction commit link:**
 
-9dde931ce7d1818e95fffd99f9ea33390340d722
+https://github.com/AP2001211/pathreview/commit/9dde931ce7d1818e95fffd99f9ea33390340d722
 
 **Reproduction summary:**
 
 I reproduced the issue by tracing the POST `/reviews` request flow from the route into the review service and examining the existing test suite. I confirmed that there was no route test covering the scenario where a profile exists but has no ingested documents, leaving this edge case unverified.
 
 **PLAN.md link:**
-(To be filled in after creating PLAN.md.)
+https://github.com/AP2001211/pathreview/blob/fix/88-review-no-ingested-documents-test/PLAN.md
 
 **Walkthrough video (recommended):**
 Not recorded yet.
