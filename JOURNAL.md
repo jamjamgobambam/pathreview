@@ -61,3 +61,28 @@ Added `tests/integration/test_safety_integration.py` with a test-local pipeline 
 Pre-existing failures: `make test-unit` reports 53 pre-existing failures in unrelated modules (resume_parser, review_service, skill_extractor, etc.) that existed before this change. `make typecheck` reports a numpy `.pyi` syntax error unrelated to this change. This contribution introduces no new failures.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Figuring out the API signatures of each safety component. Each class follows a different pattern: `PromptDefense.is_injection_attempt()` is a static method returning a bool, `ContentFilter.filter()` returns a tuple, `BiasDetector.detect_bias()` also returns a tuple, and `PIIScrubber` needs to be instantiated first. There was no central documentation, so I had to read each source file and trace the existing unit tests to confirm the correct signatures.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's code requires far more reading than writing. Before writing a single test, I spent time navigating the `safety/` directory, cross-referencing `tests/unit/` for patterns, and reviewing `CONTRIBUTING.md` for conventions like `@pytest.mark.integration`. I also learned that pre-existing failures (53 in unrelated modules) are normal, and I had to verify my change introduced zero new ones.
+
+**How did AI tools help, and where did they fall short?**
+AI helped with generating boilerplate test structures and suggesting edge cases like whitespace-only input and multi-violation payloads. It fell short when I needed to know the specific behavior of each component, such as what regex patterns `PromptDefense` actually checks. I had to read the source code myself to write test inputs that would reliably trigger each safety layer.
+
+**What would you do differently if you started over?**
+I would iterate in smaller batches instead of planning all 14 tests upfront. Writing two or three tests, running them, and then expanding would have helped me catch API misunderstandings faster.
+
+**What are you most proud of from this module?**
+The `run_safety_pipeline()` helper and the layer-ordering test. The multi-violation test proves that a payload with both injection and bias gets caught by `PromptDefense` first and never reaches `BiasDetector`. That kind of ordering guarantee is exactly what integration tests are for, and unit tests alone could never verify it.
