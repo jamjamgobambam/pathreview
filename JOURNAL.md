@@ -103,3 +103,51 @@ profile with content → 200 "pending".
 ruff/mypy/test failures are documented in the PR's Notes for Reviewers.)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer comments arrived on PR #587 by end of week.
+
+**How you responded:**
+N/A — will keep monitoring and respond if feedback comes in later.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The issue read like "just add a test," but reproducing it showed the endpoint
+returned no error at all — so making the test meaningful meant first adding
+validation to the route. Deciding *where* that check belonged took real thought:
+I learned the background task runs *after* the response is sent, so it can't
+change the status code — the check had to be synchronous in the route.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's code is mostly about matching existing patterns,
+not inventing your own. I mirrored the 422 pattern from `create_profile_endpoint`
+and the mock/assertion style from `test_review_service.py`. I also learned to
+scope tightly: the repo had ~180 pre-existing lint errors, and the job was to not
+make things worse — not to fix all of it.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for exploring an unfamiliar codebase fast (tracing endpoint →
+service → background task) and drafting the plan, tests, and PR text. It fell
+short on the judgment calls I had to own: which status code to use, how to scope
+the fix vs. the repo's pre-existing debt, and whether to bypass the failing
+pre-commit hooks — I had to decide those and verify the baseline myself.
+
+**What would you do differently if you started over?**
+Follow the commit-message convention (`type(scope): …`, `Fixes #88`) from the
+very first commit instead of catching it at self-review. I'd also confirm the
+correct base repo earlier, since the issue lived in a different repo than my git
+upstream.
+
+**What are you most proud of from this module?**
+I wrote the repo's first TestClient route test, so the next person has a working
+example to copy. And instead of just saying my change broke nothing, I proved it:
+I ran the tests and lint before and after to show I added no new failures.
