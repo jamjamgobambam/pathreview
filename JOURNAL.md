@@ -64,17 +64,24 @@ None. (Still tracking the scope question about the sibling files noted in Week 8
 
 ### Check-in 2 (end of week)
 
-**PR link:** [fill in after opening the PR]
+**PR link:** https://github.com/ascherj/pathreview/pull/918
 
 **Branch:** `bug/153-faithfullnesschecker-crashes-when-text-none`
 
 **What you built:**
-[1–3 sentences — fill in at submission]
+Fixed `FaithfulnessChecker.check()` crashing with a `TypeError` when a retrieved context chunk had
+`text: None`. The context join now uses `(chunk.get("text") or "")`, so a null/missing/empty chunk
+text is treated as empty context and scoring proceeds gracefully instead of raising.
 
 **Tests added or updated:**
-`tests/unit/test_faithfulness_checker.py` — tightened `test_none_context_chunk_text` and added
-`test_none_text_mixed_with_valid_chunk`.
+`tests/unit/test_faithfulness_checker.py` — tightened `test_none_context_chunk_text` to assert
+`score == 0.0`, and added `test_none_text_mixed_with_valid_chunk` (a `None` chunk alongside a valid
+one still scores the valid one).
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+_("Passes" = introduces no new failures. The repo has documented pre-existing failures — full unit
+suite went from 53→52 failed after my change, which fixes one and adds one passing test; ruff/mypy
+have pre-existing findings repo-wide but my changed lines add none and `faithfulness_checker.py`
+type-checks cleanly. Details in the PR's "Notes for Reviewers".)_
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none yet — draft PR shared in cohort Slack for peer review
