@@ -188,3 +188,6 @@ C:\Users\mimi\Documents\GitHub\pathreview\.venv\Lib\site-packages\_pytest\unrais
   gc.collect()
 RuntimeWarning: Enable tracemalloc to get the object allocation traceback
 make: *** [Makefile:40: test-unit] Error 1
+
+My tests result:
+![tests passed](image.png)
