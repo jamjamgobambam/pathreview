@@ -39,6 +39,14 @@ class TestPIIScrubber:
         assert "[REDACTED]" in scrubbed
         assert "555" not in scrubbed or "1234567" not in scrubbed
 
+    def test_us_phone_parenthesized_no_space(self, scrubber):
+        """Test parenthesized US phone number with no space is redacted."""
+        text = "Call me at (555)123-4567"
+        scrubbed = scrubber.scrub(text)
+
+        assert "[REDACTED]" in scrubbed
+        assert "(555)123-4567" not in scrubbed
+
     def test_us_phone_formats(self, scrubber):
         """Test various US phone number formats."""
         formats = [
