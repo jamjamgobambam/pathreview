@@ -109,6 +109,11 @@ separately, or include it in this fix — see Risks.)*
   maintainers want that fixed here or filed separately — will ask in the issue
   thread / Slack before the PR. Either way the PR description must explain why
   this fifth test was failing at the start.
+  - **Resolved (Week 9):** included the fix in this PR — a trailing `\b` on
+    the `street_address` pattern — because CONTRIBUTING.md requires the unit
+    suite for touched code to pass before opening a PR, and this failure sits
+    in the same file/test module. Called out explicitly in the PR description
+    so reviewers can ask for it to be split out if they prefer.
 - **Regex readability:** the one-line pattern is already hard to review; if the
   fix makes it much longer, consider `re.VERBOSE` with comments — but that's a
   style call to keep minimal unless it stays clearly readable.
