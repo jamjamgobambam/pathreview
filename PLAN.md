@@ -7,7 +7,7 @@ README scorer test fixture is too short for its own word-count assertion - https
 ### Understand
 What is the root cause of this issue? What behavior is expected vs. actual?
 
-In `test_readme_with_all_quality_signals`, an example readme (~51 words) is scored by the `ReadmeScorer.scorer()` function imported from `agents/tools/readme_scorer.py. The function returns a object which contains a `word_count` field. The test case asserts if `word_count > 100` and `word_count_category == "comprehensive"`. Since that is not the case, this test fails despite the scorer output being valid; the test is failing incorrectly for valid scorer behavior. 
+In `test_readme_with_all_quality_signals`, an example readme (~51 words) is scored by the `ReadmeScorer.scorer()` function imported from `agents/tools/readme_scorer.py`. The function returns a object which contains a `word_count` field. The test case asserts if `word_count > 100` and `word_count_category == "comprehensive"`. Since that is not the case, this test fails despite the scorer output being valid; the test is failing incorrectly for valid scorer behavior. 
 
 The test attempts to mirror `readme_scorer`'s own categorisation of the readme based on word count. For `word_count < 100`, it labels the readme as "minimal", not "comprehensive". SInce the test should check if the scorer's categorisation is correct, it should assert if `word_count < 100` first and then if `word_count_category == "minimal`.
 
