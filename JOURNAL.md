@@ -49,7 +49,7 @@ Open a pull request from `fix/150-exclude-vendored-build-files` to `ascherj/path
 
 ### Check-in 2 (end of week)
 
-**PR link:** TODO - add the GitHub pull request link after opening the PR.
+**PR link:** https://github.com/ascherj/pathreview/pull/978
 
 **What you built:**
 The fix normalizes repository paths, splits them into directory/file parts, and skips files when any path part matches ignored dependency, vendor, build, cache, virtualenv, or git metadata directories. It also chooses the primary language from counted real source/config signals instead of a sorted set, which prevents ignored generated JavaScript from skewing the result.
