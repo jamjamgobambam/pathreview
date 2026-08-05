@@ -28,3 +28,18 @@ I reviewed the RAG System section in `docs/ARCHITECTURE.md` and confirmed that i
 
 **Blockers or open questions:**
 I still need to verify the exact default scoring weights and score normalization behavior from the hybrid retrieval implementation.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I reviewed the hybrid retrieval implementation and completed the documentation task from `PLAN.md`. I updated `docs/ARCHITECTURE.md` to explain the normalized weighted scoring formula, the default vector and keyword weights, a numerical scoring example, and how the final results are filtered and ranked.
+
+**Next steps:**
+I will run `make check` and `make test-unit`, review the documentation against the implementation, open a draft pull request, and request feedback from a classmate or mentor.
+
+**Blockers:**
+None currently.
+
+---
