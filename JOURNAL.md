@@ -147,5 +147,83 @@ before the fix) now pass. Full file: 29 passed.
 - I left the pre-existing lint/format debt untouched to keep the diff minimal
   and scoped to #150, per "don't fix the entire codebase."
 
-**Draft PR feedback received from:** <!-- name / Slack handle, or "none" -->
+**Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No maintainer/reviewer comments came in on PR #362. Per the Summer 2026 course
+note, reviewer feedback on the PR is not a feature this term, so none was
+expected. (The only feedback I received was course grading feedback, which
+reviewed the whole PathReview codebase rather than my PR's diff — none of it
+identified an issue in the files my change actually touched.)
+
+**How you responded:**
+No PR review to respond to. On the grading feedback that critiqued unrelated
+base-code files (e.g. `review_service.py`, `ingestion/pipeline.py`), I confirmed
+those files were not in my diff and intentionally kept my PR scoped to #150
+rather than absorbing unrelated changes.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The process was far harder than the code. The fix itself was a few lines. What
+tripped me up repeatedly was submission mechanics: I was graded 0 — twice — with
+"no JOURNAL.md found," even though every artifact was committed and pushed. The
+grader kept resolving my submission to the `main` branch, where none of my work
+lived; all of it was on my feature branch. The instructions warned about
+submitting the `/tree/<branch>` URL instead of a bare repo link on every single
+page, and I still hit it. The lesson landed hard: being correct is worthless if
+the reviewer can't see your work.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's production code is a discipline of restraint, not
+just capability. On my own projects I fix whatever I notice. Here, the right move
+was the opposite: keep the diff minimal, touch only what the issue requires, and
+resist "while I'm in here" changes. When I found a second latent bug (the primary
+language is chosen alphabetically instead of by file count) and when the codebase
+had 182 pre-existing ruff errors, the professional response was to document them
+and leave them alone — not to expand my PR. I also learned to read the real code
+before trusting any summary of it: the root cause here (leading-slash patterns
+missing root-level paths) was invisible from the issue description alone and only
+obvious once I traced `_should_skip_file` directly.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest at navigation and mechanics: locating `_should_skip_file`,
+tracing the code path, generating a genuine before/after reproduction (running
+the pre-fix code to capture the `JavaScript` result and the two failing tests),
+drafting tests that matched existing patterns, and structuring PLAN.md, the PR
+description, and these journal entries. Where it fell short was anything outside
+the repo or requiring my judgment and credentials: it couldn't run the GitHub
+auth flow or click "submit," couldn't stand up the full backend (Docker/Node
+weren't installed and the venv was Python 3.14, where some deps lacked wheels),
+and — tellingly — it flagged the `/tree/<branch>` requirement repeatedly but
+couldn't stop me from submitting the wrong link, because that step was mine to
+own. AI accelerated the work; it did not remove responsibility for verifying the
+result from the reviewer's point of view.
+
+**What would you do differently if you started over?**
+Three things. First, stand up the full environment end-to-end before touching
+code — I got the frontend running but never fully brought up the backend, which
+limited how I could verify. Second, verify every submission from the grader's
+point of view: open the exact link I'm about to submit and confirm it shows my
+JOURNAL.md before hitting send. That one habit would have saved two zeros.
+Third, file the latent alphabetical-primary-language bug as its own follow-up
+issue immediately, so it's captured rather than just noted in a journal.
+
+**What are you most proud of from this module?**
+That I can explain every decision in this contribution — not just what the fix
+does, but why it's scoped the way it is, why I left the pre-existing debt alone,
+and how I proved the bug was real before I changed anything. The reproduction
+discipline especially: I didn't just assert the bug existed, I ran the pre-fix
+code and captured the two tests failing with `assert 'JavaScript' == 'Python'`,
+so the problem was demonstrated, not assumed.
 
