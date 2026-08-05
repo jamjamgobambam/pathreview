@@ -98,3 +98,61 @@ unit/integration tests that exercise it.
 **Self-review confirmation:** [x] make check passes (no new failures vs. documented pre-existing baseline)  [x] make test-unit passes (no new failures vs. documented pre-existing baseline)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review has come in yet. I opened PR #711 as ready-for-review and shared it in
+the cohort Slack channel; if feedback arrives before the deadline I will update
+this entry.
+
+**How you responded:**
+_(No feedback yet — nothing to respond to.)_
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The biggest surprise was codebase navigation. Before this module I had never had
+to understand an architecture I didn't write — tracing how the services, routes,
+and ingestion parsers fit together was fascinating but genuinely challenging. It
+forced me to slow down and work in a structured way — reading the code and git
+history before touching anything — instead of jumping straight into "vibe
+coding." That shift, from writing code first to understanding the system first,
+was the hardest and most valuable part.
+
+**What did you learn about working in a large codebase?**
+A codebase you didn't structure yourself is much harder to navigate than a
+personal project, where I always know where things are because I put them there.
+What helped was reading first: following the existing architecture, function
+signatures, and tests to build a mental model before changing anything. In my
+own projects I rarely design a deliberate structure or navigate it that way;
+here I learned to lean on the project's conventions (and on AI to explain data
+flow) to understand the system design before contributing to it.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for understanding — explaining the architecture, how data
+flows through an unfamiliar system, and brainstorming different approaches and
+their trade-offs. Where it fell short was scope: it would sometimes propose a
+complex solution to a simple problem, or generate code that wasn't actually
+needed. Keeping the change minimal and confined to exactly what issue #106
+required was something I had to judge myself.
+
+**What would you do differently if you started over?**
+I would spend more time up front planning and understanding the structure before
+writing anything. Now that I know how to approach a codebase systematically and
+how to write a clear PLAN.md, I would also feel confident reaching for a more
+challenging (Tier 2) issue — choosing a Tier 1 for my first contribution was the
+right call, but I'd push myself further next time.
+
+**What are you most proud of from this module?**
+Completing my first open-source contribution end to end on someone else's
+production codebase. I'm proud that I did it in a structured way — reproducing
+the issue, writing a real PLAN.md, and producing a clear, well-documented PR,
+none of which I had done in a disciplined manner before — and that I got
+comfortable navigating a RAG-based system I didn't build.
