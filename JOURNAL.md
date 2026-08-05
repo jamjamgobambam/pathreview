@@ -75,14 +75,15 @@ Added `tests/unit/test_health.py` with two tests: one confirming Redis reports "
 
 ## Week 10 — Iteration & reflection
 
-**Reviewer feedback received?** [x] Yes  [ ] No
+### Reviewer feedback
 
-**Feedback summary and response:**
-Received an automated review from GitHub Copilot (no human maintainer review has arrived yet, which is normal for a course-timeline PR). Copilot flagged two issues in `tests/unit/test_health.py`:
-1. `cast("dict", ...)` passes a string literal instead of an actual type, which is invalid usage of `typing.cast`.
-2. The "uses redis_url" test only asserted `from_url()` was called once, without checking it was called with the correct arguments — meaning a regression that passed the wrong URL would still pass the test.
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
 
-I addressed both in commit `9e006d1`: replaced the `cast()` call with an `isinstance(detail, dict)` check to avoid the ambiguity entirely, and tightened the assertion to `mock_from_url.assert_called_once_with(settings.redis_url, decode_responses=True)` so the test actually verifies correct wiring, not just that a call happened. I replied on the PR summarizing both fixes and linking the commit. No human review has come in since; the PR remains open awaiting a maintainer with write access, which is outside my control.
+**Summary of feedback:**
+No human maintainer review has been received. Per this term's course note, reviewer feedback isn't a feature in Summer 2026, so no maintainer/reviewer comments were expected. For additional context: GitHub Copilot's automated review left two comments on `tests/unit/test_health.py` (an invalid `typing.cast` usage and a test assertion that didn't verify `from_url()`'s call arguments), which I addressed in commit `9e006d1` even though this doesn't count as reviewer feedback for this assignment.
+
+**How you responded:**
+N/A — no maintainer feedback arrived. (For the automated Copilot comments noted above, I replaced the `cast()` call with an `isinstance()` check and tightened the test assertion to check exact call arguments, then replied on the PR summarizing both fixes.)
 
 ### Reflection
 
