@@ -1,13 +1,13 @@
-from uuid import UUID
-import structlog
-import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
@@ -40,8 +40,8 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
     return result.scalars().first()
@@ -216,7 +216,7 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
             ingested = IngestedSource(
                 profile_id=profile.id,
                 source_type="github",
-                raw_data=json.dumps(github_data),
+                source_url=f"https://github.com/{profile.github_username}",
             )
             db.add(ingested)
         except Exception as exc:
@@ -241,7 +241,7 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
             ingested = IngestedSource(
                 profile_id=profile.id,
                 source_type="portfolio",
-                raw_data=json.dumps(portfolio_data),
+                source_url=profile.portfolio_url,
             )
             db.add(ingested)
         except Exception as exc:
@@ -265,7 +265,7 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
             ingested = IngestedSource(
                 profile_id=profile.id,
                 source_type="resume",
-                raw_data=json.dumps(resume_data),
+                filename=profile.resume_filename,
             )
             db.add(ingested)
         except Exception as exc:
