@@ -60,7 +60,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [(https://github.com/ascherj/pathreview/pull/683#issue-5050947571)]
+**PR link:** [https://github.com/ascherj/pathreview/pull/683#issue-5050947571]
 
 **Branch:** `fix/44-orchestrator-swallows-tool-exceptions`
 
