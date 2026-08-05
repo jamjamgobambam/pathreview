@@ -168,12 +168,17 @@ You'll update this file as your understanding evolves in Week 9. It's a living d
 ## Week 9 — Solution building & PR submission
 
 Goal: replace the contradictory inline fixture with a reusable README fixture and verify both scoring and parsing behavior.
+ I fixed the README scorer issue by replacing the short inline fixture with a more realistic README fixture and updating the tests to use shared files from the test data folder. 
+ I also fixed the parser so it correctly handles valid Markdown headings in indented content. This made the tests more reliable and better aligned with the intended behavior.
 
 ### Check-in 1 (mid-week)
 
 **Current progress:**
 [What have you implemented so far? Which sub-tasks from PLAN.md are done?]
-Reproduced the original scorer failure (`assert 51 > 100`) and confirmed it was caused by a 51-word inline fixture, not a 50-line parser limit. Added a shared `tests/test_data/README.md` fixture with more than 100 lines and 500 words, then updated the scorer test to load it and assert the scorer's actual comprehensive threshold. While testing the parser, I found and fixed a separate heading-detection bug: indented Markdown headings were not recognized.
+I reproduced the original failure and confirmed that the problem was caused by a fixture that was too short for its own word-count assertion. 
+I then updated the scorer test to use a stronger fixture and added parser coverage for the heading case.
+ Reproduced the original scorer failure (`assert 51 > 100`) and confirmed it was caused by a 51-word inline fixture, not a 50-line parser limit. 
+ Added a shared `tests/test_data/README.md` fixture with more than 100 lines and 500 words, then updated the scorer test to load it and assert the scorer's actual comprehensive threshold. While testing the parser, I found and fixed a separate heading-detection bug: indented Markdown headings were not recognized.
 
 **Next steps:**
 [What are you working on for the rest of the week?]
@@ -194,43 +199,11 @@ mypy.....................................................................Failed
 
 tests\unit\test_readme_scorer.py:15: error: Function is missing a return type annotation  [no-untyped-def]
 tests\unit\test_readme_scorer.py:25: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:41: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:52: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:65: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:75: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:85: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:95: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:115: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:126: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:141: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:152: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:162: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:172: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:185: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:196: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:225: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:233: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:248: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:259: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:267: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:278: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_scorer.py:288: error: Function is missing a type annotation  [no-untyped-def]
+...
 tests\unit\test_readme_scorer.py:295: error: Function is missing a type annotation  [no-untyped-def]
 tests\unit\test_readme_parser.py:16: error: Function is missing a return type annotation  [no-untyped-def]
 tests\unit\test_readme_parser.py:26: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_parser.py:39: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_parser.py:57: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_parser.py:66: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_parser.py:88: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_parser.py:106: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_parser.py:116: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_parser.py:123: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_parser.py:132: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_parser.py:140: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_parser.py:147: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_parser.py:172: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_parser.py:180: error: Function is missing a type annotation  [no-untyped-def]
-tests\unit\test_readme_parser.py:194: error: Function is missing a type annotation  [no-untyped-def]
+...
 tests\unit\test_readme_parser.py:205: error: Function is missing a type annotation  [no-untyped-def]
 tests\unit\test_readme_parser.py:216: error: Function is missing a type annotation  [no-untyped-def]
 Found 41 errors in 2 files (checked 4 source files)
@@ -244,6 +217,11 @@ added parameters to functions and return type to all the test methods in both te
 ---
 
 ### Check-in 2 (end of week)
+
+The fix is now focused on the actual issue rather than just adjusting the test around it. I kept the work scoped to the README scorer, parser, and their fixtures, and I made sure the behavior is covered by regression tests.
+
+I also cleaned up the test code so it follows the repo's typing expectations and stays consistent with the existing test style.
+
 
 #### Summary
 Replaces the 51-word inline README fixture that caused `assert 51 > 100` with reusable Markdown fixtures. The scorer now tests a realistic README containing more than 100 lines and 500 words, matching its actual “comprehensive” threshold. The change also fixes README heading detection for indented Markdown and verifies parser behavior with external Markdown fixtures.
@@ -298,4 +276,93 @@ Results:
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"] Codex
 
+- Week 9 journal entry is complete. The PR is ready for review.
+- PR has been reviewed and changes have been made.
 
+
+---
+
+## Week 10 — Retrospective
+
+### Week 10 — Iteration & reflection
+
+#### Reviewer feedback
+
+**Feedback received:** [X] Yes (Codex)  [ ] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+```
+PR feedback — changes requested before merge:
+
+Keep #156 scoped to the fixture fix. Remove unrelated course/config files such as JOURNAL.md, PLAN.md, docs/WEEKLY_PLAN.md, and frontend/postcss.config.js.
+
+Replace or remove tests/test_data/LINE.md and tests/test_data/READMEE.md; they contain copied assertion/output-like or malformed content rather than intentional README fixtures.
+
+Narrow ^\s*(#{1,6}): it recognizes headings inside arbitrarily indented code blocks. Restrict it to valid Markdown indentation and add a regression test, or keep this PR test-only.
+
+The >= 500 assertion for the comprehensive fixture correctly matches ReadmeScorer's threshold.
+
+-Codex
+```
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+`"Thanks for the feedback. I’m keeping the planning and journal files in the branch because they’re part of the course requirements and help document the issue and the Week 9 work. the other files are to test edge cases. I’m also updating the parser and test fixtures so the actual issue is fixed in a more robust way, rather than just adjusting the test around it."`
+
+Note: 
+You can do it with a small pytest test. The basic command is:
+```bash
+pytest tests/unit/test_readme_parser.py -q
+```
+
+If you want to test the scorer against the fixture files in the test data folder, run:
+```bash
+pytest tests/unit/test_readme_scorer.py -q
+```
+
+If you want to run just one specific test, use:
+```bash
+pytest tests/unit/test_readme_parser.py -k heading -q
+```
+Or if you want to run everything related to the README tests:
+```bash
+pytest tests/unit/test_readme_parser.py tests/unit/test_readme_scorer.py -q
+```
+
+
+#### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+I was suprised that this wasnt just a simple length parsing issue but an actual parsing issue with the readme parser and scorer. 
+I originally thought the scorer was just hardcoded to 100 lines and that was the issue, but it was actually a parsing issue with the readme parser and scorer.
+It would break at certian lines since it wouldnt parse the readme correctly and would fail the test, specifically certain special characters and indented headings. 
+I had to go through the readme parser and scorer code to understand how it was parsing the readme and why it was failing the test.
+I was also suprised that the pre-commit hooks were failing due to unrelated baseline issues in the repo, but I was able to get the targeted scorer and parser tests to pass and ignored the rest for the sake of this issue.
+
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+It harder than it look and a lot of moving or interconnect parts.
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+Ai was good in explaining what exist but it only did what i told, my confusion confused it so I had to figure out my mistakes and re-align the ai to my understanding. 
+It was good in helping me understand the codebase and how to navigate it, but it couldnt tell me what the actual issue was or how to fix it. 
+I had to figure that out on my own, but it was good practice.
+It also bad at the reviews since it didnt understand my processs to solving the issue and I again had to explain it to it and re-align it to my understanding.
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+Id explain the issue better and more clearly to the ai and myself, and also make sure to understand the codebase better before starting the issue.
+That way ill be better prepared to understand the issue and fix it, and also be able to explain it better to the ai and myself.
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+1. I am glad that I was able to catch my mistakes and understand the issue and fix it, and also that I was able to get the tests to pass and the issue fixed.
