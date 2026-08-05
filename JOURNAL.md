@@ -33,3 +33,35 @@ I inspected `agent/tools/github_tool.py` and confirmed that the current tool onl
 
 **Blockers or open questions:**
 I still need to confirm whether the streak should use all user contributions or only commits from the repository provided in `repo_name`, and whether the project prefers GitHub GraphQL or REST API data.
+
+
+## Week 9 - Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I implemented the contribution streak feature in `agent/tools/github_tool.py`. The tool now fetches user-wide commit contribution dates through GitHub GraphQL, removes duplicate dates, sorts them, and calculates the longest consecutive commit streak. I also added focused unit tests in `tests/unit/test_github_tool.py`.
+
+**Next steps:**
+I planned to finish the full validation, review the changes against the contribution guidelines, open the draft PR, and request feedback before marking it ready for review.
+
+**Blockers:**
+The repository already had unrelated unit test and Ruff failures, so I compared the baseline and final results to confirm that my changes did not introduce any new failures.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/368
+
+**Branch:** `feat/52-contribution-streak`
+
+**What you built:**
+I added a `contribution_streak` field to the GitHub analysis. It fetches the user’s commit contribution dates from the previous year, removes duplicate days, sorts them, and calculates the longest run of consecutive commit days.
+
+**Tests added or updated:**
+I updated `tests/unit/test_github_tool.py` with tests for empty histories, one-day activity, duplicate and unsorted dates, separate streaks, date boundaries, authentication, GraphQL errors, incomplete results, and the final metadata output. All 12 focused GitHubTool tests pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
