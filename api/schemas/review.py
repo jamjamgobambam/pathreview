@@ -33,3 +33,25 @@ class ReviewListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class ShareLinkResponse(BaseModel):
+    """Response returned when a share link is created for a review."""
+
+    token: str
+    expires_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class SharedReviewResponse(BaseModel):
+    """Public, read-only view of a review served via a share token.
+
+    Deliberately omits ownership fields (``id``, ``profile_id``) so a public
+    link exposes only the summary itself.
+    """
+
+    overall_score: float | None
+    sections: list[FeedbackSection] | None
+    created_at: datetime
+    expires_at: datetime
