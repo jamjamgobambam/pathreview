@@ -81,3 +81,61 @@ Keeping the Week 9 fix scoped to the vendored/build exclusion. The separate
 `sorted(languages)[0]` "primary = alphabetical, not most-common" behavior is a
 real but distinct bug; leaning toward raising it as a follow-up rather than
 expanding this Tier-1 PR.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+The fix is implemented and pushed
+([`fbeb3e4`](https://github.com/VincentTLe/pathreview/commit/fbeb3e4)).
+Sub-tasks from PLAN.md that are done:
+
+- Rewrote `_should_skip_file()` to match **path segments** instead of
+  slash-wrapped substrings — normalize `\` → `/`, split on `/`, and skip the
+  file when any segment is a known vendored/build directory.
+- Added the directory names as a class-level `SKIP_DIRS` frozenset.
+- Added regression tests in a new file
+  `tests/unit/test_tech_detector_vendored.py` (root-level, nested,
+  Windows-separator, and look-alike cases).
+- Verified: the two pre-existing tests `test_node_modules_excluded` and
+  `test_build_directory_excluded` now pass, and the full unit suite went from
+  **53 failed / 375 passed** (baseline, before my change) to **51 failed /
+  382 passed** — i.e. my two target tests fixed, five new tests added, and no
+  new failures introduced. The remaining 51 failures are pre-existing and
+  belong to other issues.
+
+**Next steps:**
+Open a draft PR and request peer/mentor feedback in Slack; address any feedback;
+fill in Check-in 2 with the PR link and mark the PR ready for review.
+
+**Blockers:**
+None. Note: `make check` and `make test-unit` have extensive pre-existing
+failures across the repo (182 ruff findings, 52 unformatted files, and 53
+failing unit tests before my change) that are unrelated to issue #150; my change
+keeps its edited files lint/format/type clean and introduces no new test
+failures.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _(to be filled when the PR is opened)_
+
+**Branch:** `fix/150-tech-detector-vendored-files`
+
+**What you built:**
+`TechDetector` now excludes vendored dependencies and build output before
+counting languages, by matching each path segment against a `SKIP_DIRS` set, so
+the reported primary language reflects first-party source instead of bundled
+JavaScript.
+
+**Tests added or updated:**
+Added `tests/unit/test_tech_detector_vendored.py` (5 tests: root-level vendor
+and node_modules exclusion, Windows-separator build output, nested vendored
+dirs, and look-alike names that must not be skipped). The change also turns the
+existing `test_node_modules_excluded` and `test_build_directory_excluded` green.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** _(to be filled)_
