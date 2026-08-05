@@ -95,3 +95,34 @@ None.
 - [x] `make test-unit` passes — with caveats: 53 pre-existing test failures in unrelated files (mock-configuration bugs), unchanged by this change. 377 tests pass (up from 375 baseline — the 2 new tests added here, both green).
 
 **Draft PR feedback received from:** none.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+Reviewer feedback is not a feature in Summer 2026.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Figuring out what the bug actually *was* took longer than fixing it. Issue #88 was filed as a missing-test-coverage gap, so I expected the endpoint to either 500 or return a clean 4xx once I poked at it — instead, tracing the async flow from `POST /reviews` into the `process_review()` background task revealed there was no error path at all. A documentless profile sailed through to `status="complete"` with confident, fabricated feedback sections, because the agent/RAG steps are still hardcoded placeholders that ignore their inputs. That's a much sneakier failure mode than a crash, and I wouldn't have caught it without actually reproducing it end-to-end with curl rather than just reading the code. The other surprise was hitting a hard wall on `git commit`: this repo's mypy pre-commit hook has no baseline mode, so it fails on any pre-existing type error in a file I touched, whether or not I caused it. I hadn't budgeted time for a tooling problem that had nothing to do with my actual fix.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was learning to tell "my change broke this" apart from "this was already broken," and proving it instead of assuming it. I ran `make check` and `make test-unit` before touching anything specifically so I'd have a baseline to diff against later — without that, I couldn't have confidently said the 53 failing tests and 182 lint errors were pre-existing rather than something I introduced. I also learned to resist the urge to clean up what I saw along the way. It would have been easy to "fix" the unsorted imports or add type annotations while I was in `review_service.py`, but that inflates the diff and makes the actual change harder to review. Scoping the fix to exactly one `if not ingestion_results:` block, and pushing back on my own instinct to auto-format the whole file, felt like the real skill being tested here.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest at the mechanical tracing work — following the call chain from the route handler through the background task through each placeholder helper function, and spotting that `_run_agent_orchestration()` and `_run_rag_retrieval_generation()` silently ignore their `ingestion_results` argument. That's the kind of thing that's easy to miss skimming and tedious to verify by hand across five files. It also made the reproduction loop fast — spinning up Docker, registering a user, creating an empty profile, and curling the review into existence, all scripted rather than clicked through manually. Where it fell short was exactly the judgment calls: whether "no documents" should be judged from the profile's own fields or the `ingested_sources` table, whether to bypass the pre-commit hook with `--no-verify`, how strict to be about the checkboxes in the PR template given the pre-existing failures. Those needed an actual decision from me, not just information — the AI could lay out the tradeoffs clearly, but I had to be the one to pick.
+
+**What would you do differently if you started over?**
+I'd check the repo's pre-commit config before writing any code, not after trying to commit. Knowing upfront that mypy has no baseline mode would have changed how I planned my time — I'd have either budgeted for the `--no-verify` conversation earlier or picked a smaller, more isolated file to touch. I'd also push back sooner on my own default of committing frequently; bundling the fix and its tests into one commit up front would have meant hitting the hook wall once instead of losing time re-doing the same edit after `git checkout` accidentally reverted more than I meant it to.
+
+**What are you most proud of from this module?**
+The reproduction, not the fix. Anyone can read `process_review()` and guess it might not handle an empty profile well — proving it, live, with a real curl request against a real running server, and getting back an actual fabricated `overall_score: 0.81` for a profile with zero ingested documents, is what turned "this looks like a gap" into "this is definitely broken, and here's exactly what it does instead." That evidence is what made the fix itself almost mechanical.
