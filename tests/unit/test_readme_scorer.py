@@ -15,7 +15,11 @@ class TestReadmeScorer:
         return ReadmeScorer()
 
     def test_readme_with_all_quality_signals(self, scorer):
-        """Test README with all quality signals returns high score."""
+        """Test README with all quality signals returns high score.
+
+        The fixture is deliberately short (51 words, so "minimal") but contains
+        every quality signal, which is what keeps overall_score high.
+        """
         readme = """
         # Project Name
         A comprehensive project description.
