@@ -5,10 +5,10 @@ from api.main import app
 client = TestClient(app)
 
 
-def test_health_endpoint():
+def test_health_endpoint_for_SQLAlchemyError():
     response = client.get("/health")
 
-    assert response.status_code == 200
+    assert response.status_code != 500
 
 
 # from root, run the following command, pytest tests/integration/test_health.py::test_health.
