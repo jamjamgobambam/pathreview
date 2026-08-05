@@ -78,3 +78,34 @@ mock DB session; observed the review still finishes `status="complete"` with
 and background pipeline do no document-presence validation.
 
 **PLAN.md link:** https://github.com/wvalera1/pathreview/blob/8c0be0d1d21557af98001d163477965e1c6aa7d8/PLAN.md
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+
+**Next steps:**
+[What are you working on for the rest of the week?]
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
