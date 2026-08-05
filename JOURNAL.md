@@ -79,3 +79,33 @@ Updated `tests/unit/test_resume_parser.py` by adding a specific regression test 
 *(Note: Passing with the exception of the documented pre-existing tech debt failures).*
 
 **Draft PR feedback received from:** `kaiser1x`
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The most surprising challenge was realizing how strict the procedural and formatting requirements were compared to just getting the code to work. Getting the regex fix right was relatively straightforward, but losing points initially for a missing PR template body and omitted manual testing steps showed me that the submission and documentation process requires just as much attention to detail as the logic itself.
+
+**What did you learn about working in a large codebase?**
+I learned the critical importance of scope management and resisting the urge to fix everything in sight. Seeing 48 pre-existing test failures and 51 linting errors from unrelated modules was initially alarming, but I had to practice strict discipline to leave them untouched and focus solely on Issue #147 to avoid scope creep.
+
+**How did AI tools help — and where did they fall short?**
+AI was incredibly helpful for structuring the strict unit tests, untangling Pytest errors (like class indentation), and ensuring my PR description met all checklist requirements. However, it sometimes fell short in clearly communicating the scope of its own changes. For example, I had to pause and explicitly verify whether the AI had altered my core resume_parser.py logic or just the test suite, which was a great reminder that I always need to manually review AI-generated code diffs to know exactly what is being committed.
+
+**What would you do differently if you started over?**
+I would thoroughly review the contribution guidelines and the grading checklist before writing a single line of code. If I had built the manual reproduction steps and the strict test assertions into my workflow from the very beginning, I could have avoided the initial point deduction.
+
+**What are you most proud of from this module?**
+I am most proud of writing a solid, well-structured regression test (test_parse_indented_section_headers). It feels great moving past loose checks and writing aggressive assertions, knowing that my specific test will permanently protect the parser from breaking on whitespace and Markdown edge cases in the future.
