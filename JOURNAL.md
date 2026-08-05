@@ -111,7 +111,7 @@ tests, ~182 ruff and 52 black issues before any of my changes. Working to the
 
 ### Check-in 2 (end of week)
 
-**PR link:** _(fill in after opening the PR)_
+**PR link:** https://github.com/ascherj/pathreview/pull/272
 
 **Branch:** `test/71-prompt-injection-red-team-suite`
 
