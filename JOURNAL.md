@@ -174,3 +174,87 @@ output are unaffected.
 
 **Draft PR feedback received from:** none
 
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback arrived. I checked PR
+[#501](https://github.com/ascherj/pathreview/pull/501) — no maintainer or peer
+comments, no requested changes, no approval. Reviewer response is not an enabled
+feature for the Summer 2026 cohort, so this is expected rather than a sign the PR
+was overlooked.
+
+**How you responded:**
+No changes were required since no feedback came in. The PR remains open and ready
+for review with `make check`/`make test-unit` documented as introducing no new
+failures. If a reviewer had asked me to move the fix out of `conftest.py` and
+into `core/logging.py` (the alternative I flagged in my PR "Notes for Reviewers"),
+I would have made `configure_logging()` caplog-friendly with a `ProcessorFormatter`
+and called it at app startup, then re-run the baseline diff to prove no
+regressions.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The actual code change was tiny — a single `conftest.py` fixture — but *proving*
+it was safe was the hard part. This repo ships with 53 failing unit tests, 182
+ruff errors, and 5 mypy errors before you touch anything, so "did my change break
+something?" was not a simple green/red question. I had to stash my work, capture a
+clean baseline, then diff failure sets before and after. Worse, my first
+comparison falsely flagged `test_readme_scorer` and `test_bias_detector` as
+regressions — it turned out a nondeterministic "coroutine was never awaited"
+`RuntimeWarning` was being printed mid-line into pytest's `FAILED` summary,
+corrupting my text diff. I only trusted the result once I switched to comparing
+JUnit-XML `<failure>` nodes instead of grepping stdout.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was that "make the test pass" is not the same as "make the right
+change." My reproduction test (`test_empty_chunks_list_returns_empty`) could have
+been forced green a dozen sloppy ways, but the correct fix had to route *all*
+structlog output through stdlib logging without altering how logs render in dev or
+production — so I deliberately kept `core/logging.py` and every `logger.*` call
+site untouched. I also learned to respect state I didn't write: `batch_processor.py`
+binds `logger = structlog.get_logger()` at import time, before any fixture runs,
+and I couldn't assume it would pick up my config — I had to confirm empirically
+that `cache_logger_on_first_use=False` makes structlog's lazy proxy re-read
+configuration per call. In my own projects I'd have just trusted it worked.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest at tracing the root cause fast — connecting "caplog is empty" to
+"`configure_logging()` is only called in `scripts/seed_db.py`, so structlog falls
+back to its stdout `PrintLogger`" saved me a lot of reading, and it produced the
+exact `render_to_log_kwargs` + `LoggerFactory` + `BoundLogger` recipe I needed. It
+also structured the tedious safety work: setting up the venv, capturing baselines,
+and the JUnit-XML diff. Where it fell short was judgment under noisy signals — it
+initially reported false regressions from the polluted `FAILED` lines, and it
+can't authenticate to GitHub, so I had to open the PR myself. The lesson was that
+AI accelerates the mechanics but I still own verifying that its confident-sounding
+output is actually true.
+
+**What would you do differently if you started over?**
+I'd establish the pre-existing-failure baseline in Week 8 during reproduction,
+not in Week 9 mid-implementation — discovering 53 failing tests while trying to
+validate my own change made it briefly unclear whether I'd broken the suite. I'd
+also decide the scope question (test-only fixture vs. modifying
+`configure_logging()`) earlier and write it down as a decision rather than
+carrying it as an open "blocker" across two weeks. Finally, I'd have written the
+dedicated `test_logging_caplog.py` regression tests first, so my definition of
+"fixed" was concrete before I started changing configuration.
+
+**What are you most proud of?**
+Not the fix itself — it's four lines of config — but the rigor I put behind
+claiming it was safe. In a codebase this broken it would have been easy to check
+the "make test-unit passes" box loosely, but I actually measured 53→52 failures
+with 6 new passing tests and *zero* new failures, verified with a method immune to
+the stdout noise, and documented the exact before/after numbers in my PR and
+journal. Turning "I think it's fine" into "here is the evidence it's fine" is the
+part I'd be comfortable defending to a real maintainer.
+
+
