@@ -56,7 +56,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/TianxinS/pathreview/pull/1
+**PR link:** https://github.com/ascherj/pathreview/pull/860
 
 **Branch:** `feat/34-llm-reranker`
 
