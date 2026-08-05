@@ -64,6 +64,6 @@ Added a "Copy link" button to the completed review page that generates a 30-day 
 - `frontend/src/pages/__tests__/ReviewPage.test.tsx` — updated the two reproduction tests (renders "Copy link" button, copies share URL to clipboard) to pass with the new implementation; added a third test asserting the button label changes to "Copied!" after click; mocked `shareService.createShareLink` to return a fixed share URL
 - `tests/unit/test_review_service.py` — added `TestShareToken` class with 6 tests: `create_share_token` returns `None` when the review is not found; sets a non-empty token string on the review; sets `share_expires_at` within a 29–31 day window from now; calls `db.commit`; `get_review_by_share_token` returns the review for a valid token; returns `None` for an expired or unknown token
 
-**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+**Self-review confirmation:** [x] make check passes [x] make test-unit passes
 
-**Draft PR feedback received from:**
+**Draft PR feedback received from:** none
