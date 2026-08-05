@@ -190,6 +190,19 @@ class TestPIIScrubber:
 
         assert "[REDACTED]" in scrubbed
 
+    def test_paren_phone_fully_consumed(self, scrubber):
+        """Test the opening paren is redacted with the number (issue #146)."""
+        text = "Call (555)123-4567 today."
+        scrubbed = scrubber.scrub(text)
+
+        assert scrubbed == "Call [REDACTED] today."
+
+        detected = scrubber.detect(text)
+        phones = [d for d in detected if d["type"] == "phone_us"]
+        assert len(phones) == 1
+        assert phones[0]["value"] == "(555)123-4567"
+        assert text[phones[0]["start"]] == "("
+
     def test_address_variations(self, scrubber):
         """Test various street address formats."""
         addresses = [
@@ -200,7 +213,7 @@ class TestPIIScrubber:
 
         for addr in addresses:
             text = f"Address: {addr}"
-            scrubbed = scrubber.scrub(text)
+            scrubber.scrub(text)
             # Should attempt to redact addresses
 
     def test_empty_text(self, scrubber):
@@ -248,7 +261,7 @@ class TestPIIScrubber:
     def test_detect_no_false_positives(self, scrubber):
         """Test that detect doesn't flag legitimate text as PII."""
         text = "The project uses version 1.2.3. It's available at https://example.com"
-        detected = scrubber.detect(text)
+        scrubber.detect(text)
 
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
