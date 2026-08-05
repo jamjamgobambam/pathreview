@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -93,8 +93,10 @@ class SkillExtractor:
     TOOLS = {
         "docker": 0.95,
         "kubernetes": 0.95,
+        "kubectl": 0.95,
         "git": 0.90,
         "github": 0.90,
+        "github actions": 0.95,
         "gitlab": 0.90,
         "aws": 0.90,
         "gcp": 0.90,
@@ -103,9 +105,20 @@ class SkillExtractor:
         "jenkins": 0.85,
         "terraform": 0.85,
         "ansible": 0.85,
+        "helm": 0.90,
+        "circleci": 0.85,
+        "codecov": 0.85,
+        "trivy": 0.85,
+        "pytest": 0.85,
+        "flake8": 0.85,
+        "docker compose": 0.90,
+        "gradle": 0.85,
+        "maven": 0.85,
+        "sonarqube": 0.85,
+        "deployment": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -116,7 +129,7 @@ class SkillExtractor:
         Returns:
             List of detected skills with confidence scores
         """
-        detected_skills = {}
+        detected_skills: dict[str, SkillDetection] = {}
 
         # Detect languages first
         self._detect_languages(text, filename, detected_skills)
@@ -143,7 +156,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -266,7 +279,16 @@ class SkillExtractor:
 
         for tool, confidence in self.TOOLS.items():
             if tool in text_lower:
-                display_name = tool.upper() if tool in ["ci/cd"] else tool.title()
+                _display_overrides = {
+                    "ci/cd": "CI/CD",
+                    "github actions": "GitHub Actions",
+                    "gha": "GitHub Actions",
+                    "k8s": "Kubernetes",
+                    "kubectl": "Kubernetes",
+                    "aws": "AWS",
+                    "gcp": "GCP",
+                }
+                display_name = _display_overrides.get(tool, tool.title())
                 if display_name not in skills_dict:
                     skills_dict[display_name] = SkillDetection(
                         name=display_name,

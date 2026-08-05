@@ -13,6 +13,8 @@ venv/
 
 # Environment
 .env
+.env.*
+!.env.example
 .env.local
 .env.*.local
 
@@ -23,13 +25,22 @@ venv/
 *.swo
 *~
 
-# Node
+# Node / frontend
 node_modules/
 frontend/node_modules/
 frontend/dist/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
 
-# Docker
+# Vite
+*.local
+
+# Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # OS
 .DS_Store
@@ -39,8 +50,13 @@ Thumbs.db
 htmlcov/
 .coverage
 .coverage.*
+coverage.xml
 .pytest_cache/
 .mypy_cache/
+.dmypy.json
+
+# Jupyter
+.ipynb_checkpoints/
 
 # Build artifacts
 *.pyc
