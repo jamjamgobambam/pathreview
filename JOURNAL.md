@@ -28,3 +28,27 @@ I reproduced the issue by adding the parenthesized phone number format (555) 123
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
+
+## Week 9 Solution building & PR submission
+
+### Check-in 1 (mid-week)
+**Current progress:**
+I implemented the regex fix for the PII scrubber to correctly identify US phone numbers with parenthesized area codes. I updated the `phone_us` pattern and resolved the Ruff linter line-length errors.
+
+**Next steps:**
+Write a new test for mixed spacing, ensure all existing unit tests pass, and open the pull request.
+
+**Blockers:**
+None.
+
+### Check-in 2 (end of week)
+**PR link:** [PR Link](https://github.com/ascherj/pathreview/pull/900#issue-5066724071)
+**Branch:** 146 pii scrubber fail
+**What you built:**
+I modified the `phone_us` regex pattern in `pii_scrubber.py` to allow for optional parentheses and spaces around the area code. This ensures phone numbers formatted like `(555) 123-4567` are successfully caught and redacted by the scrubber.
+
+**Tests added or updated:**
+None applicable.
+
+**Self-review confirmation:** (x) make check passes (x) make test-unit passes
+**Draft PR feedback received from:** None
