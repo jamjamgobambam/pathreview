@@ -59,7 +59,12 @@ Added a unit test that exercises the health check's Postgres probe with a mocked
 Implemented the fix in api/routes/health.py (wrapped the raw SQL string in sqlalchemy.text()) and updated tests/unit/test_health.py to assert the health check now reports postgres as healthy. All sub-tasks from PLAN.md's core fix are done; ran make check and make test-unit with no new failures introduced versus baseline.
 
 **Next steps:**
-Open a draft PR, request peer/mentor review, and confirm the app reports a healthy postgres status when run against a live database (docker-compose up) before marking the PR ready for review.
+Open a draft PR and request peer/mentor review. The live-DB smoke test (confirming GET /health reports postgres "healthy" against a running database via docker compose up) is still **pending** — see Blockers.
+
+**Verification status:**
+- Fix verified at the unit level: tests/unit/test_health.py confirms the postgres probe now reports "healthy" (and that the query is a text() clause, not a raw string), plus a regression that a genuine DB error still reports "unhealthy". make test-unit shows no new failures vs. baseline.
+- Live-DB manual smoke test: **pending / not yet run** (blocked, see below).
 
 **Blockers:**
-None on the fix itself. One out-of-scope discovery: the /health redis probe reads settings.redis_host / settings.redis_port, which aren't defined on Settings, so redis always reports unhealthy independent of #154 — noted in PLAN.md as a follow-up.
+- **Live-DB check blocked — Docker will not run locally.** Docker Desktop is installed but its daemon does not become ready when launched, and the `docker` / `docker compose` command-line tools are not operational in this environment (commands hang / the CLI is unavailable). Because docker compose can't bring up Postgres, the live GET /health smoke test could not be performed. It remains pending until Docker is working (or the check is run on another machine). This does not affect the code fix, which is covered by the unit tests above.
+- Out-of-scope discovery: the /health redis probe reads settings.redis_host / settings.redis_port, which aren't defined on Settings, so redis always reports unhealthy independent of #154 — noted in PLAN.md as a follow-up.

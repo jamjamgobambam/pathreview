@@ -14,7 +14,7 @@ The core fix is done on branch `fix/154-health-check-textual-sql`:
 
 - The plan assumed the fixed endpoint would return a clean 200 "healthy". In practice the `/health` endpoint still returns **503** in the unit tests because of a **separate, pre-existing bug**: the redis probe reads `settings.redis_host` / `settings.redis_port`, which are **not defined** on `Settings` (only `redis_url` is), so redis always reports "unhealthy". This is out of scope for #154, so the tests assert on `dependencies["postgres"]` specifically rather than the overall status/HTTP code. (Worth filing as a follow-up issue.)
 - Plan step 5 (grep for other raw-string `execute()` call sites) is confirmed: `api/routes/health.py` was the **only** one — every other `execute()` in the codebase already passes a `select()` / prepared statement.
-- Still outstanding (next check-in): manual verification against a live Postgres (`docker compose up`) that `GET /health` reports `postgres: "healthy"`.
+- Still outstanding: manual verification against a live Postgres (`docker compose up`) that `GET /health` reports `postgres: "healthy"`. **Currently blocked / pending** — Docker will not run in the local environment (Docker Desktop's daemon does not become ready and the `docker` / `docker compose` CLI is not operational), so the stack can't be brought up for the smoke test. The fix is covered by the unit tests regardless; the live check will be completed once Docker is available (or run on another machine).
 
 ### Understand
 `health_check()` in `api/routes/health.py` probes Postgres connectivity with
