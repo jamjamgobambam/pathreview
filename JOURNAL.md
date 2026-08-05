@@ -173,3 +173,35 @@ N/A — changes are only on the backend, so no screenshots/demo needed. Step-by-
   - `core/services/review_service.py` — added `db: AsyncSession` typing to 4 functions; annotated `notification: Notification | None` to fix `Returning Any`.
   - `tests/unit/test_review_service.py` — fully annotated every fixture/test.
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+N/A - No feedback received so no changes
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Steering AI correctly and validating the code it generated.
+
+**What did you learn about working in a large codebase?**
+As I have prior experience as a software engineer navigating the codebase wasn't new but it helped refresh my skills and learn how much time AI can save when coding while emphasizing system design and architectural skills.
+
+**How did AI tools help — and where did they fall short?**
+To generate tests, code and validate everything works. The time it took to code it from scratch took less than a day and I spent valuable time on validating and designing the system which sharpened my design skills.
+
+It fell short when it generated code that worked but failed on specific edge cases and sometimes used the longer path to give me answers.
+
+**What would you do differently if you started over?**
+I wouldn't change anything; the course structure helped me to dip my toes slowly and confidently into using AI along with my current software engineering skills.
+
+**What are you most proud of from this module?**
+Sharpening my comprehension and critical skills on AI generated content to validate, test and question what it does. It is very easy to trust AI as it is, but I did not want to lose my critical thinking skills so I deliberately took my time each week even though the actual work wasn't very hard.
