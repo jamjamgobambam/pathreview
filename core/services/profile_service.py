@@ -1,13 +1,45 @@
+import asyncio
 from uuid import UUID
 import structlog
 from sqlalchemy import select
 
+from core.config import settings
+from core.database import SyncSessionLocal
 from core.models.profile import Profile
 from core.models.review import Review
 from core.models.ingested_source import IngestedSource
 from api.schemas.profile import ProfileCreate, ProfileUpdate
+from ingestion.embeddings.provider import get_embedding_provider
+from ingestion.pipeline import IngestionPipeline
+from rag.retriever.vector_store import VectorStore
 
 log = structlog.get_logger()
+
+
+def _ingest_portfolio(profile_id: str, portfolio_url: str) -> None:
+    """
+    Fetch and embed a profile's portfolio page.
+
+    Runs synchronously against the ingestion pipeline. Failures (unreachable
+    site, non-HTML content, etc.) are logged and swallowed so that a bad
+    portfolio URL never breaks profile creation/update.
+    """
+    try:
+        vector_db = VectorStore().get_collection(f"profile_{profile_id}")
+        with SyncSessionLocal() as session:
+            pipeline = IngestionPipeline(
+                vector_db=vector_db,
+                db_session=session,
+                embedding_provider=get_embedding_provider(settings.llm_provider),
+            )
+            pipeline.ingest_portfolio(profile_id=profile_id, url=portfolio_url)
+    except Exception as exc:
+        log.warning(
+            "portfolio_ingestion_failed",
+            profile_id=profile_id,
+            portfolio_url=portfolio_url,
+            error=str(exc),
+        )
 
 
 async def create_profile(
@@ -30,6 +62,10 @@ async def create_profile(
     db.add(profile)
     await db.commit()
     await db.refresh(profile)
+
+    if profile.portfolio_url:
+        await asyncio.to_thread(_ingest_portfolio, str(profile.id), profile.portfolio_url)
+
     return profile
 
 
@@ -69,6 +105,10 @@ async def update_profile(
     db.add(profile)
     await db.commit()
     await db.refresh(profile)
+
+    if data.portfolio_url:
+        await asyncio.to_thread(_ingest_portfolio, str(profile.id), profile.portfolio_url)
+
     return profile
 
 
