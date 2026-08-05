@@ -29,7 +29,7 @@ Add a comprehensive unit test for the new monitoring logic and health route resp
 **Blockers:**
 My workstation moved so trying to setup the repository on two different machines was a large hassle, and syncing work between them properly. Version mismatches on imported tools causing issues, docker/setup issues plagued the beginning of the working process. 
 
-**PR link:** 
+**PR link:**: https://github.com/ascherj/pathreview/pull/923 
 
 **Branch:** `fix/68-health-endpoint-safety-count`
 
