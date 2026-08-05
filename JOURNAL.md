@@ -30,3 +30,40 @@ I ran `.venv/bin/python -m pytest tests/unit/test_batch_processor.py::TestBatchE
 
 **Blockers or open questions:**
 Nothing so far.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md step 1: added an autouse `configure_structlog_for_tests` fixture to tests/conftest.py that configures structlog with `structlog.stdlib.LoggerFactory()` and `structlog.stdlib.BoundLogger`, ending the processor chain in `ProcessorFormatter.wrap_for_formatter`. Verified `test_empty_chunks_list_returns_empty` now passes, and diffed the full suite's failures before/after the change to confirm no regressions.
+
+**Next steps:**
+Open the PR and address review feedback. Still need to reconcile the self-review checklist, since the repo has pre-existing, unrelated lint errors and unit test failures that make `make check` / `make test-unit` fail suite-wide regardless of this fix.
+
+**Blockers:**
+None specific to this fix. The repo already has ~52 failing unit tests and ~182 lint errors unrelated to structlog/caplog (confirmed present on the branch before my change too), so `make check` / `make test-unit` can't be checked as fully green for the whole suite.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** (https://github.com/ascherj/pathreview/pull/932)
+
+**Branch:** fix/159-stucture-output-capturing
+
+**What you built:**
+An autouse pytest fixture in tests/conftest.py that configures structlog to route through stdlib logging (`LoggerFactory` + `BoundLogger` + `ProcessorFormatter.wrap_for_formatter`) instead of structlog's default `PrintLogger`, which printed straight to stdout and bypassed the `logging` module entirely. This lets `caplog`-based assertions see structlog-emitted log events.
+
+**Tests added or updated:**
+No test files were changed — only tests/conftest.py. The existing repro case, `tests/unit/test_batch_processor.py::test_empty_chunks_list_returns_empty`, now passes unmodified with the new fixture in place.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes — "passes" here means no new failures introduced, per the documented pre-existing baseline below.
+
+**Pre-existing failures (documented):**
+Ran `make check` and `make test-unit` on `main` before making any changes, then again after, and diffed the results:
+- `make test-unit` — before: 53 failed, 375 passed. After: 52 failed, 376 passed. Diffing the failing test names shows exactly one line removed (`test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty`, the issue's repro case) and zero other changes in either direction.
+- `make check` — before: 182 lint errors (fails at the `lint` step, same set of pre-existing ruff findings unrelated to structlog/logging). After: 182 lint errors, byte-identical rule-code lines (confirmed via diff — 161 matching lines, 0 differences).
+- Conclusion: this change fixes the target test and introduces zero new lint or test failures; the pre-existing 52 test failures and 182 lint errors are unrelated to structlog/caplog and out of scope for this issue.
+
+**Draft PR feedback received from:** TF
