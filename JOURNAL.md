@@ -140,3 +140,54 @@ space-separated number as `phone_us` and captures its full value.
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** [Syoko3](https://github.com/ascherj/pathreview/pull/392#issuecomment-5135681148)
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+
+*No feedback*
+
+**How you responded:**
+
+*No feedback*
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+It surprised me how difficult it is to understand a codebase fully,
+especially when the codebase is huge with many different tools used.
+I was trying to find out how the PIIScrubber is used, which led me
+down a rabbit hole of figuring out how APIs, models, services, etc.
+are connected together, which wasted a lot of time.
+
+**What did you learn about working in a large codebase?**
+
+Don't try to understand every single aspect of it. Focus just on the
+current issue and its tests, and write good specs and tests on it.
+
+**How did AI tools help — and where did they fall short?**
+
+Claude was good at reading code and figuring out how it works, but it
+needed extra instructions to incorporate project-specific contributing
+rules such as linting.
+
+**What would you do differently if you started over?**
+
+I would pick a more advanced issue to solve, maybe something that
+requires a more thorough understanding to the codebase. I was worried
+that since this is the first time I'm trying this workflow I would
+struggle, but it turned out to accelerate the work, leaving more time
+that could be spent on working on a high-level issue.
+
+**What are you most proud of from this module?**
+
+Using Claude Code to contribute to an open-source project.
