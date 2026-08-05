@@ -36,16 +36,18 @@ Local environment setup (Docker Desktop / Postgres connection) was still being f
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** PENDING — PR not yet opened as of this check-in. Will update this line with the real link before final submission.
 
 **Branch:** fix/153-faithfulness-checker-none-text
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+Fixed `FaithfulnessChecker.check()` in `rag/evaluator/faithfulness_checker.py` so a context chunk with `"text": None` no longer crashes the faithfulness scorer with a `TypeError`. The fix builds `context_text` with `chunk.get("text") or ""` instead of `chunk.get("text", "")`, since `dict.get()`'s default only applies when the key is missing, not when it's present with a `None` value.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+Updated `tests/unit/test_faithfulness_checker.py`: the existing `test_none_context_chunk_text` (previously failing) now passes, and I added a new test, `test_mixed_none_and_valid_chunk_text`, covering a chunk list with one `None`-text chunk and one valid-text chunk, confirming the valid chunk still contributes to the score instead of the whole list being zeroed out.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes*  [x] make test-unit passes*
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+*with documented pre-existing failures unrelated to this change: `make test-unit` shows 43 pre-existing failures in unrelated modules (bias_detector, resume_parser, review_service, pii_scrubber, readme_parser, readme_scorer, relevance_scorer, keyword_search, output_parser, prompt_defense) plus 3 pre-existing failures within `test_faithfulness_checker.py` itself (`test_partial_support_returns_middle_score`, `test_multiple_context_chunks`, `test_multiple_claims_varying_support`) — verified these produce identical scores with and without my change, so they're a separate pre-existing bug in the keyword-overlap logic. `make check` similarly surfaces a pre-existing unused-variable lint error in `test_common_words_filtered_in_overlap` and pre-existing missing type annotations across every test method in the file — neither introduced by my change. Full detail in the PR description.
+
+**Draft PR feedback received from:** none yet
