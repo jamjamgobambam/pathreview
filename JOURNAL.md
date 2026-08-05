@@ -51,3 +51,20 @@ Sub-task 6 — Public share page + frontend route
 
 **Blockers:**
 There are no blockers so far.
+
+### Check-in 2 (end of week)
+
+**PR link:** [\[link to your submitted pull request\]](https://github.com/ascherj/pathreview/pull/896)
+
+**Branch:** feat/101-copy-link-button
+
+**What you built:**
+Added end-to-end support for shareable public review links. On the backend, a new `ShareToken` database model stores cryptographically random, 30-day expiring tokens linked to reviews; two new API endpoints handle token generation (`POST /reviews/{id}/share`, auth-protected and idempotent) and public retrieval (`GET /reviews/public/{token}`, no auth, returns 410 for expired tokens). On the frontend, a new `shareService.ts` calls the generate endpoint, the Share button on `ReviewPage` was updated to copy the returned URL to the clipboard with inline loading/success/error feedback, and a new unauthenticated `/share/:token` page renders the review score and feedback sections for any recipient.
+
+**Tests added or updated:**
+- `tests/unit/test_share_routes.py` — 7 tests covering the happy path for token generation, idempotency (returning an existing active token), 404 when the review is not found, 400 when the review is not complete, successful public retrieval, 410 Gone for expired tokens, and 404 for unknown tokens.
+- `tests/unit/test_share_token_model.py` — 20 tests covering column defaults (auto-generated UUID id, `secrets.token_urlsafe` token), uniqueness, nullability constraints, the `share_tokens` table name, `__repr__` format, and expiry comparison logic.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
