@@ -142,3 +142,75 @@ file (`ProfileForm.test.tsx`, missing dep) predate this change too. Full
 detail in the PR description.
 
 **Draft PR feedback received from:** none 
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+`rafayet-git` approved PR #625 with one inline suggestion on
+`frontend/src/pages/__tests__/ReviewPage.test.tsx:91` — the complete-state
+test waits on `screen.findByText('Portfolio Review')` before running the
+axe check, but that heading is a static page title, not evidence the score
+data actually arrived. They recommended waiting on something more obviously
+tied to the data landing, e.g. `"Overall Score"`.
+
+**How you responded:**
+Agreed — `findByText('Portfolio Review')` happens to work because that
+heading is gated behind `fullReview.status === 'complete'` in the component,
+but it doesn't read as an intentional "wait for the score" condition.
+Swapped the wait to `screen.findByText('Overall Score')` so the test's
+intent matches what it's actually confirming.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Scoping "add accessibility tests" turned out to be less about `jest-axe`
+mechanics and more about mapping every state a component can actually be
+in. My first pass at the journal problem summary described the fix as one
+render + one axe check; it took explicit feedback to notice `ReviewPage`
+has three distinct render branches (polling, failed, complete) plus
+stacked error banners, and a violation in one state says nothing about
+the others. The actual test-writing was mechanical once that mapping was
+right — most of the effort was in the "what does 'done' mean here" step.
+
+**What did you learn about working in a large codebase?**
+Consistency mattered more than cleverness. Instead of designing my own
+mocking approach, I went looking for how `ProfileForm.test.tsx` already
+mocked a hook with `vi.mock` and copied that shape for `useReviewStatus`
+and `apiClient`. That made the new test file read like it belonged next
+to the existing ones, and it surfaced a real constraint I wouldn't have
+guessed upfront — `apiClient` is a class singleton, not a plain module of
+functions, so the mock factory has to shape it accordingly.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance (Claude Code, this session) was most useful for the
+grunt work that's easy to get subtly wrong under time pressure: reading
+the actual component/hook/types before writing fixtures instead of
+guessing their shape, running the real test suite after every change
+instead of assuming green, and catching two mistakes before they became
+problems — `make format` silently reformatting 52 unrelated files (caught
+and reverted before it touched any commit), and a first-draft PR opened
+against my own fork instead of upstream (`ascherj/pathreview`), which
+would have been invisible to a grader. It fell short at judgment calls
+that needed my input directly — deciding whether a change like the
+router-mocking approach was "right" for this codebase, and, in this
+check-in, judging whether the reviewer's feedback was worth acting on
+rather than just applying it mechanically.
+
+**What would you do differently if you started over?**
+I'd map the component's render states as part of Week 7's problem summary,
+not after feedback flagged the gap in Week 8. That mapping was the
+single most useful artifact in the whole plan — it should have come first.
+
+**What are you most proud of from this module?**
+Catching the wrong-repo PR before it went to grading. It was easy to miss
+— the PR I opened worked, had a clean description, and looked done — but
+it was invisible to anyone without access to my personal fork. Verifying
+the actual PR target instead of assuming the first "it worked" result was
+correct is the habit I want to keep from this module.
