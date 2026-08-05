@@ -99,3 +99,28 @@ fail. The scorer itself behaves correctly; the fixture data is the problem.
 Still need to confirm exactly how `RelevanceScorer.score()` calculates
 overlap (simple keyword match vs. something weighted) before finalizing
 the fixture edit.
+
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed PLAN.md steps 1–4: read `RelevanceScorer.score()` in
+`rag/evaluator/relevance_scorer.py` and confirmed it uses simple
+lowercase keyword overlap (`overlap / len(query_tokens)`). Edited the
+chunk text in `test_query_with_partial_overlap` from "Django is a Python
+web framework for rapid development" to "Django is a high-level web
+framework for rapid development" — removing "Python" so only 3 of 4
+query terms match, giving a score of 0.75 instead of 1.0. All 19 tests
+in `test_relevance_scorer.py` now pass. Verified with `make test-unit`
+(52 failed / 376 passed — down from 53/375 baseline) and `make check`
+(still 182 pre-existing errors) that no new failures were introduced.
+
+**Next steps:**
+Open PR against `ascherj/pathreview`, fill in PR template, share in
+Slack for peer feedback, then finalize Check-in 2.
+
+**Blockers:**
+None.
