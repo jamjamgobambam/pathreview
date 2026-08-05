@@ -120,3 +120,36 @@ after my change it is 52 failed / 376 passed — exactly one fewer failure and n
 passes on the file I changed.)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+I checked PR #790 and no reviewer or maintainer comments had come in (the course noted that
+reviewer feedback isn't an active feature this term). The PR is still open with no requested
+changes.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+honestly navigating through the issues to pick which ones were right for me
+
+**What did you learn about working in a large codebase?**
+What I learned was that the matter wasn't writing lots of code but tracing the scorer to fine the one file/line that mattered and reproducing the bug before moving onto the next issue
+
+**How did AI tools help — and where did they fall short?**
+Helped: diagnosing the virtualization mess, explaining the scorer logic, scaffolding the journal/plan/PR structure. AI couldn't approve the UAC prompts, reboot, or click through the pr form.
+
+**What would you do differently if you started over?**
+I switched issues twice (#159 → #163 → #157) before settling  using the "is this right for me?" checklist more decisively up front would've saved time.
+
+**What are you most proud of from this module?**
+shipping a clean PR that carefully documented its impact vs. pre-existing failures.
