@@ -80,7 +80,7 @@ to keep the PR scoped to #53 (documented in PLAN.md and the PR).
 
 ### Check-in 2 (end of week)
 
-**PR link:** <!-- PR_LINK -->_added once the PR is opened_
+**PR link:** https://github.com/ascherj/pathreview/pull/899
 
 **Branch:** feat/53-dependency-audit-tool
 
