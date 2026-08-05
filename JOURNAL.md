@@ -58,7 +58,7 @@ None. Noted a set of pre-existing failures in the repo (unrelated files) that I 
 
 ### Check-in 2 (end of week)
 
-**PR link:** _[to be added once the PR is opened]_
+**PR link:** https://github.com/ascherj/pathreview/pull/327
 
 **Branch:** `test/37-prompt-template-snapshots`
 
@@ -67,8 +67,22 @@ Added regression ("snapshot") coverage for the five prompt templates in [rag/gen
 
 **Tests added or updated:** [tests/unit/test_prompt_templates.py](tests/unit/test_prompt_templates.py) — added `test_template_registry_matches_snapshot_names` and a parametrized `test_template_body_matches_snapshot`, and rewrote `test_template_snapshot_content_hash` to compare against a committed hash. Existing presence/placeholder/retrieval tests are unchanged.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
-_Pre-existing failures (documented, not introduced by this change):_ `make test-unit` had **53 failing / 381 passing** before my change, in unrelated files (e.g. `test_review_service.py`, `test_skill_extractor.py`, `test_tech_detector.py`). `make check` also fails pre-existing (ruff: 182 errors; black: 52 files would reformat) across the repo. My change touches only `test_prompt_templates.py`: all 43 tests there pass, my added lines are ruff- and black-clean (I also fixed the file's import-sort error, reducing its ruff count 19 → 18), and I introduced **no new** `make check` or `make test-unit` failures. "Passes" above is checked in the sense that this contribution makes nothing worse.
+_Pre-existing failures (documented, not introduced by this change):_ this repo fails both commands before my change, so I recorded a baseline first and re-verified after.
+
+| Check | Baseline (before) | After my change |
+| --- | --- | --- |
+| `make test-unit` | 53 failed / 381 passed | 53 failed / 381 passed |
+| `ruff check .` | 182 errors | 181 errors |
+| `black --check .` | 52 files would reformat | 52 files would reformat |
+
+The `make test-unit` failures are in unrelated modules (e.g. `test_review_service.py`, `test_skill_extractor.py`, `test_tech_detector.py`) and are untouched by this PR. My change is scoped to `tests/unit/test_prompt_templates.py`, where all **43** tests pass (up from 37).
+
+Within that file: ruff went 19 → 18 errors (I fixed its import-sort error; the remaining 18 are pre-existing). `black --check` still flags the file, but every remaining hunk is on pre-existing long `assert` lines (around lines 178, 277, 373, 387, 424) — the snapshot fixture and the tests I added are black-clean, which I confirmed with `black --diff`.
+
+So both boxes are checked in the documented sense: **this contribution introduces no new `make check` or `make test-unit` failures.**
+
+> Note for reviewers: run `make lint` / `black --check .` rather than bare `make check` on this repo — the `check` target invokes `black .` (not `black --check`), which would reformat 52 unrelated files in place.
 
 **Draft PR feedback received from:** none
