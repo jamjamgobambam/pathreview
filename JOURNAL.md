@@ -32,3 +32,51 @@ Created a test that runs `ingest_resume()` twice with the same content after ins
 
 **Blockers or open questions:**
 While mapping call sites, discovered a second unrelated error in 'core/services/review_service.py': '_run_ingestion_pipeline()' creates 'IngestedSource(..., raw_data=...)' with a kwarg that the model lacks, which is quietly swallowed by a broad unless. It's on a live path ('POST /reviews'), but it's not relevant to problem #6, which only focuses on the pipeline and model layer. Flagging it for a possible follow-up issue rather than fixing it now.
+
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the full fix from PLAN.md: rewrote `_check_skip()` to use a real
+async SQLAlchemy query (`select()` + `await db_session.execute()`) filtered
+on `profile_id`, `content_hash`, and `source_type`, instead of the broken
+sync `.query()` call that silently failed and always returned None.
+Rewrote `_record_ingested_source()` to actually persist an `IngestedSource`
+row (previously it only logged). Converted `ingest_resume`, `ingest_readme`,
+and `ingest_repo_metadata` to async to support both changes. Updated the
+Week 8 reproduction test to await the new async methods; it now passes.
+Added a new test file, `tests/unit/test_pipeline.py`, with 5 tests covering
+the dedup logic from both the helper level and the full `ingest_resume` flow.
+Ran the full `tests/unit` suite before and after the fix and confirmed the
+same 53 pre-existing failures remain unchanged (54 minus the one this PR
+fixes), with no new failures introduced.
+
+**Next steps:**
+Open a draft PR and request review from a classmate or mentor in Slack.
+Finalize the PR description (issue link, manual verification steps,
+pre-existing-failure documentation) and submit by Sunday.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
