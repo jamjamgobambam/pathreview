@@ -264,3 +264,36 @@ I intentionally did **not** fix the unrelated lint/test failures to keep this PR
 scoped to issue #43.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+Note: No review came in
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+Note: No review came in
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating through a new codebase was harder than I expected because I was unfamiliar with the concepts from the issue #43. This was also my first time working with caching and Redis. Another difficult aspect was ensuring my solution to the issue did not intefere with existing code bugs. Specifically, I was struggling to identify if my solution was making more bugs or if those bugs are independent of my code solution.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's production code meant most of my time went to reading and tracing rather than writing. The actual fix was only ~20 lines, but understanding how the Orchestrator, ContextManager, and Redis session store interacted took far longer. I also learned to keep my change tightly scoped to the issue and leave the unrelated pre-existing bugs alone, rather than trying to fix everything I noticed.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for orienting me quickly in unfamiliar territory — explaining caching/Redis concepts and helping me trace how the two cache layers interacted. Where it fell short was judgment calls that needed the actual repo state: deciding which failing tests were mine versus pre-existing required me to run the suite with and without my change and verify the numbers myself.
+
+**What would you do differently if you started over?**
+I'd verify the baseline test/CI state before writing any code, so I'd know from the start which failures were pre-existing and wouldn't second-guess whether my solution introduced them. I'd also time-box the tracing phase, since I went deeper into documenting the bug than the fix strictly required. I'd also spend more time reading the documentations to have a better understanding of how this overall project is set up.
+**What are you most proud of from this module?**
+Writing the two regression tests as failing tests first, then proving in isolation (55 → 53 failures) that my fix flipped exactly those two and added zero new failures ,turning "I think this works" into evidence a reviewer can trust. Writing a descriptive Pull Request with a structure and learning about appropriate commit history message also gave me more confidence to work in a large codebase in the future.
+
