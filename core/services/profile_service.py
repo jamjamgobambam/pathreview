@@ -1,11 +1,12 @@
 from uuid import UUID
+
 import structlog
 from sqlalchemy import select
 
+from api.schemas.profile import ProfileCreate, ProfileUpdate
+from core.models.ingested_source import IngestedSource
 from core.models.profile import Profile
 from core.models.review import Review
-from core.models.ingested_source import IngestedSource
-from api.schemas.profile import ProfileCreate, ProfileUpdate
 
 log = structlog.get_logger()
 
@@ -17,8 +18,20 @@ async def create_profile(
     resume_filename: str = None,
     resume_text: str = None,
 ) -> Profile:
-    """
-    Create a new profile for a user.
+    """Create and persist a profile for a user.
+
+    Args:
+        db: Async SQLAlchemy session used to persist the profile.
+        user_id: Unique identifier of the user who owns the profile.
+        data: Validated GitHub username and portfolio URL values.
+        resume_filename: Original resume filename, or None when unavailable.
+        resume_text: Extracted resume text, or None when unavailable.
+
+    Returns:
+        The newly persisted and refreshed profile.
+
+    Raises:
+        SQLAlchemyError: If the profile cannot be committed or refreshed.
     """
     profile = Profile(
         user_id=user_id,
@@ -38,12 +51,20 @@ async def get_profile(
     profile_id: UUID,
     user_id: UUID,
 ) -> Profile | None:
+    """Return a profile when it exists and belongs to the requesting user.
+
+    Args:
+        db: Async SQLAlchemy session used to query profiles.
+        profile_id: Unique identifier of the profile to retrieve.
+        user_id: Unique identifier of the expected profile owner.
+
+    Returns:
+        The matching profile, or None when no owned profile is found.
+
+    Raises:
+        SQLAlchemyError: If the profile query fails.
     """
-    Get a profile by ID, checking ownership.
-    """
-    stmt = select(Profile).where(
-        (Profile.id == profile_id) & (Profile.user_id == user_id)
-    )
+    stmt = select(Profile).where((Profile.id == profile_id) & (Profile.user_id == user_id))
     result = await db.execute(stmt)
     return result.scalars().first()
 
@@ -54,8 +75,19 @@ async def update_profile(
     user_id: UUID,
     data: ProfileUpdate,
 ) -> Profile | None:
-    """
-    Update a profile, checking ownership.
+    """Update editable fields on a profile owned by the requesting user.
+
+    Args:
+        db: Async SQLAlchemy session used to query and persist the profile.
+        profile_id: Unique identifier of the profile to update.
+        user_id: Unique identifier of the expected profile owner.
+        data: Validated profile fields; None-valued fields remain unchanged.
+
+    Returns:
+        The refreshed profile, or None when no owned profile is found.
+
+    Raises:
+        SQLAlchemyError: If querying, committing, or refreshing fails.
     """
     profile = await get_profile(db, profile_id, user_id)
     if not profile:
@@ -77,9 +109,18 @@ async def delete_profile(
     profile_id: UUID,
     user_id: UUID,
 ) -> bool:
-    """
-    Delete a profile and cascade delete reviews and ingested sources.
-    Returns True if deleted, False if not found.
+    """Delete an owned profile and its reviews and ingested sources.
+
+    Args:
+        db: Async SQLAlchemy session used for the cascade deletion.
+        profile_id: Unique identifier of the profile to delete.
+        user_id: Unique identifier of the expected profile owner.
+
+    Returns:
+        True when the profile is deleted, or False when it is not found.
+
+    Raises:
+        Exception: Re-raised after rollback if a delete or commit operation fails.
     """
     profile = await get_profile(db, profile_id, user_id)
     if not profile:
