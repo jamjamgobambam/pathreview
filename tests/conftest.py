@@ -1,6 +1,12 @@
 """Shared test fixtures for PathReview."""
 
+import json
+from pathlib import Path
+from typing import Any
+
 import pytest
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture
@@ -40,3 +46,17 @@ def sample_readme_text() -> str:
     - Tailwind CSS
     - OpenWeatherMap API
     """
+
+
+@pytest.fixture
+def basic_profile() -> dict[str, Any]:
+    """Load the shared sample portfolio fixture.
+
+    Returns the parsed contents of
+    ``tests/fixtures/sample_profiles/basic_profile.json`` — a realistic sample
+    portfolio (GitHub username, resume text, and two repositories) used by
+    integration tests to drive the ingestion pipeline.
+    """
+    fixture_path = FIXTURES_DIR / "sample_profiles" / "basic_profile.json"
+    data: dict[str, Any] = json.loads(fixture_path.read_text())
+    return data
