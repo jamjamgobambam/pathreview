@@ -34,10 +34,19 @@ Files / symbols involved:
 - Logs should show tools executing on the second review rather than only `tool_result_cache_hit`.
 
 ### Risks & unknowns
-- **Shared Orchestrator lifetime:** If one orchestrator instance serves many users/profiles, clearing context at the start of *every* `run()` is required so profile A’s cache cannot leak into profile B’s same hashed inputs. Need to confirm how the API constructs Orchestrator (singleton vs per-request) before relying on instance isolation alone.
-- **Intentional within-run memoization:** Clearing too late (or clearing mid-plan) could break duplicate tool steps in one plan. Clear only at the beginning of `run()`.
-- **Redis failures:** `delete()` already swallows errors and logs; clearing should remain best-effort so a Redis blip doesn’t abort the review.
-- **Other callers of SessionStore:** Grep shows only the orchestrator uses it today; still verify nothing else depends on accumulating session history across reviews.
+- **Shared Orchestrator lifetime:** Grep shows `Orchestrator` is not yet wired from
+  API routes in this checkout; clearing context at the start of every `run()` is
+  still the safe default if a shared instance is introduced later.
+- **Intentional within-run memoization:** Covered by
+  `test_within_run_memoization_still_applies` — clear only at the beginning of `run()`.
+- **Redis failures:** `delete()` already swallows errors and logs; clearing remains
+  best-effort so a Redis blip doesn’t abort the review.
+- **Other callers of SessionStore:** Still only the orchestrator; no other merge
+  dependents found.
+
+### Implementation status (Week 9)
+Implemented as planned: `ContextManager.clear()`, delete session at start of `run()`,
+persist current `results` only, regression tests updated.
 
 ### Edge cases
 - Second review with **identical** `profile_data` (same hashed tool inputs) — must still re-execute tools after the fix.

@@ -50,6 +50,11 @@ class ContextManager:
 
         return result
 
+    def clear(self) -> None:
+        """Clear all cached tool results for a new review run."""
+        self.results.clear()
+        logger.info("tool_result_cache_cleared")
+
     def get_all_results(self) -> dict:
         """Get all cached results.
 

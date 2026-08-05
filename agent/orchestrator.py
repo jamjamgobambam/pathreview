@@ -46,18 +46,14 @@ class Orchestrator:
         """
         logger.info("orchestrator_start", profile_id=profile_id)
 
+        # Clear cross-review caches so each review starts fresh (issue #43).
+        # Within-run memoization still works via ContextManager after this reset.
+        self.context_manager.clear()
+        if self.session_store:
+            self.session_store.delete(profile_id)
+
         # Build execution plan
         plan = self._build_plan(profile_data)
-
-        # Load previous session state if available
-        # ISSUE #43: This state is merged back via update() after the run, so stale
-        # tool keys from earlier reviews persist in Redis. ContextManager (created
-        # in __init__) also memoizes across runs, so a second review with the same
-        # tool inputs can hit the cache and skip re-execution. See PLAN.md and
-        # tests/unit/test_orchestrator_session_state.py for the reproduction.
-        session_state = {}
-        if self.session_store:
-            session_state = self.session_store.get(profile_id) or {}
 
         # Execute plan
         results = {}
@@ -72,11 +68,9 @@ class Orchestrator:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
                 results[tool_name] = {"error": str(e), "success": False}
 
-        # Persist state
-        # ISSUE #43: update() merges prior session keys into the new payload.
+        # Persist only this run's results (do not merge prior session keys)
         if self.session_store:
-            session_state.update(results)
-            self.session_store.set(profile_id, session_state)
+            self.session_store.set(profile_id, results)
 
         logger.info("orchestrator_complete", profile_id=profile_id, tools_executed=len(results))
 

@@ -49,3 +49,51 @@ orchestrator lifetime; Redis session state also keeps stale tool keys via
 Need to confirm whether the API constructs one shared `Orchestrator` or a new
 instance per review — that affects how aggressive context clearing must be.
 No other blockers for starting the Week 9 implementation.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented PLAN.md steps 1–4: added `ContextManager.clear()`, clear context +
+`SessionStore.delete(profile_id)` at the start of `Orchestrator.run()`, persist
+only current-run results, and updated
+`tests/unit/test_orchestrator_session_state.py` into regression tests (plus
+within-run memoization and `session_store=None` cases).
+
+**Next steps:**
+Run `make check` and `make test-unit`, open the PR against `ascherj/pathreview`
+with the full template, paste the PR link into Check-in 2, and submit the branch
+URL via the course portal.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [will paste after opening the PR]
+
+**Branch:** `fix/43-session-state-not-cleared`
+
+**What you built:**
+Each portfolio review now starts with a clean agent session. `Orchestrator.run()`
+clears in-memory tool memoization and deletes the Redis session for that profile
+before tools execute, then saves only this run’s results so stale tool payloads
+cannot leak into later reviews.
+
+**Tests added or updated:**
+`tests/unit/test_orchestrator_session_state.py` — second review re-executes tools,
+stale Redis keys are dropped, within-run memoization still works, and
+`session_store=None` is safe.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
+
+**Notes on checks:** Pre-commit on changed files (`ruff`/`black`/`mypy`) passes.
+`tests/unit/test_orchestrator_session_state.py` — 4/4 passed. Full-repo
+`make check` / `make test-unit` still report many pre-existing failures in
+unrelated modules (bias detector, resume parser, tech detector, etc.); this
+change does not introduce new failures in those areas.
