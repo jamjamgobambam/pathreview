@@ -39,6 +39,21 @@ class RaisingTool:
         self.execute = Mock(side_effect=RuntimeError("forced tool exception"))
 
 
+class TransientFailureTool:
+    """Test double that succeeds after one raised exception."""
+
+    name = "transient_failure_tool"
+
+    def __init__(self) -> None:
+        self.successful_result = ToolResult(success=True, data={"value": "recovered"})
+        self.execute = Mock(
+            side_effect=[
+                RuntimeError("temporary tool exception"),
+                self.successful_result,
+            ]
+        )
+
+
 def test_run_logs_successful_and_failed_tool_results_separately() -> None:
     """ToolResult.success should select the appropriate execution log."""
     successful_tool = SuccessfulResultTool()
@@ -161,3 +176,48 @@ def test_execute_tool_caches_successful_result() -> None:
     assert second_result is first_result
     assert mock_execute.call_count == 1
     assert list(orchestrator.context_manager.get_all_results().values()) == [first_result]
+
+
+def test_execute_tool_recovers_after_transient_exception() -> None:
+    """A tool that succeeds on retry should return and cache its successful result."""
+    tool = TransientFailureTool()
+    orchestrator = Orchestrator(tools={tool.name: tool})
+    tool_input = {"test": True}
+
+    with patch("agent.error_handling.time.sleep") as mock_sleep:
+        result = orchestrator._execute_tool(tool.name, tool_input)
+
+    assert result is tool.successful_result
+    assert tool.execute.call_count == 2
+    mock_sleep.assert_called_once_with(1.0)
+    assert list(orchestrator.context_manager.get_all_results().values()) == [result]
+
+
+def test_run_does_not_execute_later_tools_after_exhausted_exception() -> None:
+    """The fail-fast policy should stop remaining plan entries from executing."""
+    raising_tool = RaisingTool()
+    later_tool = SuccessfulResultTool()
+    orchestrator = Orchestrator(
+        tools={
+            raising_tool.name: raising_tool,
+            later_tool.name: later_tool,
+        }
+    )
+
+    with (
+        patch.object(
+            orchestrator,
+            "_build_plan",
+            return_value=[
+                (raising_tool.name, {"test": True}),
+                (later_tool.name, {"test": True}),
+            ],
+        ),
+        patch.object(later_tool, "execute", wraps=later_tool.execute) as later_execute,
+        patch("agent.error_handling.time.sleep"),
+        pytest.raises(RuntimeError, match="forced tool exception"),
+    ):
+        orchestrator.run(profile_id="test-profile", profile_data={})
+
+    assert raising_tool.execute.call_count == 2
+    later_execute.assert_not_called()
