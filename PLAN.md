@@ -23,7 +23,9 @@ I will create tests/integration/test_auth_*.py and test each of the cases.
 Files created:
 1) tests/integration/conftest.py - configures fixture for DB and HTTP connection used by integration test cases.
 2) tests/integration/test_db_connection.py - test DB connection works end-to-end, it will be used for other authentication integration tests 
-3) test/integration/test-auth-middleware.py - tests the the protected endpoint accepts nothing  but a valid token to be accessed
+3) tests/integration/test-auth-middleware.py - tests the the protected endpoint accepts nothing  but a valid token to be accessed
+4) tests/integration/test-auth-routes.py - tests the login and register routes are working as intended
+5) tests/integration/test-auth-workflow.py - tests authentication workflow end-to-end
 
 
 
