@@ -113,3 +113,84 @@ PR — it's a natural second contribution.
 None for this issue — just waiting on first review. (The docker group fix
 is still pending on my machine, but it only affects the DB-backed
 `make run`, not this change.)
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review or comments on PR #346 as of 2026-08-04. The PR is open,
+mergeable, and marked ready for review; the 48-hour response clock starts
+when the first comment arrives.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The fix itself was a one-line regex; nearly everything hard was around it.
+This repo's quality gates fail on a clean `main` — 182 ruff errors and 49
+unit-test failures before I changed anything — so the real work was
+separating "broken" from "broken by me": recording baselines, diffing
+failure lists instead of trusting summary counts, and hash-verifying that
+a formatting-only cleanup left the street_address pattern byte-identical.
+The sharpest surprise was the pre-commit hook: it blocks any commit that
+touches a file carrying old violations, so I couldn't land my +14/−1 fix
+until a separate chore commit paid down six pre-existing lint errors — and
+its mypy hook is stricter than the repo's own `make typecheck`, which
+deliberately excludes `tests/`.
+
+**What did you learn about working in a large codebase?**
+In my own projects, "fix the bug" and "improve the code" are the same
+activity; in someone else's production code they're often opposites. The
+street_address false positive lives in the same five-line dict I edited
+and breaks a test in the very suite I was fixing — and the right call was
+still to leave it alone, document it, and ask the maintainers how they
+want it handled, because an unreviewable diff is worse than an unfixed
+adjacent bug. I also learned to verify blast radius instead of assuming
+it: a grep showed nothing in production imports `PIIScrubber` yet, which
+turned a scary "safety-layer change" into a contained regex swap. And the
+conventions I used to find bureaucratic — branch naming, conventional
+commits, the PR template — turn out to be how one maintainer stays sane
+with ~20 students attacking the same issue from separate forks.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was strongest where rigor is tedious: reproducing before
+touching anything (pinning the exact four failing tests plus REPL evidence
+into PLAN.md), explaining the root cause precisely (why `\b` can never
+match before `(` is word-boundary semantics, not a flaky pattern), and
+building verification I wouldn't have bothered with alone — hashing a
+regex through a reformat, diffing before/after failure lists. It fell
+short where reality had moved: its saved context still pointed at the
+cohort repo's old account after the repo moved, and every stale claim had
+to be re-verified against the live tracker before I could trust it. The
+judgment calls also stayed human: whether the street_address bug belongs
+in this PR is a maintainer-relationship question, not a technical one, and
+when it reached for a git-stash baseline comparison, the course's simpler
+documented procedure — run the checks before and after, write down the
+difference — was the better answer.
+
+**What would you do differently if you started over?**
+Three things. Claim the issue the moment I chose it — my comment went up
+late, and by then ~20 classmates were on #146; it didn't change my work,
+but it would have changed my read of the landscape. Verify the canonical
+repo and issue numbering before pushing anything — the cohort repo moved
+accounts mid-module, and I spent a push/undo/re-push cycle on the Week 7
+journal whose only real change in the redo was the corrected issue link.
+And probe the commit path before writing the fix: five minutes running the
+pre-commit hook against the files I planned to touch would have surfaced
+the lint-debt blocker on day one, and the chore/fix commit split would
+have been a plan instead of a mid-commit discovery.
+
+**What are you most proud of from this module?**
+That the final diff is +14/−1 in a module surrounded by mess, and that
+every claim about it is evidenced rather than asserted: the four
+issue-named tests going green, the street_address pattern hash-proven
+untouched, repo-wide lint going 182 → 176 with zero new failures among
+the 49 pre-existing. The PR asks to be trusted for reasons a reviewer can
+check in two minutes — that, more than the regex, feels like the skill
+this module was teaching.
