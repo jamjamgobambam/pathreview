@@ -67,16 +67,17 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/867
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `fix/6-duplicate-embeddings-reingest`
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+Fixed duplicate embeddings on repository re-ingestion (issue #6). Two stacked bugs in `ingestion/pipeline.py`: `_check_skip()` called the old sync SQLAlchemy `.query()` API on an `AsyncSession` (which has no such method), so the resulting error was silently swallowed and the function always returned "proceed"; separately, `_record_ingested_source()` never wrote anything to the database. Rewrote both to use the real async ORM API, and converted the three `ingest_*` entry points to `async def` accordingly.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+Updated `tests/unit/test_pipeline_repro.py` (Week 8 reproduction test) to await the now-async methods and mock `db_session.execute()` instead of `.query()`, it now passes. Added `tests/unit/test_pipeline.py` with 5 new tests: `_check_skip` returns None/skip-result correctly in isolation, `_record_ingested_source` actually persists a row with correct fields, `ingest_resume` doesn't incorrectly skip when content changes between calls, and `ingest_resume` proceeds normally for a profile with no prior ingestions.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both pass in the sense the assignment defines for a codebase with documented pre-existing failures: my changes introduce zero new failures. Full suite before my fix: 54 failed/375 passed; after: 53 failed/381 passed. The only change is the repro test flipping from fail to pass, plus 5 new passing tests. mypy shows the same 12 pre-existing, unrelated type errors before and after. Full detail in the PR's "Notes for Reviewers.")
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
