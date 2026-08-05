@@ -86,8 +86,7 @@ tests, ~103 mypy errors — all pre-existing); this change introduces no new fai
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/ascherj/pathreview/pull/887 (draft; to be marked ready for review
-after peer feedback)
+**PR link:** https://github.com/ascherj/pathreview/pull/887 (open, marked ready for review)
 
 **Branch:** `feat/14-github-workflow-parser`
 
@@ -107,4 +106,6 @@ matrix builds, reusable job-level `uses:`, ChromaDB-scalar metadata, and `SkillE
 documented pre-existing failures in this repo; this change adds none, and the new/edited files are
 ruff-, black-, and mypy-clean. Details in the PR's Notes for Reviewers.)
 
-**Draft PR feedback received from:** none yet (draft opened for peer review)
+**Draft PR feedback received from:** None — the PR did not receive a formal peer/mentor review this
+cycle. The approach was discussed at team standups (where I shared the PLAN.md), but no PR-level
+review was obtained.
