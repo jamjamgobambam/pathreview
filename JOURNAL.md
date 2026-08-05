@@ -103,3 +103,81 @@ all passing.
 **Draft PR feedback received from:**
 Posted in [course Slack channel] for review; no response received before
 submission deadline.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review has come in. Checked PR #467 directly (state: open, 0 comments,
+0 reviews submitted) — this matches the course's Summer 2026 notice that
+reviewer feedback isn't a feature this term.
+
+**How you responded:**
+N/A — no feedback received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Trusting the issue description less than I wanted to. Issue #106 read like
+a normal "a file got deleted, put it back" ticket, and my first instinct
+was to just start writing the JSON. It wasn't until I actually ran `git log
+--all` and a full-history `git grep` that I found the fixture had never
+existed — the issue was seeded, not a real regression. That was harder than
+the actual coding: it required stopping mid-flow, going back to first
+principles, and being okay with the fact that "reproduce the issue" for
+Week 8 meant proving there was nothing to reproduce, which isn't what the
+assignment template assumed I'd find.
+
+**What did you learn about working in a large codebase?**
+That the codebase's own history is a source of truth I hadn't thought to
+consult before writing code. On my own projects I don't need `git log --all
+--diff-filter=D` to know whether something used to exist — I remember. In
+someone else's repo, especially one with 66 curated issues and prior
+contributor attempts (like PR #134, which tried a different approach and
+stalled), the git history and the open PRs are basically a paper trail I
+should read before I touch anything. I also learned that "passes all
+checks" doesn't mean the same thing in a large repo as it does in a fresh
+project — `main` itself had 182 lint errors and 53 failing tests before I
+touched anything, and figuring out how to prove my 4 new files contributed
+zero to that was its own small skill.
+
+**How did AI tools help — and where did they fall short?**
+Claude Code was strongest at exactly the kind of investigation I was
+initially reluctant to do — running the full-history git searches, reading
+the Profile/IngestedSource models to make sure my fixture used real column
+names instead of invented ones, and catching a mypy error I would have
+committed past. It also caught its own gap once, flagging that it hadn't
+independently re-verified a number it was about to cite (the 378/53 test
+split) after a later change — that's the kind of self-check I want to
+build the habit of doing myself, not just relying on it to do.
+
+Where it fell short: it can't tell me whether an issue is "real" without
+being asked to check — it took an explicit prompt to go dig into git
+history rather than just accepting the issue text and building the fixture
+I initially assumed was needed. The judgment calls (whether to rewrite
+commit history, which of two valid fixture designs to pick, whether to
+present the "no bug to reproduce" finding honestly instead of chasing the
+literal Week 8 template) were mine to make; AI could lay out the tradeoffs
+clearly, but it wasn't going to decide "be honest here" for me.
+
+**What would you do differently if you started over?**
+I'd run the git-history check in Week 7, during issue selection, instead of
+Week 8. If I'd known upfront that #106 was synthetic, I might have picked a
+different issue, or at least gone in with the right framing from day one
+instead of writing a Week 7 problem summary that took the issue's premise
+at face value. I'd also set up my environment outside OneDrive from the
+very first command, instead of hitting the same file-locking problem I'd
+already learned about in a previous project.
+
+**What are you most proud of from this module?**
+Not the fixture or the test — the PR description. I documented that the
+issue's premise didn't hold up, that a prior contributor's PR took a
+different approach and stalled, and exactly which of the repo's 53
+pre-existing test failures were and weren't mine, with real error
+signatures instead of guesses. That's the part I'd want a reviewer or
+future me to actually read.
