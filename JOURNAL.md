@@ -46,16 +46,16 @@ None blocking right now — noting that this issue's fix (the proxy container + 
 
 ### Check-in 2 (end of week)
 
-**PR link:** [not yet submitted]
+**PR link:** https://github.com/ascherj/pathreview/pull/950
 
 **Branch:** `fix/130-set-memorylimit-llmproxy-service`
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+Added the missing `llm-proxy` service to `docker-compose.yml` (LiteLLM proxy image, 512M memory limit, healthcheck), so the LLM-facing traffic runs as its own resource-capped container instead of the app calling OpenAI/OpenRouter directly — matching the limits already set on `db`, `redis`, and `vector-db`. Added `litellm-config.yaml` to route the app's existing OpenAI and OpenRouter credentials through the proxy, and an `llm_proxy_url` setting in `core/config.py` for app code to point at it.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+None — no test files were touched. Verified manually by running `docker compose up` and confirming the `llm-proxy` container starts and passes its healthcheck.
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none 
