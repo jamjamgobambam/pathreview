@@ -86,7 +86,7 @@ left them untouched rather than overlapping with that issue.
 ---
 
 ### Check-in 2 (end of week)
-**PR link:** https://github.com/ascherj/pathreview/pull/908 (draft)
+**PR link:** https://github.com/ascherj/pathreview/pull/908 (open, ready for review)
 
 **Branch:** fix/153-faithfulness-checker-none-text
 
