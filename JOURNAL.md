@@ -18,3 +18,34 @@ The faithfulness checker (`rag/evaluator/faithfulness_checker.py`) builds the co
 **Setup confirmation:** [ ] App runs locally at localhost:5173
 
 **Cohort ledger:** [ ] Issue added to cohort ledger
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from `PLAN.md`: `rag/evaluator/faithfulness_checker.py` now builds `context_text` with `chunk.get("text") or ""` instead of `chunk.get("text", "")`, so a chunk with `"text": None` degrades to an empty string instead of raising `TypeError`. Added a new test, `test_mixed_none_and_valid_chunk_text`, covering a case not in the original issue: a chunk list with one `None`-text chunk and one valid-text chunk, confirming the valid chunk still contributes to the score. Re-ran `scripts/repro_issue_153.py` from Week 8 and confirmed it now prints a score instead of crashing.
+
+**Next steps:**
+Run `make check` and `make test-unit` for real (mid-fix and pre-fix baseline) once local Docker/Postgres setup is fully sorted, commit the fix, and open the PR using the repo template.
+
+**Blockers:**
+Local environment setup (Docker Desktop / Postgres connection) was still being finalized as of this check-in — needed before `make test-unit`/`make check` can be run and confirmed.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** fix/153-faithfulness-checker-none-text
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
