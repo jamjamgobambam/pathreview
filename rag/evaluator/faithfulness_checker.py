@@ -30,9 +30,11 @@ class FaithfulnessChecker:
             logger.info("faithfulness_no_claims_extracted")
             return 0.5  # Default to neutral if no extractable claims
 
-        # Concatenate context text
+        # Concatenate context text. A chunk may be missing "text" or have it
+        # set to None (e.g. a retrieved chunk stored with a null body); coerce
+        # both to "" so the join never receives a non-string and never crashes.
         context_text = " ".join([
-            chunk.get("text", "") for chunk in context_chunks
+            chunk.get("text") or "" for chunk in context_chunks
         ])
 
         # Check each claim for support

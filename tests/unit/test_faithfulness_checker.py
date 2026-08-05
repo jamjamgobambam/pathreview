@@ -241,6 +241,35 @@ class TestFaithfulnessChecker:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
+    def test_none_text_mixed_with_valid_chunks(self, checker):
+        """Test that a None-text chunk doesn't discard valid sibling chunks."""
+        feedback = "The developer has Python and Docker skills."
+        context_chunks = [
+            {"text": None},
+            {"text": "Python and Docker expertise demonstrated in projects."},
+        ]
+
+        score = checker.check(feedback, context_chunks)
+
+        # The None chunk is ignored; the valid chunk still supports the claim.
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+        assert score > 0.0
+
+    def test_all_chunks_none_text(self, checker):
+        """Test that context of all-None chunks scores without crashing."""
+        feedback = "The developer has Python skills."
+        context_chunks = [
+            {"text": None},
+            {"text": None},
+        ]
+
+        score = checker.check(feedback, context_chunks)
+
+        # No usable context -> unsupported claims -> low score, but no crash.
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+
     def test_missing_text_key_in_chunk(self, checker):
         """Test handling of missing 'text' key in context chunk."""
         feedback = "Has Python skills"
