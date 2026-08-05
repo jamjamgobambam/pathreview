@@ -25,3 +25,22 @@ The review page previously showed a progress bar that reflected actual processin
 Ran `python tests/repro_issue_97.py`, a static check of the full progress-reporting path — all 5 checks failed, confirming that `progress_pct` is dropped at every layer: no column on the `Review` model, never written by `process_review`, always returns `0` from the status route via a `getattr` fallback, missing from the frontend `Review` TypeScript interface, and `ReviewPage.tsx` renders only a static `<Loader>` spinner with no progress bar during polling.
 
 **PLAN.md link:** [\[link to PLAN.md in your fork\]](https://github.com/hanluu1/pathreview/commit/cd6762aef258140f639b1895ed0c8b66f2da2994)
+
+## Week 9 — Solution building & PR submission
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [\[link to your submitted pull request\]](https://github.com/ascherj/pathreview/pull/967)
+
+**Branch:** [`fix/97-review-progress-indicator`]
+
+**What you built:**
+Wired `progress_pct` through the full frontend stack so users see a live progress bar while their portfolio is being analyzed. Added `progress_pct?: number` to the `Review` TypeScript interface, exposed a `progress` value from the `useReviewStatus` hook, and replaced the static `<Loader>` spinner in `ReviewPage.tsx` with a progress bar that fills based on the value returned by the polling endpoint.
+
+**Tests added or updated:**
+- write a test file `frontend/src/pages/__tests__/ReviewPage.test.tsx` — covers that a progress bar renders with the correct width and percentage label while polling, and does not appear when polling is inactive.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
