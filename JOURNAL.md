@@ -117,3 +117,41 @@ Fixed portfolio URL ingestion end-to-end: added a `WebParser` that actually fetc
 **Draft PR feedback received from:** Meenakshi ([@msistla96](https://github.com/msistla96)) on GitHub and Yamaan Nandolia on Slack
 
 (Note: I originally thought PRs should be opened against my own forked copy, so all the original draft review feedback/discussion happened there: [arushibhatia/pathreview#1](https://github.com/arushibhatia/pathreview/pull/1). Retargeted to the actual upstream repo, `ascherj/pathreview`, once I realized that's where it needed to go.)
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+Got real review comments directly on [ascherj/pathreview#456](https://github.com/ascherj/pathreview/pull/456), from Meenakshi ([@msistla96](https://github.com/msistla96)) and Yamaan Nandolia:
+- Meenakshi asked for a manual end-to-end testing section under Testing, so others could reproduce my verification without re-deriving it themselves.
+- Yamaan called out the writeup quality, then flagged three things worth a second look: (1) whether an empty-text result from a JS-rendered/SPA portfolio would be silently invisible to the end user, (2) whether the fetch-failure path was actually covered by a test given it's the branch most likely to regress, and (3) suggested filing a tracking issue for the repo's pre-existing debt (53 test failures / 182 ruff errors / 103 mypy errors) so the `--no-verify` pattern has a paper trail beyond JOURNAL.md.
+
+**How you responded:**
+- Added the manual end-to-end testing section to the PR description (fake local portfolio server, exact steps, what log lines confirm the fetch actually happened).
+- Changed `web_parser.py` to log a `portfolio_page_empty_text` warning (not just an info log) when extraction yields zero words, so an empty SPA result is now discoverable instead of silent, with a new test covering it.
+- Confirmed the fetch-failure test already existed, then strengthened it to also assert no fabricated `IngestedSource` gets added on failure, not just that the returned list stays empty.
+- On the tracking-issue suggestion: rather than filing one, I documented in the PR description that filing a tracking issue for the repo-wide debt (and for the separate `IngestedSource.raw_data` bug I found) is what I'd actually do as a next step in a real enterprise setting, and explained why I didn't do it here (out of scope for a course assignment tied to a single issue).
+- Full detail in Week 9's Check-in 1.5; commits `9651177`, `9f80223`, `133ccb6`.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Realizing that large parts of this codebase weren't in a fully working state going in was a genuine learning moment. `ingestion/pipeline.py`'s `IngestionPipeline` class — the thing the issue pointed me toward — turned out to be dead code, never actually called anywhere. The real ingestion logic lived in `review_service.py`, and it was mostly placeholder strings (`f"GitHub profile data for {username}"`, `f"Portfolio data from {url}"`) rather than real implementations, for every source type, not just portfolio. I also found a completely separate, pre-existing bug where `IngestedSource(raw_data=...)` doesn't even match its own model's columns. At work, I'm used to `main` being reasonably solid, so this was my first real taste of what it's like to build on top of an early-stage/rapidly-prototyped codebase rather than a mature one — it pushed me to verify behavior directly (reproduce, trace the call path, read logs) instead of trusting that a function which looks complete does what its name says. That habit ended up shaping how I approached the rest of the module.
+
+**What did you learn about working in a large codebase?**
+Scope discipline is a skill, not just a rule. The instinct when you find a bug (the `raw_data` mismatch, the registration password-length mismatch) is to fix it right there, but the right move in someone else's codebase is usually to document it, prove it's pre-existing, and leave it alone unless you're asked to fix it — otherwise every PR turns into a drive-by rewrite of code nobody asked you to touch. I also learned that "passes" doesn't mean zero errors in a codebase with real history — it means your diff doesn't make the baseline worse, and you have to actually prove that (diffing lint/type-check output file-by-file against the pre-change version) rather than just asserting it.
+
+**How did AI tools help — and where did they fall short?**
+Most useful: tracing exactly what happens end-to-end for a given input (e.g. "what actually happens when someone submits a portfolio_url") across several files faster than I'd have done it manually, and the discipline of diffing tool output before/after to prove no regressions — that's tedious enough that I probably would have skipped it without the tooling doing the diffing for me.
+Where it fell short: the pre-commit hook's `black`/`ruff --fix` auto-formatted entire pre-existing files (not just my new code) the first time I tried to commit, which would have silently expanded my diff way beyond the issue's scope if I hadn't caught it and reverted the unstaged reformatting before committing. AI assistance ran the tools and reported the result, but it took me actually reviewing the diff to notice the blast radius was wrong — a good reminder that "the linter passed" and "this diff is scoped correctly" are two different questions.
+
+**What would you do differently if you started over?**
+Split the AI-assisted implementation into two distinct roles instead of one continuous session: one agent/pass to actually implement against PLAN.md, and a separate, independent agent/pass to review that implementation adversarially before I commit to it — closer to how a real PR review works, and less prone to the same context/assumptions carrying an unnoticed mistake all the way from planning through to commit. I did a version of this manually (re-verifying claims, diffing before/after), but building that separation in more deliberately from the start would catch more.
+
+**What are you most proud of from this module?**
+Choosing an issue that was appropriate for where I am right now, and then actually delivering it cleanly. The Week 7/8 work — reading the code closely enough to write an honest scope assessment, reproducing the bug concretely before writing a line of code, and turning that into a specific, sub-task-level PLAN.md — made the Week 9 implementation almost mechanical by comparison. It's a good demonstration that time spent up front on understanding and planning pays for itself in how smoothly the actual build goes.
