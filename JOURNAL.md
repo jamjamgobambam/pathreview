@@ -58,3 +58,34 @@ Added `GitHubTool._has_tests(username, repo_name)`, which fetches the repo's roo
 **Self-review confirmation:** [x] make check passes on changed files (`agent/tools/github_tool.py`, `tests/unit/test_github_tool.py` — clean via `ruff`/`mypy`; full-repo `make check` still reports pre-existing failures in unrelated files, unchanged from the Week 8 baseline)  [x] make test-unit passes
 
 **Draft PR feedback received from:** none — no peer/mentor review came in before the Week 9 deadline
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No – still awaiting review
+
+**Summary of feedback:**
+None. Reviewer feedback isn't a feature for the Summer 2026 cohort. Checked PR #488 directly (`gh pr view 488`) — it remains open with zero comments and zero reviews.
+
+**How you responded:**
+N/A — nothing to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Finding the actual code causing the gap in Week 8 took longer than I expected. The repo has two places that look related to test detection — `agent/tools/github_tool.py` and `ingestion/parsers/repo_analyzer.py` — and I had to trace through both before I could tell which one was actually wired into anything the app calls. The logic itself wasn't complex; it just took real time reading through the codebase to rule out the dead path before I could plan a real fix.
+
+**What did you learn about working in a large codebase?**
+The value of matching existing patterns instead of writing something new. Once I found that `_has_readme` already solved a nearly identical problem (fetch the root contents listing, check for a marker, fail closed to `False` on any request error), the right move was to copy its shape for `_has_tests` rather than design my own approach. Following the codebase's existing conventions made the change easier to review and less likely to introduce a pattern that didn't fit the rest of the file.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for testing — working through the changes I wanted to make and telling me whether they'd pass or fail before I ran them for real, which sped up the unit test iteration in Week 9. It was less useful for the Week 8 archaeology: telling the live code path apart from the dead one in `repo_analyzer.py` needed me to manually check call sites myself rather than trust a first read of the file.
+
+**What would you do differently if you started over?**
+I'd pick a harder issue. This one ended up being less code than I expected once the dead-code confusion was cleared up — the real fix was one new method modeled closely on an existing one, plus wiring its result into one dict. I'd want an issue with more implementation surface next time.
+
+**What are you most proud of from this module?**
+The plan for fixing the issue — working out that the existing `has_tests` logic in `repo_analyzer.py` was dead code, scoping the real fix down to `GitHubTool`, and deciding upfront to model it on `_has_readme` rather than freelancing a new approach.
