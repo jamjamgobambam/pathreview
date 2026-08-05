@@ -21,7 +21,7 @@ I checked the issue against the project layout and the branch naming rules in `d
 ## Week 8 — Reproduction & Solution Planning
 
 **Reproduction commit link:**
-[Add the GitHub URL to the commit where you documented reproducing the issue.]
+N/A
 
 **Reproduction summary:**
 I reproduced the issue by reviewing the failing unit tests referenced in the GitHub issue and testing the skill extractor with sample resume text containing JavaScript, TypeScript, and `.js`, `.ts`, and `.tsx` file references. The extractor failed to recognize JavaScript and TypeScript as skills, confirming the behavior described in the issue.
@@ -30,7 +30,7 @@ I reproduced the issue by reviewing the failing unit tests referenced in the Git
 https://github.com/nxxis/pathreview/blob/fix/148-skill-extractor-js-ts-detection/PLAN.md
 
 **Walkthrough video (recommended):**
-Not recorded yet. I plan to record it after finalizing my solution plan and reviewing the relevant code.
+Not recorded yet.
 
 **Blockers or open questions:**
 I want to verify whether the project expects JavaScript and TypeScript detection to rely only on explicit keywords or whether it should also recognize language-specific syntax such as `const`, `require()`, `export interface`, and common file extensions while avoiding false positives.
@@ -65,3 +65,34 @@ I updated `tests/unit/test_skill_extractor.py`, which already contained the issu
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback came in on the PR by the end of the week. The pull request page showed no reviews or review comments, so there was nothing to respond to beyond keeping the branch ready for review.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was not the extractor logic itself, but proving that the change was narrow enough to be safe. JavaScript and TypeScript detection sat inside a larger heuristic system that also handles React, Docker, databases, and file-name inference, so every new pattern had the potential to tilt confidence scores or create accidental matches. I spent more time than expected checking that the fix handled real syntax like `const`, `require(...)`, and `interface` without breaking unrelated detections.
+
+**What did you learn about working in a large codebase?**
+The main lesson was to treat the existing structure as a contract, not a suggestion. In a codebase like this, a small parser change can have ripple effects across tests, docs, and reviewer expectations, so it helps to stay close to the failing behavior and validate only the touched slice first. I also learned that maintaining scope discipline matters more than trying to make the code "better" everywhere at once.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for quickly locating the relevant parser, summarizing nearby test coverage, and helping me organize the journal and PR notes. They were less useful for judging whether a heuristic was actually appropriate for this project, because that required reading the code carefully and checking real examples against the project’s existing detection style. The final decision about what to change had to come from me, because only local evidence could tell me whether a pattern was truly missing or just uncovered by the current tests.
+
+**What would you do differently if you started over?**
+I would tighten the issue-selection and validation loop earlier. I think I could have identified the important syntax patterns and the likely regression surface sooner, which would have reduced some back-and-forth while building the fix. I would also write the PR summary and validation notes earlier so the final submission stage felt like a review of completed work instead of a last-minute documentation pass.
+
+**What are you most proud of from this module?**
+I am most proud that the final fix matched the shape of the actual problem instead of papering over it with filename-based heuristics. The extractor now recognizes JavaScript and TypeScript from real code signals, and the regression tests make that behavior explicit. That felt like a solid contribution because it improved the tool in a way that should hold up under future examples, not just the one reported issue.
