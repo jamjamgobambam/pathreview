@@ -33,3 +33,9 @@ class ReviewListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class ShareLinkResponse(BaseModel):
+    token: str
+    share_url: str
+    expires_at: datetime

@@ -37,6 +37,12 @@ export interface ReviewListResponse {
   page_size: number
 }
 
+export interface ShareLinkResponse {
+  token: string
+  share_url: string
+  expires_at: string
+}
+
 export interface AuthResponse {
   access_token: string
   token_type: string

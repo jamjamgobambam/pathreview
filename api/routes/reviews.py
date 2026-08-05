@@ -1,15 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import (
+    ReviewCreate,
+    ReviewListResponse,
+    ReviewResponse,
+    ShareLinkResponse,
+)
 from core.database import get_db
+from core.models.user import User
 from core.services.review_service import (
     create_review,
+    create_share_link,
     get_review,
+    get_review_by_share_token,
     list_reviews,
     process_review,
 )
@@ -23,9 +31,9 @@ router = APIRouter(prefix="/reviews", tags=["reviews"])
 async def create_review_endpoint(
     data: ReviewCreate,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: User = Depends(get_current_user),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> ReviewResponse:
     """
     Create a new review for a profile.
     Triggers ingestion pipeline and agent orchestration asynchronously.
@@ -49,7 +57,8 @@ async def create_review_endpoint(
             user_id=str(current_user.id),
         )
 
-        return ReviewResponse.model_validate(review)
+        response: ReviewResponse = ReviewResponse.model_validate(review)
+        return response
 
     except HTTPException:
         raise
@@ -59,15 +68,91 @@ async def create_review_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create review",
+        ) from exc
+
+
+@router.post("/{review_id}/share", response_model=ShareLinkResponse)
+async def create_share_link_endpoint(
+    review_id: UUID,
+    current_user: User = Depends(get_current_user),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> ShareLinkResponse:
+    """
+    Create a public, read-only share link for a review.
+    Only the review's owner can generate a share link.
+    Link expires 30 days after creation.
+    """
+    try:
+        share_link = await create_share_link(db=db, review_id=review_id, user_id=current_user.id)
+
+        if not share_link:
+            log.warning(
+                "share_link_creation_denied",
+                review_id=str(review_id),
+                user_id=str(current_user.id),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Review not found",
+            )
+
+        # NOTE: swap this base URL for however the frontend origin is
+        # configured elsewhere in this codebase (e.g. an env var / settings object)
+        share_url = f"/shared/{share_link.token}"
+
+        return ShareLinkResponse(
+            token=share_link.token,
+            share_url=share_url,
+            expires_at=share_link.expires_at,
         )
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        log.error("create_share_link_error", error=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create share link",
+        ) from exc
+
+
+@router.get("/shared/{token}", response_model=ReviewResponse)
+async def get_shared_review_endpoint(
+    token: str,
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> ReviewResponse:
+    """
+    Get a review via a public share token. No authentication required.
+    Returns 404 if the token is invalid, unknown, or expired.
+    """
+    try:
+        review = await get_review_by_share_token(db=db, token=token)
+
+        if not review:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Share link not found or expired",
+            )
+
+        response: ReviewResponse = ReviewResponse.model_validate(review)
+        return response
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        log.error("get_shared_review_error", error=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve shared review",
+        ) from exc
 
 
 @router.get("/{review_id}", response_model=ReviewResponse)
 async def get_review_endpoint(
     review_id: UUID,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: User = Depends(get_current_user),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> ReviewResponse:
     """
     Get a review by ID.
     Returns 404 if not found or not owned by current user.
@@ -86,7 +171,8 @@ async def get_review_endpoint(
                 detail="Review not found",
             )
 
-        return ReviewResponse.model_validate(review)
+        response: ReviewResponse = ReviewResponse.model_validate(review)
+        return response
 
     except HTTPException:
         raise
@@ -95,16 +181,16 @@ async def get_review_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve review",
-        )
+        ) from exc
 
 
 @router.get("", response_model=ReviewListResponse)
 async def list_reviews_endpoint(
     page: int = 1,
     page_size: int = 20,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: User = Depends(get_current_user),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> ReviewListResponse:
     """
     List reviews for current user with pagination.
     """
@@ -133,15 +219,15 @@ async def list_reviews_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to list reviews",
-        )
+        ) from exc
 
 
 @router.get("/{review_id}/status")
 async def get_review_status(
     review_id: UUID,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: User = Depends(get_current_user),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> dict:
     """
     Get review status and progress.
     Returns {review_id, status, progress_pct}
@@ -173,4 +259,4 @@ async def get_review_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve review status",
-        )
+        ) from exc
