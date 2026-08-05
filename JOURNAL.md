@@ -35,3 +35,41 @@ would accomplish. Naming the part of the codebase it affects is helpful context.
 
 **Blockers or open questions:**
 [Anything you're still uncertain about going into Week 9, or leave blank]
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+I understood how the /reviews endpoint works and how to create a test case for it. 
+
+**Next steps:**
+[What are you working on for the rest of the week?]
+I will implement the actual test case and run the test suite to ensure that it passes and does not break any existing functionality.
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+test/88-unit-test-review-routes
+
+**What you built:**
+[1–3 sentences summarizing what your fix does and how it works]
+I have created a new test case in the `tests/test_reviews.py` file that simulates a request to the `POST /reviews` endpoint with a profile that has no ingested documents. I have verified that the response from the endpoint is as expected, returning an appropriate error message or status code indicating that the operation cannot be completed.
+
+**Tests added or updated:**
+[Which test files did you touch? What do they cover?]
+I created `tests/test_reviews.py`
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
+None
