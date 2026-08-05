@@ -2,6 +2,10 @@
 
 import pytest
 
+from core.logging import configure_logging
+
+configure_logging()
+
 
 @pytest.fixture
 def sample_resume_text() -> str:
