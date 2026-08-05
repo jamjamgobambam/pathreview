@@ -1,8 +1,105 @@
 """Tests for pii_scrubber.py"""
 
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 
 from safety.pii_scrubber import PIIScrubber
+
+ASCII_LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz"
+EMAIL_ATOM_CHARACTERS = f"{ASCII_LETTERS}0123456789"
+STREET_SUFFIXES = (
+    "Street",
+    "St",
+    "Avenue",
+    "Ave",
+    "Road",
+    "Rd",
+    "Boulevard",
+    "Blvd",
+    "Drive",
+    "Dr",
+    "Lane",
+    "Court",
+    "Circle",
+    "Way",
+    "Terrace",
+    "Trail",
+)
+
+
+def ascii_word(min_size=1, max_size=12):
+    """Build a bounded ASCII word accepted by the scrubber's PII formats."""
+    return st.text(alphabet=LOWERCASE_LETTERS, min_size=min_size, max_size=max_size)
+
+
+@st.composite
+def email_addresses(draw):
+    """Generate practical email addresses in the scrubber's supported domain."""
+    local_parts = draw(
+        st.lists(
+            st.text(alphabet=EMAIL_ATOM_CHARACTERS, min_size=1, max_size=8),
+            min_size=1,
+            max_size=3,
+        )
+    )
+    local_separator = draw(st.sampled_from((".", "_", "+", "-")))
+    local = local_separator.join(local_parts)
+    domain_parts = draw(st.lists(ascii_word(), min_size=1, max_size=3))
+    top_level_domain = draw(ascii_word(min_size=2, max_size=8))
+    return f"{local}@{'.'.join(domain_parts)}.{top_level_domain}"
+
+
+@st.composite
+def us_phone_numbers(draw):
+    """Generate US phone formats explicitly supported by the scrubber."""
+    digits = draw(st.text(alphabet="0123456789", min_size=10, max_size=10))
+    area, exchange, subscriber = digits[:3], digits[3:6], digits[6:]
+    phone_format = draw(st.sampled_from(("plain", "hyphen", "dot")))
+
+    if phone_format == "plain":
+        return digits
+
+    separator = "-" if phone_format == "hyphen" else "."
+    country_code = draw(st.sampled_from(("", "1", "1" + separator)))
+    return f"{country_code}{area}{separator}{exchange}{separator}{subscriber}"
+
+
+@st.composite
+def international_phone_numbers(draw):
+    """Generate international numbers in the scrubber's compact supported form."""
+    country_code = draw(st.text(alphabet="0123456789", min_size=1, max_size=3))
+    national_number = draw(st.text(alphabet="0123456789", min_size=4, max_size=6))
+    separator = draw(st.sampled_from(("", "-", ".")))
+    return f"+{country_code}{separator}{national_number}"
+
+
+@st.composite
+def social_security_numbers(draw):
+    """Generate structurally valid SSNs accepted by the scrubber."""
+    area = draw(st.one_of(st.integers(min_value=1, max_value=665), st.integers(667, 999)))
+    group = draw(st.integers(min_value=1, max_value=99))
+    serial = draw(st.integers(min_value=1, max_value=9999))
+    return f"{area:03d}-{group:02d}-{serial:04d}"
+
+
+@st.composite
+def street_addresses(draw):
+    """Generate simple US street addresses in the scrubber's supported form."""
+    number = draw(st.integers(min_value=1, max_value=99999))
+    street_name = " ".join(draw(st.lists(ascii_word(), min_size=1, max_size=3)))
+    suffix = draw(st.sampled_from(STREET_SUFFIXES))
+    return f"{number} {street_name} {suffix}"
+
+
+PII_VALUES = st.one_of(
+    email_addresses(),
+    us_phone_numbers(),
+    international_phone_numbers(),
+    social_security_numbers(),
+    street_addresses(),
+)
 
 
 @pytest.mark.unit
@@ -13,6 +110,61 @@ class TestPIIScrubber:
     def scrubber(self):
         """Create a PIIScrubber instance."""
         return PIIScrubber()
+
+    @given(email=email_addresses())
+    def test_generated_emails_are_redacted(self, email):
+        """Every generated supported email is removed without losing safe context."""
+        scrubbed = PIIScrubber().scrub(f"Contact email: {email}\nEnd of contact.")
+
+        assert email not in scrubbed
+        assert scrubbed == "Contact email: [REDACTED]\nEnd of contact."
+
+    @given(phone=us_phone_numbers())
+    def test_generated_us_phone_numbers_are_redacted(self, phone):
+        """Every generated supported US phone number is removed."""
+        scrubbed = PIIScrubber().scrub(f"Call this number: {phone}; thanks.")
+
+        assert phone not in scrubbed
+        assert scrubbed == "Call this number: [REDACTED]; thanks."
+
+    @given(phone=international_phone_numbers())
+    def test_generated_international_phone_numbers_are_redacted(self, phone):
+        """Every generated supported international phone number is removed."""
+        scrubbed = PIIScrubber().scrub(f"International contact: {phone}\nPlease call.")
+
+        assert phone not in scrubbed
+        assert scrubbed == "International contact: [REDACTED]\nPlease call."
+
+    @given(ssn=social_security_numbers())
+    def test_generated_ssns_are_redacted(self, ssn):
+        """Every generated structurally valid SSN is removed."""
+        scrubbed = PIIScrubber().scrub(f"Tax identifier: {ssn}. Keep private.")
+
+        assert ssn not in scrubbed
+        assert scrubbed == "Tax identifier: [REDACTED]. Keep private."
+
+    @given(address=street_addresses())
+    def test_generated_street_addresses_are_redacted(self, address):
+        """Every generated supported street address is removed."""
+        scrubbed = PIIScrubber().scrub(f"Mail to: {address}; recipient on file.")
+
+        assert address not in scrubbed
+        assert scrubbed == "Mail to: [REDACTED]; recipient on file."
+
+    @given(pii=PII_VALUES)
+    def test_scrubbing_generated_pii_is_idempotent(self, pii):
+        """Scrubbing generated PII twice has no additional effect."""
+        scrubber = PIIScrubber()
+        scrubbed = scrubber.scrub(f"Sensitive value: {pii}")
+
+        assert scrubber.scrub(scrubbed) == scrubbed
+
+    @given(text=st.text(max_size=200))
+    def test_scrubbing_bounded_arbitrary_text_does_not_crash(self, text):
+        """Reasonably sized arbitrary Unicode text can always be scrubbed."""
+        result = PIIScrubber().scrub(text)
+
+        assert isinstance(result, str)
 
     def test_email_redaction(self, scrubber):
         """Test email address is redacted."""
