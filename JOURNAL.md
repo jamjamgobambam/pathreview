@@ -85,3 +85,59 @@ before Week 9 if I have time, to get early feedback in office hours.
   the issue's scope and I'm not planning to fix it as part of #146, but I
   want to ask in Slack/office hours whether that's the right call or whether
   it should get filed as its own issue.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Fix is done and pushed. Set up a real `.venv` with `pip install -e ".[dev]"`
+(no Docker needed for this — `lint`/`format`/`typecheck`/`test-unit` are all
+pure Python, only `make run`/`migrate`/`seed` need the containers). Ran
+`make test-unit` before touching anything to get a baseline: 53 pre-existing
+failures across the suite, 5 of them in `test_pii_scrubber.py`. Root cause
+turned out to be two separate gaps in the same `phone_us` pattern, not just
+the one described in the issue: the leading `\b` can't match between two
+non-word characters (space then `(`), so parenthesized numbers were
+invisible to the pattern; and the separator character class only allowed
+`-`/`.`, not whitespace, so space-separated formats like `+1 555 123 4567`
+were silently missed too. Replaced the leading `\b` with `(?<!\w)` and added
+`\s` to the separator class. Reran `test-unit` after: 49 failures, exactly
+the 4 tests named in the issue now passing, nothing else changed (diffed the
+full failure list before/after to confirm). Added two more tests —
+`(555)123-4567` with no space after the parens, and two different formats
+redacted in the same string — since the "effective tests" guide says to
+cover cases the fixture set doesn't, not just the ones handed to me.
+`ruff`/`black`/`mypy` on the touched lines are clean; the file has
+pre-existing lint issues (unsorted imports, two long lines, an unused loop
+var) that were there before my change and aren't things I introduced.
+
+**Next steps:**
+Install `gh` and authenticate, open the PR against `ascherj/pathreview` as a
+draft, post it in the cohort Slack channel for a peer/mentor look before
+marking it ready for review. Also want to get Docker running before final
+submission so I can confirm the fix through `make run` and not just
+`test-unit` in isolation.
+
+**Blockers:**
+Peer review needs to happen in Slack per the assignment, so Check-in 2
+depends on someone actually looking at the draft PR before I can finalize —
+timing that against the deadline is the main risk this week.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [to fill in once opened — see blocker above]
+
+**Branch:** fix/146-pii-scrubber-phone-numbers
+
+**What you built:**
+[fill in after PR is open]
+
+**Tests added or updated:**
+[fill in after PR is open]
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** [fill in]
