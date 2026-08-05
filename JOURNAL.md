@@ -139,6 +139,86 @@ original) — left as-is and documented in the PR notes.
 
 ---
 
+## Week 10 — Iteration & reflection
+<!-- REVIEW & PERSONALIZE: this reflection is drafted from what actually happened
+     on this branch. Edit it so it reflects YOUR genuine experience and voice
+     before submitting — the grader rewards honesty and specificity, not polish. -->
+
+### Reviewer feedback
+
+**Feedback received:** [x] No — still awaiting review
+
+**Summary of feedback:**
+No maintainer/peer review was provided (per the Summer 2026 note, upstream
+reviewer feedback isn't given for this cohort). The one review I did get was the
+mentor review in Week 9 (Claude, approved by the instructor as this cohort's
+reviewer): it flagged that my `skip_dirs` set was a local variable while the
+module's other lookup tables (`EXT_TO_LANG`, `CONFIG_INDICATORS`) are class
+constants.
+
+**How you responded:**
+I agreed and hoisted it to a `SKIP_DIRS` class constant
+(`refactor(agent): hoist skip-dir set to SKIP_DIRS class constant`), then re-ran
+the tests and the baseline comparison to confirm no new failures. I left the
+Windows `\`-path limitation alone, since the original code had the same
+assumption and fixing it wasn't part of #150.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Two things. First, the bug looked like a one-line typo but the root cause was
+subtle: `_should_skip_file` matched `"/node_modules/"` as a substring, so it
+silently failed only for *top-level* paths (no leading slash) while still working
+for nested ones — which is exactly why it slipped past whoever wrote it. Reading
+the failing test paths carefully (`node_modules/...` vs `/node_modules/`) was what
+made it click. Second, the repo's baseline state was disorienting: `make
+test-unit` shows 53 failures and `mypy` 103 errors on a clean `main`. Figuring out
+that "passing" here means "introduces no *new* failures" — not "everything is
+green" — took a mindset shift I didn't expect.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's code is more about *fitting in* than being clever.
+The fix itself was ~10 lines; the real work was matching conventions
+(Conventional Commits, the `verb`/scope commit style, class-constant patterns),
+reading the existing tests as the spec, and — hardest to resist — *not* fixing
+things outside my issue. I found a second real bug (primary language is chosen
+alphabetically, not by count) and had to consciously leave it alone and note it
+for a separate issue, because a bugfix PR that also reformats files and fixes
+unrelated bugs is harder to review and more likely to be rejected. In my own
+projects I'd have just fixed everything at once.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for orientation and verification: mapping how the `agent/`
+module is structured, pinpointing the exact root-cause line, generating the
+segment-matching fix and edge-case tests in the repo's style, and running the
+disciplined baseline-vs-after comparison across `test-unit`/`ruff`/`black`/`mypy`.
+Where it fell short was *judgment*: whether to keep the second bug out of scope,
+whether to reformat pre-existing lint debt in a file I was touching, and whether
+`--no-verify` (to keep the diff minimal) was the right call — those were tradeoffs
+that depended on contribution norms and cohort expectations, not something AI
+could decide for me. It also can't do the human-loop parts: opening the PR
+(auth), or a real peer review.
+
+**What would you do differently if you started over?**
+I'd pace myself to the weekly structure instead of jumping straight to the fix in
+Week 7 — I effectively finished the code before the "reproduction & planning" and
+"building" weeks, which made those weeks feel like back-filling documentation
+rather than doing the work in order. I'd also file the alphabetical-primary-
+language bug as its own issue early, so it's captured and claimable rather than
+just a note in my journal.
+
+**What are you most proud of from this module?**
+The scope discipline and the honesty of the verification. It would have been easy
+to "improve" the whole file, but I kept the PR to exactly the issue, documented
+every pre-existing failure with before/after numbers, and made a clean,
+conventional commit history that tells the whole story (repro → fix → tests →
+review revision). The contribution is small, but it's *reviewable*, and I can
+defend every line and every decision in it.
+
+---
+
 ## Working notes
 
 ### 2026-07-17 — Environment setup
