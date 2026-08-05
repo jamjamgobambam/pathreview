@@ -66,6 +66,7 @@ PLAN.md sub-task 1 — confirming the intended contract on the issue thread — 
 ### Check-in 2 (end of week)
 
 **PR link:**
+ https://github.com/ascherj/pathreview/pull/XXX
 
 **Branch:** `fix/88-no-profile-associated-ingested-content-review-endpoint`
 
