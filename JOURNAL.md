@@ -58,3 +58,20 @@ Opening the PR, filling in the PR template with the fix description, before/afte
 
 **Blockers:**
 None
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/845
+
+**Branch:** fix/153-faithfulness-none-text-crash
+
+**What you built:**
+Fixed a `TypeError` in the faithfulness checker's `check()` method, where a context chunk with `text: None` crashed the context-joining step. Changed `chunk.get("text", "")` to `chunk.get("text") or ""` so both a missing key and an explicit `None` value normalize to an empty string.
+
+**Tests added or updated:**
+No new test file created; verified the existing test `test_none_context_chunk_text` in `tests/unit/test_faithfulness_checker.py`, which covers a context chunk with `text: None`, now passes after the fix.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(any stray errors are unrelated to this fix, and the fix did not introduce any new errors, only cleared the failing test that was related to the original issue)
+
+**Draft PR feedback received from:** none
