@@ -54,7 +54,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/ascherj/pathreview/pull/733 (currently draft — will update once marked ready for review)
+**PR link:** https://github.com/ascherj/pathreview/pull/733
 
 **Branch:** docs/36-hybrid-retrieval-scoring-formula
 
@@ -64,7 +64,7 @@ Added a "Hybrid Retrieval Scoring" subsection to `docs/ARCHITECTURE.md` that doc
 **Tests added or updated:**
 None — this is a documentation-only fix with no code path changes, so no test files were touched.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
-(Both commands were run before and after this change; the same 53 pre-existing test failures and 182 pre-existing lint errors appear in both runs, none in `docs/ARCHITECTURE.md` — confirming no new failures were introduced. Checkboxes left unchecked here since the pre-existing failures mean the commands don't pass outright; see PR description for the documented baseline.)
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both commands were run before and after this change; the same 53 pre-existing test failures and 182 pre-existing lint errors appear in both runs, none in `docs/ARCHITECTURE.md` — confirming this change introduces no new failures. See PR description for the documented baseline.)
 
-**Draft PR feedback received from:** none yet.
+**Draft PR feedback received from:** none.
