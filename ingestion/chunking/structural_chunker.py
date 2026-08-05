@@ -16,7 +16,7 @@ class StructuralChunker(BaseChunker):
 
     SECTION_TOKEN_LIMIT = 800
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the chunker."""
         self.encoder = tiktoken.get_encoding("cl100k_base")
         self.semantic_chunker = SemanticChunker()
@@ -49,22 +49,26 @@ class StructuralChunker(BaseChunker):
             if section_tokens > self.SECTION_TOKEN_LIMIT:
                 # Sub-chunk using semantic chunker
                 section_metadata = metadata.copy()
-                section_metadata.update({
-                    "heading_path": heading_path,
-                    "heading_level": section["level"],
-                })
+                section_metadata.update(
+                    {
+                        "heading_path": heading_path,
+                        "heading_level": section["level"],
+                    }
+                )
                 sub_chunks = self.semantic_chunker.chunk(section_text, section_metadata)
                 chunks.extend(sub_chunks)
             else:
                 # Single chunk for this section
                 section_metadata = metadata.copy()
-                section_metadata.update({
-                    "heading_path": heading_path,
-                    "heading_level": section["level"],
-                    "chunk_index": len(chunks),
-                    "char_start": 0,
-                    "char_end": len(section_text),
-                })
+                section_metadata.update(
+                    {
+                        "heading_path": heading_path,
+                        "heading_level": section["level"],
+                        "chunk_index": len(chunks),
+                        "char_start": 0,
+                        "char_end": len(section_text),
+                    }
+                )
                 chunks.append(Chunk(text=section_text, metadata=section_metadata))
 
         return chunks
@@ -73,27 +77,31 @@ class StructuralChunker(BaseChunker):
         """
         Extract sections from markdown with heading hierarchy.
 
-        Returns list of dicts with: content, path (breadcrumb), level
+        Content is collected regardless of whether a heading has been seen, so a
+        document with no headings — and any preamble before the first heading —
+        yields a section with an empty breadcrumb and level 0 rather than being
+        dropped.
+
+        Args:
+            text: The markdown text to split into sections
+
+        Returns:
+            List of dicts with: content, path (breadcrumb), level
         """
         lines = text.split("\n")
-        sections = []
-        heading_stack = []  # Stack of (level, heading_text)
-        current_section_lines = []
-        current_level = 0
+        sections: list[dict] = []
+        heading_stack: list[tuple[int, str]] = []  # Stack of (level, heading_text)
+        current_section_lines: list[str] = []
 
         for line in lines:
             heading_match = re.match(r"^(#{1,6})\s+(.+)$", line)
 
             if heading_match:
-                # Save previous section if exists
-                if current_section_lines:
-                    if heading_stack:
-                        sections.append({
-                            "content": "\n".join(current_section_lines).strip(),
-                            "path": [h[1] for h in heading_stack],
-                            "level": heading_stack[-1][0] if heading_stack else 0,
-                        })
-                    current_section_lines = []
+                # Save previous section, including any preamble before the first heading
+                section = self._build_section(current_section_lines, heading_stack)
+                if section:
+                    sections.append(section)
+                current_section_lines = []
 
                 # Process new heading
                 heading_level = len(heading_match.group(1))
@@ -104,24 +112,39 @@ class StructuralChunker(BaseChunker):
                     heading_stack.pop()
 
                 heading_stack.append((heading_level, heading_text))
-                current_level = heading_level
 
             else:
                 # Regular content line
-                # BUG(#149): content is only collected once a heading exists.
-                # For a document with NO headings, heading_stack stays empty and
-                # current_section_lines is never populated, so no section is ever
-                # emitted below (see the `and heading_stack` guards) and chunk()
-                # returns []. Repro: chunk("plain text " * 20, {}) -> 0 chunks.
-                if heading_stack or current_section_lines:  # Only collect if we have a heading
-                    current_section_lines.append(line)
+                current_section_lines.append(line)
 
         # Save final section
-        if current_section_lines and heading_stack:
-            sections.append({
-                "content": "\n".join(current_section_lines).strip(),
-                "path": [h[1] for h in heading_stack],
-                "level": heading_stack[-1][0] if heading_stack else 0,
-            })
+        section = self._build_section(current_section_lines, heading_stack)
+        if section:
+            sections.append(section)
 
         return sections
+
+    @staticmethod
+    def _build_section(
+        section_lines: list[str], heading_stack: list[tuple[int, str]]
+    ) -> dict | None:
+        """
+        Build a section dict from collected content lines.
+
+        Args:
+            section_lines: Content lines collected since the last heading
+            heading_stack: Current heading breadcrumb as (level, text) pairs
+
+        Returns:
+            A dict with content, path and level, or None if the lines hold no
+            content. Outside of any heading the path is empty and level is 0.
+        """
+        content = "\n".join(section_lines).strip()
+        if not content:
+            return None
+
+        return {
+            "content": content,
+            "path": [h[1] for h in heading_stack],
+            "level": heading_stack[-1][0] if heading_stack else 0,
+        }
