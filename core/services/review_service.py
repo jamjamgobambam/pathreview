@@ -1,19 +1,40 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
+NO_INGESTED_CONTENT_MESSAGE = (
+    "Profile has no ingested documents. Add a GitHub username, portfolio URL, "
+    "or resume before requesting a review."
+)
+
+
+async def profile_has_ingested_content(db: AsyncSession, profile: Profile) -> bool:
+    """
+    Check whether a profile has any content to review: either one of the
+    raw profile fields (github_username, portfolio_url, resume_text) is set,
+    or the profile already has IngestedSource rows from a prior ingestion.
+    """
+    if profile.github_username or profile.portfolio_url or profile.resume_text:
+        return True
+
+    stmt = select(IngestedSource.id).where(IngestedSource.profile_id == profile.id).limit(1)
+    result = await db.execute(stmt)
+    return result.scalars().first() is not None
+
 
 async def create_review(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
@@ -33,22 +54,23 @@ async def create_review(
 
 
 async def get_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    review: Review | None = result.scalars().first()
+    return review
 
 
 async def list_reviews(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     page: int = 1,
     page_size: int = 20,
@@ -74,13 +96,13 @@ async def list_reviews(
         .limit(page_size)
     )
     result = await db.execute(stmt)
-    reviews = result.scalars().all()
+    reviews = list(result.scalars().all())
 
     return reviews, total
 
 
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
@@ -132,6 +154,15 @@ async def process_review(
             sources_count=len(ingestion_results),
         )
 
+        if not ingestion_results:
+            log.warning("review_processing_no_ingested_content", review_id=str(review_id))
+            review.status = "failed"
+            review.error_message = NO_INGESTED_CONTENT_MESSAGE
+            review.updated_at = datetime.utcnow()
+            db.add(review)
+            await db.commit()
+            return
+
         # Step 3: Run agent orchestration
         agent_output = await _run_agent_orchestration(profile, ingestion_results)
         log.info(
@@ -166,7 +197,7 @@ async def process_review(
         ]
 
         review.status = "complete"
-        review.sections = [s.model_dump() for s in sections]
+        review.sections = [s.model_dump() for s in sections]  # type: ignore[assignment]
         review.overall_score = rag_output.get("overall_score", None)
         review.updated_at = datetime.utcnow()
 
@@ -194,12 +225,12 @@ async def process_review(
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
 
-async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
+async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[dict]:
     """
     Run ingestion pipeline to extract data from profile sources.
     Returns list of ingested source data.
     """
-    sources = []
+    sources: list[dict] = []
 
     # Ingest from GitHub if available
     if profile.github_username:

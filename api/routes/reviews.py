@@ -1,17 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
 from core.database import get_db
+from core.models.user import User
+from core.services.profile_service import get_profile
 from core.services.review_service import (
     create_review,
     get_review,
     list_reviews,
     process_review,
+    profile_has_ingested_content,
 )
 
 log = structlog.get_logger()
@@ -23,24 +26,40 @@ router = APIRouter(prefix="/reviews", tags=["reviews"])
 async def create_review_endpoint(
     data: ReviewCreate,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: User = Depends(get_current_user),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> ReviewResponse:
     """
     Create a new review for a profile.
     Triggers ingestion pipeline and agent orchestration asynchronously.
     Returns review with status="pending" immediately.
     """
     try:
+        profile = await get_profile(
+            db=db, profile_id=data.profile_id, user_id=UUID(str(current_user.id))
+        )
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found",
+            )
+
+        if not await profile_has_ingested_content(db, profile):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Profile has no ingested documents. Add a GitHub username, "
+                "portfolio URL, or resume before requesting a review.",
+            )
+
         # Create review with status="pending"
         review = await create_review(
             db=db,
             profile_id=data.profile_id,
-            user_id=current_user.id,
+            user_id=UUID(str(current_user.id)),
         )
 
         # Add background task for processing
-        background_tasks.add_task(process_review, db, review.id, data.profile_id)
+        background_tasks.add_task(process_review, db, UUID(str(review.id)), data.profile_id)
 
         log.info(
             "review_created",
@@ -49,7 +68,8 @@ async def create_review_endpoint(
             user_id=str(current_user.id),
         )
 
-        return ReviewResponse.model_validate(review)
+        response: ReviewResponse = ReviewResponse.model_validate(review)
+        return response
 
     except HTTPException:
         raise
@@ -59,21 +79,21 @@ async def create_review_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create review",
-        )
+        ) from exc
 
 
 @router.get("/{review_id}", response_model=ReviewResponse)
 async def get_review_endpoint(
     review_id: UUID,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: User = Depends(get_current_user),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> ReviewResponse:
     """
     Get a review by ID.
     Returns 404 if not found or not owned by current user.
     """
     try:
-        review = await get_review(db=db, review_id=review_id, user_id=current_user.id)
+        review = await get_review(db=db, review_id=review_id, user_id=UUID(str(current_user.id)))
 
         if not review:
             log.warning(
@@ -86,7 +106,8 @@ async def get_review_endpoint(
                 detail="Review not found",
             )
 
-        return ReviewResponse.model_validate(review)
+        response: ReviewResponse = ReviewResponse.model_validate(review)
+        return response
 
     except HTTPException:
         raise
@@ -95,16 +116,16 @@ async def get_review_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve review",
-        )
+        ) from exc
 
 
 @router.get("", response_model=ReviewListResponse)
 async def list_reviews_endpoint(
     page: int = 1,
     page_size: int = 20,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: User = Depends(get_current_user),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> ReviewListResponse:
     """
     List reviews for current user with pagination.
     """
@@ -116,7 +137,7 @@ async def list_reviews_endpoint(
 
         reviews, total = await list_reviews(
             db=db,
-            user_id=current_user.id,
+            user_id=UUID(str(current_user.id)),
             page=page,
             page_size=page_size,
         )
@@ -133,21 +154,21 @@ async def list_reviews_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to list reviews",
-        )
+        ) from exc
 
 
 @router.get("/{review_id}/status")
 async def get_review_status(
     review_id: UUID,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: User = Depends(get_current_user),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> dict:
     """
     Get review status and progress.
     Returns {review_id, status, progress_pct}
     """
     try:
-        review = await get_review(db=db, review_id=review_id, user_id=current_user.id)
+        review = await get_review(db=db, review_id=review_id, user_id=UUID(str(current_user.id)))
 
         if not review:
             log.warning(
@@ -173,4 +194,4 @@ async def get_review_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve review status",
-        )
+        ) from exc
