@@ -30,7 +30,9 @@ class StructuralChunker(BaseChunker):
             metadata: Document metadata
 
         Returns:
-            List of Chunk objects with heading_path in metadata
+            List of Chunk objects with heading_path in metadata. Content that
+            belongs to no heading carries an empty heading_path and a
+            heading_level of 0.
         """
         if not text or not text.strip():
             return []
@@ -85,15 +87,11 @@ class StructuralChunker(BaseChunker):
             heading_match = re.match(r"^(#{1,6})\s+(.+)$", line)
 
             if heading_match:
-                # Save previous section if exists
-                if current_section_lines:
-                    if heading_stack:
-                        sections.append({
-                            "content": "\n".join(current_section_lines).strip(),
-                            "path": [h[1] for h in heading_stack],
-                            "level": heading_stack[-1][0] if heading_stack else 0,
-                        })
-                    current_section_lines = []
+                # Save the previous section. Not gated on heading_stack, so a
+                # preamble before the first heading becomes its own section
+                # rather than being dropped or merged into the heading below it.
+                self._append_section(sections, current_section_lines, heading_stack)
+                current_section_lines = []
 
                 # Process new heading
                 heading_level = len(heading_match.group(1))
@@ -107,16 +105,35 @@ class StructuralChunker(BaseChunker):
                 current_level = heading_level
 
             else:
-                # Regular content line
-                if heading_stack or current_section_lines:  # Only collect if we have a heading
-                    current_section_lines.append(line)
+                # Regular content line. Collected unconditionally: content that
+                # appears before the first heading is still part of the document.
+                current_section_lines.append(line)
 
-        # Save final section
-        if current_section_lines and heading_stack:
-            sections.append({
-                "content": "\n".join(current_section_lines).strip(),
-                "path": [h[1] for h in heading_stack],
-                "level": heading_stack[-1][0] if heading_stack else 0,
-            })
+        # Save final section. Not gated on heading_stack, so a document with no
+        # headings at all still produces one section covering its full text.
+        self._append_section(sections, current_section_lines, heading_stack)
 
         return sections
+
+    def _append_section(self, sections: list[dict], lines: list[str], heading_stack: list) -> None:
+        """
+        Append a section to sections if it holds non-whitespace content.
+
+        Args:
+            sections: Accumulated sections, mutated in place.
+            lines: Content lines collected for the current section.
+            heading_stack: Current heading hierarchy. Empty when the content
+                appears before any heading, which yields an empty path and
+                level 0.
+        """
+        content = "\n".join(lines).strip()
+        if not content:
+            return
+
+        sections.append(
+            {
+                "content": content,
+                "path": [h[1] for h in heading_stack],
+                "level": heading_stack[-1][0] if heading_stack else 0,
+            }
+        )

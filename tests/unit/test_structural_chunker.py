@@ -238,3 +238,95 @@ Content for 3
 
         # Should not crash on empty sections
         assert isinstance(result, list)
+
+    # --- Regression tests for issue #149 ---
+
+    def test_headingless_document_preserves_full_text(self, chunker):
+        """Test heading-less document keeps its content instead of vanishing."""
+        text = "First sentence of the document.\nSecond sentence of the document."
+        result = chunker.chunk(text, {})
+
+        assert len(result) == 1
+        assert "First sentence of the document." in result[0].text
+        assert "Second sentence of the document." in result[0].text
+
+    def test_headingless_document_metadata(self, chunker):
+        """Test content with no heading gets an empty path and level 0."""
+        result = chunker.chunk("Plain text with no headings.", {})
+
+        assert len(result) == 1
+        assert result[0].metadata["heading_path"] == ""
+        assert result[0].metadata["heading_level"] == 0
+
+    def test_large_headingless_document_is_sub_chunked(self, chunker):
+        """Test heading-less document over the token limit gets sub-chunked."""
+        text = "This is a paragraph with lots of content. " * 200
+        assert len(chunker.encoder.encode(text)) > chunker.SECTION_TOKEN_LIMIT
+
+        result = chunker.chunk(text, {})
+
+        assert len(result) > 1
+        for chunk in result:
+            assert chunk.text.strip()
+
+    def test_headingless_document_preserves_source_metadata(self, chunker):
+        """Test caller metadata survives onto heading-less chunks."""
+        result = chunker.chunk("Plain text.", {"source": "readme", "version": 1})
+
+        assert len(result) == 1
+        assert result[0].metadata["source"] == "readme"
+        assert result[0].metadata["version"] == 1
+
+    def test_preamble_before_first_heading_is_kept(self, chunker):
+        """Test content before the first heading is not dropped."""
+        text = """A tagline that introduces the project.
+
+# Installation
+Run the installer.
+"""
+        result = chunker.chunk(text, {})
+
+        assert any("tagline that introduces" in c.text for c in result)
+
+    def test_preamble_is_its_own_chunk(self, chunker):
+        """Test preamble is not merged into the first heading's section."""
+        text = """Intro paragraph.
+
+# Installation
+Run the installer.
+"""
+        result = chunker.chunk(text, {})
+
+        preamble = [c for c in result if "Intro paragraph." in c.text]
+        assert len(preamble) == 1
+        assert preamble[0].metadata["heading_path"] == ""
+        assert preamble[0].metadata["heading_level"] == 0
+        # The preamble must not carry the heading's content with it
+        assert "Run the installer." not in preamble[0].text
+
+    def test_headings_only_document_emits_no_empty_chunks(self, chunker):
+        """Test a document of bare headings produces no empty-text chunks."""
+        result = chunker.chunk("# Alpha\n\n## Beta\n\n## Gamma", {})
+
+        for chunk in result:
+            assert chunk.text.strip()
+
+    def test_content_after_last_heading_is_kept(self, chunker):
+        """Test trailing content below the final heading is still flushed."""
+        text = """# Title
+Intro.
+
+## Final Section
+Trailing content below the last heading.
+"""
+        result = chunker.chunk(text, {})
+
+        assert any("Trailing content below the last heading." in c.text for c in result)
+
+    def test_hash_without_space_is_treated_as_content(self, chunker):
+        """Test '#NotAHeading' is content, not a heading, per CommonMark."""
+        result = chunker.chunk("#NotAHeading\nSome body text.", {})
+
+        assert len(result) == 1
+        assert "#NotAHeading" in result[0].text
+        assert result[0].metadata["heading_path"] == ""
