@@ -66,3 +66,25 @@ second, pre-existing bug in the same function (`settings.redis_host`/
 `redis_port` don't exist on `Settings`, only `redis_url` does) that I'll
 likely need to touch while wiring up a real Redis client for the actual
 fix.
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed all implementation sub-tasks from PLAN.md:
+1. ✅ Resolved aggregation question: using summed integer count across all event types (matches field name)
+2. ✅ Added `core/redis.py` with `get_redis()` dependency using `redis.Redis.from_url(settings.redis_url)`
+3. ✅ Fixed pre-existing Redis health check bug (host/port → from_url)
+4. ✅ Wired `SafetyMonitor` into `health_check()` with proper dependency injection
+5. ✅ Updated tests in `test_health.py`: all 3 tests pass (real data, no events, error handling)
+6. ✅ Passed linting (ruff, black) and type checking (mypy clean for our files)
+
+Commit: [63c6c5c](https://github.com/joshuawlee/pathreview/commit/63c6c5c) pushed to branch.
+
+**Next steps:**
+- Open a draft PR early for peer review
+- Run end-to-end test with docker compose (optional but recommended)
+- Gather feedback before finalizing and marking as ready for review
+
+**Blockers:**
+None. Pre-existing test failures (53 failed, 378 passed) existed before changes and are unrelated to issue #68.
