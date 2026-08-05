@@ -102,3 +102,111 @@ in files this fix touches. `check`: [FILL IN after re-running clean —
 document the pre-existing lint failure count here, e.g. "N pre-existing
 ruff errors across unrelated files, confirmed identical before/after."])
 
+
+## Week 10 — Reflection
+
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the environment actually running was a bigger time sink than
+the fix itself. I hit three separate blockers before I could even
+generate a migration: Alembic failing with a missing `script.py.mako`
+template file (had to restore it or copy it from the installed
+package), Docker Desktop not actually running when `docker compose up
+-d` failed against the socket, and only after both of those could I
+get to the real work. None of that was a "hard problem" in the
+interesting sense — it was just friction — but it ate a
+disproportionate amount of the week compared to writing the actual
+guard logic.
+
+The part of the actual fix that was harder than expected was my own
+test. My first version of the concurrency reproduction test used one
+shared fake DB session object for both "concurrent" calls, and it
+passed for the wrong reason — the shared session's `commit()` couldn't
+tell which call's object was which, so it silently let both through
+instead of catching a real conflict. I only caught this because the
+test's behavior didn't change the way I expected after I'd already
+fixed the underlying bug — if I hadn't dug into *why*, I could have
+shipped a fix with a test that wasn't actually testing anything. That
+was a good lesson in not trusting a passing test just because it's
+green.
+
+**What did you learn about working in a large codebase?**
+The issue as filed ("add a per-profile lock") undersold how many
+constraints the existing code already imposed on the solution space.
+`process_review()` commits three separate times across its lifecycle
+(status→processing, post-ingestion, completion) specifically so that
+`GET /reviews/{id}/status` can poll and see progress mid-flight. That
+ruled out an approach I initially considered — a transaction-scoped
+Postgres advisory lock held for the whole pipeline — because collapsing
+those three commits into one long transaction to support the lock
+would have quietly broken the polling endpoint. I wouldn't have known
+that constraint existed without actually reading `process_review()` in
+full before choosing a design. A DB-level partial unique index needed
+zero changes to that function, which made it the safer choice for a
+codebase I didn't write and don't fully understand every edge case of.
+
+I also learned that "pre-existing failures" isn't something to just
+assert — it's something to prove. I ran `make test-unit` and `make
+check` before touching anything, then diffed the exact `FAILED` list
+before and after my change rather than eyeballing whether the counts
+looked similar. That caught something real: one `make check` run
+looked at first like more pre-existing noise, but turned out to
+include two actual bugs I'd introduced — a missing `raise ... from exc`
+on my new `IntegrityError` handler, and an except-block that had landed
+in the wrong route function during editing. Without the diff, I might
+have logged those as "pre-existing" in my PR description, which would
+have been wrong and would have hidden my own bug from a reviewer.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was strongest for exactly the kind of work where "does
+this fit the existing code" mattered more than "is this correct in
+general" — reading `process_review()`'s actual commit structure before
+proposing a fix, rather than defaulting to the first textbook answer
+(advisory lock) that would have quietly broken something. It was also
+useful for the tedious-but-important self-review discipline: diffing
+failure lists rather than trusting a glance, catching that my fake
+test session was sharing state incorrectly, and picking the new lines
+out of a wall of ruff/mypy output.
+
+Where it fell short, or where I had to be the check on it rather than
+the other way around: I found an existing open PR for the same issue
+number on the upstream repo from another student, submitted with a
+completely different design — a Postgres advisory lock. It would have
+been easy to treat that as "the answer" and copy the approach
+uncritically. Instead I used it as a prompt to think about *why* that
+approach might not fit this specific codebase's commit structure, which
+is what actually led to the partial-unique-index design instead. The
+tool also can't verify things outside its reach — I still had to be the
+one who actually ran `docker compose up -d`, actually confirmed Docker
+Desktop was running, actually ran `\d reviews` against the real
+database to confirm the index landed. No amount of AI-assisted
+debugging replaces actually running the thing.
+
+**What would you do differently if you started over?**
+I'd read `process_review()`'s full commit structure *before* writing my
+Week 8 PLAN.md, not after starting Week 9 implementation. My original
+plan listed a transaction-scoped lock as one of a few options without
+flagging that it was actually incompatible with the existing polling
+behavior — I only discovered that constraint later, which meant some
+of my Week 8 planning time went toward an option I ended up ruling out
+for reasons I could have known from the start. I'd also set up and
+confirm the full local environment (Docker running, Alembic template
+file present) during Week 7 initial setup, rather than discovering both
+were broken in the middle of Week 9 when I actually needed to generate
+a migration.
+
+**What are you most proud of from this module?**
+Catching my own test bug. It would have been easy to see three green
+checkmarks after the first version of
+`test_concurrent_review_race.py` and move on — the assertions read
+correctly, the test ran, it passed. Instead, changing the fix and
+watching the test's behavior not change how I expected made me stop
+and actually trace *why*, which surfaced a real flaw in how I'd
+modeled concurrency (one shared fake session instead of separate
+sessions against a shared table). That's the kind of failure that's
+invisible from the outside — a reviewer looking at a green CI run
+would have no way to know the test wasn't testing what it claimed to
+— and I only caught it by not fully trusting my own first pass.
+>>>>>>> 0ef82c3 (fix(api): reject concurrent reviews for the same profile via DB constraint)

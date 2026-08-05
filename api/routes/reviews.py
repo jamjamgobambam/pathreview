@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
 from core.database import get_db
+from core.models.user import User
 from core.services.review_service import (
+    ReviewAlreadyInProgressError,  # NEW
     create_review,
     get_review,
     list_reviews,
@@ -51,6 +52,20 @@ async def create_review_endpoint(
 
         return ReviewResponse.model_validate(review)
 
+    except ReviewAlreadyInProgressError as exc:
+        log.info(
+            "review_creation_rejected_in_progress",
+            profile_id=str(data.profile_id),
+            existing_review_id=str(exc.existing_review.id),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "A review is already in progress for this profile.",
+                "review_id": str(exc.existing_review.id),
+                "status": exc.existing_review.status,
+            },
+        ) from exc
     except HTTPException:
         raise
     except Exception as exc:
