@@ -176,6 +176,26 @@ class TestReadmeScorer:
         assert data["word_count"] > 500
         assert data["word_count_category"] == "comprehensive"
 
+    def test_word_count_category_boundary_499_is_adequate(self, scorer):
+        """Test word_count_category boundary: exactly 499 words = adequate."""
+        readme = " ".join(["word"] * 499)  # one below the comprehensive cutoff
+
+        result = scorer.execute({"readme_content": readme})
+
+        data = result.data
+        assert data["word_count"] == 499
+        assert data["word_count_category"] == "adequate"
+
+    def test_word_count_category_boundary_500_is_comprehensive(self, scorer):
+        """Test word_count_category boundary: exactly 500 words = comprehensive."""
+        readme = " ".join(["word"] * 500)  # the comprehensive cutoff is inclusive
+
+        result = scorer.execute({"readme_content": readme})
+
+        data = result.data
+        assert data["word_count"] == 500
+        assert data["word_count_category"] == "comprehensive"
+
     def test_installation_section_detection(self, scorer):
         """Test detection of installation section."""
         readme_with_install = """
