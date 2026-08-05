@@ -67,18 +67,20 @@ upload), not issue #159. Needs to be rewritten (or a separate plan added) for
 
 **Current progress:**
 [What have you implemented so far? Which sub-tasks from PLAN.md are done?]
+Made some changes to the Printlog.
 
 **Next steps:**
 [What are you working on for the rest of the week?]
-
+I'll be working on the make file and the structlog fix
 **Blockers:**
 [Anything slowing you down? Or leave blank.]
-
+The make file keeps bugging out.
 ---
 
 ### Check-in 2 (end of week)
 
 **PR link:** [link to your submitted pull request]
+https://github.com/ascherj/pathreview/pull/852
 
 **Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
 fix/159-structlog-output-issue-with-pytest
@@ -107,3 +109,4 @@ So neither box is ticked for the repo as a whole, though the #159 change itself
 passes all three checks.
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
+none
