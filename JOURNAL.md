@@ -169,3 +169,34 @@ I reviewed the implementation and tests for scope, correctness, and valid Markdo
 
 **Draft PR feedback received from:**
 none yet
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback has come in yet. Summer 2026 notes indicate that reviewer feedback is not provided, so there is no feedback to summarize at this time.
+
+**How you responded:**
+No response or code changes were needed because no reviewer feedback has been received yet.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment and setup were harder than the code fix itself. Docker-backed validation repeatedly failed with EOF errors while pulling `postgres:16-alpine`, `redis:7-alpine`, and `chromadb/chroma:0.4.22`. That made full local runtime validation harder even though the implementation was a small configuration correction. The focused mocked tests still provided useful evidence for the route behavior, but I could not verify the complete Docker environment locally.
+
+**What did you learn about working in a large codebase?**
+I learned that fixing a route often requires tracing behavior across the route code, configuration definitions, and existing test patterns instead of editing only the obvious file. Checking how Redis was configured in `core/config.py` helped confirm that `settings.redis_url` was the existing source of truth. Matching the project's conventions and keeping the change scoped made the fix easier to test and review.
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped with codebase navigation, test planning, drafting the journal and `PLAN.md`, and organizing a debugging strategy. They could not solve the external Docker image pull and network issues directly, however. Their suggestions still needed to be checked against the repository's actual files and the output from the test commands before I could rely on them.
+
+**What would you do differently if you started over?**
+I would check the configuration definitions earlier and write the focused reproduction test sooner. I would also avoid spending too long trying to force the full Docker setup once it was clear that external image pull EOF errors were blocking it.
+
+**What are you most proud of from this module?**
+I am most proud of taking a real open-source issue from selection through reproduction, planning, implementation, tests, PR submission, and documentation. I kept the fix small and evidence-based, using the project's existing Redis configuration and focused tests rather than introducing unnecessary settings or unrelated changes.
