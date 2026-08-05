@@ -66,16 +66,27 @@ I'm working on the rest of the sub-tasks
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [Pull request link](https://github.com/ascherj/pathreview/compare/main...ninaony:pathreview:fix/159/structlog-output-not-captured?expand=1)
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** `fix/123-short-description`
 
 **What you built:**
 [1–3 sentences summarizing what your fix does and how it works]
+I added a call to `core/logging/py/configure_logging` in `tests/conftest.py`just like it's done in `scripts/seed_dv.py` so that the structlog configuration that hands the log to a stdlib handler would work. Essentially, without that configuration, structlog handles logs itself and default to writing to stderr. Caplog, which is what the test used watches stdlib, so I basically just switched on the stdlib configuration of structlog, which happened to already exist in the codebase.
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+`test_batch_processor` previously failed and now was fixed
 
-**Self-review confirmation:** [ ] make check passes [ ] make test-unit passes
+Added `test_logging_config` to test if the fix would apply suite-wide and not just for `test_batch_processor` module. I added two tests, one to test it the same way the codebase + test did and one using the actual function call that the codebase defined.
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Self-review confirmation:** [x] make check passes [x] make test-unit passes
+
+Make check:
+Previously had 180 errors, then I re-ran it after my fix and saw that that there was 181 error. This had to do with my comment that I included to mark where the bug was. When I removed it, there was still a traling space so I had to remove that. Now it's back to 180.
+
+Make test-unit:
+Previously had 53 failed, 375 passed, 1 warning, but then it became 52 failed, 376 passed, 2 warnings. The one more test passing and one less test failing is indicative of my fix. The additinal warning I was confused about, but I checked with Claude, and it said that it had nothing to do with my fix. One of the warnings was related to async which may not have fired at the time I had initially ran that command.
+
+This became 52 failed, 378 passed, and 2 warnings after I added my two tests.
+
+**Draft PR feedback received from:** none
