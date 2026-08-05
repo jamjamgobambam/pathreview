@@ -47,3 +47,16 @@ FAILED tests/unit/test_structural_chunker.py::TestStructuralChunker::test_docume
 
 **Blockers or open questions:**
 While tracing the caller (`ingestion/chunking/strategy_selector.py`), I also found that preamble text appearing *before* the first heading in a document that otherwise does have headings gets silently dropped too — same root cause line, different trigger condition. It's not what issue #149 describes, so I'm treating it as an open question for Week 9: fix it in the same PR since it's the same line and same root cause, or leave it out to keep the PR scoped to what the issue actually reports.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All 5 sub-tasks from `PLAN.md` are done. Baselined the repo first (`make check`: 182 pre-existing lint errors; `make test-unit`: 53 pre-existing failures / 375 passing — all unrelated seeded course bugs). Fixed the root cause directly in `_extract_sections()` in `ingestion/chunking/structural_chunker.py`: content lines are now always collected instead of only after a heading is seen, and a section is saved based on whether it has content rather than whether `heading_stack` is non-empty. This turned out to fix both the reported bug *and* the related preamble-drop bug from Week 8 in one change, since they share the same guard — updated `PLAN.md` to reflect that the implementation ended up simpler than originally planned (no `chunk()`-level fallback needed). Extended `tests/unit/test_structural_chunker.py` with 3 new tests plus a strengthened existing one; 18/18 pass in that file (was 14/15), and the full suite is at 379 passed / 52 failed (exactly the fix + 3 new tests, zero new regressions). Also confirmed via `git stash` that a handful of `make check` findings (2 unused-variable lint warnings, 7 missing-type-annotation mypy errors across this file and `semantic_chunker.py`) are pre-existing and identical on `origin/main` — fixed the 2 trivial lint ones since I was already in the file, left the mypy annotation gap alone since it's a project-wide pattern across every file in `tests/unit/`.
+
+**Next steps:**
+Open a draft PR, fill in the template (Summary/Issue/Changes/Testing/Notes for Reviewers), share it in the cohort Slack channel for peer/mentor feedback, address feedback, then mark it ready for review and fill in Check-in 2.
+
+**Blockers:**
+None.
