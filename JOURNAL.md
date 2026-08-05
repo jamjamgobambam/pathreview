@@ -28,6 +28,67 @@ would accomplish. Naming the part of the codebase it affects is helpful context.
 
 the issue is a failing test case: `test_readme_with_all_quality_signals`. As per the issue description, running `pytest tests/unit/test_readme_scorer.py -q` reproduces the issue. It is observed that the test case fails due to an `assert data["word_count"] > 100` error.
 
+Failing test terminal output:
+
+```python
+tests\unit\test_readme_scorer.py F......................         [100%]
+
+============================== FAILURES ===============================
+________ TestReadmeScorer.test_readme_with_all_quality_signals ________
+
+self = <tests.unit.test_readme_scorer.TestReadmeScorer object at 0x0000013DF91D0410>
+scorer = <agent.tools.readme_scorer.ReadmeScorer object at 0x0000013DF91BCC20>
+
+    def test_readme_with_all_quality_signals(self, scorer):
+        """Test README with all quality signals returns high score."""
+        readme = """
+        # Project Name
+        A comprehensive project description.
+    
+        ## Installation
+        ```bash
+        pip install package
+        ```
+    
+        ## Usage
+        ```python
+        import package
+        package.run()
+        ```
+    
+        ## Features
+        - Feature 1
+        - Feature 2
+        - Feature 3
+    
+        ## Tech Stack
+        - Python 3.9
+        - FastAPI
+        - PostgreSQL
+    
+        ![Build Status](https://example.com/badge.svg)
+        ![Coverage](https://example.com/coverage.svg)
+    
+        ## Live Demo
+        [Try it here](https://demo.example.com)
+        """
+    
+        result = scorer.execute({"readme_content": readme})
+    
+        assert result.success is True
+        data = result.data
+        assert data["has_readme"] is True
+>       assert data["word_count"] > 100
+E       assert 51 > 100
+
+tests\unit\test_readme_scorer.py:56: AssertionError
+------------------------ Captured stdout call -------------------------
+2026-08-05 10:55:53 [info     ] readme_scored                  category=minimal score=0.8717142857142858 word_count=51
+======================= short test summary info =======================
+FAILED tests/unit/test_readme_scorer.py::TestReadmeScorer::test_readme_with_all_quality_signals - assert 51 > 100
+==================== 1 failed, 22 passed in 0.82s =====================
+```
+
 **PLAN.md link:** [PLAN.md](./PLAN.md)
 
 **Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
