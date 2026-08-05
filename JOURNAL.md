@@ -17,12 +17,12 @@ There is a bug that occurs when the faithfulness checker receives a chunk of tex
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [link to commit documenting the reproduced issue](https://github.com/ascherj/pathreview/commit/5b47b1e28e418f09d4f1f9c5c9a833feff0e1161)
+**Reproduction commit link:** [https://github.com/ascherj/pathreview/commit/5b47b1e28e418f09d4f1f9c5c9a833feff0e1161]
 
 **Reproduction summary:**
 I created a script that called `FaithfulnessChecker().check()` with a context chunk that contained `{'text': None}`. This raised  `TypeError: sequence item 0: expected str instance, NoneType found`.
 
-**PLAN.md link:** [link to PLAN.md in your fork](https://github.com/Namisa-Mbayo/pathreview/blob/fix/153-faithfulness-none-text/Plan.md)
+**PLAN.md link:** [https://github.com/Namisa-Mbayo/pathreview/blob/fix/153-faithfulness-none-text/Plan.md]
 
 ## Week 9 — Solution building & PR submission
 
@@ -47,7 +47,7 @@ No major blockers right now.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [https://github.com/ascherj/pathreview/pull/956]
 
 **Branch:** `fix/153-faithfulness-none-text`
 
