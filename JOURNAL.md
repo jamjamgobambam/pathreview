@@ -27,3 +27,36 @@
 
 **Blockers or open questions:**
 Not yet sure if real-world PDF extraction output uses tabs, spaces, or mixed indentation before headers — plan to check sample resumes in Week 9 before finalizing the regex.
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Fixed regex pattern
+
+**Next steps:**
+Creating the PR
+
+**Blockers:**
+none
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [not yet opened — compare link: https://github.com/ascherj/pathreview/compare/main...Muta4ever:pathreview:fix/resume-section-leading-whitespace?expand=1]
+
+**Branch:** `fix/resume-section-leading-whitespace`
+
+**What you built:**
+Updated the four regex patterns in `_detect_sections` (`ingestion/parsers/resume_parser.py`) to allow optional leading whitespace (`\s*`) after each `^`/`\n` anchor, so section headers indented with spaces or tabs (as produced by PDF extraction) are now detected instead of silently dropped.
+
+**Tests added or updated:**
+No new tests added — the existing `test_detect_sections` in `tests/unit/test_resume_parser.py` already covered indented headers and was failing before the fix; it now passes, along with two other tests failing for the same root cause (`test_parse_single_column_resume_text`, `test_parse_resume_no_work_experience`).
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+Neither passes clean, but confirmed via `git stash` that all failures are pre-existing across the repo and unrelated to this change (53 unit test failures and 182 lint errors before my change vs. 50 and 180 after — the delta is exactly the 3 tests/2 lint issues this fix resolved). `ingestion/parsers/resume_parser.py` itself passes ruff, black, and mypy individually.
+
+**Draft PR feedback received from:** none yet — PR not opened
