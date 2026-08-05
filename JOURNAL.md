@@ -88,3 +88,25 @@ Commit: [63c6c5c](https://github.com/joshuawlee/pathreview/commit/63c6c5c) pushe
 
 **Blockers:**
 None. Pre-existing test failures (53 failed, 378 passed) existed before changes and are unrelated to issue #68.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [Add safety event count to health check endpoint](https://github.com/ascherj/pathreview/pull/[YOUR_PR_NUMBER])
+*(Open the PR on GitHub first, then update this link)*
+
+**Branch:** `fix/68-safety-event-health-check`
+
+**What you built:**
+Wired `SafetyMonitor` into the `/health` endpoint to report real safety event counts from Redis instead of the hardcoded 0 placeholder. The health check now sums counts across all 5 event types (PII, injection, content filtering, bias, rate limiting) and returns the total in `safety_events_last_hour`. Also fixed a pre-existing bug where the Redis health check tried to access non-existent settings fields.
+
+**Tests added or updated:**
+`tests/unit/test_health.py` — 3 new tests:
+- `test_safety_events_last_hour_reflects_real_redis_data` — verifies summing across multiple event types (expects 8 from mock data)
+- `test_safety_events_last_hour_zero_when_no_events` — verifies 0 when no events recorded
+- `test_safety_events_check_handles_redis_error_gracefully` — verifies graceful error handling
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** [pending peer review]
