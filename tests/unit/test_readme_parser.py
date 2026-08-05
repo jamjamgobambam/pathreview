@@ -1,9 +1,12 @@
 """Tests for readme_parser.py"""
 
+from pathlib import Path
+from textwrap import dedent
+
 import pytest
 
-from ingestion.parsers.readme_parser import ReadmeParser
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.readme_parser import ReadmeParser
 
 
 @pytest.mark.unit
@@ -11,11 +14,17 @@ class TestReadmeParser:
     """Test suite for ReadmeParser."""
 
     @pytest.fixture
-    def parser(self):
+    def parser(self) -> ReadmeParser:
         """Create a ReadmeParser instance."""
         return ReadmeParser()
 
-    def test_parse_standard_readme(self, parser, sample_readme_text):
+    @staticmethod
+    def readme_fixture(name: str) -> str:
+        """Load a README fixture from the test-data directory."""
+        fixture_path = Path(__file__).parents[1] / "test_data" / name
+        return fixture_path.read_text(encoding="utf-8")
+
+    def test_parse_standard_readme(self, parser: ReadmeParser, sample_readme_text: str) -> None:
         """Test parsing a standard README."""
         result = parser.parse(sample_readme_text)
 
@@ -28,7 +37,7 @@ class TestReadmeParser:
         assert "word_count" in result.metadata
         assert result.metadata["word_count"] > 0
 
-    def test_parse_readme_longer_than_10000_chars(self, parser):
+    def test_parse_readme_longer_than_10000_chars(self, parser: ReadmeParser) -> None:
         """Test parsing a README longer than 10,000 characters - full text preserved."""
         # Create a README with > 10,000 characters
         large_readme = "# Large README\n"
@@ -46,7 +55,17 @@ class TestReadmeParser:
         assert len(result.text) == len(large_readme)
         assert result.metadata["word_count"] > 100
 
-    def test_parse_readme_with_code_blocks(self, parser):
+    def test_parse_large_readme_fixture_preserves_all_content(self, parser: ReadmeParser) -> None:
+        """Parse a file over 100 lines without truncating its text or headings."""
+        comprehensive_readme = self.readme_fixture("README.md")
+        result = parser.parse(comprehensive_readme)
+
+        assert len(comprehensive_readme.splitlines()) > 100
+        assert result.text == comprehensive_readme
+        assert result.metadata["word_count"] >= 500
+        assert result.metadata["heading_count"] >= 5
+
+    def test_parse_readme_with_code_blocks(self, parser: ReadmeParser) -> None:
         """Test parsing README with code blocks."""
         readme_with_code = """
         # Project
@@ -68,7 +87,7 @@ class TestReadmeParser:
         assert isinstance(result, ParseResult)
         assert result.metadata["has_code_blocks"] is True
 
-    def test_parse_readme_without_code_blocks(self, parser):
+    def test_parse_readme_without_code_blocks(self, parser: ReadmeParser) -> None:
         """Test parsing README without code blocks."""
         readme_no_code = """
         # Project
@@ -86,9 +105,9 @@ class TestReadmeParser:
         assert isinstance(result, ParseResult)
         assert result.metadata["has_code_blocks"] is False
 
-    def test_parse_empty_readme(self, parser):
+    def test_parse_empty_readme(self, parser: ReadmeParser) -> None:
         """Test parsing empty README - returns empty ParseResult without crashing."""
-        result = parser.parse("")
+        result = parser.parse(self.readme_fixture("EMPTY.md"))
 
         assert isinstance(result, ParseResult)
         assert result.text == ""
@@ -96,14 +115,14 @@ class TestReadmeParser:
         assert result.metadata["heading_count"] == 0
         assert result.source_type == "readme"
 
-    def test_parse_readme_with_only_whitespace(self, parser):
+    def test_parse_readme_with_only_whitespace(self, parser: ReadmeParser) -> None:
         """Test parsing README with only whitespace."""
         result = parser.parse("   \n\n  \t  ")
 
         assert isinstance(result, ParseResult)
         assert result.metadata["word_count"] == 0
 
-    def test_parse_readme_bytes_input(self, parser):
+    def test_parse_readme_bytes_input(self, parser: ReadmeParser) -> None:
         """Test parsing README from bytes input."""
         readme_bytes = b"# Test README\nContent here"
         result = parser.parse(readme_bytes)
@@ -112,24 +131,25 @@ class TestReadmeParser:
         assert "Test README" in result.text
         assert "Content here" in result.text
 
-    def test_parse_readme_bytes_with_utf8(self, parser):
+    def test_parse_readme_bytes_with_utf8(self, parser: ReadmeParser) -> None:
         """Test parsing README bytes with UTF-8 characters."""
-        readme_bytes = "# Café README\nThis has émojis 🎉".encode("utf-8")
+        readme_bytes = "# Café README\nThis has émojis 🎉".encode()
         result = parser.parse(readme_bytes)
 
         assert isinstance(result, ParseResult)
         assert "Café" in result.text or "Caf" in result.text
 
-    def test_parse_invalid_content_type(self, parser):
+    def test_parse_invalid_content_type(self, parser: ReadmeParser) -> None:
         """Test that invalid content type raises ValueError."""
         with pytest.raises(ValueError) as exc_info:
-            parser.parse(12345)
+            parser.parse(12345)  # type: ignore[arg-type]
 
         assert "Content must be a string or bytes" in str(exc_info.value)
 
-    def test_extract_heading_hierarchy(self, parser):
+    def test_extract_heading_hierarchy(self, parser: ReadmeParser) -> None:
         """Test heading hierarchy extraction."""
-        markdown = """
+        markdown = dedent(
+            """
         # Main Title
         Some content
 
@@ -142,6 +162,7 @@ class TestReadmeParser:
         ## Another Section
         Final content
         """
+        )
         headings = parser._extract_heading_hierarchy(markdown)
 
         assert isinstance(headings, list)
@@ -152,7 +173,15 @@ class TestReadmeParser:
         assert 2 in levels
         assert 3 in levels
 
-    def test_extract_heading_hierarchy_no_headings(self, parser):
+    def test_indented_code_block_is_not_a_heading(self, parser: ReadmeParser) -> None:
+        """Do not treat Markdown code blocks as headings."""
+        markdown = "# Title\n\n    # Not a heading\n    print('example')"
+
+        headings = parser._extract_heading_hierarchy(markdown)
+
+        assert [heading["text"] for heading in headings] == ["Title"]
+
+    def test_extract_heading_hierarchy_no_headings(self, parser: ReadmeParser) -> None:
         """Test heading extraction from text with no headings."""
         text = "Just some plain text without any markdown headings."
         headings = parser._extract_heading_hierarchy(text)
@@ -160,7 +189,7 @@ class TestReadmeParser:
         assert isinstance(headings, list)
         assert len(headings) == 0
 
-    def test_parse_readme_with_badges(self, parser):
+    def test_parse_readme_with_badges(self, parser: ReadmeParser) -> None:
         """Test parsing README with badges."""
         readme_with_badges = """
         # Project
@@ -174,7 +203,7 @@ class TestReadmeParser:
         assert isinstance(result, ParseResult)
         assert result.metadata["has_badges"] is True
 
-    def test_parse_readme_without_badges(self, parser):
+    def test_parse_readme_without_badges(self, parser: ReadmeParser) -> None:
         """Test parsing README without badges."""
         readme_no_badges = """
         # Project
@@ -185,7 +214,7 @@ class TestReadmeParser:
         assert isinstance(result, ParseResult)
         assert result.metadata["has_badges"] is False
 
-    def test_metadata_structure(self, parser):
+    def test_metadata_structure(self, parser: ReadmeParser) -> None:
         """Test that metadata has required structure."""
         result = parser.parse("# Test\nContent")
 
@@ -196,7 +225,7 @@ class TestReadmeParser:
         assert "has_badges" in result.metadata
         assert result.metadata["source_type"] == "readme"
 
-    def test_word_count_accuracy(self, parser):
+    def test_word_count_accuracy(self, parser: ReadmeParser) -> None:
         """Test word count accuracy."""
         text = "This is a test with exactly ten words in the readme text"
         result = parser.parse(text)

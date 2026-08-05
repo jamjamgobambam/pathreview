@@ -1,4 +1,5 @@
 import re
+from textwrap import dedent
 
 from .base import BaseParser, ParseResult
 
@@ -51,14 +52,20 @@ class ReadmeParser(BaseParser):
         Returns a list of dicts with: level, text, line_number
         """
         headings = []
-        for line_num, line in enumerate(content.split("\n")):
-            match = re.match(r"^(#{1,6})\s+(.+)$", line)
+        normalized_content = dedent(content)
+
+        for line_num, line in enumerate(normalized_content.split("\n")):
+            # CommonMark permits up to three leading spaces before a heading.
+            # Four or more spaces indicate an indented code block instead.
+            match = re.match(r"^ {0,3}(#{1,6})\s+(.+)$", line)
             if match:
                 level = len(match.group(1))
                 text = match.group(2).strip()
-                headings.append({
-                    "level": level,
-                    "text": text,
-                    "line": line_num,
-                })
+                headings.append(
+                    {
+                        "level": level,
+                        "text": text,
+                        "line": line_num,
+                    }
+                )
         return headings
