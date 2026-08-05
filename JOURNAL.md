@@ -275,7 +275,7 @@ Please review the fixture threshold: `comprehensive` is 500+ words in `ReadmeSco
 
 
 
-**PR link:** To be added after the PR is opened.
+**PR link:** To be added after the PR is opened. [https://github.com/ascherj/pathreview/pull/454]
 
 **Branch:** [the branch name: `fix/156-readme-scorer-test-fixture`]
 
@@ -296,6 +296,6 @@ Results:
 23 passed in 0.73s
 ```
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** [name or Slack handle, or "none"] Codex
 
 

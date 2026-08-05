@@ -1,4 +1,4 @@
-.PHONY: setup run test-unit test-integration test-all lint format typecheck check migrate seed reset-db eval clean
+.PHONY: setup run test-unit test-integration test-all test-readme lint lint-readme format typecheck typecheck-readme check check-readme migrate seed reset-db eval clean
 
 SHELL := /bin/bash
 
@@ -12,6 +12,7 @@ endif
 PYTHON := $(VENV_BIN)/python
 PIP := $(VENV_BIN)/pip
 PYTEST := $(VENV_BIN)/pytest
+README_FILES := agent/tools/readme_scorer.py ingestion/parsers/readme_parser.py tests/unit/test_readme_scorer.py tests/unit/test_readme_parser.py
 
 # ---- Setup ----
 
@@ -45,10 +46,16 @@ test-integration: ## Run integration tests only
 test-all: ## Run full test suite
 	$(PYTEST) tests/ -v
 
+test-readme: ## Run README parser and scorer tests only
+	$(PYTEST) tests/unit/test_readme_scorer.py tests/unit/test_readme_parser.py -v -m unit
+
 # ---- Code Quality ----
 
 lint: ## Run ruff linter
 	$(VENV_BIN)/ruff check .
+
+lint-readme: ## Run ruff only on README parser/scorer work
+	$(VENV_BIN)/ruff check $(README_FILES)
 
 format: ## Run black formatter
 	$(VENV_BIN)/black .
@@ -56,7 +63,12 @@ format: ## Run black formatter
 typecheck: ## Run mypy type checker
 	$(VENV_BIN)/mypy api/ core/ ingestion/ rag/ agent/ safety/
 
+typecheck-readme: ## Run the pre-commit mypy check only on README parser/scorer work
+	$(VENV_BIN)/pre-commit run mypy --files $(README_FILES)
+
 check: lint format typecheck ## Run lint + format + typecheck
+
+check-readme: lint-readme typecheck-readme test-readme ## Check README parser/scorer work only
 
 # ---- Database ----
 

@@ -1,18 +1,3 @@
-assert 51 > 100
-        assert 51 > 100
-                assert 51 > 100
-                        assert 51 > 100
-                                assert 51 > 100
+# Short README
 
-result = scorer.execute({"readme_content": readme})
-    
-        assert result.success is True
-        data = result.data
-        assert data["has_readme"] is True
-        assert data["word_count"] > 100
-        assert 51 > 100
-        assert 51 > 100
-        assert 51 > 100
-        assert 51 > 100
-
-assert 51 > 100
+This intentionally brief fixture verifies the minimal word-count category.

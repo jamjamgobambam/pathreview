@@ -1,12 +1,15 @@
 """Shared test fixtures for PathReview."""
 
+from textwrap import dedent
+
 import pytest
 
 
 @pytest.fixture
 def sample_resume_text() -> str:
     """Return a sample resume text for testing."""
-    return """
+    return dedent(
+        """
     Jane Doe
     Software Engineer
     jane.doe@example.com | github.com/janedoe
@@ -20,6 +23,7 @@ def sample_resume_text() -> str:
 
     Skills: Python, JavaScript, React, PostgreSQL, Docker
     """
+    )
 
 
 @pytest.fixture

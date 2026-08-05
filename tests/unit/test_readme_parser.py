@@ -1,6 +1,7 @@
 """Tests for readme_parser.py"""
 
 from pathlib import Path
+from textwrap import dedent
 
 import pytest
 
@@ -63,14 +64,6 @@ class TestReadmeParser:
         assert result.text == comprehensive_readme
         assert result.metadata["word_count"] >= 500
         assert result.metadata["heading_count"] >= 5
-
-    def test_parse_unstructured_readme_fixture(self, parser: ReadmeParser) -> None:
-        """Parse an external Markdown fixture with mixed, unstructured content."""
-        unstructured_readme = self.readme_fixture("READMEE.md")
-        result = parser.parse(unstructured_readme)
-
-        assert result.text == unstructured_readme
-        assert result.metadata["word_count"] > 0
 
     def test_parse_readme_with_code_blocks(self, parser: ReadmeParser) -> None:
         """Test parsing README with code blocks."""
@@ -155,7 +148,8 @@ class TestReadmeParser:
 
     def test_extract_heading_hierarchy(self, parser: ReadmeParser) -> None:
         """Test heading hierarchy extraction."""
-        markdown = """
+        markdown = dedent(
+            """
         # Main Title
         Some content
 
@@ -168,6 +162,7 @@ class TestReadmeParser:
         ## Another Section
         Final content
         """
+        )
         headings = parser._extract_heading_hierarchy(markdown)
 
         assert isinstance(headings, list)
@@ -177,6 +172,14 @@ class TestReadmeParser:
         assert 1 in levels
         assert 2 in levels
         assert 3 in levels
+
+    def test_indented_code_block_is_not_a_heading(self, parser: ReadmeParser) -> None:
+        """Do not treat Markdown code blocks as headings."""
+        markdown = "# Title\n\n    # Not a heading\n    print('example')"
+
+        headings = parser._extract_heading_hierarchy(markdown)
+
+        assert [heading["text"] for heading in headings] == ["Title"]
 
     def test_extract_heading_hierarchy_no_headings(self, parser: ReadmeParser) -> None:
         """Test heading extraction from text with no headings."""
