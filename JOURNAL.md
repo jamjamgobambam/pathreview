@@ -33,3 +33,35 @@ Ran `pytest tests/unit/test_review_service.py -q` on the `fix/158-review-service
 
 **Blockers or open questions:**
 Deciding between a minimal per-test fix (swap `AsyncMock()` → `MagicMock()` in each of the 13 tests) and refactoring the mock setup into a shared helper/fixture to prevent the mistake recurring. Leaning toward the shared helper, but want to confirm it doesn't disturb the 6 already-passing `create_review` tests.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the core fix from PLAN.md step 1: swapped `mock_result = AsyncMock()` → `MagicMock()` in all 13 affected `get_review`/`list_reviews` tests and added `MagicMock` to the `unittest.mock` import. With `db.execute` still an `AsyncMock` returning that `MagicMock`, `await db.execute(...)` resolves to a plain result object and the synchronous `scalars().first()/.all()` chain works. `pytest tests/unit/test_review_service.py -q` now reports **19 passed** (up from 6). Along the way I found a *second*, latent bug the async-mock error had been masking: `test_list_reviews_ordered_by_created_at` asserted `execute.assert_called_once()`, but `list_reviews` runs **two** queries (count + page), so I corrected it to `assert execute.call_count == 2`. I decided **against** PLAN.md step 2 (shared helper/fixture) to keep the diff minimal and reviewable for a first PR — noted as a follow-up suggestion instead.
+
+**Next steps:**
+Run the full `make test-unit` and `make check` to confirm no regressions, document the codebase's pre-existing failures, write and open the PR from the template, and request peer review before marking it ready.
+
+**Blockers:**
+The repo has substantial **pre-existing** failures unrelated to #158: `make test-unit` fails in five other test files, and `make check` fails on ~182 ruff issues plus repo-wide mypy `no-untyped-def` errors (including in `review_service.py`, which I did not modify). Confirming my change introduces *zero* new failures rather than trying to fix the whole codebase, per the module's pre-existing-failures guidance.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/904
+
+**Branch:** `fix/158-review-service-async-mocks`
+
+**What you built:**
+Fixed the misconfigured async mocks in `tests/unit/test_review_service.py`: the mocked `db.execute()` result was an `AsyncMock`, so `result.scalars()` returned an un-awaited coroutine and `.first()/.all()` raised `AttributeError`. Using a `MagicMock` result (while keeping `db.execute` an `AsyncMock`) makes the synchronous SQLAlchemy 2.x result API resolve correctly, taking the file from 6/19 to **19/19 passing**. No production code changed.
+
+**Tests added or updated:**
+`tests/unit/test_review_service.py` — the 13 previously-failing `get_review`/`list_reviews` tests now pass and cover: correct-owner retrieval, wrong-owner returning `None`, ownership/join query construction, default and custom pagination, page-2 offset, `(reviews, total)` tuple shape, empty vs. populated result lists, total-count calculation, and the two-query (count + page) call count in `list_reviews`.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+_(Documented pre-existing failures: on `main`/at baseline `make test-unit` = 53 failed / 375 passed and `make check` fails on pre-existing ruff + mypy issues. After this change `make test-unit` = 40 failed / 388 passed — exactly the 13 target tests fixed, **0 new failures** — and ruff/format on the changed file are unchanged (8 pre-existing errors, none introduced). Per the module's pre-existing-failures guidance, "passes" here means this change introduces no new failures.)_
+
+**Draft PR feedback received from:** none
