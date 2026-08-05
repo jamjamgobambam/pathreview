@@ -18,34 +18,98 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+
+        A comprehensive project description for a full-stack portfolio review
+        assistant. This tool ingests a candidate's resume and GitHub projects,
+        analyzes the quality signals in each repository, and produces
+        actionable, human-readable feedback that helps developers present their
+        work more effectively to hiring managers and technical reviewers.
 
         ## Installation
+
+        Getting started takes only a few minutes. Clone the repository, create a
+        virtual environment, install the dependencies, and run the setup script.
+        The project targets Python 3.9 and above and has been tested on macOS,
+        Linux, and the Windows Subsystem for Linux.
+
         ```bash
-        pip install package
+        git clone https://github.com/example/project.git
+        cd project
+        pip install -r requirements.txt
+        make setup
         ```
 
         ## Usage
+
+        After installation, start the development servers and open the web
+        interface in your browser. The example below shows how to score a single
+        README programmatically, which is the most common way to use the library
+        inside your own automation or continuous integration pipeline.
+
         ```python
         import package
-        package.run()
+
+        scorer = package.ReadmeScorer()
+        result = scorer.run("path/to/README.md")
+        print(result.overall_score)
         ```
 
+        Each run returns a structured result object containing the word count,
+        the detected sections, and an overall quality score between zero and one.
+        You can wire these numbers into dashboards, pull request checks, or
+        automated review comments so contributors get feedback immediately.
+
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+
+        - Feature 1: automatic word-count and readability scoring for any README
+        - Feature 2: section detection for installation, usage, and demo links
+        - Feature 3: badge and continuous integration status recognition
+        - Feature 4: an extensible plugin system for custom quality heuristics
+        - Feature 5: export to JSON, Markdown, and richly formatted HTML reports
+
+        The scoring engine is deliberately transparent. Every signal it measures
+        is documented, and the weighting for each component can be overridden
+        through a simple configuration file, so teams can tune the rubric to
+        match their own definition of a high-quality project README.
 
         ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
+
+        - Python 3.9 for the core scoring library and command-line interface
+        - FastAPI for the asynchronous backend application programming interface
+        - PostgreSQL for durable storage of historical scores and review results
+        - Redis for caching expensive computations and rate-limiting requests
+        - React and Vite for the fast, modern single-page front-end experience
+
+        This stack was chosen for its balance of developer productivity, runtime
+        performance, and long-term maintainability across a growing codebase.
+
+        ## Live Demo
+
+        [Try it here](https://demo.example.com) to see the scorer analyze a real
+        repository in your browser without installing anything on your machine.
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
 
-        ## Live Demo
-        [Try it here](https://demo.example.com)
+        ## Configuration
+
+        All runtime behavior can be adjusted through environment variables or a
+        small YAML configuration file placed in the project root. You can change
+        the scoring thresholds, enable or disable individual heuristics, point
+        the application at a different database, and configure logging verbosity
+        without touching any source code. Sensible defaults are provided so the
+        tool works out of the box for most repositories on the very first run.
+
+        ## Contributing
+
+        Contributions are welcome and appreciated. Please read the contributing
+        guide, follow the branch naming and commit message conventions, run the
+        full test suite, and open a pull request describing the change you made
+        and the reasoning behind it. Every submission is reviewed by a maintainer
+        before it is merged into the main development branch of the project. If
+        you are unsure where to begin, browse the open issues labeled good first
+        issue for approachable, well-scoped tasks that make an excellent starting
+        point for your very first contribution to this growing open project.
         """
 
         result = scorer.execute({"readme_content": readme})
