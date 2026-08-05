@@ -92,12 +92,33 @@ PDF-extracted resume text commonly has leading whitespace on each line. The 4 re
 
 ---
 
-## Week 10 — Reviewer Feedback
+## Week 10 — Iteration & reflection
 
-**PR link:** https://github.com/ascherj/pathreview/pull/232
+### Reviewer feedback
 
-**Feedback received:** None — no comments from reviewers or maintainers as of end of week.
+**Feedback received:** [ ] Yes  [Y] No — reviewer feedback is not provided in Summer 2026
 
-**Note:** Per course instructions, reviewer feedback is not a feature in Summer 2026. This section is included for completeness and will be expanded in Fall 2026.
+**Summary of feedback:**
+No review came in. Per course instructions, peer/maintainer review is not a feature in Summer 2026 and will be expanded in Fall 2026.
 
-**Status:** PR remains open. No changes needed this week. Moving on.
+**How you responded:**
+N/A — no feedback to respond to. PR #232 remains open at https://github.com/ascherj/pathreview/pull/232.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Understanding the full shape of the codebase before touching anything was harder than I expected. I assumed the bug would be isolated to one function and easy to find, but I had to trace through `parse()` → `_parse_pdf()` → `_detect_sections()` to understand why section detection was failing silently — it never raised an error, it just returned an empty list. Silent failures in parsing pipelines are harder to debug than exceptions because there is no stack trace pointing you to the problem. I also did not anticipate that the same anchoring issue existed in `_strip_markdown()`, so I had to scope the fix wider than originally planned.
+
+**What did you learn about working in a large codebase?**
+The biggest difference from building my own project is that you cannot hold the whole codebase in your head. In my own projects I know why every line exists. Here, I had to build trust incrementally — reading existing tests to understand expected behavior before I changed anything, and running `make test-unit` frequently to catch regressions I did not anticipate. I also learned that pre-existing lint failures in unrelated files create noise that makes it hard to know whether your own changes are clean. Scoping checks to only the files I touched (`ruff check ingestion/parsers/resume_parser.py`) was more useful than running `make check` against the whole repo.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for two things: quickly locating the exact lines where the bug lived (lines 135–138 in `resume_parser.py`) and generating the reproduction script that confirmed the bug reliably before I wrote any fix. That saved significant time compared to reading through the entire file manually. Where AI fell short was in understanding project conventions — it could not tell me without reading `docs/CONTRIBUTING.md` that commit messages needed a scope like `fix(ingestion):`, or that `make check` errors in unrelated files were pre-existing and not my responsibility to fix. I had to read the docs myself and make that judgment call.
+
+**What would you do differently if you started over?**
+I would read `docs/CONTRIBUTING.md` on day one, before writing a single line of code. I spent time cleaning up lint issues near the end that I could have avoided by knowing the conventions upfront. I would also write the failing `xfail` test first, before attempting the fix — I did eventually do this, but adding the test after the fact made the commit history slightly awkward. Test-first would have made the reproduction step and the fix step cleaner as separate commits.
+
+**What are you most proud of from this module?**
+I am most proud of correctly identifying and fixing the `_strip_markdown()` edge case, which was not mentioned in the original issue. The issue only described the `_detect_sections()` bug, but while reading the code I noticed that `_strip_markdown()` had the same `^` anchoring problem for indented markdown headers. Catching that secondary bug and fixing it in the same PR — without being told to — is the kind of thing that makes a contribution genuinely useful rather than just technically correct.
