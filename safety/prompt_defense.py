@@ -1,10 +1,9 @@
 """Prompt injection detection and defense."""
 
+import logging
 import re
 
-import structlog
-
-logger = structlog.get_logger()
+logger = logging.getLogger(__name__)
 
 
 class PromptDefense:

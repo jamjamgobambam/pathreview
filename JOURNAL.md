@@ -35,7 +35,7 @@ I am currently researching the best regular expression (regex) pattern to ensure
 
 ### Check-in 1 (mid-week)
 **Current progress:**
-I have fully implemented the sanitization fix inside `safety/prompt_defense.py`. Instead of manually trying to replace strings, I leveraged the existing `INJECTION_PATTERNS` regex list and applied `re.sub()` with the `re.IGNORECASE` flag to strip out `\n---\n` and `\nSystem:` during the `sanitize` method.
+I have fully implemented the sanitization fix inside `safety/prompt_defense.py`. Instead of manually trying to replace strings, I leveraged the existing `INJECTION_PATTERNS` regex list and applied `re.sub()` with the `re.IGNORES` flag to strip out `\n---\n` and `\nSystem:` during the `sanitize` method.
 **Next steps:**
 I am running `make check` and `make test-unit` to verify the fix and prepare my branch for a pull request.
 **Blockers:**
@@ -43,7 +43,7 @@ I am running `make check` and `make test-unit` to verify the fix and prepare my 
 ---
 
 ### Check-in 2 (end of week)
-**PR link:** [PR LINK HERE]
+**PR link:** [\[PR LINK HERE\]](https://github.com/ascherj/pathreview/pull/243)
 **Branch:** `fix/64-prompt-injection-defense`
 **What you built:**
 I updated the `PromptDefense.sanitize()` method to utilize regular expressions. It now iterates through the class's predefined `INJECTION_PATTERNS` and neutralizes structural role-playing markers and newline injections by substituting them out of the user's data payload.
