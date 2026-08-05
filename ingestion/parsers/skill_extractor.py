@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -105,7 +105,7 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -116,7 +116,7 @@ class SkillExtractor:
         Returns:
             List of detected skills with confidence scores
         """
-        detected_skills = {}
+        detected_skills: dict[str, SkillDetection] = {}
 
         # Detect languages first
         self._detect_languages(text, filename, detected_skills)
@@ -143,7 +143,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -176,14 +176,39 @@ class SkillExtractor:
             js_evidence.append("JavaScript file extension (.js)")
         if ".ts" in str(filename or "").lower():
             js_evidence.append("TypeScript file extension (.ts)")
-        if re.search(r"\b(import|require)\s+", text):
+        if re.search(r"\w+\.jsx?\b", text):
+            js_evidence.append("JavaScript file reference (.js/.jsx)")
+        if re.search(r"\w+\.tsx?\b", text):
+            js_evidence.append("TypeScript file reference (.ts/.tsx)")
+        if "javascript" in text_lower:
+            js_evidence.append("JavaScript keyword found")
+        if re.search(r"\b(import|require)\b", text):
             js_evidence.append("CommonJS or ES6 imports")
+        if re.search(r"\b(const|let|var|export|function|class|async|await)\b", text):
+            js_evidence.append(
+                "JavaScript keywords (const/let/var/export/function/class/async/await)"
+            )
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
-        if js_evidence:
-            confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
+        ts_evidence = []
+        if "typescript" in text_lower:
+            ts_evidence.append("TypeScript keyword found")
+        if re.search(r"\binterface\s+\w+", text):
+            ts_evidence.append("TypeScript interface declaration")
+        if re.search(r":\s*(string|number|boolean|void|never|any)\b", text):
+            ts_evidence.append("TypeScript type annotations")
+        if re.search(r"Promise<|Array<|Record<", text):
+            ts_evidence.append("TypeScript generic types")
+
+        if js_evidence or ts_evidence:
+            confidence = min(0.95, 0.6 + len(js_evidence + ts_evidence) * 0.1)
+            ts_signals = (
+                ".ts" in str(filename or "").lower()
+                or "TypeScript file reference (.ts/.tsx)" in js_evidence
+                or bool(ts_evidence)
+            )
+            lang = "TypeScript" if ts_signals else "JavaScript"
             skills_dict[lang] = SkillDetection(
                 name=lang,
                 category="Language",
@@ -274,3 +299,19 @@ class SkillExtractor:
                         confidence=confidence,
                         evidence=[f"Found '{tool}' reference in content"],
                     )
+
+        docker_evidence = []
+        if re.search(r"\b(FROM|RUN|EXPOSE|CMD|ENTRYPOINT|COPY|ADD)\b", text):
+            docker_evidence.append("Dockerfile instructions detected")
+        if re.search(r"\bservices\s*:", text) and re.search(r"\b(build|image|ports)\s*:", text):
+            docker_evidence.append("docker-compose structure detected")
+        if "dockerfile" in text_lower or "docker-compose" in text_lower:
+            docker_evidence.append("Docker filename reference found")
+
+        if docker_evidence and "Docker" not in skills_dict:
+            skills_dict["Docker"] = SkillDetection(
+                name="Docker",
+                category="Tool",
+                confidence=min(0.95, 0.6 + len(docker_evidence) * 0.1),
+                evidence=docker_evidence,
+            )

@@ -2,7 +2,7 @@
 
 import pytest
 
-from ingestion.parsers.skill_extractor import SkillExtractor, SkillDetection
+from ingestion.parsers.skill_extractor import SkillDetection, SkillExtractor
 
 
 @pytest.mark.unit
@@ -135,7 +135,7 @@ class TestSkillExtractor:
         """
         result = extractor.extract_skills(text)
 
-        skill_names = [s.name for s in skill_names]
+        skill_names = [s.name for s in result]
         # Should detect PostgreSQL
         assert any("postgres" in s.lower() or "sql" in s.lower() for s in skill_names)
 
@@ -170,6 +170,59 @@ class TestSkillExtractor:
         # Filename should provide Python hint
         assert any("python" in s.lower() for s in skill_names)
 
+    def test_js_extension_in_text(self, extractor):
+        """Test JavaScript detection from file extension mentions in text."""
+        text = "Wrote index.js and utils.jsx for the frontend components."
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("javascript" in s.lower() for s in skill_names)
+
+    def test_ts_extension_in_text(self, extractor):
+        """Test TypeScript detection from file extension mentions in text."""
+        text = "Built app.tsx and types.ts for the user interface."
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("typescript" in s.lower() for s in skill_names)
+
+    def test_js_keywords_in_text(self, extractor):
+        """Test JavaScript detection from keywords in prose."""
+        text = "Used const and let declarations with export functions and var assignments."
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("javascript" in s.lower() for s in skill_names)
+
+    def test_javascript_keyword_in_prose(self, extractor):
+        """Test JavaScript detection from the word 'javascript' in prose."""
+        text = "I have three years of experience with JavaScript development."
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("javascript" in s.lower() for s in skill_names)
+
+    def test_typescript_keyword_in_prose(self, extractor):
+        """Test TypeScript detection from the word 'typescript' in prose."""
+        text = "Migrated the codebase from JavaScript to TypeScript for better type safety."
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("typescript" in s.lower() for s in skill_names)
+
+    def test_typescript_type_annotations(self, extractor):
+        """Test TypeScript detection from type annotation syntax."""
+        text = """
+        function greet(name: string): void {
+            console.log(name);
+        }
+        async function fetch(): Promise<string> {}
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("typescript" in s.lower() for s in skill_names)
+
     def test_javascript_detection(self, extractor):
         """Test JavaScript detection."""
         text = """
@@ -192,6 +245,14 @@ class TestSkillExtractor:
             ports:
               - "8000:8000"
         """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("docker" in s.lower() for s in skill_names)
+
+    def test_docker_filename_in_prose(self, extractor):
+        """Test Docker detection from Dockerfile or docker-compose mention in prose."""
+        text = "Containerized the app by writing a Dockerfile and a docker-compose.yml."
         result = extractor.extract_skills(text)
 
         skill_names = [s.name for s in result]
@@ -232,10 +293,7 @@ class TestSkillExtractor:
     def test_skill_detection_dataclass(self):
         """Test SkillDetection dataclass structure."""
         skill = SkillDetection(
-            name="Python",
-            category="Language",
-            confidence=0.95,
-            evidence=["import statement"]
+            name="Python", category="Language", confidence=0.95, evidence=["import statement"]
         )
 
         assert skill.name == "Python"
