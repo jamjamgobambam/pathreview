@@ -1,7 +1,10 @@
 """GitHub repository metadata tool."""
 
+from datetime import date, datetime
+
 import httpx
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -35,44 +38,30 @@ class GitHubTool(BaseTool):
         repo_name = input_data.get("repo_name")
 
         if not username or not repo_name:
-            return ToolResult(
-                success=False,
-                data={},
-                error="Missing github_username or repo_name"
-            )
+            return ToolResult(success=False, data={}, error="Missing github_username or repo_name")
 
         try:
             repo_data = self._fetch_repo_metadata(username, repo_name)
             return ToolResult(success=True, data=repo_data)
 
         except httpx.HTTPStatusError as e:
-            logger.error("github_request_failed", status=e.response.status_code,
-                        username=username, repo=repo_name)
+            logger.error(
+                "github_request_failed",
+                status=e.response.status_code,
+                username=username,
+                repo=repo_name,
+            )
             if e.response.status_code == 404:
-                return ToolResult(
-                    success=False,
-                    data={},
-                    error="Repository not found"
-                )
+                return ToolResult(success=False, data={}, error="Repository not found")
             elif e.response.status_code == 403:
-                return ToolResult(
-                    success=False,
-                    data={},
-                    error="Rate limited or access denied"
-                )
+                return ToolResult(success=False, data={}, error="Rate limited or access denied")
             return ToolResult(
-                success=False,
-                data={},
-                error=f"GitHub API error: {e.response.status_code}"
+                success=False, data={}, error=f"GitHub API error: {e.response.status_code}"
             )
 
         except Exception as e:
             logger.error("github_tool_error", error=str(e))
-            return ToolResult(
-                success=False,
-                data={},
-                error=str(e)
-            )
+            return ToolResult(success=False, data={}, error=str(e))
 
     def _fetch_repo_metadata(self, username: str, repo_name: str) -> dict:
         """Fetch repository metadata from GitHub API.
@@ -107,12 +96,99 @@ class GitHubTool(BaseTool):
             "has_readme": self._has_readme(username, repo_name),
             "topics": repo_json.get("topics", []),
             "homepage": repo_json.get("homepage") or "",
+            "contribution_streak": self._longest_streak(
+                set(self._fetch_commit_dates(username, repo_name))
+            ),
         }
 
-        logger.info("github_repo_fetched", username=username, repo=repo_name,
-                   language=metadata["primary_language"], stars=metadata["star_count"])
+        logger.info(
+            "github_repo_fetched",
+            username=username,
+            repo=repo_name,
+            language=metadata["primary_language"],
+            stars=metadata["star_count"],
+        )
 
         return metadata
+
+    def _fetch_commit_dates(self, username: str, repo_name: str) -> list[date]:
+        """Fetch the authored calendar dates of every commit in the repo.
+
+        Pages through the ``/repos/{owner}/{repo}/commits`` endpoint by following
+        the ``next`` relation of the ``Link`` header. Each commit's authored
+        timestamp (``commit.author.date``) is bucketed to a UTC calendar date.
+        Author date (not committer date) is used deliberately so the streak
+        reflects when work was originally done rather than when it was rebased.
+
+        Args:
+            username: GitHub username
+            repo_name: Repository name
+
+        Returns:
+            List of UTC calendar dates, one per commit (with duplicates).
+        """
+        headers = {}
+        if self.api_token:
+            headers["Authorization"] = f"token {self.api_token}"
+
+        url: str | None = f"{self.base_url}/repos/{username}/{repo_name}/commits"
+        # Only the first request needs the page-size param; the `next` link
+        # already carries the query string for subsequent pages.
+        params: dict | None = {"per_page": 100}
+        dates: list[date] = []
+
+        try:
+            while url:
+                response = httpx.get(url, headers=headers, params=params, timeout=10.0)
+                response.raise_for_status()
+                params = None
+
+                for commit in response.json():
+                    raw = commit.get("commit", {}).get("author", {}).get("date")
+                    if not raw:
+                        continue
+                    # ISO-8601, e.g. "2024-01-15T09:00:00Z"; normalize to UTC date.
+                    parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+                    dates.append(parsed.date())
+
+                next_link = response.links.get("next")
+                url = next_link["url"] if next_link else None
+        except Exception as e:
+            logger.warning(
+                "github_commits_fetch_failed",
+                username=username,
+                repo=repo_name,
+                error=str(e),
+            )
+            return []
+
+        return dates
+
+    @staticmethod
+    def _longest_streak(commit_days: set[date]) -> int:
+        """Longest run of consecutive calendar days with at least one commit.
+        Input order does not matter (GitHub returns commits
+        newest-first, split across pages), so days are sorted before walking.
+
+        Args:
+            commit_days: Set of unique calendar days on which commits occurred.
+
+        Returns:
+            Length of the longest unbroken day-over-day run, or 0 if empty.
+        """
+        if not commit_days:
+            return 0
+
+        ordered = sorted(commit_days)
+        longest = current = 1
+        for prev, curr in zip(ordered, ordered[1:], strict=False):
+            if (curr - prev).days == 1:
+                current += 1
+                longest = max(longest, current)
+            else:
+                current = 1
+
+        return longest
 
     def _has_readme(self, username: str, repo_name: str) -> bool:
         """Check if repository has a README file.
@@ -132,6 +208,6 @@ class GitHubTool(BaseTool):
 
         try:
             response = httpx.head(url, headers=headers, timeout=5.0)
-            return response.status_code == 200
+            return bool(response.status_code == 200)
         except Exception:
             return False
