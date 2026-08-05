@@ -45,7 +45,6 @@ class Review(Base):
     profile: Mapped["Profile"] = relationship("Profile", back_populates="reviews")
 
     __table_args__ = (
-        Index("ix_reviews_profile_id", "profile_id"),
         Index("ix_reviews_status", "status"),
         Index("ix_reviews_created_at", "created_at"),
     )

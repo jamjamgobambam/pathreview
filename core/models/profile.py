@@ -48,7 +48,6 @@ class Profile(Base):
     )
 
     __table_args__ = (
-        Index("ix_profiles_user_id", "user_id"),
         Index("ix_profiles_github_username", "github_username"),
     )
 
