@@ -62,7 +62,7 @@ issues were not changed as part of issue #44.
 
 ### Check-in 2 (end of week)
 
-**PR link:** Not submitted yet.
+**PR link:** https://github.com/ascherj/pathreview/pull/882
 
 **Branch:** `fix/44-orchestrator-catches-exceptions-with-no-log`
 
