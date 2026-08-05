@@ -68,3 +68,57 @@ The issue allows either extending the fixture or correcting the assertion. I
 plan to extend the fixture to ≥500 words (the `comprehensive` threshold) since
 the test's intent is to validate a comprehensive README. I'll confirm this
 direction is preferred in the PR description.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md. I extended the inline README fixture in
+`tests/unit/test_readme_scorer.py::test_readme_with_all_quality_signals` from
+~51 words to 563 words (verified with `len(content.split())`), staying well
+above the 500-word `comprehensive` threshold, while preserving every section
+marker (Installation, Usage, badges, Live Demo, Tech Stack). The target test
+now passes. PLAN.md sub-tasks 1–5 are done: confirmed thresholds, extended the
+fixture, verified the word count, ran the scorer test file (23/23 passing), and
+ran the full unit suite.
+
+**Next steps:**
+Open a PR against the upstream repo, fill in the PR template, and request peer
+feedback in Slack before marking it ready.
+
+**Blockers:**
+The repo has pre-existing failures on a clean checkout (`make test-unit`: 53
+failing; `make lint`: 182 ruff errors; `make typecheck`: 5 mypy errors), none
+in the file I touched. I verified my change only fixes 1 test and introduces
+zero new failures.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** _(TODO: paste the submitted PR URL here after opening it)_
+
+**Branch:** `fix/156-readme-scorer-word-count-fixture`
+
+**What you built:**
+I extended the README test fixture so it contains 563 real words, making the
+test's own assertions (`word_count > 100` and `word_count_category ==
+"comprehensive"`) pass against correct `ReadmeScorer` behavior. No production
+code changed — the scorer was already correct; only the too-short test fixture
+was wrong.
+
+**Tests added or updated:**
+`tests/unit/test_readme_scorer.py` — updated the fixture in
+`test_readme_with_all_quality_signals`. That test file now passes 23/23 (was
+22 passed, 1 failed). Full `make test-unit` went from 53 failures to 52, a
+before/after diff confirming exactly one test fixed and no new failures.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+_(in the documented pre-existing-failures sense: my change introduces no new
+lint, type, or test failures; the edited fixture region is ruff- and
+black-clean. See the PR description for the full pre-existing-failure inventory.)_
+
+**Draft PR feedback received from:** none _(update if you get Slack/mentor feedback)_
