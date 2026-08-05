@@ -48,3 +48,56 @@ portfolio_url, resume_text, resume_filename) should satisfy "if the portfolio
 hasn't changed," but I need to confirm whether ingested-source content must also
 be included. Also deciding whether to add a Redis fast path or rely solely on a
 `reviews.content_hash` DB lookup for the first pass.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All implementation sub-tasks from PLAN.md are done. I added an indexed
+`content_hash` column to the `Review` model with Alembic migration `003`
+(sub-tasks 1–2), implemented `compute_profile_content_hash()` and
+`_find_cached_review()`, and wired a cache short-circuit into `process_review()`
+so an unchanged portfolio reuses the stored review instead of re-running the
+ingestion → agent → RAG → safety pipeline (sub-tasks 3–4). I converted the Week 8
+xfail reproduction into passing hash + cache hit/miss tests (sub-task 5). I chose
+the DB-lookup approach for the first pass and deferred the optional Redis fast
+path to keep the change focused.
+
+**Next steps:**
+Self-review against `docs/CONTRIBUTING.md`, run `make check` / `make test-unit`
+and confirm no new failures vs. the documented pre-existing baseline, open a
+draft PR for peer feedback, then mark it ready for review.
+
+**Blockers:**
+None. (Local Postgres wasn't running so I verified the migration is linear
+001→002→003 statically rather than applying it live; unit tests don't need the DB.)
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** <!-- TODO: paste the PR URL after opening it against ascherj/pathreview -->
+
+**Branch:** `feat/32-portfolio-query-cache`
+
+**What you built:**
+A caching layer for portfolio reviews. `process_review` now computes a SHA-256
+hash of the profile's content fields and, if a completed review with the same
+hash already exists for that profile, returns the stored result without
+re-running the RAG pipeline; otherwise it generates the review and persists the
+hash for next time.
+
+**Tests added or updated:**
+`tests/unit/test_review_cache_reproduction.py` — 6 tests covering hash
+determinism/content-sensitivity, a cache hit skipping the pipeline and reusing
+the stored result, and a cache miss running the pipeline once and persisting the
+hash.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+<!-- "passes" = introduces no new failures vs. the pre-existing baseline documented
+in the PR: ruff 182, black 52, mypy red, test-unit 53 failed on main. My touched
+files are ruff/black clean and my new functions are mypy-clean; test-unit stays at
+53 pre-existing failures with 6 new passing tests. -->
+
+**Draft PR feedback received from:** none yet (draft PR to be shared in Slack)
