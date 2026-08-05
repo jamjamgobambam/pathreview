@@ -252,3 +252,14 @@ class TestPIIScrubber:
 
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
+
+    def test_parenthesized_area_code_phone_redaction_regression(
+        self, scrubber: PIIScrubber
+    ) -> None:
+        """Regression test for issue #146: parenthesized US phone numbers must be redacted."""
+        text = "Contact me at (404) 555-1234"
+
+        scrubbed = scrubber.scrub(text)
+
+        assert "[REDACTED]" in scrubbed
+        assert "(404) 555-1234" not in scrubbed
