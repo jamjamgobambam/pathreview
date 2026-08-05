@@ -23,7 +23,12 @@ class TestReviewService:
         session.add = Mock()
         session.commit = AsyncMock()
         session.refresh = AsyncMock()
-        session.execute = AsyncMock()
+        # Queries against this session find nothing by default, so
+        # create_review's cache lookup misses; tests that need a result
+        # override execute themselves.
+        empty_result = Mock()
+        empty_result.scalars.return_value.first.return_value = None
+        session.execute = AsyncMock(return_value=empty_result)
         return session
 
     @pytest.fixture
