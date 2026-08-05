@@ -79,3 +79,37 @@ Week 9: fix it in the same PR to keep the suite green, or file it as its own
 issue and note the pre-existing failure in the PR description? Currently
 leaning toward filing it separately. (Docker group fix is still pending on
 my machine, but this issue's dev loop is pure Python and unaffected.)
+
+## Week 9 — Solution building & PR submission
+
+### Check-in
+
+**Current progress:**
+All five PLAN.md sub-tasks are done and the PR is submitted:
+https://github.com/ascherj/pathreview/pull/346 (ready for review, not a
+draft, template fully filled in). The fix landed as two commits: a
+formatting-only `chore(safety)` commit clearing pre-existing lint debt in
+the two touched files (required by the pre-commit hook; street_address
+pattern hash-verified byte-identical), then the `fix(safety)` commit — the
+new `phone_us` regex plus a `test_paren_phone_fully_consumed` regression
+test, a +14/−1 diff. The scrubber suite went 5 failed / 20 passed →
+1 failed / 25 passed: all four issue-named tests pass, and the one
+remaining failure is the unrelated street_address bug documented in the PR.
+Ran `make check` and `make test-unit` before and after per the course
+guidance on pre-existing failures: repo-wide lint went 182 → 176 errors
+(the −6 were the touched files' debt) and none of the 49 pre-existing unit
+failures are affected — zero new failures, documented in the PR
+description.
+
+**Next steps:**
+Respond to review feedback within 48 hours once it arrives (per
+CONTRIBUTING.md). Record the ≤2-min walkthrough video and link it in the
+Week 8 entry, and add #146 to the cohort ledger. Depending on the
+maintainers' answer to the question in the PR notes, either file the
+street_address false-positive as a new issue or prepare it as a follow-up
+PR — it's a natural second contribution.
+
+**Blockers:**
+None for this issue — just waiting on first review. (The docker group fix
+is still pending on my machine, but it only affects the DB-backed
+`make run`, not this change.)
