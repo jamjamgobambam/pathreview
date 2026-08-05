@@ -83,4 +83,35 @@ I updated `tests/unit/test_faithfulness_checker.py` with regression tests for su
 **Peer review note:**
 I requested feedback in Slack but did not receive a response before the submission deadline. I completed the self-review checklist and marked the PR ready for review.
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback was received before the end of the module. I checked the open pull request for comments and review activity, but no review was available during the Summer 2026 contribution period.
+
+**How you responded:**
+No response or additional code changes were required because no reviewer feedback was received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was designing a matching rule that fixed short claims without creating new false positives. Simply changing the required token overlap from two tokens to one allowed short technical claims such as `Knows Python` to pass, but it also caused contradictory statements like `well documented` and `poorly documented` to be treated as supported because they shared one generic token. I had to refine the solution by normalizing tokens, filtering generic words, and using an adaptive overlap threshold. I also spent more time than expected working through pre-commit checks, especially Ruff, Black, and mypy errors in the existing test file.
+
+**What did you learn about working in a large codebase?**
+I learned that a small code change can affect several existing assumptions and tests. In my own projects, I might change a threshold and move on after checking the main example, but in this repository I needed to understand the surrounding tests, contribution standards, type-checking rules, and existing behavior before deciding whether the fix was safe. I also learned to separate the main issue from unrelated failures, such as the `None` context-text error, and to document scope rather than assuming every nearby problem should be included. Working in someone else's codebase requires more attention to compatibility, conventions, and evidence that the change does not introduce regressions.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were useful for explaining the existing token-overlap logic, identifying why short claims returned a score of `0.0`, drafting the initial `PLAN.md`, and suggesting test cases for punctuation, short technical claims, and generic-word false positives. They also helped me interpret Git and pre-commit output when commits failed. However, the first suggested implementation was too broad because accepting every one-token match caused false positives. I still needed to run the real test suite, inspect the exact failing inputs, and refine the rule based on the repository's behavior. This showed me that AI-generated code is a starting point, but it must be validated against actual tests and project conventions.
+
+**What would you do differently if you started over?**
+I would begin by writing a smaller set of focused regression tests before changing the implementation. In particular, I would test one supported short technical claim, one unsupported short claim, one punctuation case, and one generic-word false-positive case before selecting the final matching rule. I would also run `make check` and the pre-commit hooks earlier so that type annotation and formatting requirements did not appear near the end of the implementation process. Finally, I would avoid expanding the claim-extraction logic until I had confirmed that it was necessary for the issue.
+
+**What are you most proud of from this module?**
+I am most proud that I did not stop after making the original failing tests pass. When the first solution introduced a false positive, I used the additional test failure to improve the design instead of weakening or removing the test. The final work addressed the short-claim problem while preserving stricter behavior for longer or ambiguous claims, and I documented the full process from issue selection through reproduction, planning, implementation, testing, and PR submission.
+
 ---
