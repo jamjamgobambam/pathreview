@@ -164,6 +164,7 @@ async def get_review_status(
             "review_id": str(review.id),
             "status": review.status,
             "progress_pct": getattr(review, "progress_pct", 0),
+            "error_message": review.error_message,
         }
 
     except HTTPException:
