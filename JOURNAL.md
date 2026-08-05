@@ -54,3 +54,27 @@ as ready for review, and complete Check-in 2 by Sunday.
 
 **Blockers:**
 None currently.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/898
+
+**Branch:** fix/148-js-ts-skill-detection
+
+**What you built:**
+Fixed JavaScript and TypeScript detection in the skill extractor by adding proper
+syntax pattern matching (beyond the previous import/require-with-whitespace check),
+separated TypeScript-specific detection from generic JavaScript detection, removed
+a false-positive React trigger caused by .tsx/.jsx filename mentions, and added
+Dockerfile/docker-compose syntax detection that doesn't require the literal word
+"docker" to appear in the text.
+
+**Tests added or updated:**
+No new test files added. Existing tests in tests/unit/test_skill_extractor.py —
+test_javascript_detection, test_text_with_typescript_files, test_devops_tool_detection,
+and test_docker_compose_detection — now pass and cover this fix. test_react_detection
+also still passes, confirming no regression to existing React detection.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none yet (submitting slightly late; will incorporate any feedback that comes in)
