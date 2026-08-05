@@ -124,3 +124,87 @@ Notes for Reviewers section.
 **Draft PR feedback received from:** none — opened directly as ready for review. Peer
 review requested in the cohort Slack channel; I will address any feedback in follow-up
 commits on this branch.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Did you receive reviewer feedback?** [ ] Yes  [x] No — still awaiting review
+
+As of August 4, 2026, [PR #548](https://github.com/ascherj/pathreview/pull/548) is open
+and marked as requiring review, with no reviews or comments. There is therefore no
+reviewer-requested change to make or response to document yet. If feedback arrives, I
+will respond on the PR and add any resulting commit here rather than treating the lack of
+a review as a reason to delay this reflection.
+
+### What was harder than expected?
+
+The code change was only one expression, but proving that it was safe was much harder
+than writing it. I chose issue #153 because it had a narrow failure: `dict.get("text",
+"")` returns `None` when the key exists with that value, and `" ".join(...)` then raises
+a `TypeError`. Changing it to `chunk.get("text") or ""` stopped the crash. The existing
+`test_none_context_chunk_text` also turned green, but it only checked that the result was
+a bounded float. It would still pass if the implementation silently discarded all
+context and always returned `0.0`.
+
+I had to define the intended behavior more precisely and add
+`test_none_chunk_text_does_not_discard_valid_chunks`, which combines a `None` chunk with
+valid context and asserts that the valid text is still scored. I then reverted the fix,
+confirmed that this test failed, and restored it. The other unexpected difficulty was
+validation in a repository whose default branch already had 53 failing unit tests, 182
+ruff errors, and 5 mypy errors. I used a clean `upstream/main` worktree and compared
+sorted failure IDs, not just totals, to show that my branch introduced no regressions.
+
+### What did you learn from working in a large codebase?
+
+I learned that contributing to someone else's codebase is as much about respecting its
+boundaries as changing its code. I needed to follow the repository's branch and commit
+conventions, understand the evaluator's existing behavior, and separate my failures from
+the baseline before making any claim about validation. I also found that project tooling
+can disagree with itself: the pre-commit mypy hook checks staged tests, while `make
+typecheck` excludes them, so touching a test exposes about 25 pre-existing
+`no-untyped-def` errors. I ran the individual checks manually and compared the same hook
+against `upstream/main` rather than hiding or "fixing" unrelated failures.
+
+The most important scope decision was leaving three failing `_is_supported()` tests
+alone. They belong to issue #152 and were already failing on `main`. Fixing them while I
+was in the file would have mixed two bugs in one review and risked overlapping another
+contributor. In my own project I might clean up everything nearby; in a shared project,
+a focused change with explicit evidence is easier to review and safer to merge.
+
+### How did AI tools help, and where did they fall short?
+
+AI tools helped me trace the failure to the difference between a missing dictionary key
+and an explicit `None`, find the nearby tests, enumerate edge cases, and turn raw command
+output into a baseline-versus-branch comparison. They were also useful for reviewing the
+written explanation from a maintainer's perspective: what behavior changed, why the new
+test mattered, and which failures were unrelated.
+
+They did not remove the need to verify anything. A plausible answer was available as soon
+as the existing test passed, but that answer did not prove valid chunks were preserved.
+I had to inspect the assertion, strengthen it, and deliberately revert the production
+change to prove the regression test could fail. AI-assisted edge-case analysis also
+stopped too early at falsy values; only later did I notice that a truthy non-string value
+such as `{"text": 123}` still raises the same `TypeError`. That case was outside the
+reported issue, so I did not expand this PR, but it showed me that generated suggestions
+are hypotheses to test, not evidence.
+
+### What would you do differently next time?
+
+I would write the journal entries when the work happens instead of reconstructing both
+Week 9 check-ins near the deadline. I would also open a draft PR earlier so a peer could
+challenge the behavior and test before I marked it ready for review. Technically, I would
+start with the stronger behavioral test—`None` beside a valid chunk—then make it pass,
+and I would establish the repository's baseline before running the full suite on my
+branch. Finally, I would examine the whole input contract up front, including truthy
+non-string values, even if I ultimately documented them as out of scope.
+
+### What are you most proud of?
+
+I am most proud of not stopping at the one-line fix. The additional regression test
+captures the behavior users need: one malformed context chunk must not erase the useful
+chunks around it. Confirming that the test failed when I reverted the fix made it real
+evidence rather than a green checkbox. I am also proud that I handled a noisy codebase
+without either claiming the suite was clean or widening the PR to repair unrelated
+problems. The final contribution is small, but its scope, test, validation record, and PR
+explanation make it something a maintainer can evaluate with confidence.
