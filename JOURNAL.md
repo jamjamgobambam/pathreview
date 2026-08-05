@@ -98,3 +98,42 @@ A CI safeguard for database migrations: `scripts/validate_migrations.sh` applies
 _(In this codebase with documented pre-existing failures, "passes" = my changes introduce no new failures; see the Blockers note above.)_
 
 **Draft PR feedback received from:** _pending_
+
+# Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review came in
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+<!-- [Be specific — what part of the process, codebase, or workflow
+surprised you?] -->
+The navigating the codebase and isolating the error was harder than I thought. My intial plan for solving the CI bug was pretty straightforward, all that was needed was a simple script. However, when I was reproducing the issue I realized that it was also affected by other issues that caused the CI to fail for unexpected reasons. Thus, I had to test in a way that accounted for this fact. I ended up doing a bandaid fix temporarily.  
+
+**What did you learn about working in a large codebase?**
+<!-- [What's different about contributing to someone else's production code
+vs. building your own project?] -->
+I learned that there are a lot more moving pieces in this larger codebase than the projects that I've started from scratch. Especially, the CI pipeline was new to me since typically my personal projects were deployed simply. I was also able to copy some of the standards and templates already provided. For example, my script `scripts/validate_migrations.sh` applies every Alembic migration in order to a fresh database and verifies (via `alembic check`) which was similar to how another script in the codebase was run. 
+
+**How did AI tools help — and where did they fall short?**
+<!-- [Where was AI assistance most useful this module? Where did you need -->
+to go beyond what AI could give you?]. Initally, I found it hard to reproduce the issue because the CI was failing due to unrelated issues. Claude helped me go through the pipeline step by step. Claude pointed out that `make check` fails at `ruff`/`black` style and a `mypy` numpy-stub/py3.11 quirk which caused the failing tests. Those smaller patterns and being able to question/discuss with Claude was very useful for the project and for my learning. 
+
+**What would you do differently if you started over?**
+<!-- [Issue selection, planning, implementation, or process — anything
+you'd change?] -->
+I think I'd spend more time pinpointing the issue and allocating time to reproducing the issue. I initially though the issue was much more straightforward than it turned out to be. I feeling like you'd think that fixing the issue (in my case writing the script) would be the hardest part. However, I found that reproducing and throughly testing the solution also took a lot of time. 
+
+**What are you most proud of from this module?**
+<!-- [One thing — it doesn't have to be the PR itself.] -->
+I'm proud of how I handled the unexpected testing challenges. It really forced me to evaluate how well I understood the codebase. It was cool to be able to see the pieces of the CI pipeline connect. Claude was such a huge tool. 
