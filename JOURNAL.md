@@ -42,3 +42,22 @@ Open a draft PR, request peer/mentor review in Slack, and address feedback befor
 
 **Blockers:**
 None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/883
+
+**Branch:** `fix/149-structural-chunker-drops-documents-with-noheader`
+
+**What you built:**
+Fixed `StructuralChunker._extract_sections()` (`ingestion/chunking/structural_chunker.py`) so it collects content lines regardless of whether a markdown heading has been seen yet, and always flushes the trailing section (skipping ones that are empty/whitespace-only). This stops heading-less documents from being silently dropped from the RAG index (`chunk()` returning `[]`) and, as a related fix, preserves preamble text that appears before a document's first heading.
+
+**Tests added or updated:**
+`tests/unit/test_issue_149_reproduction.py` — three regression tests (reframed from "expected to fail" reproduction tests now that the bug is fixed): a plain-text document with no headings produces at least one chunk, a heading-less README routed through `StrategySelector` survives the real ingestion path, and text before a document's first heading is preserved in the output rather than discarded. `tests/unit/test_structural_chunker.py::test_document_with_no_headings` (pre-existing, previously failing) now passes unchanged, confirming no regression to heading-based chunking.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(`ruff`/`black` clean on changed files; `mypy` clean on changed files. The full `tests/unit` suite and repo-wide `mypy` have pre-existing, unrelated failures — documented and confirmed via `git stash` to be identical before and after this branch; see the PR description for details.)
+
+**Draft PR feedback received from:** none — opened directly as ready for review
