@@ -82,3 +82,41 @@ Created `tests/unit/test_health.py`. The test verifies that the PostgreSQL probe
 **Self-review confirmation:** [x] make check passes with no new failures  [x] make test-unit passes with no new failures
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & Reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+
+I did not receive any reviewer or maintainer feedback on my pull request before completing this reflection. Since no review was available, there were no comments for me to address.
+
+**How you responded:**
+
+No response or code changes were necessary because I did not receive any reviewer feedback.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was navigating a large codebase and identifying exactly where the issue originated. Although the fix itself was small, I needed to trace the health check logic in `api/routes/health.py` to understand why the PostgreSQL check was failing and how SQLAlchemy 2.x handles raw SQL execution differently.
+
+**What did you learn about working in a large codebase?**
+
+I learned that even a small contribution requires understanding the existing project structure and following its coding conventions. Instead of writing everything from scratch, I had to read existing code, understand how different components worked together, and make a focused change without affecting other parts of the application.
+
+**How did AI tools help — and where did they fall short?**
+
+AI was helpful for explaining unfamiliar code, helping me understand why SQLAlchemy requires `text("SELECT 1")`, and guiding me through the Git workflow. However, I still needed to verify the solution myself, understand the repository's structure, and make sure my implementation matched the issue requirements rather than relying entirely on AI suggestions.
+
+**What would you do differently if you started over?**
+
+If I started over, I would spend more time exploring the repository before implementing my fix. I would also read more of the project's documentation and related files first so I could better understand how the health check and database components fit together before making changes.
+
+**What are you most proud of from this module?**
+
+I am most proud of successfully contributing to a real open-source project. Completing the full workflow—from selecting an issue and creating a branch to implementing the fix, testing it, documenting my work, and submitting a pull request—gave me valuable experience with a professional software development process and increased my confidence working with an existing codebase.
