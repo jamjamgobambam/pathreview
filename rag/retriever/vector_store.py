@@ -99,7 +99,9 @@ class VectorStore:
                 results["distances"][0],
                 results["ids"][0]
             ):
-                # ChromaDB distances are euclidean by default; convert to similarity score
+                # Collections are created with hnsw:space="cosine" (see get_collection),
+                # so ChromaDB returns cosine distance in [0, 2]. Convert to a bounded
+                # similarity score in (0, 1] where identical direction -> 1.0.
                 similarity = 1 / (1 + distance)
                 retrieved.append({
                     "id": chunk_id,
