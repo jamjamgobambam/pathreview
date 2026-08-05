@@ -31,3 +31,36 @@ I wrote `scripts/repro_issue47.py` / `scripts/repro_issue47_worker.py`, which ru
 
 **Blockers or open questions:**
 `Orchestrator` currently has no callers anywhere in the live app — `core/services/review_service.py` uses a hardcoded placeholder instead of calling into `agent/orchestrator.py`. I'm not yet sure whether wiring `Orchestrator` into the real review pipeline is part of this issue's scope or a separate follow-up; I want to raise this with a mentor before Week 9.
+
+## Week 9 - Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All 5 sub-tasks from PLAN.md are implemented in `agent/orchestrator.py` and `agent/memory/session_store.py`. `Orchestrator.run()` now checkpoints each tool's result to Redis right after that tool finishes (keyed by tool name plus a hash of its input), instead of only writing once at the very end. On a resumed run, any step whose key is already in the checkpointed state gets skipped instead of re-executed. `SessionStore.set()` now returns True or False instead of silently swallowing write failures, and the orchestrator logs clearly if a checkpoint write fails. I also added two test files, `tests/unit/test_orchestrator_checkpointing.py` and `tests/unit/test_session_store.py`, covering per-step checkpoint timing, resume-skip behavior, input-hash differentiation, and checkpoint failure visibility.
+
+**Next steps:**
+I ran `make check` and `make test-unit` and compared results against a clean baseline of the unmodified code to confirm nothing new broke. Next I need to write the PR description (documenting the pre-existing failures I found, per the instructions), open a draft PR, and share it in Slack for peer or mentor feedback.
+
+**Blockers:**
+`make typecheck`'s full command (`mypy api/ core/ ingestion/ rag/ agent/ safety/`) currently cannot complete on my machine. It crashes almost immediately because a numpy stub file uses Python 3.12+ syntax that conflicts with the project's mypy config (`python_version = "3.11"`), combined with my venv running Python 3.14 (pyenv's pinned 3.11.9 has a broken system library on my machine and I did not want to modify system libraries to fix it). I confirmed this crash also happens on the unmodified codebase, so it is pre-existing and unrelated to my change. To still verify my work, I scoped mypy to `agent/` directly (which does not touch numpy) and confirmed the same 18 pre-existing errors exist before and after my change, with no new ones added.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** Pending. I have not opened the PR yet; will fill this in once it is submitted.
+
+**Branch:** `fix/47-agent-state-not-persisted-on-restart`
+
+**What you built:**
+I changed `Orchestrator.run()` to checkpoint each tool's result to Redis immediately after that tool succeeds, instead of writing the entire session state once at the end of the plan. A resumed run now checks each step against the checkpointed state (keyed by tool name and input hash) and skips anything already completed, so an API restart mid-review no longer loses finished work or forces a full re-run.
+
+**Tests added or updated:**
+`tests/unit/test_orchestrator_checkpointing.py` (5 tests: per-step checkpoint timing, resume skips completed steps, different input is not treated as already done, checkpoint write failures are logged, and an interrupted-then-resumed run matches an uninterrupted run) and `tests/unit/test_session_store.py` (4 tests covering the new True/False return value on `SessionStore.set()`).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+Note on what "passes" means here: this codebase has documented pre-existing failures (182 pre-existing ruff errors, 52 files needing black formatting, 18 pre-existing mypy errors under `agent/`, and 53 pre-existing failing unit tests, none in files I touched). I confirmed my changes introduce zero new failures in any of these categories, and my own changed and added files are fully clean under ruff, black, and mypy. `make typecheck`'s full invocation cannot complete at all due to the pre-existing numpy/Python version issue described in Check-in 1, so I verified type safety with a scoped `mypy agent/` run instead.
+
+**Draft PR feedback received from:** Pending, will update once I have shared the draft PR in Slack.
