@@ -90,3 +90,31 @@ submit by Sunday.
 None currently -- the codebase has pre-existing lint errors and test
 failures unrelated to this issue, documented in the PR description rather
 than blocking this work.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/944
+
+**Branch:** fix/152-faithfulness-short-claims
+
+**What you built:**
+Fixed FaithfulnessChecker._is_supported() so short claims (e.g. a single
+distinctive term) can be correctly marked as supported. Replaced the
+hardcoded "2+ overlapping tokens" boolean check with a continuous
+_support_score() based on the fraction of a claim's meaningful tokens
+found in context, and fixed punctuation not being stripped from tokens.
+
+**Tests added or updated:**
+No new test file added -- all fixes verified against the existing
+tests/unit/test_faithfulness_checker.py, all 22 of which pass, including
+the three tests named in issue #152. Added repro_152.py as a standalone
+reproduction/regression script (not part of the pytest suite).
+
+**Self-review confirmation:** [x] make check passes (for faithfulness_checker.py; 
+pre-existing unrelated lint errors documented in PR description)
+[x] make test-unit passes (for test_faithfulness_checker.py; 49 pre-existing
+unrelated failures documented in PR description)
+
+**Draft PR feedback received from:** [pending -- update once received]
