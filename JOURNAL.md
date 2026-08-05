@@ -162,32 +162,3 @@ https://github.com/mmim14/pathreview/blob/test/90-add-tests-authentication/PLAN.
 [Anything you're still uncertain about going into Week 9, or leave blank]
 
 What type of test am I creating? There are 4 subfolders under /tests: bechmarks, integration, security and unit. There are only unit tests. My hunch is the tests for authentication should be under /security. 
-
-`make check` before my change:
-...
-Found 182 errors.
-[*] 86 fixable with the --fix option (42 hidden fixes can be enabled with the --unsafe-fixes option).
-make: *** [Makefile:51: lint] Error 1
-
-`make check` after my change:
-...
-Found 182 errors.
-[*] 86 fixable with the `--fix` option (42 hidden fixes can be enabled with the `--unsafe-fixes` option).
-make: *** [Makefile:51: lint] Error 1
-
-`make test-unit` before my change:
-================================== 53 failed, 375 passed, 1 warning in 6.99s ==================================
-C:\Users\mimi\Documents\GitHub\pathreview\.venv\Lib\site-packages\_pytest\unraisableexception.py:33: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
-  gc.collect()
-RuntimeWarning: Enable tracemalloc to get the object allocation traceback
-make: *** [Makefile:40: test-unit] Error 1
-
-`make test-unit` after my change:
-======================================================= 53 failed, 375 passed, 1 warning in 13.03s =======================================================
-C:\Users\mimi\Documents\GitHub\pathreview\.venv\Lib\site-packages\_pytest\unraisableexception.py:33: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
-  gc.collect()
-RuntimeWarning: Enable tracemalloc to get the object allocation traceback
-make: *** [Makefile:40: test-unit] Error 1
-
-My tests result:
-![tests passed](image.png)
