@@ -43,10 +43,9 @@ class Orchestrator:
         # Build execution plan
         plan = self._build_plan(profile_data)
 
-        # Load previous session state if available
+        # Treat each review as a fresh analysis: do not load prior session
+        # state, so stale results from an earlier review are not carried over.
         session_state = {}
-        if self.session_store:
-            session_state = self.session_store.get(profile_id) or {}
 
         # Execute plan
         results = {}
