@@ -46,7 +46,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [not yet opened — pending push]
+**PR link:** https://github.com/ascherj/pathreview/pull/875
 
 **Branch:** `fix/150-ignore-vendored-build-files`
 
