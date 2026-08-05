@@ -1,22 +1,16 @@
-"""Reproduction for issue #32 — caching layer for repeated identical portfolio queries.
+"""Tests for the review caching layer — issue #32.
 
 https://github.com/ascherj/pathreview/issues/32
 
-The bug/gap: ``process_review`` in ``core/services/review_service.py`` re-runs the
-entire RAG pipeline every time it is called, even when the same profile is
-submitted twice with no content changes. There is no content-hash cache, so the
-expensive ``_run_rag_retrieval_generation`` step executes on every submission.
+Before the fix, ``process_review`` re-ran the entire RAG pipeline on every
+submission, even for an unchanged portfolio. These tests lock in the caching
+behavior:
 
-This test documents the reproduction. It is marked ``xfail(strict=True)``: it
-FAILS today (proving the missing cache) and will XPASS once the caching layer
-lands in Week 9 — at which point the marker should be removed.
-
-Reproduction steps:
-    1. Build one unchanged profile.
-    2. Call ``process_review`` twice with identical inputs.
-    3. Observe the expensive RAG step runs on BOTH calls (call_count == 2),
-       whereas a cache should make the second call reuse the stored review
-       (expected call_count == 1).
+* the profile content hash is deterministic and content-sensitive;
+* an identical resubmission (cache hit) reuses the stored review WITHOUT
+  re-running the RAG pipeline — this is the original reproduction, now passing;
+* a first/changed submission (cache miss) runs the pipeline and persists the
+  hash so the next identical submission can hit the cache.
 """
 
 from unittest.mock import AsyncMock, Mock, patch
@@ -25,6 +19,7 @@ from uuid import uuid4
 import pytest
 
 from core.services import review_service
+from core.services.review_service import compute_profile_content_hash
 
 
 def _result_for(obj: object) -> Mock:
@@ -34,73 +29,134 @@ def _result_for(obj: object) -> Mock:
     return result
 
 
-@pytest.mark.unit
-@pytest.mark.asyncio
-@pytest.mark.xfail(
-    reason="Issue #32: no caching layer yet — identical submissions re-run the "
-    "full RAG pipeline. Remove this marker when the cache lands.",
-    strict=True,
-)
-async def test_identical_resubmission_should_not_rerun_rag_pipeline() -> None:
-    """An unchanged profile submitted twice should only run RAG generation once."""
-    profile_id = uuid4()
-
-    # A single, unchanged profile (identical content on both submissions).
+def _make_profile() -> Mock:
+    """Build a profile with fixed, hashable content fields."""
     profile = Mock()
-    profile.id = profile_id
+    profile.id = uuid4()
     profile.github_username = "janedoe"
     profile.portfolio_url = "https://janedoe.dev"
     profile.resume_text = "Software Engineer with 3 years of Python experience."
     profile.resume_filename = "jane_doe_resume.pdf"
+    return profile
 
-    def fresh_review() -> Mock:
+
+@pytest.mark.unit
+class TestProfileContentHash:
+    """Unit tests for compute_profile_content_hash."""
+
+    def test_hash_is_deterministic_for_identical_content(self) -> None:
+        """Two profiles with identical content produce the same hash."""
+        assert compute_profile_content_hash(_make_profile()) == (
+            compute_profile_content_hash(_make_profile())
+        )
+
+    def test_hash_is_64_char_hex(self) -> None:
+        """The hash is a SHA-256 hex digest."""
+        digest = compute_profile_content_hash(_make_profile())
+        assert len(digest) == 64
+        assert all(c in "0123456789abcdef" for c in digest)
+
+    def test_hash_changes_when_any_content_field_changes(self) -> None:
+        """A single-character change to resume text yields a different hash."""
+        base = _make_profile()
+        changed = _make_profile()
+        changed.resume_text = base.resume_text + "!"
+        assert compute_profile_content_hash(base) != compute_profile_content_hash(changed)
+
+    def test_hash_handles_all_none_fields(self) -> None:
+        """A profile with no content still hashes without raising."""
+        empty = Mock()
+        empty.github_username = None
+        empty.portfolio_url = None
+        empty.resume_text = None
+        empty.resume_filename = None
+        assert len(compute_profile_content_hash(empty)) == 64
+
+
+@pytest.mark.unit
+class TestProcessReviewCaching:
+    """Cache hit/miss behavior in process_review."""
+
+    def _make_db(self, review: Mock, profile: Mock) -> AsyncMock:
+        """A db whose two execute() calls return the review then the profile."""
+        db = AsyncMock()
+        db.add = Mock()
+        db.commit = AsyncMock()
+        db.execute = AsyncMock(side_effect=[_result_for(review), _result_for(profile)])
+        return db
+
+    @pytest.mark.asyncio
+    async def test_cache_hit_skips_pipeline_and_reuses_result(self) -> None:
+        """An identical resubmission reuses the cached review, not the pipeline."""
+        profile = _make_profile()
         review = Mock()
         review.id = uuid4()
         review.status = "pending"
-        review.sections = None
-        review.overall_score = None
-        return review
 
-    # process_review issues two execute() calls per invocation: fetch Review,
-    # then fetch Profile. Feed those lookups for two identical submissions.
-    db = AsyncMock()
-    db.add = Mock()
-    db.commit = AsyncMock()
-    db.execute = AsyncMock(
-        side_effect=[
-            _result_for(fresh_review()),  # 1st submission: Review lookup
-            _result_for(profile),  # 1st submission: Profile lookup
-            _result_for(fresh_review()),  # 2nd submission: Review lookup
-            _result_for(profile),  # 2nd submission: Profile lookup
-        ]
-    )
+        cached = Mock()
+        cached.id = uuid4()
+        cached.sections = [{"section_name": "Skills", "content": "Cached feedback"}]
+        cached.overall_score = 0.9
 
-    rag_output = {
-        "sections": [
-            {"section_name": "Skills", "content": "Feedback", "confidence": 0.8, "suggestions": []},
-        ],
-        "overall_score": 0.8,
-    }
+        db = self._make_db(review, profile)
 
-    with (
-        patch.object(review_service, "_run_ingestion_pipeline", new=AsyncMock(return_value=[])),
-        patch.object(
-            review_service, "_run_agent_orchestration", new=AsyncMock(return_value={"sections": []})
-        ),
-        patch.object(
-            review_service, "_run_rag_retrieval_generation", new=AsyncMock(return_value=rag_output)
-        ) as mock_rag,
-        patch.object(review_service, "_run_safety_checks", new=AsyncMock(return_value=True)),
-    ):
+        with (
+            patch.object(review_service, "_find_cached_review", new=AsyncMock(return_value=cached)),
+            patch.object(
+                review_service, "_run_rag_retrieval_generation", new=AsyncMock()
+            ) as mock_rag,
+        ):
+            await review_service.process_review(db, review.id, profile.id)
 
-        # Two identical submissions of the same unchanged profile.
-        await review_service.process_review(db, uuid4(), profile_id)
-        await review_service.process_review(db, uuid4(), profile_id)
+        # The expensive RAG step must NOT run on a cache hit.
+        mock_rag.assert_not_called()
+        # The current review is completed with the cached output.
+        assert review.status == "complete"
+        assert review.sections == cached.sections
+        assert review.overall_score == cached.overall_score
+        assert review.content_hash == compute_profile_content_hash(profile)
 
-        # A cache keyed on the profile content hash should short-circuit the
-        # second run, so the expensive RAG step should execute exactly once.
-        # TODAY this is 2 (no cache) -> the test fails, reproducing issue #32.
-        assert mock_rag.call_count == 1, (
-            f"Expected RAG generation to run once (cache hit on 2nd identical "
-            f"submission), but it ran {mock_rag.call_count} times — no caching layer."
-        )
+    @pytest.mark.asyncio
+    async def test_cache_miss_runs_pipeline_and_persists_hash(self) -> None:
+        """A cache miss runs the pipeline once and stores the content hash."""
+        profile = _make_profile()
+        review = Mock()
+        review.id = uuid4()
+        review.status = "pending"
+
+        db = self._make_db(review, profile)
+
+        rag_output = {
+            "sections": [
+                {
+                    "section_name": "Skills",
+                    "content": "Fresh feedback",
+                    "confidence": 0.8,
+                    "suggestions": [],
+                }
+            ],
+            "overall_score": 0.8,
+        }
+
+        with (
+            patch.object(review_service, "_find_cached_review", new=AsyncMock(return_value=None)),
+            patch.object(review_service, "_run_ingestion_pipeline", new=AsyncMock(return_value=[])),
+            patch.object(
+                review_service,
+                "_run_agent_orchestration",
+                new=AsyncMock(return_value={"sections": []}),
+            ),
+            patch.object(
+                review_service,
+                "_run_rag_retrieval_generation",
+                new=AsyncMock(return_value=rag_output),
+            ) as mock_rag,
+            patch.object(review_service, "_run_safety_checks", new=AsyncMock(return_value=True)),
+        ):
+            await review_service.process_review(db, review.id, profile.id)
+
+        # Pipeline runs exactly once on a miss, and the hash is persisted so the
+        # next identical submission becomes a cache hit.
+        mock_rag.assert_called_once()
+        assert review.status == "complete"
+        assert review.content_hash == compute_profile_content_hash(profile)
