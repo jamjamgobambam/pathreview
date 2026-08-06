@@ -81,9 +81,9 @@ class GitHubTool(BaseTool):
         response.raise_for_status()
 
         repo_json = response.json()
+        repo_default_branch = repo_json.get("default_branch", "main")
 
         # Extract metadata, handling null values
-        # metadata currently missing has_tests boolean along with a detection logic function to use
         metadata = {
             "name": repo_json.get("name", ""),
             "description": repo_json.get("description") or "",
@@ -93,6 +93,7 @@ class GitHubTool(BaseTool):
             "open_issues_count": repo_json.get("open_issues_count", 0),
             "last_commit_date": repo_json.get("pushed_at", ""),
             "has_readme": self._has_readme(username, repo_name),
+            "has_tests": self._detect_tests(username, repo_name, repo_default_branch),
             "topics": repo_json.get("topics", []),
             "homepage": repo_json.get("homepage") or "",
         }
@@ -126,5 +127,46 @@ class GitHubTool(BaseTool):
         try:
             response = httpx.head(url, headers=headers, timeout=5.0)
             return bool(response.status_code == 200)
+        except Exception:
+            return False
+
+    def _detect_tests(self, username: str, repo_name: str, repo_default_branch: str) -> bool:
+        """Check if repository has test coverage.
+
+        Args:
+            username: GitHub username
+            repo_name: Repository name
+            repo_default_branch: Repository default branch
+
+        Returns:
+            True if test files or directories are present
+        """
+        url = (
+            f"{self.base_url}/repos/{username}/{repo_name}"
+            f"/git/trees/{repo_default_branch}?recursive=1"
+        )
+
+        headers = {}
+        if self.api_token:
+            headers["Authorization"] = f"token {self.api_token}"
+
+        try:
+            response = httpx.get(url, headers=headers, timeout=5.0)
+            response.raise_for_status()
+            tree = response.json().get("tree", [])
+
+            for entry in tree:
+                path = str(entry.get("path", "")).lower()
+                segments = path.split("/")
+                filename = segments[-1]
+
+                if "tests" in segments or "test" in segments:
+                    return True
+                if filename == "pytest.ini":
+                    return True
+                if filename.startswith("test_") and filename.endswith(".py"):
+                    return True
+
+            return False
         except Exception:
             return False
