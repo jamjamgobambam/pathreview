@@ -65,3 +65,34 @@ None added or updated. Since this is a docstring-only change with no behavior mo
 (Both pass in the sense required for a codebase with documented pre-existing failures: my two changed files are clean under `ruff`/`mypy`, and my changes introduce zero new test failures.)
 
 **Draft PR feedback received from:** none - posted in the course Slack channel with time to spare before the deadline, no response received.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No - still awaiting review
+
+**Summary of feedback:**
+I checked my PR (#489) a few times over the week and there were no comments or reviews left on it. This also matches what the course mentioned - reviewer feedback isn't really active this term.
+
+**How you responded:**
+Nothing to respond to since no feedback came in.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+I thought writing the docstrings would be quick, but following the Google style properly meant I actually had to understand what each function was doing step by step instead of just skimming the code. That took way more time than I planned for.
+
+**What did you learn about working in a large codebase?**
+Working on someone else's codebase is different from my own projects - I had to actually read through the docs and contribution guidelines, understand the code before changing anything, stick to their naming conventions, and go through a proper PR process instead of just committing and moving on.
+
+**How did AI tools help - and where did they fall short?**
+AI helped me a lot with understanding the codebase and catching mistakes I made along the way, which gave me confidence I was doing things right. But the bigger decisions - like whether to rewrite my commit history or when to actually mark the PR ready - were calls I had to make myself.
+
+**What would you do differently if you started over?**
+I'd spend more time understanding the service code before jumping into writing the docstrings, and I'd expect to run into ruff/mypy issues early on instead of being surprised by them later.
+
+**What are you most proud of from this module?**
+Getting the PR done aside, I'm proud that I picked up a good understanding of RAG, safety guardrails, and LLM classifiers just from digging through the codebase to document it properly.
