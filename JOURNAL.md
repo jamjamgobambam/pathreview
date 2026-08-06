@@ -149,3 +149,63 @@ earlier in the week but forgot to actually post it in the cohort Slack
 channel for review until Sunday, close to the deadline, so no feedback came
 in before submitting. Marked ready for review to submit on time; open to
 addressing any feedback that comes in after the fact.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No comments or reviews came in on PR #399 by the end of the module. (Per
+the Su26 course note, reviewer feedback isn't a live feature this term, so
+this was expected.)
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The whole four-week cycle was demanding but genuinely engaging. Since #36
+turned out to be a documentation-only issue, in hindsight I think a
+code-level bug would have pushed me harder — tracing `hybrid.py` to get the
+formula right was useful, but I didn't have to touch the actual codebase
+logic or write new tests, so I came away wondering if I picked the "safe"
+issue instead of the one that would've taught me the most.
+
+**What did you learn about working in a large codebase?**
+Mostly about collaboration and structure — how a real project is
+organized, how the pieces fit together (API layer → ingestion → agent →
+RAG → safety), and what the contribution workflow looks like end to end,
+from picking an issue through opening a PR. Seeing that high-level shape
+was something I genuinely enjoyed.
+
+**How did AI tools help — and where did they fall short?**
+I used Claude and Gemini throughout — genuinely useful for automating parts
+of the process and drafting code and docs, but not infallible: sometimes
+what looked correct was actually a hallucination, so I had to verify things
+myself rather than trust the output blindly. If you don't already
+understand the syntax or the problem, the tool can give you a false sense
+of confidence. The real lesson: the tool isn't what produces a good result
+— the person driving it, verifying its output, and asking it the right
+questions is.
+
+**What would you do differently if you started over?**
+Stay ahead of deadlines instead of scrambling — I forgot to actually post
+my PR in the Slack review channel until Sunday, right before the deadline,
+which left no time for real feedback. I'd also lean on the cohort community
+more throughout the month, asking questions there while working on my own
+side projects in parallel, instead of only engaging reactively at crunch
+time.
+
+**What are you most proud of from this module?**
+Finishing the course built real discipline for me. I wasn't consistently
+working on things before this, but going through this structured
+four-week cycle gave me momentum and a habit of staying focused on the
+work. While going through it — and doing research alongside the
+coursework — I ended up finding something that mattered to me beyond just
+this class. Getting back into that rhythm and rediscovering that momentum
+is what I'm most proud of, more than the PR itself.
