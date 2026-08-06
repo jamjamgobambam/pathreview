@@ -86,3 +86,40 @@ I added docstrings to the 4 public functions for review_service.py (create_revie
 The test_service_docstring_claims tests all successfully passed. Any of the 180 errors in make check were pre-existing, the 53 errors from make test-unit are also pre-existing. Though my test file added 15 more (successful) tests.
 
 **Draft PR feedback received from:** Shawn Blackman (GitHub handle is: sh4wnbk)
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [X] Yes [ ] No — still awaiting review
+
+**Summary of feedback:**
+
+Reviewed twice by Shawn Blackman.
+
+First pass: One blocking mismatch. My summary claimed that Google style docstrings would be applied to eight public functions across both service files, but as this was a first check milestone, review_service.py still had its incomplete one-line docstrings. As for what I had completed by that milestone, Shawn verified each profile_service.py docstring against its body, and he found no overstatements. delete_profile correctly documents re-raising after rollback and the code does exactly that; the other three are read-only or non-raising and don't claim otherwise; and update_profile's note about leaving None fields unchanged matches the conditional guards in the body.
+
+Second pass: With review_service.py's four public functions now given the proper docstring formats carrying Args/Returns/Raises, the eight public functions across two service files claim matches the diff. Shawn spot checked the raise claims and called out create_review documenting IntegrityError on a bad profile_id as exactly right — the commit isn't wrapped and reviews.profile_id is a non-null FK, so the error genuinely reaches the caller. That's a database-layer raise with no explicit raise in the body, easy to get wrong in either direction. He also endorsed documenting that user_id is accepted but unused with the ownership check left to the caller, as surfacing an unenforced assumption rather than hiding it.
+
+Also on the second pass, I added a test file that verified the function behavior matched as docstrings claimed. Shawn noted they exercise real behavior rather than mocking it away.
+
+**How you responded:**
+I pushed the missing review_service.py docstrings so the eight-function claim matched the diff, and updated the PR description to name the core/models/review.py change and the type annotations rather than leaving them as undisclosed extras. The tautological assertion Shawn flagged is at tests/unit/test_review_service.py:121, a file this PR doesn't modify — my tests are in test_service_docstring_claims.py — so I left it alone and noted it as a separate issue, along with the AsyncMock problem in that same file that causes its 13 failures.
+
+### Reflection
+
+**What was harder than you expected?**
+One thing that surprised me was that even though the assignment was a simple documentation, it wasn't just in the scope of those two service files. I found personally, that by running the application and playing with its functionality and checking for all references to the service file functions, that it helped give me a better understanding on what I should write for the behavior of the functions. For example, documenting process_review meant reading api/routes/reviews.py to learn it's registered as a background task, and reading core/models/review.py to check what sections actually holds — which is where I found the model declared it Mapped[dict | None] while the service assigns a list and the API schema declares a list. I couldn't have written an honest docstring without leaving the file, and the bug only showed up because I did.
+
+**What did you learn about working in a large codebase?**
+That "the tests pass" and "the linter passes" aren't binary facts about my work. I have to know the repo's baseline first. main here already has 53 unit-test failures and 180 lint errors, so my first instinct that I'd broken something was wrong, and I only knew that because I measured before starting and compared after. I also learned the tooling isn't one thing: the pre-commit mypy hook runs in its own environment without SQLAlchemy installed, so it gave a different answer than mypy in my venv on the identical file. And make check, which CONTRIBUTING.md tells contributors to run, executes black . with no --check flag — it would have reformatted 50 files into my PR if I'd run it and made it very confusing which changes were meant to address the issues itself, and then have a feedback loop where future developers handling issues would have no idea what they're looking at.
+
+**How did AI tools help — and where did they fall short?**
+
+AI assistance was very good at helping explain what this codebase did, what the service files did, and adding a test file. I feel where I needed to go beyond what AI could give me was paraphrasing the service files in a way that newcomers could understand.
+
+**What would you do differently if you started over?**
+I made a lot of commits fixing typos and rewording the PR description, which made the history noisy and hard to read. I'd draft the description and journal entries somewhere else first and commit them once. I'd also check git status more carefully — I spent a while confused by a mypy hook that kept failing on errors I'd already fixed, because my fixes were unstaged and pre-commit only checks what's staged.
+
+**What are you most proud of from this module?**
+I am proud of how I went above and beyond the original requirements and how I interpreted them, making my changes verifiable even if not programmatic. The tests in test_service_docstring_claims.py pin each claim to the behavior it describes, so if someone later makes update_profile clear a None field, a test fails and names the docstring it contradicts. I also confirmed the tests weren't vacuous by deliberately breaking that guard and watching the right test fail — I'd rather know my tests work than assume it.
