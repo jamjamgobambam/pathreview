@@ -1,13 +1,16 @@
 """Tests for review_service.py"""
 
-import pytest
-from uuid import uuid4
+from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, Mock, patch
-import asyncio
+from uuid import uuid4
+
+import pytest
 
 from core.services.review_service import (
     create_review,
+    create_share_token,
     get_review,
+    get_review_by_share_token,
     list_reviews,
 )
 
@@ -45,7 +48,9 @@ class TestReviewService:
         return profile
 
     @pytest.mark.asyncio
-    async def test_create_review_returns_review_with_pending_status(self, mock_db_session, mock_review):
+    async def test_create_review_returns_review_with_pending_status(
+        self, mock_db_session, mock_review
+    ):
         """Test create_review returns Review with status='pending'."""
         profile_id = uuid4()
         user_id = uuid4()
@@ -55,18 +60,18 @@ class TestReviewService:
         mock_db_session.commit = AsyncMock()
         mock_db_session.refresh = AsyncMock()
 
-        with patch('core.services.review_service.Review') as MockReview:
-            mock_instance = MockReview.return_value
+        with patch("core.services.review_service.Review") as mock_review_cls:
+            mock_instance = mock_review_cls.return_value
             mock_instance.status = "pending"
             mock_instance.sections = None
             mock_instance.overall_score = None
 
-            result = await create_review(mock_db_session, profile_id, user_id)
+            await create_review(mock_db_session, profile_id, user_id)
 
             # Check that Review was instantiated
-            MockReview.assert_called()
-            call_kwargs = MockReview.call_args[1]
-            assert call_kwargs['status'] == "pending"
+            mock_review_cls.assert_called()
+            call_kwargs = mock_review_cls.call_args[1]
+            assert call_kwargs["status"] == "pending"
 
     @pytest.mark.asyncio
     async def test_get_review_returns_review_for_correct_owner(self, mock_db_session):
@@ -91,7 +96,6 @@ class TestReviewService:
     async def test_get_review_returns_none_for_wrong_user(self, mock_db_session):
         """Test get_review returns None when user_id doesn't match."""
         review_id = uuid4()
-        user_id = uuid4()
         wrong_user_id = uuid4()
 
         # Setup mock to return None
@@ -126,16 +130,13 @@ class TestReviewService:
     async def test_list_reviews_page_2_returns_correct_offset(self, mock_db_session):
         """Test list_reviews page 2 returns correct offset."""
         user_id = uuid4()
-        page_size = 20
 
         # Setup mock
         mock_result = AsyncMock()
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
-        reviews, total = await list_reviews(
-            mock_db_session, user_id, page=2, page_size=page_size
-        )
+        reviews, total = await list_reviews(mock_db_session, user_id, page=2, page_size=20)
 
         # Second call should pass offset for page 2
         calls = mock_db_session.execute.call_args_list
@@ -165,7 +166,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.add.assert_called_once()
@@ -176,7 +177,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.commit.assert_called_once()
@@ -187,7 +188,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.refresh.assert_called_once()
@@ -244,13 +245,13 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review') as MockReview:
-            MockReview.return_value = Mock()
+        with patch("core.services.review_service.Review") as mock_review_cls:
+            mock_review_cls.return_value = Mock()
             await create_review(mock_db_session, profile_id, user_id)
 
-            call_kwargs = MockReview.call_args[1]
-            assert 'profile_id' in call_kwargs
-            assert 'status' in call_kwargs
+            call_kwargs = mock_review_cls.call_args[1]
+            assert "profile_id" in call_kwargs
+            assert "status" in call_kwargs
 
     @pytest.mark.asyncio
     async def test_get_review_verifies_ownership(self, mock_db_session):
@@ -287,7 +288,7 @@ class TestReviewService:
         """Test list_reviews returns list of Review objects."""
         user_id = uuid4()
 
-        mock_reviews = [Mock(spec=['id', 'status']) for _ in range(3)]
+        mock_reviews = [Mock(spec=["id", "status"]) for _ in range(3)]
         mock_result = AsyncMock()
         mock_result.scalars.return_value.all.return_value = mock_reviews
         mock_db_session.execute = AsyncMock(return_value=mock_result)
@@ -302,13 +303,13 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review') as MockReview:
-            MockReview.return_value = Mock()
+        with patch("core.services.review_service.Review") as mock_review_cls:
+            mock_review_cls.return_value = Mock()
             await create_review(mock_db_session, profile_id, user_id)
 
-            call_kwargs = MockReview.call_args[1]
-            assert call_kwargs['sections'] is None
-            assert call_kwargs['overall_score'] is None
+            call_kwargs = mock_review_cls.call_args[1]
+            assert call_kwargs["sections"] is None
+            assert call_kwargs["overall_score"] is None
 
     @pytest.mark.asyncio
     async def test_get_review_with_valid_uuid(self, mock_db_session):
@@ -338,3 +339,114 @@ class TestReviewService:
 
         # Should order by created_at descending
         mock_db_session.execute.assert_called_once()
+
+
+@pytest.mark.unit
+class TestShareToken:
+    """Tests for share token service functions."""
+
+    @pytest.fixture
+    def mock_db_session(self):
+        """Create a mock async database session."""
+        session = AsyncMock()
+        session.add = Mock()
+        session.commit = AsyncMock()
+        session.refresh = AsyncMock()
+        session.execute = AsyncMock()
+        return session
+
+    @pytest.mark.asyncio
+    async def test_create_share_token_returns_none_for_missing_review(self, mock_db_session):
+        """Test create_share_token returns None when review is not found."""
+        review_id = uuid4()
+        user_id = uuid4()
+
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.first.return_value = None
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+
+        result = await create_share_token(mock_db_session, review_id, user_id)
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_create_share_token_sets_token_and_expiry(self, mock_db_session):
+        """Test create_share_token sets share_token and share_expires_at on the review."""
+        review_id = uuid4()
+        user_id = uuid4()
+
+        mock_review = Mock()
+        mock_review.id = review_id
+        mock_review.share_token = None
+        mock_review.share_expires_at = None
+
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.first.return_value = mock_review
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+
+        result = await create_share_token(mock_db_session, review_id, user_id)
+
+        assert result is not None
+        assert mock_review.share_token is not None
+        assert len(mock_review.share_token) > 0
+        assert mock_review.share_expires_at is not None
+
+    @pytest.mark.asyncio
+    async def test_create_share_token_expires_in_30_days(self, mock_db_session):
+        """Test create_share_token sets expiry approximately 30 days from now."""
+        review_id = uuid4()
+        user_id = uuid4()
+
+        mock_review = Mock()
+        mock_review.id = review_id
+
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.first.return_value = mock_review
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+
+        before = datetime.utcnow() + timedelta(days=29)
+        await create_share_token(mock_db_session, review_id, user_id)
+        after = datetime.utcnow() + timedelta(days=31)
+
+        assert before < mock_review.share_expires_at < after
+
+    @pytest.mark.asyncio
+    async def test_create_share_token_commits_to_db(self, mock_db_session):
+        """Test create_share_token persists the token via db.commit."""
+        review_id = uuid4()
+        user_id = uuid4()
+
+        mock_review = Mock()
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.first.return_value = mock_review
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+
+        await create_share_token(mock_db_session, review_id, user_id)
+
+        mock_db_session.commit.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_get_review_by_share_token_returns_review(self, mock_db_session):
+        """Test get_review_by_share_token returns the review for a valid token."""
+        mock_review = Mock()
+        mock_review.share_token = "valid-token"
+
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.first.return_value = mock_review
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+
+        result = await get_review_by_share_token(mock_db_session, "valid-token")
+
+        assert result == mock_review
+        mock_db_session.execute.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_get_review_by_share_token_returns_none_for_invalid_token(self, mock_db_session):
+        """Test get_review_by_share_token returns None for an expired or unknown token."""
+        mock_result = AsyncMock()
+        mock_result.scalars.return_value.first.return_value = None
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+
+        result = await get_review_by_share_token(mock_db_session, "expired-token")
+
+        assert result is None

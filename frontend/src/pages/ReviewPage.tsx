@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Share2, Download, ArrowLeft, Loader } from 'lucide-react'
+import { Link, Download, ArrowLeft, Loader } from 'lucide-react'
 import { useReviewStatus } from '../hooks/useReviewStatus'
 import { ReviewSection } from '../components/ReviewSection'
 import { apiClient } from '../services/api'
+import { createShareLink } from '../services/shareService'
 import { Review } from '../types'
 
 export const ReviewPage: React.FC = () => {
@@ -12,6 +13,8 @@ export const ReviewPage: React.FC = () => {
   const [fullReview, setFullReview] = useState<Review | null>(null)
   const { review: statusReview, isPolling, error } = useReviewStatus(reviewId || '')
   const [fetchError, setFetchError] = useState('')
+  const [copied, setCopied] = useState(false)
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!isPolling && statusReview?.status === 'complete') {
@@ -29,11 +32,17 @@ export const ReviewPage: React.FC = () => {
 
   const currentReview = fullReview || statusReview
 
-  const handleShare = () => {
-    const url = window.location.href
-    navigator.clipboard.writeText(url).then(() => {
-      alert('Review link copied to clipboard!')
-    })
+  const handleCopyLink = async () => {
+    try {
+      const { share_url } = await createShareLink(reviewId || '')
+      await navigator.clipboard.writeText(share_url)
+    } catch {
+      // Fall back to copying the current page URL if the API call fails
+      await navigator.clipboard.writeText(window.location.href)
+    }
+    setCopied(true)
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
+    copyTimerRef.current = setTimeout(() => setCopied(false), 2000)
   }
 
   const handleExport = () => {
@@ -112,11 +121,11 @@ ${section.suggestions.map((s) => `- ${s}`).join('\n')}
               <h1 className="text-3xl font-bold text-gray-900">Portfolio Review</h1>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={handleShare}
+                  onClick={handleCopyLink}
                   className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors"
                 >
-                  <Share2 className="w-5 h-5" />
-                  Share
+                  <Link className="w-5 h-5" />
+                  {copied ? 'Copied!' : 'Copy link'}
                 </button>
                 <button
                   onClick={handleExport}
