@@ -61,6 +61,38 @@ I fixed duplicate repository ingestion by checking `IngestedSource` before proce
 **Tests added or updated:**
 Added `tests/unit/test_ingestion_pipeline.py`, covering duplicate repo ingestion and verifying the second ingestion does not write another vector entry.
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none yet
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer comments have come in yet. I marked the PR ready for review and am still waiting for feedback.
+
+**How you responded:**
+No code changes were needed from review yet. For now, I am monitoring the PR and keeping the branch ready in case reviewers ask for changes.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was not writing the actual skip condition; it was figuring out where the correct source of truth should live. At first the pipeline looked like it already had deduplication because there was a `_check_skip()` method, but reading deeper showed that it queried a placeholder string and `_record_ingested_source()` only logged instead of writing a real record. I also had to be careful with validation because the repo had many existing failing tests and lint issues, so I could not just say "the suite fails". I had to separate failures caused by my change from failures that were already there.
+
+**What did you learn about working in a large codebase?**
+I learned that the code that looks relevant from an issue title is only the starting point. The actual behavior depended on how `ingestion/pipeline.py`, `BatchEmbeddingProcessor`, the vector DB, and `IngestedSource` fit together. In my own projects, I often know the intended flow already, but in someone else's codebase I had to prove the flow by reading call sites, checking models, and writing a reproduction test. I also learned that a small backend fix can still require strong process work: baseline tests, scoped validation, clean PR notes, and not touching unrelated files.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for quickly mapping the relevant files, drafting a reproduction strategy, and turning the plan into a focused unit test. It also helped me keep track of the PR checklist and write clear documentation. Where it fell short was judgment: I still had to decide whether the deduplication key should use `source_id`, `content_hash`, or `source_url`, and I had to verify the generated code against the actual model fields. AI could suggest a fix, but it could not replace running the test, reading the diff, and checking that the change matched the project's existing structure.
+
+**What would you do differently if you started over?**
+I would inspect the model and database recording path earlier instead of focusing first on the vector DB symptom. The duplicate embeddings were visible in vector storage, but the root cause was really that ingestion metadata was not being persisted correctly. I would also run and save baseline checks before writing any code from the beginning, because that made it much easier to explain pre-existing failures later. Finally, I would keep the implementation diff even narrower by watching formatting changes more closely as I worked.
+
+**What are you most proud of from this module?**
+I am most proud that I treated the issue like a real contribution instead of just making the test pass. I reproduced the bug, wrote a test that captured the behavior, implemented the fix through the existing `IngestedSource` model, and documented the validation limits honestly. That made the PR easier to review and gave me a clearer sense of what professional contribution work looks like.
