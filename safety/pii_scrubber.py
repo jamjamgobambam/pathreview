@@ -12,13 +12,14 @@ class PIIScrubber:
     # Regex patterns for common PII
     PII_PATTERNS = {
         "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
-        # BUG(#146): after the (optional) area code this pattern only allows an
-        # optional [-.] separator, so it cannot consume the space in the common
-        # "(555) 123-4567" form. scrub() leaves such numbers unredacted and
-        # detect() returns [] for them. Reproduced by the failing unit tests
-        # test_us_phone_number_redaction, test_us_phone_formats,
-        # test_detect_phone_pii, and test_phone_at_start_of_text.
-        "phone_us": r"\b(?:\+?1[-.]?)?\(?([0-9]{3})\)?[-.]?([0-9]{3})[-.]?([0-9]{4})\b",
+        # US phone numbers. Separators may be a space, dot, or hyphen, so the
+        # common parenthesized form "(555) 123-4567" (space after the area code)
+        # is covered alongside "555-123-4567", "555.123.4567", "555 123 4567",
+        # and an optional "+1"/"1" country code. Lookaround anchors let the
+        # leading "(" be part of the match while still avoiding digits that are
+        # glued to surrounding word characters. The separator class is space/
+        # dot/hyphen (not \s) so a match never spans a line break.
+        "phone_us": r"(?<!\w)(?:\+?1[ .-]?)?\(?([0-9]{3})\)?[ .-]?([0-9]{3})[ .-]?([0-9]{4})(?!\w)",
         "phone_intl": r"\+[0-9]{1,3}[-.]?[0-9]{1,14}",
         "ssn": r"\b(?!000|666)[0-9]{3}-(?!00)[0-9]{2}-(?!0000)[0-9]{4}\b",
         "street_address": r"\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Court|Ct|Circle|Cir|Park|Pl|Plaza|Place|Drive|Dr|Way|Parkway|Pkwy|Point|Pt|Pike|Run|Summit|Summit|Terrace|Ter|Trail|Trl|Tunnel|Turnpike|View|Vista|Vlg|Village|Vly|Valley)",
