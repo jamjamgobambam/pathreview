@@ -72,3 +72,36 @@ Added `tests/unit/test_health_check.py` with two tests: `test_redis_check_uses_r
 *(On changed files: `ruff`, `black`, and `mypy` pass with no new errors, and both new tests pass. Repo-wide, 53 pre-existing test failures, 178 pre-existing `ruff` findings, and several pre-existing `mypy` stub errors exist on `main`/unrelated files — confirmed unaffected by this change; see Check-in 1 for detail.)*
 
 **Draft PR feedback received from:** A cohort peer, via the course Slack review channel — confirmed the `redis.Redis.from_url()` approach was correct and the test coverage was sufficient; no changes requested to the reviewed code.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer comments have come in on PR #244.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The actual code fix was trivial — one line, swap `redis.Redis(host=..., port=...)` for `redis.Redis.from_url(settings.redis_url)`. What took real time was everything *around* the fix: getting a stable local dev environment running on Windows inside a OneDrive-synced folder. `uvicorn --reload` was watching `.venv` and `node_modules` and triggering endless reload loops and port conflicts because OneDrive kept re-syncing files mid-reload; `npm` failed under Git Bash because Windows needs the `.cmd` shim explicitly; `seed_db.py` crashed on startup because Windows' default console codepage couldn't print a checkmark character. None of that had anything to do with the actual bug I was assigned, but it consumed more debugging time than the fix itself.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was learning to separate "is this broken because of my change" from "was this already broken." Before this module I would have seen 53 failing tests and 178 lint errors after my change and assumed I'd broken something. Here, I had to actually run the same checks against `main` before touching anything, read the specific tracebacks (e.g. an unrelated `AttributeError: 'coroutine' object has no attribute 'first'` in `core/services/review_service.py`) to confirm they were pre-existing and unrelated to Redis/health, and then explicitly document that comparison rather than just claiming "tests pass." That kind of blast-radius thinking (proving your change is safe, not just that it works) is very different from working on a personal project where you're usually the only source of bugs.
+
+**How did AI tools help — and where did they fall short?**
+Where it helps: AI assistance was most useful for the mechanical, high-friction parts: diagnosing Windows-specific environment failures quickly by reading terminal output and cross-referencing the `Makefile`, writing the `AsyncMock`/`MagicMock` test scaffolding for the async DB session and Redis client (a pattern I hadn't used before), and systematically checking my PR/journal against the grading rubric line by line using the live GitHub API instead of just eyeballing it.
+
+Where it fell short: it initially wrote a PR description that was subtly wrong about how the fix worked (describing manual host/port parsing when the actual code just calls `from_url()`). It's a good reminder that AI-generated descriptions of your own code still need a human fact-check against to avoid potential errors later on.
+
+**What would you do differently if you started over?**
+I'd set up the project outside of OneDrive from day one (e.g. in a plain `C:\dev\` folder) — nearly every environment issue I hit traced back to file-sync interference, and it would have saved a full session of debugging. I'd also avoid letting my personal `instructions.md` file get anywhere near the git index; it accidentally got tracked and included in a commit, which I had to clean up mid-module. Fix-wise, I'm satisfied with the scope I chose — a small, well-bounded Tier 1 issue was the right call for a first contribution.
+
+**What are you most proud of from this module?**
+Catching and documenting the unrelated pre-existing issue #154 (the raw SQL string bug that `mypy` surfaced once I added type annotations) without scope-creeping into fixing it. It would have been easy to either ignore the new type error or to "fix everything while I'm in here" — instead I suppressed it with a scoped `# type: ignore` comment, filed the reasoning in `PLAN.md` and `JOURNAL.md`, and kept the PR focused on exactly #155. That kind of discipline felt like the most "real open-source contributor" moment of the whole module.
