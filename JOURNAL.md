@@ -67,3 +67,43 @@ Added a "Copy link" button to the completed review page that generates a 30-day 
 **Self-review confirmation:** [x] make check passes [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback came in during Week 10.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the pre-commit hooks to pass was significantly harder than I anticipated. I expected to write the code and commit — instead I spent a full session iterating through ruff, black, and mypy failures one by one. The mypy errors were the most frustrating: the alembic double-module error was caused by the project being nested inside a `Downloads/` directory on my machine, which had nothing to do with my code. Once I understood that `explicit_package_bases = true` and excluding `tests/` from mypy were the right fixes, it clicked — but getting there required reading mypy docs and understanding how it resolves module paths, which I hadn't done before.
+
+The other thing that surprised me was the share URL pointing to `localhost:8000` instead of `localhost:5173`. I had assumed `request.base_url` would give the frontend origin, but it gives the API server's origin. The fix — reading the `Origin` header from the browser request — was simple once I understood the problem, but it took actually running the feature end-to-end to catch it.
+
+**What did you learn about working in a large codebase?**
+The biggest difference from building my own projects is that every decision has a context I didn't create. The existing patterns — how `db` sessions are passed, how routes are structured, how schemas are validated — all had to be matched exactly, not just approximately. Early on I added `db` parameters without type annotations because the original code didn't have them, and that worked fine locally but broke mypy once it was actually checking the file. Contributing to someone else's codebase means you inherit their technical debt and their standards simultaneously, and you have to distinguish between "this is intentional" and "this is a pre-existing gap I shouldn't make worse."
+
+I also learned that route ordering in FastAPI matters in a non-obvious way: placing `GET /reviews/shared/{token}` after `GET /reviews/{review_id}` would cause FastAPI to try to parse `"shared"` as a UUID and return a 422. That's the kind of thing that only shows up when you actually test the endpoint, not when you're reading the code.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for scaffolding — generating the initial structure of the migration, the service functions, and the frontend component saved a lot of time. It was also good at explaining what a specific mypy or ruff error meant and suggesting the right fix.
+
+Where it fell short was in understanding the full runtime context. The `localhost:8000` vs `localhost:5173` bug wasn't caught until I ran the feature manually — AI generated code that was syntactically correct and logically reasonable but wrong for this specific deployment setup. Similarly, the route ordering issue required me to know how FastAPI resolves path parameters, which AI mentioned but didn't flag as a risk until I asked about it directly. The lesson is that AI-generated code needs to be run, not just read.
+
+**What would you do differently if you started over?**
+I would run `make check` and `make test-unit` before writing a single line of implementation code, just to establish a baseline of what was already failing. I spent time debugging mypy errors that turned out to be pre-existing, and knowing that upfront would have saved me from second-guessing whether my changes introduced them.
+
+I would also test the full end-to-end flow earlier — clicking the button in the browser, copying the link, opening it in an incognito window. I caught the `localhost:8000` URL bug only because I tested manually near the end. If I had done that after the first working commit, I would have caught it immediately.
+
+**What are you most proud of from this module?**
+The backend implementation being complete and correct on the first pass. The `create_share_token` and `get_review_by_share_token` service functions, the migration, the public endpoint, and the expiry logic all worked correctly when I ran them against the real database without any debugging. That came from reading the existing service patterns carefully before writing anything and matching them exactly — and it's the part of the contribution I feel most confident about.
