@@ -28,10 +28,14 @@ async def create_review_endpoint(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> ReviewResponse:
-    """
-    Create a new review for a profile.
+    """Create a new review for a profile.
+
     Triggers ingestion pipeline and agent orchestration asynchronously.
     Returns review with status="pending" immediately.
+
+    Raises:
+        HTTPException: If the profile is unavailable to the user or review
+            creation fails.
     """
     try:
         # Create review with status="pending"

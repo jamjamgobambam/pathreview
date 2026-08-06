@@ -28,14 +28,13 @@ Files I expect to change:
 - `api/routes/reviews.py`
   - Return `404 Not Found` when `create_review()` returns `None`.
   - Only start the background review task after a review is created.
-- `tests/unit/test_review_ownership.py`
-  - Test owned, unowned, and missing profiles.
+- `tests/unit/test_review_service.py`
+  - Test owned profiles and the shared rejection path for missing or unowned
+    profiles.
   - Confirm that rejected requests do not write to the database.
 - `tests/unit/test_review_routes.py` (new)
   - Test the route's `404` response.
   - Confirm that rejected requests do not start a background task.
-
-
 ### Plan
 
 1. In `create_review()`, query for a profile whose `id` matches the requested
