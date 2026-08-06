@@ -95,4 +95,6 @@ Pre-existing issues I did not touch: 13 `AsyncMock().scalars()` failures in
 declared in `pyproject.toml` but were missing from my local venv.
 `make test-integration` was not run — it requires Docker services I don't have.
 
-**Draft PR feedback received from:** none yet — draft PR opened for peer review in Slack
+**Draft PR feedback received from:** none — PR #993 was opened directly as ready
+for review rather than as a draft, so no peer feedback was gathered before
+submission.
