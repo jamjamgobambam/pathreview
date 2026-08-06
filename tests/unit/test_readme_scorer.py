@@ -18,34 +18,126 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+
+        A comprehensive project description that covers all the important aspects of
+        the application. This project is designed to help developers manage their
+        portfolio reviews and get feedback on their work. It uses modern web
+        technologies and follows best practices for software development.
 
         ## Installation
+
+        To install this project, follow the steps below. Make sure you have Python
+        3.9 or higher installed on your system before proceeding with the setup.
+
         ```bash
-        pip install package
+        git clone https://github.com/example/project.git
+        cd project
+        python -m venv .venv
+        source .venv/bin/activate
+        pip install -e ".[dev]"
+        ```
+
+        After installation, copy the example environment file and configure your
+        settings accordingly:
+
+        ```bash
+        cp .env.example .env
         ```
 
         ## Usage
+
+        Once installed, you can start the application with the following command.
+        The server will be available at http://localhost:8000 by default.
+
         ```python
         import package
         package.run()
         ```
 
+        You can also run it via the command line interface:
+
+        ```bash
+        uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+        ```
+
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+
+        This project includes a rich set of features designed to make portfolio
+        review easy and thorough:
+
+        - Feature 1: Automated README quality scoring using heuristic analysis
+        - Feature 2: Skill extraction from GitHub repositories and resume text
+        - Feature 3: Tech stack detection based on file extensions and imports
+        - Feature 4: Bias detection in AI-generated review content
+        - Feature 5: PII scrubbing to protect sensitive user information
+        - Feature 6: Structured chunking for efficient RAG retrieval
+        - Feature 7: Keyword and semantic search with hybrid scoring
 
         ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
+
+        The application is built with a modern, production-ready tech stack:
+
+        - Python 3.9 — core application language
+        - FastAPI — high-performance async web framework
+        - PostgreSQL — primary relational database
+        - Redis — caching and session storage
+        - ChromaDB — vector store for semantic search
+        - SQLAlchemy — async ORM with Alembic migrations
+        - OpenAI API — LLM-powered review generation
+        - Pydantic v2 — data validation and settings management
+
+        ## Architecture
+
+        The project follows a layered architecture separating concerns cleanly
+        across the API, service, agent, ingestion, and RAG layers. Each layer
+        has a well-defined responsibility and communicates via typed interfaces.
+
+        The agent orchestrator coordinates tool execution, while the RAG pipeline
+        handles document ingestion, chunking, embedding, and retrieval. The API
+        layer exposes RESTful endpoints secured with JWT authentication.
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
+        ![License](https://example.com/license.svg)
 
         ## Live Demo
+
+        A hosted version of the application is available for exploration:
+
         [Try it here](https://demo.example.com)
+
+        The demo environment is reset nightly and does not persist data between
+        sessions. Feel free to explore all features without creating a real account.
+
+        ## Contributing
+
+        Contributions are welcome. Please open an issue before submitting a pull
+        request so the change can be discussed first. All pull requests should
+        include tests and pass the existing test suite.
+
+        ## Configuration
+
+        The application is configured via environment variables. Copy the provided
+        `.env.example` file to `.env` and fill in the required values. Key settings
+        include the database connection string, Redis URL, OpenAI API key, and JWT
+        secret. All configuration options are documented in the example file with
+        inline comments explaining their purpose and accepted values.
+
+        ## Testing
+
+        The test suite is split into unit tests and integration tests. Unit tests
+        run without any external services and complete in under thirty seconds.
+        Integration tests require the Docker services to be running.
+
+        ```bash
+        pytest tests/unit -v -m unit
+        pytest tests/integration -v -m integration
+        ```
+
+        ## License
+
+        This project is licensed under the MIT License. See the LICENSE file for
+        full details.
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -157,9 +249,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +311,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +327,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 

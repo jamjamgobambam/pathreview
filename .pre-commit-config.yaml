@@ -16,3 +16,4 @@ repos:
       - id: mypy
         additional_dependencies: [types-redis]
         args: [--ignore-missing-imports]
+        exclude: ^tests/

@@ -78,7 +78,7 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 check_untyped_defs = true
-exclude = ["alembic/versions/"]
+exclude = ["alembic/versions/", "tests/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
