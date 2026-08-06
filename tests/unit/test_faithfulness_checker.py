@@ -254,6 +254,31 @@ class TestFaithfulnessChecker:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
+    def test_none_chunk_mixed_with_valid_chunk(self, checker):
+        """A None text chunk should drop out while valid chunks still count."""
+        feedback = "The developer has strong Python skills."
+        context_chunks = [
+            {"text": None},
+            {"text": "Expert Python programmer with production experience."},
+        ]
+
+        score = checker.check(feedback, context_chunks)
+
+        # The null chunk must drop out quietly and let the checker run to a
+        # valid score instead of raising on the join.
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+
+    def test_all_none_context_chunks(self, checker):
+        """A context list of only None text values should score low, not crash."""
+        feedback = "Has Python skills"
+        context_chunks = [{"text": None}, {"text": None}]
+
+        score = checker.check(feedback, context_chunks)
+
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+
     def test_score_consistency(self, checker):
         """Test that same input produces same score."""
         feedback = "The developer has strong Python skills."

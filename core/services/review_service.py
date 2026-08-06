@@ -204,7 +204,7 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
     # Ingest from GitHub if available
     if profile.github_username:
         try:
-            # Placeholder: actual GitHub ingestion logic
+            # TODO(stub): real GitHub ingestion logic; this fabricates source data
             github_data = {
                 "source_type": "github",
                 "username": profile.github_username,
@@ -229,7 +229,7 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
     # Ingest from portfolio URL if available
     if profile.portfolio_url:
         try:
-            # Placeholder: actual portfolio ingestion logic
+            # TODO(stub): real portfolio ingestion logic; this fabricates source data
             portfolio_data = {
                 "source_type": "portfolio",
                 "url": profile.portfolio_url,
@@ -283,8 +283,14 @@ async def _run_agent_orchestration(profile: Profile, ingestion_results: list[dic
     """
     Run agent orchestration to analyze ingested data.
     Returns agent output with initial analysis.
+
+    STUB: this currently returns hardcoded mock data and does not call the agent
+    layer. It is intentional scaffolding, not finished work. See the TODO below
+    for what a real implementation needs to do.
     """
-    # Placeholder: actual agent orchestration logic
+    # TODO(stub): replace this hardcoded response with a real call into the
+    # agent orchestrator (agent/orchestrator.py) so the sections reflect the
+    # actual ingested profile instead of fixed placeholder text.
     return {
         "sections": [
             {
@@ -312,13 +318,16 @@ async def _run_rag_retrieval_generation(
     """
     Run RAG retrieval and generation to create detailed feedback.
     Returns enhanced review output.
+
+    STUB: this currently returns hardcoded mock data and does not run retrieval
+    or generation. It is intentional scaffolding, not finished work.
     """
-    # Placeholder: actual RAG logic
-    # In production, this would:
+    # TODO(stub): replace this hardcoded response with the real RAG flow, which
+    # in production would:
     # 1. Embed ingested content
     # 2. Store in vector DB
     # 3. Retrieve relevant context
-    # 4. Generate detailed feedback using LLM
+    # 4. Generate detailed feedback using the LLM
 
     return {
         "sections": [
@@ -359,7 +368,7 @@ async def _run_safety_checks(output: dict) -> bool:
     Run safety checks on the review output.
     Returns True if all checks pass, False otherwise.
     """
-    # Placeholder: actual safety checks logic
+    # TODO(stub): real safety checks; the basic validation below is a placeholder.
     # In production, this would:
     # 1. Check for personally identifiable information
     # 2. Validate feedback tone and constructiveness
