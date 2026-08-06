@@ -128,3 +128,78 @@ session. Both pass.
 > my changes introduce **no new** failures.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**How you responded:**
+No feedback to respond to. In its absence I did a second self-review pass:
+re-ran `make check` and `make test-unit` to confirm my two regression tests in
+`tests/unit/test_orchestrator_session_state.py` still pass and that the
+pre-existing failure count is unchanged (53 failing, none introduced by me), and
+re-read the diff on `agent/orchestrator.py` and `agent/memory/context_manager.py`
+to make sure the `session_store=None` guard and the "persist only current
+results" change still read cleanly.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part wasn't writing the fix — it was *proving* the bug existed and
+that my change actually addressed it, without any real Redis or external
+services. Building the reproduction in Week 8 meant constructing a fake
+`SessionStore` and a tool whose output changed on every call, then driving
+`Orchestrator.run()` twice and asserting on the difference between `{"call": 1}`
+and `{"call": 2}`. Getting the fake to behave like the real memoization path —
+so the test failed for the *right* reason — took more iteration than the
+one-line-ish clearing logic did. Separating "the bug is real" from "my test is
+just wrong" was the genuinely hard, slow part.
+
+**What did you learn about working in a large codebase?**
+The biggest shift from my own projects is that you spend far more time reading
+than writing, and the riskiest decisions are about *blast radius*, not
+cleverness. My Week 8 blocker — clear the session key vs. namespace it per
+review — I couldn't answer by looking at the failing code alone. I had to audit
+every caller of `Orchestrator.run()` and `SessionStore` to confirm nothing reads
+a prior review's session, which is what made "clear" the safe choice (no
+signature change, no threading a review ID through the call stack). In my own
+code I'd just refactor the signature; in someone else's production code, the
+smallest change that satisfies the requirement is usually the correct one. I
+also had to learn to live with a codebase that was already failing 53 unit tests
+and reporting lint/type issues I didn't cause — distinguishing "pre-existing" from
+"mine" became a required skill, not a nicety.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for orientation and mechanical work: quickly mapping which
+files touched session state, drafting the fake `SessionStore` scaffolding, and
+sanity-checking that my `black`/`ruff` diffs were clean on only the lines I
+changed. Where it fell short was exactly the judgment call that mattered most —
+whether clearing the session could break some cross-review persistence
+assumption elsewhere. AI could suggest both options but couldn't *guarantee*
+nothing depended on the old behavior; only manually reading every call site
+could. It also couldn't tell me which of the 53 failing tests were pre-existing
+versus caused by me — I had to establish that baseline myself by running the
+suite before and after. AI accelerates the search, but the accountability for
+"is this actually safe to merge" stayed with me.
+
+**What would you do differently if you started over?**
+I'd establish the failing-test and lint baseline on day one, before touching
+anything, and save it. I burned time in Week 9 reconstructing which failures
+were pre-existing; a saved baseline would have made the "no new failures" claim
+trivial to prove. On issue selection, #43 was a good fit (contained, testable,
+clear success criteria), but I'd resolve the clear-vs-namespace design question
+*during* Week 7 scope reasoning rather than carrying it as a Week 8 blocker —
+the answer was ultimately just a caller audit I could have front-loaded.
+
+**What are you most proud of from this module?**
+The reproduction test. It would have been easy to "fix" caching invalidation by
+eyeballing the code and calling it done, but the two tests in
+`test_orchestrator_session_state.py` pin the actual user-visible symptom — a
+repeat review silently ignoring an updated portfolio — and now fail loudly if
+anyone reintroduces it. Turning a vague "state isn't cleared between reviews"
+complaint into a concrete, executable regression guarantee is the part I'd stand
+behind.
