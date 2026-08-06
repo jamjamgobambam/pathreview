@@ -17,3 +17,17 @@ A successful fix would make sure documents without headings still get chunked, s
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/goodCodeForGood/pathreview/commit/<reproduction-commit>
+
+**Reproduction summary:**
+
+I reproduced the issue by running the structural chunker against a Markdown document containing only plain text and no Markdown headings. The chunker returned an empty list instead of generating a fallback chunk, causing the document to be skipped by the ingestion pipeline.
+
+**PLAN.md link:** https://github.com/goodCodeForGood/pathreview/blob/fix/149-structural-chunker-no-headings/PLAN.md
+
+**Blockers or open questions:**
+
+I still need to verify whether the fallback chunk should include the same metadata as heading-based chunks and whether any downstream components rely on heading information.
