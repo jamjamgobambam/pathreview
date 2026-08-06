@@ -53,7 +53,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [your PR link]
+**PR link:** https://github.com/ascherj/pathreview/pull/968
 
 **Branch:** `fix/106-user-prof-test-fixture`
 
@@ -63,7 +63,7 @@ I restored the missing sample profile fixture used by integration tests. The fix
 **Tests added or updated:**
 Added/restored `tests/fixtures/sample_profiles/basic_profile.json`; verified with `tests/integration/test_sample_profile_fixture.py`.
 
-**Self-review confirmation:** [ ] make check passes [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes [X] make test-unit passes
 
 **Draft PR feedback received from:** none
 
