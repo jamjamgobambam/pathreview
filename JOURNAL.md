@@ -71,3 +71,42 @@ I updated `tests/unit/test_dependency_audit_tool.py` with six tests covering Pyt
 The repository contains documented pre-existing failures. Before implementation, the unit suite had 53 unrelated failures and 375 passing tests when the reproduction test was excluded. After implementation, the same 53 tests fail and 381 tests pass, confirming that the contribution introduced six passing tests and no new failures. Repository-wide Ruff also contains pre-existing errors, while targeted Ruff, Black, Mypy, and unit tests pass for all issue-related files.
 
 **Draft PR feedback received from:** none 
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+
+No reviewer or maintainer feedback was received. Reviewer feedback was not provided as part of the Summer 2026 course workflow, so I reviewed the pull request myself, confirmed that the issue-specific tests and quality checks passed, and documented the repository's unrelated pre-existing failures.
+
+**How you responded:**
+
+No code-review response or additional code change was required. I kept the pull request available for maintainers, verified that the branch contained the completed implementation and documentation, and finished the contribution reflection.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was defining the correct scope for a feature that did not already exist. Issue #53 sounded like a single new agent tool, but the tool needed actual dependency-file contents while the existing `TechDetector` only received file paths and the existing `GitHubTool` mainly returned repository metadata. I had to trace the agent flow before deciding that the new tool should support both direct manifest contents and GitHub repository input. Handling dependency formats was also more complex than expected because version declarations can contain ranges, environment markers, Git URLs, workspace references, aliases, and unpinned packages. Another challenge was separating failures caused by my work from the repository's existing failures. I recorded a baseline, compared the full unit-suite results before and after implementation, and used targeted Ruff, Black, Mypy, and pytest commands to prove that my files were clean.
+
+**What did you learn about working in a large codebase?**
+
+I learned that contributing to an existing codebase requires more restraint than building a project from scratch. In my own project, I might redesign the data flow immediately, but in PathReview I needed to follow the existing `BaseTool`, `ToolResult`, test, branch, and commit conventions and avoid expanding a Tier 2 issue into a larger review-pipeline refactor. I also learned to inspect not only the file named in an issue but its callers, inputs, tests, and integration points. A change can be locally correct and still be unsafe if it does not match the surrounding architecture. The baseline failures also showed me why contributors must distinguish their own regressions from existing technical debt instead of trying to fix unrelated problems inside the same pull request.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools were most useful for organizing the codebase investigation, explaining unfamiliar modules, drafting a structured implementation plan, proposing edge cases, and helping interpret pytest, Ruff, Black, Mypy, Git, and pre-commit output. They also helped turn the issue requirements into concrete tests for the three supported manifest formats and the orchestrator integration. However, AI suggestions still had to be checked against the actual repository. Some early assumptions about how tools were registered or how manifest contents were already available were not confirmed until I inspected the uploaded repository files. AI also could not decide the correct scope on its own; I had to compare its suggestions with the issue body, existing interfaces, test behavior, and course requirements. The most reliable workflow was to use AI for options and explanations, then validate every decision by reading the code and running the commands locally.
+
+**What would you do differently if you started over?**
+
+I would record the repository-wide test, lint, and type-check baseline at the very beginning of Week 7 instead of waiting until implementation week. That would make it easier to identify pre-existing failures and avoid uncertainty when the error counts changed. I would also define the tool's input and output contract before writing the behavior tests and ask for clarification earlier about whether nested monorepo manifests were in scope. From an implementation perspective, I would consider separating manifest parsing, registry lookup, and GitHub retrieval into smaller components earlier, even if they remained in the same file, because that would make each responsibility easier to test. I would still choose issue #53, but I would open the draft pull request as soon as the first passing vertical slice was available.
+
+**What are you most proud of from this module?**
+
+I am most proud that I completed the full open-source contribution process rather than only writing the feature code. I claimed and scoped the issue, reproduced the missing feature, created a detailed plan, implemented the tool, integrated it with the orchestrator, added six passing tests, documented pre-existing repository failures, and opened pull request #402. The full unit suite kept the same 53 unrelated failures while the passing count increased from 375 to 381, which gave me concrete evidence that my contribution added coverage without introducing new regressions.
