@@ -40,3 +40,53 @@ a newly constructed review without executing an ownership query.
 Confirm whether maintainers prefer `404 Not Found` or `403 Forbidden` for a
 profile owned by another user; the current codebase consistently uses `404` to
 avoid disclosing resource existence.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I updated `create_review()` to look up the requested profile using both the
+profile ID and the authenticated user's ID. The service now returns `None`
+instead of creating a review when the profile is missing or belongs to another
+user, and I added unit tests for authorized and unauthorized review creation.
+
+**Next steps:**
+Update the `POST /reviews` route to return `404 Not Found` when the service
+rejects the profile, confirm that no background task is started in that case,
+and run the focused tests and project-wide checks.
+
+**Blockers:**
+The repository's full test and code-quality commands have existing unrelated
+failures. I recorded the baseline results so I could confirm that my changes do
+not introduce new failures.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** Pending — the pull request has not been opened yet.
+
+**Branch:** `fix/163-enforce-profile-ownership-on-review-creation`
+
+**What you built:**
+Review creation now verifies that the supplied profile belongs to the
+authenticated user. Requests for a missing or unowned profile receive a
+`404 Not Found` response, no review is written, and no review-processing
+background task is scheduled.
+
+**Tests added or updated:**
+I added service tests for owned and unowned profiles, route tests for the
+success and rejection paths, and updated the existing review service fixture
+to return an owned profile. All four focused ownership and route tests pass. A
+manual API check also confirmed that a user cannot create a review using a
+second user's profile UUID and that the review count does not change.
+
+**Self-review confirmation:** [X] `make check` passes*  [X] `make test-unit`
+passes*
+
+\*Under the course's pre-existing-failure policy, these boxes mean the change
+introduces no new failures. All four issue-specific tests pass; the full
+commands retain the unrelated failures recorded before implementation.
+
+**Draft PR feedback received from:** none
