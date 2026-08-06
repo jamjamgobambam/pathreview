@@ -57,3 +57,32 @@ I created a new test file: tests/unit/test_health_route.py with a FakeRedis stub
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** Still awaiting review
+
+**Summary of feedback:**
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting oriented in a codebase I didn't write was much harder than I expected. As a first-time contributor, I couldn't just jump to the fix, I had to slow down and figure out how the pieces fit together before I could trust myself to change anything.
+
+**What did you learn about working in a large codebase?**
+I learned that contributing isn't just about writing code that works, it's about understanding the existing structure and conventions well enough that your change fits naturally into it. I also learned the value of paying attention to a project's tooling and process early, since small things like formatting requirements can slow you down if you skip past them.
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped me ramp up faster by summarizing unfamiliar code and pointing me toward the parts most relevant to my issue, which saved a lot of time compared to reading everything cold. Where they fell short was in the actual decision-making, understanding tradeoffs and confirming a change was correct still came down to me thinking it through myself rather than taking a suggestion at face value.
+
+**What would you do differently if you started over?**
+I would spend less time trying to understand the whole codebase up front and instead focus earlier on tracing the specific path tied to my issue, digging into the root cause sooner rather than building a broad mental map first.
+
+**What are you most proud of from this module?**
+I'm most proud that I was able to take on a codebase that was completely new to me, work through the unfamiliarity, and still land a real, tested contribution. It gave me more confidence in my ability to ramp up quickly on unfamiliar systems.
