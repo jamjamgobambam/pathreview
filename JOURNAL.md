@@ -58,7 +58,7 @@ targets through `.venv/Scripts/python.exe` directly.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _to be filled in — see "Submission" note below_
+**PR link:** https://github.com/ascherj/pathreview/pull/993
 
 **Branch:** `test/88-review-endpoint-missing-documents`
 
