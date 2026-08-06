@@ -44,3 +44,6 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+
+# Course homework instructions (personal, not part of the app)
+instructions.md
