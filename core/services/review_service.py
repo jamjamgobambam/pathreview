@@ -1,15 +1,23 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
+
+#: Shown to the user when a review is requested for a profile that has no
+#: ingestable sources. Surfaced through ``Review.error_message``.
+EMPTY_PROFILE_ERROR_MESSAGE = (
+    "No documents were found for this profile. Add a GitHub username, "
+    "a portfolio URL, or a resume before requesting a review."
+)
 
 
 async def create_review(
@@ -40,8 +48,8 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
     return result.scalars().first()
@@ -89,6 +97,9 @@ async def process_review(
     Steps:
     1. Set status="processing"
     2. Run ingestion pipeline on profile's sources
+       2a. If ingestion produced no sources, set status="failed" with an
+           explanatory error_message and stop — generating feedback from
+           zero documents would fabricate it.
     3. Run agent orchestration
     4. Run RAG retrieval + generation
     5. Run safety checks on output
@@ -131,6 +142,25 @@ async def process_review(
             review_id=str(review_id),
             sources_count=len(ingestion_results),
         )
+
+        # Step 2a: Stop early when the profile has no ingested documents.
+        # The agent and RAG steps generate feedback unconditionally, so
+        # continuing here would fabricate a "complete" review from no
+        # evidence at all (see issue #88).
+        if not ingestion_results:
+            log.warning(
+                "review_empty_profile",
+                review_id=str(review_id),
+                profile_id=str(profile_id),
+            )
+            review.status = "failed"
+            review.sections = []
+            review.overall_score = None
+            review.error_message = EMPTY_PROFILE_ERROR_MESSAGE
+            review.updated_at = datetime.utcnow()
+            db.add(review)
+            await db.commit()
+            return
 
         # Step 3: Run agent orchestration
         agent_output = await _run_agent_orchestration(profile, ingestion_results)
