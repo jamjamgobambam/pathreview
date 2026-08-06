@@ -1,11 +1,11 @@
 """Tests for resume_parser.py"""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
+from unittest.mock import Mock, patch
 
-from ingestion.parsers.resume_parser import ResumeParser
+import pytest
+
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.resume_parser import ResumeParser
 
 
 @pytest.mark.unit
@@ -104,6 +104,9 @@ class TestResumeParser:
         # Markdown syntax should be stripped
         assert "#" not in result.text or result.text.count("#") < markdown_resume.count("#")
         assert "Jane Doe" in result.text
+        detected_lower = [s.lower() for s in result.metadata["detected_sections"]]
+        assert any("experience" in s for s in detected_lower)
+        assert any("skills" in s for s in detected_lower)
 
     def test_parse_invalid_content_type(self, parser):
         """Test that invalid content type raises ValueError with clear message."""
@@ -125,6 +128,27 @@ class TestResumeParser:
 
     def test_detect_sections(self, parser):
         """Test section detection in resume text."""
+        text = (
+            "\n"
+            "    Experience:\n"
+            "Senior Developer at TechCorp\n"
+            "\n"
+            "        Education:\n"
+            "BS Computer Science\n"
+            "\n"
+            "\tSkills: Python, JavaScript\n"
+        )
+        sections = parser._detect_sections(text)
+
+        assert isinstance(sections, list)
+        assert len(sections) > 0
+        sections_lower = [s.lower() for s in sections]
+        assert any("experience" in s for s in sections_lower)
+        assert any("education" in s for s in sections_lower)
+        assert any("skills" in s for s in sections_lower)
+
+    def test_detect_sections_with_unindented_headers(self, parser):
+        """Test section detection still works for headers at column 0."""
         text = """
         Experience:
         Senior Developer at TechCorp
@@ -136,12 +160,24 @@ class TestResumeParser:
         """
         sections = parser._detect_sections(text)
 
-        assert isinstance(sections, list)
-        assert len(sections) > 0
         sections_lower = [s.lower() for s in sections]
         assert any("experience" in s for s in sections_lower)
         assert any("education" in s for s in sections_lower)
         assert any("skills" in s for s in sections_lower)
+
+    def test_detect_sections_ignores_body_text_keywords(self, parser):
+        """Section keywords appearing mid-sentence must not be detected as headers."""
+        text = """
+        I have experience with Python and JavaScript.
+        Fluent in three languages.
+        Delivered several projects on time.
+        """
+        sections = parser._detect_sections(text)
+
+        sections_lower = [s.lower() for s in sections]
+        assert not any("experience" in s for s in sections_lower)
+        assert not any("languages" in s for s in sections_lower)
+        assert not any("projects" in s for s in sections_lower)
 
     def test_strip_markdown_syntax(self, parser):
         """Test markdown syntax stripping."""
