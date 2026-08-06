@@ -52,15 +52,17 @@ I first did a control -F project wide to see if the caplog issue existed anywher
 ### Check-in 1 (mid-week)
 
 **Current progress:**
-[What have you implemented so far? Which sub-tasks from PLAN.md are done?]
-I have not completed anything so far, so nothing has been finished yet
+I have not completed anything so far, so nothing has been finished yet.
 
 **Next steps:**
-[What are you working on for the rest of the week?]
-I'm working on the rest of the sub-tasks
+I sitll have to finish the rst of my PLAN.md
+
+- Understanding how logger works
+- Looking at what the codebase has already built in terms of the logger
+- Implementing the fix
+- Completing the PR
 
 **Blockers:**
-[Anything slowing you down? Or leave blank.]
 
 ---
 
@@ -68,7 +70,7 @@ I'm working on the rest of the sub-tasks
 
 **PR link:** [Pull request link](https://github.com/ascherj/pathreview/pull/943)
 
-**Branch:** `fix/159/structlog-output-not-captured`
+**Branch:** `fix-159-structlog-output-not-captured`
 
 **What you built:**
 [1–3 sentences summarizing what your fix does and how it works]
