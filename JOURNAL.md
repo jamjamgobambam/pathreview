@@ -96,10 +96,90 @@ missing mypy type annotations across the file's existing test functions and a
 to test runtime validation — both needed to satisfy the pre-commit hook on
 this file, unrelated to the bug itself.
 
-**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
-*(this codebase has substantial pre-existing failures — 177 lint errors, 5
+**Self-review confirmation:** [x] make check passes [x] make test-unit passes
+_(this codebase has substantial pre-existing failures — 177 lint errors, 5
 typecheck errors, 50 failing unit tests — all documented in the PR
 description; "passes" here means this change introduces zero new failures
-against that baseline, confirmed by diffing failure lists before/after)*
+against that baseline, confirmed by diffing failure lists before/after)_
 
 **Draft PR feedback received from:** LittlePixels — ["Looks good!"](https://github.com/ascherj/pathreview/pull/577#issuecomment-5159954240)
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes [ ] No — still awaiting review
+
+**Summary of feedback:**
+PR #577 is still open. The only review activity so far is a single comment
+from LittlePixels — ["Looks good!"](https://github.com/ascherj/pathreview/pull/577#issuecomment-5159954240)
+— with no requested changes and no formal approval/merge action recorded.
+The reviewer didn't raise any of the risks I'd flagged myself in PLAN.md
+(false positives from loosening the whitespace anchor, unicode whitespace
+like non-breaking spaces, possible redundancy between the `^{section}` and
+`\n{section}` pattern variants under `re.MULTILINE`), so those remain
+self-identified open questions rather than reviewer-driven ones.
+
+**How you responded:**
+No code changes were requested, so no follow-up commits were needed. The
+PR and branch (`fix/147-resume-parsing-error`) remain as submitted in Week 9
+— the fix in `ingestion/parsers/resume_parser.py`, the two new regression
+tests in `tests/unit/test_resume_parser.py`, and the documented before/after
+test-baseline diff in the PR description.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The actual bug fix — loosening four regex patterns to tolerate leading
+whitespace — took far less time than the surrounding process. The bigger
+time sink was environment breakage unrelated to the issue: a corrupted
+SQLAlchemy install (`FileNotFoundError` on a missing Cython extension file)
+and a `make setup` `pre-commit install` step that hung indefinitely. Neither
+had anything to do with `_detect_sections()`, but both had to be resolved
+before I could trust any test result. I also underestimated how much
+judgment it would take to decide what "tests pass" even means in a codebase
+that already has 177 lint errors, 5 typecheck errors, and 50 failing unit
+tests on `main` — "passing" turned into "introduces zero new failures
+against a documented baseline" rather than a clean run.
+
+**What did you learn about working in a large codebase?**
+A one-function fix rarely stays contained to one function. To get past the
+pre-commit hook on the test file I touched, I had to add missing mypy type
+annotations to existing test functions that had nothing to do with my bug —
+otherwise the hook would block the commit on unrelated pre-existing debt.
+I also learned that in a codebase with a large pre-existing failure count,
+the useful signal isn't "does `make check` pass" but "did the failure list
+change," which means diffing before/after output rather than trusting a
+single pass/fail signal.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for structured planning and risk-spotting —
+drafting PLAN.md's Map/Plan/Risks breakdown, reasoning through the
+false-positive edge case (a section-name word appearing indented mid-sentence
+rather than as a real header) before writing any code, and drafting the PR
+description with the before/after test counts and baseline caveats spelled
+out clearly. It fell short on the environment issues: diagnosing the
+corrupted SQLAlchemy Cython extension and the hanging `pre-commit install`
+required manual investigation (reading actual stack traces, testing
+hypotheses one at a time) rather than something an assistant could reason
+through from the issue description alone.
+
+**What would you do differently if you started over?**
+I'd budget explicit time for environment setup before starting the Week 8
+reproduction step, instead of discovering the SQLAlchemy and pre-commit
+issues mid-week and losing planning time to them. I'd also record the
+walkthrough video earlier — it's still marked "not recorded yet" from Week
+9 — rather than treating it as an optional last step that keeps sliding.
+
+**What are you most proud of from this module?**
+The two regression tests I added
+(`test_detect_sections_with_leading_whitespace` and
+`test_detect_sections_with_tabs_and_inconsistent_indentation`) are scoped
+tightly to the actual bug rather than being generic coverage padding — one
+mirrors the issue's exact repro case, the other guards the tab-indentation
+and inconsistent-depth edge cases I identified as risks in PLAN.md before
+writing the fix. Being able to point at PLAN.md's "Risks & unknowns" section
+and show that both flagged risks ended up covered by a real test feels like
+the most concrete evidence that the planning step actually paid off.
