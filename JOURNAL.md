@@ -88,3 +88,34 @@ Fixed two compounding bugs in `FaithfulnessChecker` that caused short, accurate 
 **Self-review confirmation:** [x] make check passes (on changed files — see PR for pre-existing repo-wide failures) [x] make test-unit passes (zero new failures vs. stashed baseline)
 
 **Draft PR feedback received from:** none yet — opened as draft for review
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No comments or reviews have landed on [PR #352](https://github.com/ascherj/pathreview/pull/352) as of the end of Week 10. Per the Su26 course note, reviewer feedback isn't a feature this term, so this is expected rather than a sign the PR is stalled.
+
+**How you responded:**
+N/A — nothing to respond to. If feedback arrives after this journal is submitted, I'll continue watching the PR and would document any follow-up here retroactively.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The issue as filed described a single bug — a token-overlap threshold that's unreachable for short claims. Reproducing it in Week 8 turned up a second, compounding bug (a `len() > 10` character filter in `_extract_claims()` that silently dropped short claims before they were ever scored), and implementing the fix in Week 9 turned up a third, unrelated tokenization bug where trailing punctuation on words like `"PostgreSQL,"` broke overlap matching entirely. None of these were visible from reading the issue text — each only showed up once I actually ran the repro script and read the function line by line. I underestimated how much of the work is confirming an issue is fully and correctly scoped before touching any code, rather than just implementing the fix the issue description implies.
+
+**What did you learn about working in a large codebase?**
+The existing test suite carried more of the design intent than the issue or the code comments did. `test_partial_support_returns_middle_score` is what told me `check()` needed to return a proportional score rather than a binary supported/unsupported count — that requirement wasn't stated anywhere except as an assertion in a test I wasn't asked to touch. I also learned to treat "did I break anything else" as a first-class step: diffing test results against a stashed baseline before opening the PR, and separating pre-existing repo-wide failures from ones my change introduced, mattered more here than in a solo project where I'd just trust a green test run.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for the mechanical parts: tracing execution through `_extract_claims()` and `_is_supported()` to pinpoint exactly which line dropped each claim, and drafting the regression test once I knew what behavior it needed to lock in. It fell short on the actual design decision — whether the overlap threshold should scale as a ratio of claim length or as a sliding minimum. A ratio-based threshold looked cleaner in the abstract but, when I worked through concrete examples by hand, it made longer claims *harder* to support than the original fixed threshold, which is the opposite of what the fix was supposed to do. That tradeoff only became visible by reasoning about specific example claims myself, not from a general suggestion.
+
+**What would you do differently if you started over?**
+I'd run the full unit test file before writing any plan in Week 8, not just the named failing tests from the issue. I did eventually check the whole file before opening the PR, but doing it earlier would have surfaced the proportional-scoring requirement and the tokenization bug during planning instead of during implementation, which would have made the Week 9 PLAN-to-code step more predictable and less like debugging-while-building.
+
+**What are you most proud of from this module?**
+Catching the tokenization bug. It wasn't in the issue, wasn't required by any of the three named failing tests, and I could have shipped a passing fix without ever finding it — the three named tests happened to use words without trailing punctuation. Deciding to keep digging past "the named tests pass" and verify the fix against cases the issue didn't explicitly cover is the habit I most want to carry into the next codebase I contribute to.
