@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -105,18 +105,22 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(
+        self,
+        text: str,
+        filename: str | None = None,
+    ) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
         Args:
-            text: The source text to analyze
-            filename: Optional filename for extension-based detection
+            text: The source text to analyze.
+            filename: Optional filename for extension-based detection.
 
         Returns:
-            List of detected skills with confidence scores
+            List of detected skills with confidence scores.
         """
-        detected_skills = {}
+        detected_skills: dict[str, SkillDetection] = {}
 
         # Detect languages first
         self._detect_languages(text, filename, detected_skills)
@@ -136,29 +140,37 @@ class SkillExtractor:
         # Sort by confidence
         return sorted(
             detected_skills.values(),
-            key=lambda x: x.confidence,
+            key=lambda skill: skill.confidence,
             reverse=True,
         )
 
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
-        skills_dict: dict,
+        filename: str | None,
+        skills_dict: dict[str, SkillDetection],
     ) -> None:
         """Detect programming languages."""
         text_lower = text.lower()
+        filename_lower = str(filename or "").lower()
 
         # Python detection
-        python_evidence = []
-        if ".py" in str(filename or "").lower():
+        python_evidence: list[str] = []
+
+        if ".py" in filename_lower:
             python_evidence.append("Python file extension (.py)")
+
         if re.search(r"\bimport\s+\w+", text):
             python_evidence.append("Python import statements")
+
         if re.search(r"\bdef\s+\w+\s*\(", text):
             python_evidence.append("Python function definitions")
-        if re.search(r":\s*(int|str|float|bool|list|dict)", text):
+
+        # The trailing word boundary keeps TypeScript annotations such as
+        # ": string" from matching the Python "str" hint.
+        if re.search(r":\s*(int|str|float|bool|list|dict)\b", text):
             python_evidence.append("Python type annotations")
+
         if "requirements.txt" in text_lower:
             python_evidence.append("requirements.txt found")
 
@@ -171,21 +183,64 @@ class SkillExtractor:
             )
 
         # JavaScript/TypeScript detection
-        js_evidence = []
-        if ".js" in str(filename or "").lower():
-            js_evidence.append("JavaScript file extension (.js)")
-        if ".ts" in str(filename or "").lower():
-            js_evidence.append("TypeScript file extension (.ts)")
-        if re.search(r"\b(import|require)\s+", text):
-            js_evidence.append("CommonJS or ES6 imports")
+        js_evidence: list[str] = []
+        ts_evidence: list[str] = []
+
+        # Filename evidence
+        if ".js" in filename_lower or ".jsx" in filename_lower:
+            js_evidence.append("JavaScript file extension")
+
+        if ".ts" in filename_lower or ".tsx" in filename_lower:
+            ts_evidence.append("TypeScript file extension")
+
+        # JavaScript syntax evidence
+        if re.search(r"\brequire\s*\(", text):
+            js_evidence.append("CommonJS require statement")
+
+        if re.search(r"\bconsole\.(log|error|warn)\s*\(", text):
+            js_evidence.append("JavaScript console usage")
+
+        if re.search(r"\b(const|let|var)\s+\w+", text):
+            js_evidence.append("JavaScript variable declaration")
+
+        # TypeScript syntax evidence
+        if re.search(r"\binterface\s+\w+", text):
+            ts_evidence.append("TypeScript interface declaration")
+
+        if re.search(r"\btype\s+\w+\s*=", text):
+            ts_evidence.append("TypeScript type alias")
+
+        if re.search(
+            r"\b(class\s+\w+\s+implements|implements\s+\w+)",
+            text,
+        ):
+            ts_evidence.append("TypeScript implements declaration")
+
+        if re.search(
+            r":\s*(string|number|boolean|unknown|any)\b",
+            text,
+        ):
+            ts_evidence.append("TypeScript type annotation")
+
+        if re.search(r"\bPromise\s*<[^>]+>", text):
+            ts_evidence.append("TypeScript generic Promise type")
+
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
-        if js_evidence:
+        # Prefer TypeScript when TypeScript-specific syntax is present
+        if ts_evidence:
+            confidence = min(0.95, 0.6 + len(ts_evidence) * 0.1)
+            skills_dict["TypeScript"] = SkillDetection(
+                name="TypeScript",
+                category="Language",
+                confidence=confidence,
+                evidence=ts_evidence,
+            )
+        elif js_evidence:
             confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
-            skills_dict[lang] = SkillDetection(
-                name=lang,
+            skills_dict["JavaScript"] = SkillDetection(
+                name="JavaScript",
                 category="Language",
                 confidence=confidence,
                 evidence=js_evidence,
@@ -203,23 +258,27 @@ class SkillExtractor:
             ".swift": ("Swift", 0.95),
         }
 
-        filename_lower = str(filename or "").lower()
-        for ext, (lang, confidence) in extension_langs.items():
-            if ext in filename_lower:
-                skills_dict[lang] = SkillDetection(
-                    name=lang,
+        for extension, (language, confidence) in extension_langs.items():
+            if extension in filename_lower:
+                skills_dict[language] = SkillDetection(
+                    name=language,
                     category="Language",
                     confidence=confidence,
-                    evidence=[f"{lang} file extension"],
+                    evidence=[f"{language} file extension"],
                 )
 
-    def _detect_frameworks(self, text: str, skills_dict: dict) -> None:
+    def _detect_frameworks(
+        self,
+        text: str,
+        skills_dict: dict[str, SkillDetection],
+    ) -> None:
         """Detect frameworks and libraries."""
         text_lower = text.lower()
 
         for framework, (category, confidence) in self.FRAMEWORKS.items():
             if framework in text_lower:
                 display_name = framework.title()
+
                 if display_name not in skills_dict:
                     skills_dict[display_name] = SkillDetection(
                         name=display_name,
@@ -228,10 +287,14 @@ class SkillExtractor:
                         evidence=[f"Found '{framework}' in content"],
                     )
 
-    def _detect_react(self, text: str, skills_dict: dict) -> None:
+    def _detect_react(
+        self,
+        text: str,
+        skills_dict: dict[str, SkillDetection],
+    ) -> None:
         """Detect React specifically."""
         text_lower = text.lower()
-        react_evidence = []
+        react_evidence: list[str] = []
 
         for indicator in self.REACT_INDICATORS:
             if indicator.lower() in text_lower:
@@ -245,28 +308,40 @@ class SkillExtractor:
                 evidence=react_evidence,
             )
 
-    def _detect_databases(self, text: str, skills_dict: dict) -> None:
+    def _detect_databases(
+        self,
+        text: str,
+        skills_dict: dict[str, SkillDetection],
+    ) -> None:
         """Detect databases."""
         text_lower = text.lower()
 
-        for db, confidence in self.DATABASES.items():
-            if db in text_lower:
-                display_name = db.upper() if db in ["sql", "nosql"] else db.title()
+        for database, confidence in self.DATABASES.items():
+            if database in text_lower:
+                display_name = (
+                    database.upper() if database in ["sql", "nosql"] else database.title()
+                )
+
                 if display_name not in skills_dict:
                     skills_dict[display_name] = SkillDetection(
                         name=display_name,
                         category="Database",
                         confidence=confidence,
-                        evidence=[f"Found '{db}' reference in content"],
+                        evidence=[f"Found '{database}' reference in content"],
                     )
 
-    def _detect_tools(self, text: str, skills_dict: dict) -> None:
+    def _detect_tools(
+        self,
+        text: str,
+        skills_dict: dict[str, SkillDetection],
+    ) -> None:
         """Detect tools and DevOps technologies."""
         text_lower = text.lower()
 
         for tool, confidence in self.TOOLS.items():
             if tool in text_lower:
-                display_name = tool.upper() if tool in ["ci/cd"] else tool.title()
+                display_name = tool.upper() if tool == "ci/cd" else tool.title()
+
                 if display_name not in skills_dict:
                     skills_dict[display_name] = SkillDetection(
                         name=display_name,
