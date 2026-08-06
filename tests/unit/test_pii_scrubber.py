@@ -53,6 +53,38 @@ class TestPIIScrubber:
             scrubbed = scrubber.scrub(text)
             assert "[REDACTED]" in scrubbed
 
+    def test_parenthesized_phone_regression_issue_146(self, scrubber):
+        """Regression for #146: parenthesized/space-separated US phones.
+
+        The old pattern only allowed a `[-.]` separator after the area code, so
+        `(555) 123-4567` (space after the `)`) leaked through unredacted and
+        `detect()` reported nothing. Verify the whole number — including the
+        leading `(` — is redacted, that `detect()` reports it as `phone_us` with
+        an accurate span, and that the previously-working dashed form is intact.
+        """
+        # scrub() fully removes the parenthesized number (no stray digits/parens)
+        scrubbed = scrubber.scrub("Reach me at (555) 123-4567 today")
+        assert scrubbed == "Reach me at [REDACTED] today"
+
+        # detect() reports it as a phone with the full value and correct offsets
+        detected = scrubber.detect("(555) 123-4567")
+        phones = [d for d in detected if d["type"] == "phone_us"]
+        assert len(phones) == 1
+        assert phones[0]["value"] == "(555) 123-4567"
+        assert phones[0]["start"] == 0
+        assert phones[0]["end"] == len("(555) 123-4567")
+
+        # No regression on the other common formats
+        for phone in ["555-123-4567", "555.123.4567", "555 123 4567", "+1 (555) 123-4567"]:
+            assert "[REDACTED]" in scrubber.scrub(f"Call {phone}")
+
+    def test_phone_pattern_does_not_span_line_break(self, scrubber):
+        """Two separate numbers on adjacent lines must not merge into one match."""
+        text = "Home: 555 123\nWork: 4567 890 1234"
+        detected = scrubber.detect(text)
+        for d in detected:
+            assert "\n" not in d["value"]
+
     def test_international_phone_redaction(self, scrubber):
         """Test international phone number is redacted."""
         text = "Reach me at +44 20 7946 0958"
