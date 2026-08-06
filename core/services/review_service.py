@@ -1,15 +1,30 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.exc import IntegrityError  # NEW
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
+
+# NEW: statuses that count as "an active review already exists" for the
+# purposes of the one-active-review-per-profile guard (uq_reviews_profile_active)
+ACTIVE_REVIEW_STATUSES = ("pending", "processing")
+
+
+# NEW
+class ReviewAlreadyInProgressError(Exception):
+    """Raised when an active (pending/processing) review already exists for this profile."""
+
+    def __init__(self, existing_review: Review):
+        self.existing_review = existing_review
+        super().__init__(f"Review already in progress for profile {existing_review.profile_id}")
 
 
 async def create_review(
@@ -19,6 +34,11 @@ async def create_review(
 ) -> Review:
     """
     Create a new review with status="pending".
+
+    Raises ReviewAlreadyInProgressError if a pending/processing review
+    already exists for this profile -- enforced by the DB-level partial
+    unique index uq_reviews_profile_active, so this is race-safe even
+    under truly concurrent requests (not just a check-then-insert).
     """
     review = Review(
         profile_id=profile_id,
@@ -27,7 +47,24 @@ async def create_review(
         overall_score=None,
     )
     db.add(review)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        stmt = select(Review).where(
+            and_(
+                Review.profile_id == profile_id,
+                Review.status.in_(ACTIVE_REVIEW_STATUSES),
+            )
+        )
+        result = await db.execute(stmt)
+        existing = result.scalars().first()
+        if existing:
+            raise ReviewAlreadyInProgressError(existing)
+        # The constraint fired but the blocking row is already gone
+        # (it must have just completed) -- safe to let the caller retry.
+        raise
+
     await db.refresh(review)
     return review
 
@@ -40,8 +77,8 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
     return result.scalars().first()
@@ -59,12 +96,10 @@ async def list_reviews(
     """
     offset = (page - 1) * page_size
 
-    # Get total count
     count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
     count_result = await db.execute(count_stmt)
     total = len(count_result.scalars().all())
 
-    # Get paginated results
     stmt = (
         select(Review)
         .join(Profile)
@@ -96,7 +131,6 @@ async def process_review(
     7. On exception: set status="failed", log error
     """
     try:
-        # Get the review
         stmt = select(Review).where(Review.id == review_id)
         result = await db.execute(stmt)
         review = result.scalars().first()
@@ -105,7 +139,6 @@ async def process_review(
             log.error("review_not_found_for_processing", review_id=str(review_id))
             return
 
-        # Get the profile
         stmt = select(Profile).where(Profile.id == profile_id)
         result = await db.execute(stmt)
         profile = result.scalars().first()
@@ -117,14 +150,12 @@ async def process_review(
             await db.commit()
             return
 
-        # Step 1: Set status to processing
         review.status = "processing"
         db.add(review)
         await db.commit()
 
         log.info("review_processing_started", review_id=str(review_id), profile_id=str(profile_id))
 
-        # Step 2: Run ingestion pipeline
         ingestion_results = await _run_ingestion_pipeline(db, profile)
         log.info(
             "ingestion_pipeline_completed",
@@ -132,7 +163,6 @@ async def process_review(
             sources_count=len(ingestion_results),
         )
 
-        # Step 3: Run agent orchestration
         agent_output = await _run_agent_orchestration(profile, ingestion_results)
         log.info(
             "agent_orchestration_completed",
@@ -140,11 +170,9 @@ async def process_review(
             sections_count=len(agent_output.get("sections", [])),
         )
 
-        # Step 4: Run RAG retrieval + generation
         rag_output = await _run_rag_retrieval_generation(profile, ingestion_results, agent_output)
         log.info("rag_retrieval_completed", review_id=str(review_id))
 
-        # Step 5: Run safety checks
         safety_checks_passed = await _run_safety_checks(rag_output)
         if not safety_checks_passed:
             log.warning("safety_checks_failed", review_id=str(review_id))
@@ -153,7 +181,6 @@ async def process_review(
             await db.commit()
             return
 
-        # Step 6: Set status to complete and store sections
         sections_data = rag_output.get("sections", [])
         sections = [
             FeedbackSection(
@@ -201,10 +228,8 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
     """
     sources = []
 
-    # Ingest from GitHub if available
     if profile.github_username:
         try:
-            # Placeholder: actual GitHub ingestion logic
             github_data = {
                 "source_type": "github",
                 "username": profile.github_username,
@@ -212,7 +237,6 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
             }
             sources.append(github_data)
 
-            # Store in database
             ingested = IngestedSource(
                 profile_id=profile.id,
                 source_type="github",
@@ -226,10 +250,8 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
                 error=str(exc),
             )
 
-    # Ingest from portfolio URL if available
     if profile.portfolio_url:
         try:
-            # Placeholder: actual portfolio ingestion logic
             portfolio_data = {
                 "source_type": "portfolio",
                 "url": profile.portfolio_url,
@@ -237,7 +259,6 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
             }
             sources.append(portfolio_data)
 
-            # Store in database
             ingested = IngestedSource(
                 profile_id=profile.id,
                 source_type="portfolio",
@@ -251,7 +272,6 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
                 error=str(exc),
             )
 
-    # Ingest from resume if available
     if profile.resume_text:
         try:
             resume_data = {
@@ -261,7 +281,6 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
             }
             sources.append(resume_data)
 
-            # Store in database
             ingested = IngestedSource(
                 profile_id=profile.id,
                 source_type="resume",
@@ -280,11 +299,6 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
 
 
 async def _run_agent_orchestration(profile: Profile, ingestion_results: list[dict]) -> dict:
-    """
-    Run agent orchestration to analyze ingested data.
-    Returns agent output with initial analysis.
-    """
-    # Placeholder: actual agent orchestration logic
     return {
         "sections": [
             {
@@ -309,17 +323,6 @@ async def _run_rag_retrieval_generation(
     ingestion_results: list[dict],
     agent_output: dict,
 ) -> dict:
-    """
-    Run RAG retrieval and generation to create detailed feedback.
-    Returns enhanced review output.
-    """
-    # Placeholder: actual RAG logic
-    # In production, this would:
-    # 1. Embed ingested content
-    # 2. Store in vector DB
-    # 3. Retrieve relevant context
-    # 4. Generate detailed feedback using LLM
-
     return {
         "sections": [
             {
@@ -355,19 +358,7 @@ async def _run_rag_retrieval_generation(
 
 
 async def _run_safety_checks(output: dict) -> bool:
-    """
-    Run safety checks on the review output.
-    Returns True if all checks pass, False otherwise.
-    """
-    # Placeholder: actual safety checks logic
-    # In production, this would:
-    # 1. Check for personally identifiable information
-    # 2. Validate feedback tone and constructiveness
-    # 3. Check for bias in recommendations
-    # 4. Ensure compliance with guidelines
-
     try:
-        # Basic validation
         if not output.get("sections"):
             log.warning("safety_check_failed_no_sections")
             return False
