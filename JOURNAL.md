@@ -103,7 +103,20 @@ document the pre-existing lint failure count here, e.g. "N pre-existing
 ruff errors across unrelated files, confirmed identical before/after."])
 
 
-## Week 10 — Reflection
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No
+*(Su26 note: reviewer/mentor feedback isn't offered this term, so this reflects that no review was available — not that one is pending.)*
+
+**Summary of feedback:**
+No review was received. Per this term's course notes, peer/mentor
+review isn't part of the Su26 process, so this isn't a case of
+feedback being outstanding — it simply wasn't offered.
+
+**How you responded:**
+N/A — no feedback was available to respond to.
 
 
 ### Reflection
@@ -209,4 +222,3 @@ sessions against a shared table). That's the kind of failure that's
 invisible from the outside — a reviewer looking at a green CI run
 would have no way to know the test wasn't testing what it claimed to
 — and I only caught it by not fully trusting my own first pass.
->>>>>>> 0ef82c3 (fix(api): reject concurrent reviews for the same profile via DB constraint)
