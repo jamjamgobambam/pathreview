@@ -37,6 +37,18 @@ services:
 
   vector-db:
     image: chromadb/chroma:0.4.22
+    # The image's default entrypoint reinstalls chroma-hnswlib on every start
+    # (to rebuild the native extension for the host arch), which pulls in an
+    # unpinned numpy>=2.0 and breaks chromadb's own `np.float_` usage. Re-pin
+    # numpy<2 after that reinstall so the server actually starts.
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        pip install --force-reinstall --no-cache-dir chroma-hnswlib
+        pip install --no-cache-dir "numpy<2"
+        export IS_PERSISTENT=1
+        export CHROMA_SERVER_NOFILE=65535
+        exec uvicorn chromadb.app:app --workers 1 --host 0.0.0.0 --port 8000 --proxy-headers --log-config chromadb/log_config.yml --timeout-keep-alive 30
     ports:
       - "8001:8000"
     volumes:
