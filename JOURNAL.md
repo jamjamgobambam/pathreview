@@ -1,0 +1,98 @@
+# Module 3 Journal
+
+## Week 7 - Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/119
+
+**Issue title:** Add inline docstrings to all public methods in `core/services/`
+
+**Tier:** [ ] Tier 1 [x] Tier 2 [ ] Tier 3
+
+**Problem summary:**
+The service layer in `core/services/` was missing proper documentation - most functions had at most a one-line description, with no information about what parameters they accept, what they return, or when they raise an exception. Issue #119 asks for full Google-style docstrings (description, Args, Returns, and Raises) on every public method across `profile_service.py`, `review_service.py`, and `notification_service.py`. A successful fix means someone reading these files can understand how to call each function and what to expect back without tracing through the implementation. One catch I ran into: `notification_service.py` is listed in the issue, but that file doesn't exist anywhere in the repo - only `profile_service.py` and `review_service.py` are present under `core/services/`, so my actual scope was those two files.
+
+**Is this right for me? — checklist reasoning:**
+This felt like a reasonable scope for a first contribution, though in practice it turned out to be easier than expected - despite the tier-2 label, the work was mechanical documentation rather than anything requiring deep architectural changes. The main scope surprise was discovering that `notification_service.py`, one of the three files the issue names, doesn't exist in the codebase at all, so I scoped my work to the two files that do exist and noted the discrepancy here rather than guessing at what a nonexistent file should contain.
+
+**Branch name:** docs/119-service-docstrings
+
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/vzan2012/pathreview/commit/50e8159f7bff63a23af87688474b322e639fe92a
+
+**Reproduction summary:**
+I confirmed the gap by running `git show 10d3713:core/services/profile_service.py` to view the original functions before my fix — each one had only a one-line docstring (e.g. `create_profile` just said `"""Create a new profile for a user."""`) with no Args, Returns, or Raises sections, matching exactly what issue #119 describes.
+
+**PLAN.md link:** https://github.com/vzan2012/pathreview/blob/docs/119-service-docstrings/PLAN.md
+
+**Walkthrough video (recommended):** https://www.loom.com/share/8f939ed837304910a3650b729159fe58
+
+**Blockers or open questions:**
+The actual docstring fix — and the type-annotation fixes needed to get the mypy pre-commit hook passing — were already completed and committed back in Week 7, ahead of this week's plan-then-build pacing. `PLAN.md` below documents the approach I actually followed rather than a forward-looking plan. No PR has been opened yet; that's a Week 9 step per the module schedule.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Docstring work and mypy fixes were completed in Week 7. This week I ran a baseline check (`make check`, `make test-unit`) to confirm my two changed files are clean and documented the pre-existing unrelated failures (53 total, including 13 in `test_review_service.py` traced to a pre-existing mock/coroutine bug - confirmed unrelated by running the same suite against the commit before my changes). Opened a draft PR (#489) against `ascherj/pathreview` with the full write-up.
+
+**Next steps:**
+Share the PR in Slack for peer/mentor feedback, address anything that comes back, then mark it ready for review.
+
+**Blockers:**
+None currently - waiting on peer/mentor review before finalizing.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/489
+
+**Branch:** docs/119-service-docstrings
+
+**What you built:**
+Added Google-style docstrings (description, Args, Returns, Raises) to every function in `core/services/profile_service.py` (4 functions) and `core/services/review_service.py` (9 functions, including 4 private `_run_*` helpers). No runtime behavior changed - this is a documentation-only fix, with accompanying `db: AsyncSession` type annotations needed to get the mypy pre-commit hook passing.
+
+**Tests added or updated:**
+None added or updated. Since this is a docstring-only change with no behavior modification, there's nothing new to test. Confirmed via baseline diff that `make test-unit`'s 53 failures are all pre-existing and unrelated (identical failure set on the commit before my changes).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both pass in the sense required for a codebase with documented pre-existing failures: my two changed files are clean under `ruff`/`mypy`, and my changes introduce zero new test failures.)
+
+**Draft PR feedback received from:** none - posted in the course Slack channel with time to spare before the deadline, no response received.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No - still awaiting review
+
+**Summary of feedback:**
+I checked my PR (#489) a few times over the week and there were no comments or reviews left on it. This also matches what the course mentioned - reviewer feedback isn't really active this term.
+
+**How you responded:**
+Nothing to respond to since no feedback came in.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+I thought writing the docstrings would be quick, but following the Google style properly meant I actually had to understand what each function was doing step by step instead of just skimming the code. That took way more time than I planned for.
+
+**What did you learn about working in a large codebase?**
+Working on someone else's codebase is different from my own projects - I had to actually read through the docs and contribution guidelines, understand the code before changing anything, stick to their naming conventions, and go through a proper PR process instead of just committing and moving on.
+
+**How did AI tools help - and where did they fall short?**
+AI helped me a lot with understanding the codebase and catching mistakes I made along the way, which gave me confidence I was doing things right. But the bigger decisions - like whether to rewrite my commit history or when to actually mark the PR ready - were calls I had to make myself.
+
+**What would you do differently if you started over?**
+I'd spend more time understanding the service code before jumping into writing the docstrings, and I'd expect to run into ruff/mypy issues early on instead of being surprised by them later.
+
+**What are you most proud of from this module?**
+Getting the PR done aside, I'm proud that I picked up a good understanding of RAG, safety guardrails, and LLM classifiers just from digging through the codebase to document it properly.

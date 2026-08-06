@@ -44,3 +44,7 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+
+# Claude Code / graphify local artifacts
+CLAUDE.local.md
+graphify-out/
