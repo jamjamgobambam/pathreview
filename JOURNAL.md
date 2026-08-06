@@ -90,3 +90,43 @@ Previously had 53 failed, 375 passed, 1 warning, but then it became 52 failed, 3
 This became 52 failed, 378 passed, and 2 warnings after I added my two tests.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No — still awaiting review
+
+**Summary of feedback:**
+No review
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+I was originally going to try a tier 2 because I wanted to push myself, but ended up trying a tier 1 since this was my first time contributing to open source. I thought it was going to be a smooth, easy ride but it really wasn't. Like even though my fix literally ended up being only one line of code, I had to learn so much about loggers, so I could understand what the actual issue was. I wanted to learn where exactly in the pipeline the issue occured, and that required doing a deep dive on how various libraries worked and what configurations existed, etc.
+
+In addition, I'm stil getting used to git commands, especially doing it all in the comomand line which feels really tedious. A lot of the organization related tasks like the commit naming conventions and the PLAN.md/JOURNAL.md files also require a lot of thinking. So I guess I underestimated how much pre-work is required before you actually code. While I did want to just code more, I'm glad I had to learn to pause and understand.
+
+**What did you learn about working in a large codebase?**
+If I wasn't prompted to really scan the codebase and understand what exists, I think my insticts owuld have led me to build something from scratch like one does when working on their own project. For my case, the fix really became simple once I understood the codebase well.
+
+I'm also learning more about industry standard when it comes to organizing files in larger codebases. Like to me `main.py` seems like it would be in `/core`, but it was in `/api`. I defnitely want to get better at organizing in this way especially if I plan on creating open source repos.
+
+**How did AI tools help — and where did they fall short?**
+Claude helped me reall trace through all the relevant modules I had to go through. It was so helpful in helping me navigate the codebase and really understand every method call or library that was used. It also helped me go into depth with my logging understanding. Lastly, it helped a lot with the git commands in the command line when I got confused how to reword my commit messages.
+
+For where it fell short, I like to learn with analogies, and so I would bring something up sometimes Claude would just discard the hwole thing unless it fit perfectly or sometimes it would even just misinterpret what I was saying. Luckily, I was able to push back, but also I wouldn't say it was the worse thing all the time because it pushed me to articulate my thoughts more clearly.
+
+**What would you do differently if you started over?**
+I think I'd do better with readjusting my plan as I go or even just using it. I kind of treated it as its own isolated document, when really it was the key to helping me stay organized and on track. I feel like I definitely went on some tangents that I didn't need to when I was learning about loggers. Though, I'm glad I did it, I'm not sure I needed to go that in depth for the project. Thus, I'd want to get better at making sure I know what exactly what I need or the acrtual goal of the current step I'm at, so that provides better guardrails around the work I'm doing.
+
+**What are you most proud of from this module?**
+I'm honestly so happy about the tests I added, and the fact that I even noticed the method not being used. I can't lie, Claude did provide a beautiful assist when it helped me identify the configuration function, but I was the one that noticed that the rest of the codebase never called it. And then the fact that I decided to test the bare structlog and the codebase's method was so satisfying.
+
+One of my biggest worries when contributing is not thinking outside the box enough with tests but somehow still only focusing on the atomic issue. Like it always feels like there could technically be something missing, so how do you know what to include or not, but this felt like a pretty solid attempt.
