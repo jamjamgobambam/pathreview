@@ -49,7 +49,7 @@ Laziness and other work I have set up.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [PR-915](https://github.com/ascherj/pathreview/pull/915)
 
 **Branch:** fix/146-pii-scrubber-parenthesized-phone-number-redaction
 
@@ -65,6 +65,8 @@ No unit tests added, used the default tests that interact with the pii_scrubber.
 
 However, added tests/security/debug_pii.py script to test scrub() and detect().
 
-**Self-review confirmation:** [ ] make check passes  [x] make test-unit passes
+**Self-review confirmation:** [x] python pytest tests/unit/test_pii_scrubber.py -v passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+~~[ ] make check passes  [] make test-unit passes~~
+
+**Draft PR feedback received from:** [stephanyTF](https://github.com/ascherj/pathreview/pull/915#issuecomment-5195409304) on GitHub and Stephany Lam on Slack
