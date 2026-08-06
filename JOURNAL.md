@@ -73,28 +73,23 @@ none
 I haven't received any feedback on my PR, but I did receive feedback on my contribution through Codepath. It advised me to alter my testing approach and create a unit test rather than an integration test because my test connects to a real local Redis instance and will fail in any environment where Redis isn't running.
 
 **How you responded:**
-[What changes did you make, or what did you reply? If no feedback,
-leave blank.]
+I rewrote the test so that redis.from_url is patched via unittest.mock.patch and postgres is faked the same way, via FastAPI's dependency_overrides on get_db. fake_redis fixture creates a new instance for each test function, so nothing leaks between runs the way the shared real-Redis keys did before. I also added tests for the "no events logged" and "Redis unreachable → 503, safe fallback to 0" cases we verified separately earlier in this thread, so those are now real regression-protected tests instead of one-off scripts.
 
 ---
 
 ### Reflection
 
 **What was harder than you expected?**
-[Be specific — what part of the process, codebase, or workflow
-surprised you?]
+Understanding the codebase was harder than I expected. I had to spend a lot of time looking through files, then uploading them to Claude to have them explained. For the two that I worked with the fix this issue, api/routes/health.py and safety/monitoring.py, I had to go in and read them line by line. I had also never seen a health check before, so I took a lot of time understanding what the issue actually meant and what wasn't working.
 
 **What did you learn about working in a large codebase?**
-[What's different about contributing to someone else's production code
-vs. building your own project?]
+I learned how easy it can be to make a mistake that could cause damage to the code, and how important it is to fully understand what you are working with. I found myself getting a lot of errors, but didn't realize that they were occurring in code that I hadn't touched. You can't just go in and start making changes, you need to understand how everything works prior to your changes to know whether what you are changing is working or creating more problems. This is very different when compared to projects that I myself created, it takes a lot more time and effort in understanding the codebase.
 
 **How did AI tools help — and where did they fall short?**
-[Where was AI assistance most useful this module? Where did you need
-to go beyond what AI could give you?]
+AI tools helped a lot when it came to understanding the codebase. I submitted certain files from the codebase, received simple summaries of what they did, and then went into those files and looked for myself at what was really happening. I found that this was the most effective way for me to learn what the files I was working on were doing.
 
 **What would you do differently if you started over?**
-[Issue selection, planning, implementation, or process — anything
-you'd change?]
+At first, I was a bit overwhelmed and discourage by the size of this codebase. However, I delved deeper into what my issue meant and was able to set a scope for which files I was going to use and where my solution needed to be contained. If I were to work on another project similar to this, I would start with that approach immediately, especially since I am still not quite familiar with working with codebases this complex.
 
 **What are you most proud of from this module?**
-[One thing — it doesn't have to be the PR itself.]
+I am most proud of how much I was able to understand. When I did my demo during the last AI201 session, I was able to articulate how my issue affected the codebase, and how my solution functions to solve this. I sometimes worry about relying on AI too much, but I was able to reach a balance where I used AI to help me find my solution while fully understanding what I was changing.
