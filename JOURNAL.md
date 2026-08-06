@@ -86,3 +86,35 @@ So both boxes are checked in the documented sense: **this contribution introduce
 Note for reviewers: run `make lint` / `black --check .` rather than bare `make check` on this repo — the `check` target invokes `black .` (not `black --check`), which would reformat 52 unrelated files in place.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [X] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+The reviewer highlighted the methodical, evidence-based workflow as a major strength, especially the Week 8 reproduction that proved the test gap by showing "Analyze" -> "Examine" still passed the existing suite. They noted that this kind of proof-before-fix reasoning is strong professional practice because it clearly justifies why a code change is needed. They also suggested considering long-term maintainability: storing full template bodies verbatim in tests works, but can become hard to read and costly to update as templates grow. A scalable alternative is to keep per-template (name/version) committed content hashes so tests still fail loudly on any change while reducing fixture size and making intentional updates a small, focused diff.
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Scoping "done" was harder than expected. The core test change was straightforward, but proving I did not introduce regressions in a noisy baseline took significant effort. The repo already had unrelated unit and lint failures, so I had to capture before/after numbers, isolate my file-level impact, and document that my PR improved target coverage without changing unrelated behavior. That verification and write-up work took more time than the coding itself.
+
+**What did you learn about working in a large codebase?**
+I learned that contribution quality is not just about writing correct code, but about making changes legible and reviewable in context. In a large shared codebase, every change needs a clear blast-radius story: what was changed, what was intentionally not changed, and how you know. I also learned to prioritize deterministic tests with explicit update paths, because future maintainers need fast signal when behavior drifts.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for speeding up repetitive tasks: generating first-pass test scaffolding, suggesting parametrization patterns, and helping refactor assertions into clearer structure. They fell short on repository-specific judgment. AI could not reliably infer which failures were pre-existing, what evidence reviewers would need, or which testing trade-offs best matched long-term maintainability. I had to supply that judgment by reproducing the gap, validating outcomes manually, and documenting rationale in the PR.
+
+**What would you do differently if you started over?**
+I would add a baseline-health checklist at the very start (target test file, full unit run snapshot, lint/format snapshot, and known-failure log). That would reduce end-of-week friction when proving non-regression. I would also decide earlier between full-body snapshots and per-template hash snapshots, so the implementation and review narrative stay aligned from day one.
+
+**What are you most proud of from this module?**
+I am most proud of using evidence to drive decisions: I reproduced the exact failure mode first, then implemented tests that directly closed that gap, and finally re-verified behavior with before/after data. That end-to-end discipline made the final change more credible and easier to review.
