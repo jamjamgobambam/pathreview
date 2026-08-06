@@ -59,3 +59,51 @@ Added `tests/unit/test_health.py` (7 tests) covering Redis healthy/unhealthy pat
 **Self-review confirmation:** [x] make check passes (except 54 pre-existing mypy errors across 8 files unrelated to my change, documented in the PR) [x] make test-unit passes (except 53 pre-existing failures unrelated to my change, all in files I didn't touch — `test_health.py` passes 7/7)
 
 **Draft PR feedback received from:** Slack peer review by Rabina Karki — positive feedback, no blocking changes requested
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ Yes ] Yes  [ ] No — still awaiting review
+Answer:
+Yes
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+Answer: 
+According to her I figued the issue properly and was doign well.
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+Answer: 
+Since the response was positive I thanked her for giving her time to review my code.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+Answer: 
+Before this I had no idea how we can integrate AI or the power of AI now I have build different project based on LLM and I am so happy about it. Collaborating was something new to me and I enjoyed it alot.
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+Answer:
+You have to be careful about which branch you are comiiting and what exactly you are commiting.
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+Answer: 
+I have no problem because of AI tools and it helped me figure out what steps are posible. 
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+Answer:
+While working I first took help me AI and i was too relying on AI so maybe figure thigns first and then ask AI foe help.
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+Answer: 
+ Being able to figure all issue and compelte the project was my biggest achievement. 
