@@ -66,9 +66,9 @@ I'm working on the rest of the sub-tasks
 
 ### Check-in 2 (end of week)
 
-**PR link:** [Pull request link](https://github.com/ascherj/pathreview/compare/main...ninaony:pathreview:fix/159/structlog-output-not-captured?expand=1)
+**PR link:** [Pull request link](https://github.com/ascherj/pathreview/pull/943)
 
-**Branch:** `fix/123-short-description`
+**Branch:** `fix/159/structlog-output-not-captured`
 
 **What you built:**
 [1–3 sentences summarizing what your fix does and how it works]
