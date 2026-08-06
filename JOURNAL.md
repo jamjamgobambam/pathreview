@@ -1,0 +1,120 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/37
+
+**Issue title:** Add snapshot tests for prompt templates to catch accidental changes.
+
+**Tier:** [X] Tier 1  [ ] Tier 2  [ ] Tier 3
+
+**Problem summary:**
+Prompt templates drive the wording and structure of generated review output, so even small edits can change review quality or formatting. The current test coverage checks that templates exist and contain placeholders, but it does not lock the exact prompt text for each version, so template bodies can drift silently. Adding snapshot coverage in `tests/unit/test_prompt_templates.py` will make any content change fail unless developers intentionally add a new version and update the snapshot. That keeps prompt evolution explicit and prevents accidental regressions in review behavior.
+
+**Branch name:** test/37-prompt-template-snapshots
+
+**Setup confirmation:** [X] App runs locally at localhost:5173
+
+**Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/vrushtipatel1307/pathreview/commit/d63fde89409a93acd91281d9674814de49ac31ad
+
+**Reproduction summary:**
+I reproduced the gap by demonstration, not just inspection:
+
+1. Ran the existing suite as a baseline — `python -m pytest tests/unit/test_prompt_templates.py -q` → **37 passed**.
+2. Changed a single word in the `skills_feedback` v1 template in [rag/generator/prompt_templates.py](rag/generator/prompt_templates.py) ("Analyze" → "Examine").
+3. Re-ran the suite → **37 passed again**. The wording change was not caught by any test.
+4. Reverted the template change.
+
+Root cause of the gap: the one test that claims to be a snapshot, [test_template_snapshot_content_hash](tests/unit/test_prompt_templates.py#L175-L188), computes an MD5 of the concatenated templates but only asserts `len(content_hash) == 32` — it never compares against a stored expected hash. Combined with the other tests (presence, placeholder, and length checks only), template bodies can drift silently. This is exactly the gap described in issue #37.
+
+**PLAN.md link:** [PLAN.md](PLAN.md)
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+No blockers. The next step is to add deterministic snapshot coverage for each prompt template/version and make intentional prompt edits require an explicit snapshot update.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the snapshot coverage for prompt templates. Sub-tasks 1–4 from PLAN.md are done:
+- Reviewed the templates and chose to lock all five `v1` bodies verbatim (they carry no leading/trailing whitespace beyond a single trailing newline, so verbatim snapshots are stable and produce readable diffs — no `dedent`/`strip` normalization needed).
+- Added an `EXPECTED_TEMPLATES` fixture in [tests/unit/test_prompt_templates.py](tests/unit/test_prompt_templates.py) with the exact body of every template/version, plus two new tests: `test_template_registry_matches_snapshot_names` (locks the set of name/version pairs) and a parametrized `test_template_body_matches_snapshot` (exact-string equality per template).
+- Fixed the false-positive `test_template_snapshot_content_hash`: it now asserts against a committed `EXPECTED_CONTENT_HASH` instead of only checking `len(...) == 32`.
+- No snapshot plugin (`syrupy`/`pytest-snapshot`) is installed, so I used an in-repo committed-expected approach rather than adding a dependency.
+- Verified the guard works: re-running the Week 8 reproduction ("Analyze" → "Examine") now fails both the per-template snapshot and the content-hash test with a readable diff; reverting makes them pass. The suite went from 37 → 43 passing tests.
+
+**Next steps:**
+Finish sub-task 5 (document the "update snapshots deliberately" expectation — done inline as a header comment in the test file), open a draft PR, request peer review in Slack, and finalize.
+
+**Blockers:**
+None. Noted a set of pre-existing failures in the repo (unrelated files) that I am tracking so I can confirm my change introduces none — see Check-in 2.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/327
+
+**Branch:** `test/37-prompt-template-snapshots`
+
+**What you built:**
+Added regression ("snapshot") coverage for the five prompt templates in [rag/generator/prompt_templates.py](rag/generator/prompt_templates.py). The test file now stores each template body verbatim in an `EXPECTED_TEMPLATES` fixture and asserts exact equality per template/version, locks the set of template names/versions, and checks a committed `EXPECTED_CONTENT_HASH`. Any accidental wording, formatting, or placeholder change now fails loudly with a readable diff, so prompt edits must be intentional (update the fixture + hash).
+
+**Tests added or updated:** [tests/unit/test_prompt_templates.py](tests/unit/test_prompt_templates.py) — added `test_template_registry_matches_snapshot_names` and a parametrized `test_template_body_matches_snapshot`, and rewrote `test_template_snapshot_content_hash` to compare against a committed hash. Existing presence/placeholder/retrieval tests are unchanged.
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+
+_Pre-existing failures (documented, not introduced by this change):_ this repo fails both commands before my change, so I recorded a baseline first and re-verified after.
+
+| Check | Baseline (before) | After my change |
+| --- | --- | --- |
+| `make test-unit` | 53 failed / 381 passed | 53 failed / 381 passed |
+| `ruff check .` | 182 errors | 181 errors |
+| `black --check .` | 52 files would reformat | 52 files would reformat |
+
+The `make test-unit` failures are in unrelated modules (e.g. `test_review_service.py`, `test_skill_extractor.py`, `test_tech_detector.py`) and are untouched by this PR. My change is scoped to `tests/unit/test_prompt_templates.py`, where all **43** tests pass (up from 37).
+
+Within that file: ruff went 19 → 18 errors (I fixed its import-sort error; the remaining 18 are pre-existing). `black --check` still flags the file, but every remaining hunk is on pre-existing long `assert` lines (around lines 178, 277, 373, 387, 424) — the snapshot fixture and the tests I added are black-clean, which I confirmed with `black --diff`.
+
+So both boxes are checked in the documented sense: **this contribution introduces no new `make check` or `make test-unit` failures.**
+
+Note for reviewers: run `make lint` / `black --check .` rather than bare `make check` on this repo — the `check` target invokes `black .` (not `black --check`), which would reformat 52 unrelated files in place.
+
+**Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [X] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+The reviewer highlighted the methodical, evidence-based workflow as a major strength, especially the Week 8 reproduction that proved the test gap by showing "Analyze" -> "Examine" still passed the existing suite. They noted that this kind of proof-before-fix reasoning is strong professional practice because it clearly justifies why a code change is needed. They also suggested considering long-term maintainability: storing full template bodies verbatim in tests works, but can become hard to read and costly to update as templates grow. A scalable alternative is to keep per-template (name/version) committed content hashes so tests still fail loudly on any change while reducing fixture size and making intentional updates a small, focused diff.
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Scoping "done" was harder than expected. The core test change was straightforward, but proving I did not introduce regressions in a noisy baseline took significant effort. The repo already had unrelated unit and lint failures, so I had to capture before/after numbers, isolate my file-level impact, and document that my PR improved target coverage without changing unrelated behavior. That verification and write-up work took more time than the coding itself.
+
+**What did you learn about working in a large codebase?**
+I learned that contribution quality is not just about writing correct code, but about making changes legible and reviewable in context. In a large shared codebase, every change needs a clear blast-radius story: what was changed, what was intentionally not changed, and how you know. I also learned to prioritize deterministic tests with explicit update paths, because future maintainers need fast signal when behavior drifts.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for speeding up repetitive tasks: generating first-pass test scaffolding, suggesting parametrization patterns, and helping refactor assertions into clearer structure. They fell short on repository-specific judgment. AI could not reliably infer which failures were pre-existing, what evidence reviewers would need, or which testing trade-offs best matched long-term maintainability. I had to supply that judgment by reproducing the gap, validating outcomes manually, and documenting rationale in the PR.
+
+**What would you do differently if you started over?**
+I would add a baseline-health checklist at the very start (target test file, full unit run snapshot, lint/format snapshot, and known-failure log). That would reduce end-of-week friction when proving non-regression. I would also decide earlier between full-body snapshots and per-template hash snapshots, so the implementation and review narrative stay aligned from day one.
+
+**What are you most proud of from this module?**
+I am most proud of using evidence to drive decisions: I reproduced the exact failure mode first, then implemented tests that directly closed that gap, and finally re-verified behavior with before/after data. That end-to-end discipline made the final change more credible and easier to review.
