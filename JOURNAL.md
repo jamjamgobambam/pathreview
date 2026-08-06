@@ -65,7 +65,7 @@ not introduce new failures.
 
 ### Check-in 2 (end of week)
 
-**PR link:** Pending — the pull request has not been opened yet.
+**PR link:** [Pull request #996](https://github.com/ascherj/pathreview/pull/996)
 
 **Branch:** `fix/163-enforce-profile-ownership-on-review-creation`
 
