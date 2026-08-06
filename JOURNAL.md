@@ -84,3 +84,60 @@ comment on the exact regex line.
   reason — the `street_address` regex over-matches (`"Pl"` inside "applications"),
   which redacts "Python". Not part of #146; flagged so I don't confuse it with a
   regression from my fix.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix from PLAN.md. Reworked the `phone_us` regex in
+`safety/pii_scrubber.py` so number separators accept space/dot/hyphen (not just
+`[-.]`) and switched the anchors to lookarounds `(?<!\w)…(?!\w)` so the leading
+`(` is redacted too. PLAN.md sub-tasks 1–3 are done: the four target tests
+(`test_us_phone_number_redaction`, `test_us_phone_formats`, `test_detect_phone_pii`,
+`test_phone_at_start_of_text`) now pass, and the full `tests/unit/test_pii_scrubber.py`
+run is 26 passed / 1 pre-existing-unrelated failure. `mypy safety/pii_scrubber.py`
+is clean and `ruff` reports nothing on the changed lines.
+
+**Next steps:**
+Sub-tasks 4–5: add the focused regression tests, do the final self-review, open a
+draft PR for peer feedback, then mark it ready.
+
+**Blockers:**
+Full `make check` / `make test-unit` can't run locally (Docker + full deps like
+`tiktoken` not installed), so I verify the affected module with a minimal venv and
+rely on repo CI for the rest.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/997
+
+**Branch:** `fix/146-pii-scrubber-parenthesized-phone`
+
+**What you built:**
+Broadened the `phone_us` PII pattern so parenthesized and space-separated US phone
+numbers (`(555) 123-4567`, `555 123 4567`, `+1 555 123 4567`) are now redacted by
+`scrub()` and reported by `detect()`, while the previously-working dashed/dotted
+formats are unchanged. The separator class is space/dot/hyphen (not `\s`) so a
+match can't span a line break and merge two numbers.
+
+**Tests added or updated:**
+`tests/unit/test_pii_scrubber.py` — added `test_parenthesized_phone_regression_issue_146`
+(asserts full redaction incl. the leading paren, an accurate `detect()` span, and
+no regression on the other formats) and `test_phone_pattern_does_not_span_line_break`.
+The four pre-existing phone tests in the same file now pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+> "Passes" here follows the course rule for a codebase with documented
+> pre-existing failures: **my changes introduce no new failures.** What I actually
+> ran (full `make` targets need Docker/deps not on this machine): `mypy
+> safety/pii_scrubber.py` → clean; `ruff` → no findings on changed lines (only
+> pre-existing repo findings remain on untouched code); `pytest
+> tests/unit/test_pii_scrubber.py` → 26 passed, 1 pre-existing unrelated failure
+> (`test_mixed_pii_and_text`, the `street_address` regex). Baseline before my
+> change was 5 failed / 20 passed in that file.
+
+**Draft PR feedback received from:** none yet — draft PR opened for peer review in
+Slack; will address feedback and mark ready before the deadline.
