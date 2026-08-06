@@ -62,3 +62,39 @@ I created one test file: tests/unit/test_health.py. This test connects to a real
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
 none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+I haven't received any feedback on my PR, but I did receive feedback on my contribution through Codepath. It advised me to alter my testing approach and create a unit test rather than an integration test because my test connects to a real local Redis instance and will fail in any environment where Redis isn't running.
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
