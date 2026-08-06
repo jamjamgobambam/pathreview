@@ -2,7 +2,7 @@
 
 ## Week 7 — Issue selection
 
-**Issue link:** https://github.com/codepath/pathreview/issues/156
+**Issue link:** https://github.com/ascherj/pathreview/issues/156
 
 **Issue title:** README scorer test fixture is too short for its own word-count assertion #156
 
@@ -16,7 +16,7 @@
 
 **Setup confirmation:** [x] Local environment set up — `.venv` created, dependencies installed via `pip install -e ".[dev]"`, pre-commit hooks installed, and `make test-unit` runs successfully (issue confirmed reproduced locally)
 
-**Cohort ledger:** [ ] Issue added to cohort ledger
+**Cohort ledger:** [x] Issue added to cohort ledger
 
 ---
 

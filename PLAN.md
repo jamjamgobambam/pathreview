@@ -1,7 +1,7 @@
 # Solution Plan
 
 **Issue:** README scorer test fixture is too short for its own word-count assertion #156
-https://github.com/codepath/pathreview/issues/156
+https://github.com/ascherj/pathreview/issues/156
 
 ---
 
