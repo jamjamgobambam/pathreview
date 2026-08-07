@@ -76,7 +76,7 @@ I did not need to make follow-up changes or post a response because there was no
 ### Reflection
 
 **What was harder than you expected?**
-The hardest part was separating the real bug from unrelated noise in the repo. The PII fix itself was small, but validation turned up pre-existing failures in lint, typecheck, and one mixed-content unit test that were unrelated to the phone regex. That made it important to document exactly which failures were baseline issues and which ones were actually caused by my change.
+The hardest part was separating the real bug from unrelated noise in the repo. The PII fix itself was small, but validation turned up pre-existing failures in lint, typecheck, and one mixed-content unit test that were unrelated to the phone regex. That made it important to document exactly which failures were baseline issues and which ones are the actual issues I needed to address.
 
 **What did you learn about working in a large codebase?**
 I learned that in a larger codebase, scope control matters as much as the code change itself. Even a targeted regex fix needs context from the surrounding tests, project setup, and contribution workflow, and you have to prove the issue with a focused reproduction before changing anything. I also had to be careful not to “fix” unrelated problems just because they were visible during testing.
