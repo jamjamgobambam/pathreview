@@ -39,6 +39,13 @@ class TestPIIScrubber:
         assert "[REDACTED]" in scrubbed
         assert "555" not in scrubbed or "1234567" not in scrubbed
 
+    def test_phone_number_parens_fully_redacted(self, scrubber):
+        """Test parenthesized phone number is fully redacted, including the opening paren."""
+        text = "Call me at (555) 123-4567"
+        scrubbed = scrubber.scrub(text)
+
+        assert scrubbed == "Call me at [REDACTED]"
+
     def test_us_phone_formats(self, scrubber):
         """Test various US phone number formats."""
         formats = [
@@ -46,12 +53,23 @@ class TestPIIScrubber:
             "(555) 123-4567",
             "555.123.4567",
             "+1 555 123 4567",
+            "(555)123-4567",
         ]
 
         for phone in formats:
             text = f"Contact: {phone}"
             scrubbed = scrubber.scrub(text)
             assert "[REDACTED]" in scrubbed
+
+    def test_space_separated_numbers_false_positive(self, scrubber):
+        """Test known limitation: space-separated numbers can false-positive as a phone."""
+        text = "I scored 555 123 4567 points across three seasons"
+        scrubbed = scrubber.scrub(text)
+
+        # Accepted tradeoff for #146: allowing space as a phone separator
+        # means any 3-3-4 digit sequence joined by spaces now matches,
+        # even when it isn't actually a phone number.
+        assert "[REDACTED]" in scrubbed
 
     def test_international_phone_redaction(self, scrubber):
         """Test international phone number is redacted."""
@@ -200,7 +218,7 @@ class TestPIIScrubber:
 
         for addr in addresses:
             text = f"Address: {addr}"
-            scrubbed = scrubber.scrub(text)
+            _scrubbed = scrubber.scrub(text)
             # Should attempt to redact addresses
 
     def test_empty_text(self, scrubber):
@@ -248,7 +266,7 @@ class TestPIIScrubber:
     def test_detect_no_false_positives(self, scrubber):
         """Test that detect doesn't flag legitimate text as PII."""
         text = "The project uses version 1.2.3. It's available at https://example.com"
-        detected = scrubber.detect(text)
+        _detected = scrubber.detect(text)
 
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
