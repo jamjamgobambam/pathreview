@@ -1,0 +1,25 @@
+{
+  "github_username": "janedoe",
+  "resume_text": "Jane Doe\nSoftware Engineer\njane.doe@example.com | github.com/janedoe\n\nExperience:\n- Software Engineer at TechCorp (2022-2024)\n  Built REST APIs using Python and FastAPI. Reduced API latency by 30% through query optimisation and caching.\n  Led migration from monolith to microservices for the billing module.\n\n- Junior Developer at StartupXYZ (2021-2022)\n  Developed React components for a customer-facing dashboard.\n  Maintained CI/CD pipelines (GitHub Actions) and Docker deployments.\n\nEducation:\n- B.S. Computer Science, State University (2022)\n  Relevant coursework: Data Structures, Algorithms, Database Systems, Software Engineering\n\nSkills:\n  Languages:   Python, JavaScript, TypeScript\n  Frameworks:  FastAPI, React, SQLAlchemy\n  Databases:   PostgreSQL, Redis\n  DevOps:      Docker, GitHub Actions\n  Tools:       Git, VS Code, Postman",
+  "projects": [
+    {
+      "github_repo": "weather-app",
+      "name": "Weather App",
+      "description": "A weather forecasting application built with React and the OpenWeatherMap API that shows current conditions and a 5-day forecast for any city.",
+      "readme_content": "# Weather App\n\nA weather forecasting application built with React and the OpenWeatherMap API.\n\n## Features\n- Current weather display (temperature, humidity, wind speed)\n- 5-day hourly forecast\n- City search with autocomplete\n- Responsive design for mobile and desktop\n\n## Tech Stack\n- React 18\n- TypeScript\n- Tailwind CSS\n- OpenWeatherMap API\n- Vite\n\n## Getting Started\n\n```bash\nnpm install\nnpm run dev\n```\n\nSet `VITE_OPENWEATHER_API_KEY` in `.env` before running.\n\n## Screenshots\n\nSee `/docs/screenshots/` for UI previews.\n",
+      "primary_language": "TypeScript",
+      "star_count": 12,
+      "topics": ["react", "typescript", "weather", "openweathermap", "vite"]
+    },
+    {
+      "github_repo": "task-manager-api",
+      "name": "Task Manager API",
+      "description": "A RESTful task-management API built with FastAPI and PostgreSQL, featuring JWT authentication, role-based access control, and async database operations.",
+      "readme_content": "# Task Manager API\n\nA RESTful task-management API built with FastAPI and PostgreSQL.\n\n## Features\n- Full CRUD for tasks and projects\n- JWT authentication and refresh tokens\n- Role-based access control (owner, editor, viewer)\n- Async database access via SQLAlchemy + asyncpg\n- Automated tests with pytest (90%+ coverage)\n\n## Tech Stack\n- Python 3.11\n- FastAPI\n- PostgreSQL 15\n- SQLAlchemy (async)\n- Alembic (migrations)\n- Docker + Docker Compose\n\n## Getting Started\n\n```bash\ndocker compose up --build\n```\n\nAPI docs available at `http://localhost:8000/docs`.\n\n## Running Tests\n\n```bash\npytest tests/ -v\n```\n",
+      "primary_language": "Python",
+      "star_count": 8,
+      "topics": ["fastapi", "python", "postgresql", "rest-api", "jwt", "docker"],
+      "repo_metadata": {}
+    }
+  ]
+}
