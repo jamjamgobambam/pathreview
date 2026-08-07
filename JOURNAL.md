@@ -105,3 +105,67 @@ test failures, confirmed identical on `main` via `git stash` comparison. My chan
 no new failures.)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in on PR #443. Per the Su26 program note, reviewer feedback is not a feature
+this term, so this was expected rather than a sign of a problem with the PR itself.
+
+**How you responded:**
+N/A — nothing to respond to. I kept the PR open and marked ready for review in case a
+maintainer picks it up later.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Git itself, more than the actual code fix. The bug fix in `tech_detector.py` was
+straightforward once I understood the root cause, but I ran into a branch divergence when
+pushing my Week 8 commits — my local branch and the remote branch had each picked up
+different commits since I last synced, so a plain `git push` was rejected. I had to learn
+`git stash` (temporarily shelving uncommitted local changes so they don't block other git
+commands, then restoring them later with `git stash pop`) and `git rebase` (replaying my
+commits on top of the remote's latest commit to keep history linear, instead of creating a
+merge commit) practically for the first time, including resolving a real merge conflict in
+`JOURNAL.md` by hand. Going in, I didn't have a mental model for any of this — I could run
+`git add`/`commit`/`push` fine, but branch divergence and conflicts were new territory.
+
+**What did you learn about working in a large codebase?**
+In my own projects, I can hold the whole thing in my head and understand my code by just
+looking at it. In `pathreview`, understanding `tech_detector.py` wasn't enough — I also had
+to understand the project's existing test conventions before adding a new test, respect
+`CONTRIBUTING.md`'s commit/branch naming rules, and deal with `make check`/`make test-unit`
+surfacing 181 lint errors and 51 test failures across files I never touched. A big part of
+contributing to a large codebase is learning to distinguish "this is broken because of my
+change" from "this was already broken and isn't my problem" — and proving that distinction
+with evidence (like comparing `main` against my branch) rather than just asserting it.
+
+**How did AI tools help — and where did they fall short?**
+AI tools worked well as a pair programmer — pointing me to the exact file and line for the
+bug, helping me reason through why my first instinct (a plain substring check like `"vendor"
+in filepath`) would cause false positives, and drafting boilerplate like the PLAN.md sections
+and PR description so I could focus on the actual logic. Where it fell short was git
+mechanics — reading a set of stash/rebase instructions and actually understanding what was
+happening to my repo were two different things, and I had to ask for a plain-language
+explanation of stash and rebase separately before it really clicked, rather than just
+following commands blindly.
+
+**What would you do differently if you started over?**
+I'd spend more time upfront getting comfortable with git branching and conflict resolution
+before starting the issue itself, instead of learning it under pressure mid-week when my
+push got rejected. I'd also practice on more issues going forward to build the muscle memory
+for the full contribution cycle end-to-end, so branch divergence and conflicts feel routine
+instead of stressful, with the eventual goal of getting a PR actually merged.
+
+**What are you most proud of from this module?**
+Getting comfortable running a real production-scale codebase locally — setting up the venv,
+diagnosing dependency and permission issues, running the actual test suite, and using that
+environment to reproduce and fix a real bug — rather than just reading code in isolation.
+That hands-on ability to spin up, inspect, and modify a codebase I didn't write is the part
+I want to keep building on.
