@@ -30,10 +30,10 @@ class FaithfulnessChecker:
             logger.info("faithfulness_no_claims_extracted")
             return 0.5  # Default to neutral if no extractable claims
 
-        # Concatenate context text
-        context_text = " ".join([
-            chunk.get("text", "") for chunk in context_chunks
-        ])
+        # Concatenate context text. Use `or ""` rather than only a .get default,
+        # so a chunk whose "text" key is present but explicitly None is treated
+        # as empty and skipped instead of crashing str.join with a TypeError.
+        context_text = " ".join([(chunk.get("text") or "") for chunk in context_chunks])
 
         # Check each claim for support
         supported = 0
