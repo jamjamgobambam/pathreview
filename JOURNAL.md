@@ -75,3 +75,34 @@ None. Pre-existing unrelated `make test-unit` failures (53) and ruff lint noise 
 - **No new failures for new features of this branch.** `test_rate_limit_middleware.py` pass 100%.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No one reviewed my PR.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The harder part was making sure that new features I added for my PR are being used in all places in the codebase. The main implementation file is just where the logic lives, but that logic has to be called from somewhere. In addition, I also have to preserve the existing layout and organization of the repository with my new codes, which means having to make further revision to my initial plan to adapt it to the code conventions. There's also test cases I have to write, which was not the main focus initially.
+
+**What did you learn about working in a large codebase?**
+I learned that for a big codebase, you have to take the entire codebase into view. Know where your new code will be use, how to update it to use or be compatible with your new code, and where to put your new code.
+
+**How did AI tools help — and where did they fall short?**
+AI is most useful for connecting the dots together. They can analyse the whole codebase to figure out where changes has to be made for the new code to work for the whole program. AI can falls short in thinking about edge cases or more niche scenarios initially unless it does more passes through the codebase.
+
+**What would you do differently if you started over?**
+For the purpose of this assignment, I might pick a simpler issue that does not have wider coverage within the codebase. While IP rate limiting is a centralized issue, you do have to look in all places that works with it. I would also want to think more about handling tests earlier as well, since they do affect how I would implement the rate limiter.
+
+**What are you most proud of from this module?**
+Official exposure to open-source contribution. While I already have experience with it prior, it's good to see it being a major hands on topic for the course with guidances.
