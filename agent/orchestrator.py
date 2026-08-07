@@ -3,7 +3,6 @@
 import time
 import structlog
 from typing import Optional
-
 from .memory.session_store import SessionStore
 from .memory.context_manager import ContextManager
 from .error_handling import retry_with_backoff
@@ -27,6 +26,8 @@ class Orchestrator:
         self.session_store = session_store
         self.tool_timeout = tool_timeout
         self.context_manager = ContextManager()
+        
+        self.current_review: tuple = ()
 
     def run(self, profile_id: str, profile_data: dict) -> dict:
         """Execute analysis plan for a profile.
@@ -42,6 +43,7 @@ class Orchestrator:
 
         # Build execution plan
         plan = self._build_plan(profile_data)
+        # Building plans aka the agents reviews to summerized
 
         # Load previous session state if available
         session_state = {}
@@ -49,23 +51,39 @@ class Orchestrator:
             session_state = self.session_store.get(profile_id) or {}
 
         # Execute plan
-        results = {}
+        # This is where the "agent" actually starts the reviews
+        
+        # FIX: Results loads already existing reviews
+        results = session_state.get("results", {})
+        
+
         for tool_name, tool_input in plan:
+            # tool input is tuple
+            
+            # Skip reviews that already exists
+            if tool_name in results:
+                continue
             try:
+                
                 result = self._execute_tool(tool_name, tool_input)
                 results[tool_name] = result.data if hasattr(result, 'data') else result
 
                 logger.info("tool_executed", tool=tool_name, success=True)
+                
 
             except Exception as e:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
                 results[tool_name] = {"error": str(e), "success": False}
+            
+            
+            # NOTE: The session was being saved after the loop. Here, we are saving the session after each loop
+            if self.session_store:
+                session_state.update(results)
+                self.session_store.set(profile_id, session_state)
+
 
         # Persist state
-        if self.session_store:
-            session_state.update(results)
-            self.session_store.set(profile_id, session_state)
-
+       
         logger.info("orchestrator_complete", profile_id=profile_id,
                    tools_executed=len(results))
 
@@ -148,7 +166,7 @@ class Orchestrator:
 
         # Check context cache
         input_hash = ContextManager.hash_input(tool_input)
-        cached_result = self.context_manager.get_tool_result(tool_name, input_hash)
+        cached_result = self.context_manager.get_tool_result(tool_name, input_hash) 
 
         if cached_result:
             logger.info("tool_cache_hit", tool=tool_name)

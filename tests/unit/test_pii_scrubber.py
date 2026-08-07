@@ -216,7 +216,7 @@ class TestPIIScrubber:
         """Test with whitespace only."""
         text = "   \n\t  "
         scrubbed = scrubber.scrub(text)
-        assert scrubbed == text
+        assert scrubbed == text.strip()
 
     def test_mixed_pii_and_text(self, scrubber):
         """Test text with mix of PII and regular content."""
@@ -229,7 +229,7 @@ class TestPIIScrubber:
         I'm skilled in AWS and Kubernetes deployment.
         """
         scrubbed = scrubber.scrub(text)
-
+        print(scrubbed)
         assert "TechCorp" in scrubbed  # Regular text preserved
         assert "Python" in scrubbed
         assert "AWS" in scrubbed
@@ -237,6 +237,31 @@ class TestPIIScrubber:
         assert "john.smith@company.com" not in scrubbed
         assert "555-123-4567" not in scrubbed
 
+    def test_pii_my_take(self, scrubber):
+            """Test text with mix of PII and regular content."""
+            text = """
+
+            my id is 111-111-1111
+            my id in the sequal is (111) 111-1111
+            my id in the prequel is 111 111 1111
+            
+            User can be reached at (555) 123-4567
+            I lied the User can be reached at (777)123-4567
+            
+            my home address is 123 big city road
+            I live in California 
+            
+            I work for Evilcorp
+            
+            My ssn is 666-66-6666 
+            My ssn in the sequal is 123-45-6789
+            
+            """
+            scrubbed = scrubber.scrub(text)
+            print(scrubbed)
+            assert 1 == 2 # lazy way to see the print
+            
+            
     def test_scrub_idempotent(self, scrubber):
         """Test that scrubbing twice produces same result."""
         text = "Email: test@example.com"

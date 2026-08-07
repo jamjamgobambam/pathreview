@@ -2,15 +2,27 @@
 
 import pytest
 from unittest.mock import Mock, MagicMock, patch
+import structlog
+from structlog.testing import LogCapture
 
 from ingestion.chunking.base import Chunk
 from ingestion.embeddings.batch_processor import BatchEmbeddingProcessor
 
 
+
 @pytest.mark.unit
 class TestBatchEmbeddingProcessor:
     """Test suite for BatchEmbeddingProcessor."""
-
+    @pytest.fixture(name="caplog")
+    def fixture_log_output(self):
+        """Since we are using structlog, we should be using this"""
+        return LogCapture()
+    
+    @pytest.fixture(autouse=True)
+    def fixture_configure_structlog(self, caplog):
+        # redirects all output from structlog logger to pytest fixture wrapper
+        structlog.configure(processors=[caplog])
+        
     @pytest.fixture
     def mock_embedding_provider(self):
         """Create a mock embedding provider."""
@@ -33,13 +45,34 @@ class TestBatchEmbeddingProcessor:
         """Create a BatchEmbeddingProcessor instance."""
         return BatchEmbeddingProcessor(mock_embedding_provider, mock_vector_db)
 
+    def test_user_login(self, caplog):
+        # Call your application logic that logs
+        import structlog
+        logger = structlog.get_logger()
+        logger.info("user_login", user_id=42, status="success")
+        
+        # Asserting is simple dictionary evaluation
+        assert caplog.entries == [
+            {"event": "user_login", "user_id": 42, "status": "success", "log_level": "info"}
+        ]
+        """Since we are using structlog, caplog.text is incorrect as thats primaly used for logging.
+        Structlog formats outputs as dictionaries.
+        """
     def test_empty_chunks_list_returns_empty(self, processor, caplog):
         """Test that empty chunks list logs warning and returns empty list."""
-        result = processor.process([])
 
+        result = processor.process([])
+        
         assert result == []
         # Should log a warning
-        assert "Empty chunks list" in caplog.text or any(
+        print(f"""
+
+                ENTRIES:
+                    {caplog.entries}    
+              """)
+        event = caplog.entries[0]['event']
+        print(event)
+        assert "Empty chunks list" in event or any(
             "empty" in record.message.lower() for record in caplog.records
         )
 

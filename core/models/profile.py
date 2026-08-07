@@ -54,3 +54,4 @@ class Profile(Base):
 
     def __repr__(self) -> str:
         return f"<Profile(id={self.id}, user_id={self.user_id}, github_username={self.github_username})>"
+

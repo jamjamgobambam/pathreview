@@ -52,3 +52,4 @@ class Review(Base):
 
     def __repr__(self) -> str:
         return f"<Review(id={self.id}, profile_id={self.profile_id}, status={self.status})>"
+
