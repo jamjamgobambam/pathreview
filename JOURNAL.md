@@ -90,3 +90,44 @@ Note on `make check`: the codebase has ~176 pre-existing ruff/mypy violations ac
 Note on `make test-unit`: 53 pre-existing test failures across the project on `main` (in files like `test_structural_chunker.py`, `test_tech_detector.py`, `test_review_service.py`). Confirmed the identical 53 failures exist on `main` before my changes via `git stash`. In `tests/unit/test_prompt_templates.py` specifically — the file I modified — all 38 tests pass, including both new snapshot tests. Per the Week 9 "doesn't make things worse" guidance, my contribution introduces 0 new test failures and 0 new lint errors.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x0] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback came in during the module (per the Summer 2026 cohort note, reviewer feedback is not a course feature this term). The PR is open at ascherj/pathreview#301 and passing all tests in the file it touches.
+
+**How you responded:**
+N/A — no feedback to respond to. If a maintainer comments after the module closes, I plan to keep engaging with the PR until it either merges or the maintainers decide against it.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Setup was the biggest surprise. Getting the local environment running was a full afternoon of dependency debugging that had nothing to do with my actual issue — chromadb required an older Python because of onnxruntime, the setup script assumed Docker was already running when it wasn't, and I had a stale `.venv` from a previous failed run that kept masking the real errors. I went into Week 7 expecting to spend most of my time reading code and picking a good issue, and instead I spent most of it fighting the Python + Postgres + Docker stack before I could even run the app. In hindsight this is probably normal for any real codebase, but it was a shift from how "getting started" works on my own projects, where I control every layer.
+
+**What did you learn about working in a large codebase?**
+The biggest lesson was that "the fix" and "the scope of what to touch" are separate decisions. When I ran `make check` on my final PR, the file I edited had 13 lint errors and the whole project had 176 — but only 1 error was actually caused by my changes, and my fix removed one pre-existing error rather than adding new ones. Early in the week I assumed I had to fix everything the linter complained about; by the end I understood that a well-scoped PR fixes the thing it says it fixes and explicitly documents the pre-existing violations rather than expanding to cover them. That framing ("doesn't make things worse" vs. "fixes the whole codebase") is very different from how I work in my own projects, where I own every line.
+
+I also learned to read tests as documentation. The existing tests in `test_prompt_templates.py` were the fastest way to understand what the prompt template system was supposed to do — faster than reading `prompt_templates.py` itself. That surprised me.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for the mechanical parts: writing the initial docstring/error-message copy for the new tests, formatting the JOURNAL and PLAN files consistently, and pattern-matching against existing test structure in the file. It was reliably fast for that kind of work.
+
+Where it fell short was scope judgment. When my commit was blocked by pre-commit hooks with ~50 lint/type errors, my first instinct (and the AI's first suggestion path) was to "just fix them all." That would have been wrong — most were pre-existing and out of scope. I had to make the call myself to compare error counts before and after my changes and prove I wasn't making things worse. AI is good at "how do I do X" and much weaker at "should I do X in this context."
+
+The other place AI fell short was on the specific mental model of "silent test that passes because the assertion is a tautology." The failing test wasn't hard to spot once I read it, but understanding *why* it was designed to fail loudly — and how to write a replacement that actually enforced the contract the docstring implied — required thinking about the intent behind the code, not just its syntax.
+
+**What would you do differently if you started over?**
+Two things.
+
+First, I'd spend less time on issue selection. I got a bit stuck comparing three candidate Tier 1 issues (async mocks, README scorer fixture, faithfulness None-handling) and worrying about who else had "claimed" them on GitHub. In retrospect, most of those claims were from months ago with no follow-up PRs, and my TF explicitly said multiple people can work on the same issue in this course. I could have started on a good issue on Day 1 instead of Day 2 or 3.
+
+Second, I'd verify my environment with `make setup && make run` before doing any of the ancillary Week 7 steps (JOURNAL, PLAN, branch naming). Getting the app running is the single most important gate, because if you can't run it, you can't verify anything else. I did steps like "create branch" and "make initial commit" in parallel with debugging setup, which meant some of my early commits were on a branch where setup wasn't actually working yet.
+
+**What are you most proud of from this module?**
+The sanity check I ran on my snapshot test. After I wrote the two new tests and they passed, it would have been easy to stop there — 38/38 green, PR opens itself. Instead I opened `prompt_templates.py`, changed one character in a template, re-ran the test, and confirmed it failed with the exact error message I'd written telling the developer to add a new version. Then I reverted and confirmed it passed again. That two-minute exercise — proving the test actually does what its name implies — is the thing I'll carry forward into future work. It's a habit I didn't really have before this module.
