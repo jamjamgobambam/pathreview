@@ -101,7 +101,7 @@ pipeline as a new `workflow` source type with structural chunking.
 skills, bytes/invalid input, empty/whitespace, non-workflow and malformed YAML, the `on:`-key gotcha,
 matrix builds, reusable job-level `uses:`, ChromaDB-scalar metadata, and `SkillExtractor` reuse.
 
-**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+**Self-review confirmation:** [x] make check passes [x] make test-unit passes
 (Per the Week 9 pre-existing-failures rule, "passes" = introduces no new failures. Both commands have
 documented pre-existing failures in this repo; this change adds none, and the new/edited files are
 ruff-, black-, and mypy-clean. Details in the PR's Notes for Reviewers.)
@@ -109,3 +109,53 @@ ruff-, black-, and mypy-clean. Details in the PR's Notes for Reviewers.)
 **Draft PR feedback received from:** None — the PR did not receive a formal peer/mentor review this
 cycle. The approach was discussed at team standups (where I shared the PLAN.md), but no PR-level
 review was obtained.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+No feedback was provided.
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+Making sure the plan for a specific task is completely accurate to stop AI from being too passionate
+Other that that, I didn't encounter any issues as I'm familiar with navigating large codebases.
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+The autonomy is the biggest factor. when I do my projects I own every feature,
+standard and idea, and I love that freedom. Whereas in other people's codebases
+such as open source or corporation, you do not have that freedom of execution or thought.
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+AI Tools helped immensly in helping understand the codebase which directed my decision making,
+then ofcourse implementation was seemless and robust with multiple unit tests, which took miniscule amount of effort
+compared to doing it by hand.
+
+A short-comming i noticed early on from using AI is you should never delegate decision making to it.
+It can sometimes fail royally and select a sub-optimal solution for complicate things.
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+No, I'm quite satisfied with what I did in this task.
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+I'm proud about delivering a Tier 3 issue.
