@@ -1,12 +1,14 @@
 """LLM-based review generation."""
 
 from dataclasses import dataclass
-from typing import Optional
+
 import openai
 import structlog
 
-from .prompt_templates import get_template
-from .output_parser import parse_review_output, FeedbackSection
+from safety.content_filter import ToneClassifier
+
+from .output_parser import FeedbackSection, parse_review_output
+from .prompt_templates import REGENERATION_GUIDANCE, get_template
 
 logger = structlog.get_logger()
 
@@ -19,6 +21,9 @@ class ReviewConfig:
     model: str
     temperature: float = 0.7
     max_tokens: int = 2000
+    # Tone-check settings (issue #69)
+    tone_check_enabled: bool = True
+    max_tone_retries: int = 2
 
 
 class ReviewGenerator:
@@ -34,6 +39,10 @@ class ReviewGenerator:
         self.client = openai.OpenAI(
             api_key=config.api_key,
             base_url=config.base_url
+        )
+        # Tone classifier reuses the same client/model (issue #69)
+        self.tone_classifier = (
+            ToneClassifier(self.client, config.model) if config.tone_check_enabled else None
         )
 
     def generate_section(self, section_name: str, context_chunks: list[dict],
@@ -62,6 +71,43 @@ class ReviewGenerator:
             project_count=project_count
         )
 
+        # Generate, then run a tone check and regenerate non-constructive
+        # sections up to max_tone_retries times (issue #69).
+        section = self._generate_once(section_name, prompt)
+
+        if self.tone_classifier is None:
+            return section
+
+        for attempt in range(1, self.config.max_tone_retries + 1):
+            is_constructive, reason = self.tone_classifier.classify(section.content)
+            if is_constructive:
+                if attempt > 1:
+                    logger.info("tone_regenerated_ok", section=section_name, attempt=attempt)
+                return section
+
+            logger.warning(
+                "tone_check_failed", section=section_name, attempt=attempt, reason=reason
+            )
+            # Append constructive-rewrite guidance and try again
+            retry_prompt = prompt + REGENERATION_GUIDANCE.format(reason=reason)
+            section = self._generate_once(section_name, retry_prompt)
+
+        # Retries exhausted — deliver the best attempt but flag it
+        logger.warning(
+            "tone_retries_exhausted", section=section_name, max_retries=self.config.max_tone_retries
+        )
+        return section
+
+    def _generate_once(self, section_name: str, prompt: str) -> FeedbackSection:
+        """Call the LLM once for a section and parse the result.
+
+        Args:
+            section_name: Section name (used for the default fallback)
+            prompt: Fully-formatted user prompt
+
+        Returns:
+            The first parsed FeedbackSection, or a low-confidence default.
+        """
         # Call LLM
         response = self.client.chat.completions.create(
             model=self.config.model,

@@ -114,6 +114,44 @@ Provide only the summary text, no JSON formatting needed.
 }
 
 
+TONE_CHECK_TEMPLATE = """You are reviewing one section of automated portfolio feedback for tone.
+
+Classify whether the feedback below is written CONSTRUCTIVELY. Constructive feedback is:
+- actionable (points to a concrete next step, not just a complaint)
+- specific (references the portfolio, not vague generalities)
+- encouraging (respectful and motivating, even when critical)
+
+Feedback is NON-constructive if it is discouraging, dismissive, condescending, or vague.
+
+Feedback section to classify:
+\"\"\"
+{feedback}
+\"\"\"
+
+Respond with ONLY a JSON object, no prose, in this exact shape:
+{{"constructive": true or false, "reason": "one short sentence explaining the verdict"}}
+"""
+
+
+REGENERATION_GUIDANCE = (
+    "\n\nIMPORTANT: A previous draft of this section was flagged as non-constructive "
+    "for the following reason: {reason}. Rewrite the feedback so it is actionable, "
+    "specific, and encouraging while keeping it honest. Do not be dismissive or vague."
+)
+
+
+def get_tone_check_prompt(feedback: str) -> str:
+    """Build the tone-classification prompt for a feedback section.
+
+    Args:
+        feedback: The generated feedback text to classify
+
+    Returns:
+        Prompt string instructing the LLM to classify tone as JSON
+    """
+    return TONE_CHECK_TEMPLATE.format(feedback=feedback)
+
+
 def get_template(name: str, version: str = "v1") -> str:
     """Retrieve a prompt template.
 
