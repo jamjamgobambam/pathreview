@@ -62,3 +62,34 @@ Updated `tests/unit/test_readme_scorer.py` — specifically the fixture inside `
 (Note: this change touches only tests/unit/test_readme_scorer.py, a test-data-only edit. make test-unit: file passes 23/23, no new failures (52 pre-existing failures exist across ~10 unrelated files). make lint: no new errors (182 pre-existing F841 errors exist only in test_tech_detector.py). make typecheck: no new errors (103 pre-existing errors exist across 26 unrelated files, e.g. api/routes/profiles.py, core/services/profile_service.py). "Passes" here means introduces no new failures, per this week's pre-existing-failures guidance — none of the pre-existing failures touch the file changed in this PR.)
 
 **Draft PR feedback received from:** none — no course Slack channel was available/confirmed at time of submission
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback was provided.  PR#979 remains open, pending maintainer approval. GitHub shows "review required" and "workflow awaiting approval."
+
+**How you responded:**
+N/A — no feedback was received to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The git and tooling friction was harder than the actual code fix. I hit a recurring `.git/index.lock` error multiple times across different weeks, and at one point `git commit` silently failed because a pre-commit hook ran `mypy` against my test file and found 24 pre-existing "missing type annotation" errors — errors that had nothing to do with my change, but still blocked the commit with no obvious explanation until I dug into `.pre-commit-config.yaml`. Diagnosing *why* a commit "didn't take" was more time-consuming than writing the fix itself.
+
+**What did you learn about working in a large codebase?**
+Almost all the real work was reading, not writing. My actual code change was a couple dozen lines (extending a test fixture), but getting there required understanding the scorer's category thresholds, its regex-based section detection, and how the word-count bonus fed into the overall score in `agent/tools/readme_scorer.py` — none of which I could touch, but all of which I had to understand correctly to know my fix wouldn't break anything.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for quickly tracing the failing assertion back to the exact scorer thresholds across multiple files and computing word counts/section-detection results without needing to run pytest myself first. It fell short in a couple of ways I had to catch and correct: it checked off "make check passes" in my self-review before typecheck had actually been confirmed, and separately I had to push back when a mass `make format` reformatting of 54 unrelated files almost got bundled into my commit. I had to notice that and insist on isolating just my two real files before committing.
+
+**What would you do differently if you started over?**
+I'd cross-check my JOURNAL.md entries against the grading rubric earlier and more consistently. I did this carefully in Week 7 (catching a missing "selection reasoning" section before submitting), but didn't apply that same discipline as tightly in later weeks. I'd want to make rubric-checking a standing step every week, not just the first one.
+
+**What are you most proud of from this module?**
+Working through the git and tooling problems without losing any work or polluting my PR. I ran into the stale `.git/index.lock` errors more than once, the pre-commit hook silently blocked a commit over pre-existing mypy issues, and I caught that `make format` had rewritten 54 files I never intended to touch. None of that was in the assignment instructions directly, but handling it cleanly — discarding the noise, committing only my real changes, and documenting the pre-commit/mypy scope mismatch honestly in the PR — felt like the most "real world" part of the whole module.
