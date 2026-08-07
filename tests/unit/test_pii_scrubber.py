@@ -126,6 +126,7 @@ class TestPIIScrubber:
 
         phone_detections = [d for d in detected if "phone" in d["type"]]
         assert len(phone_detections) > 0
+        assert any(d["value"] == "(555) 123-4567" for d in phone_detections)
 
     def test_detect_ssn_pii(self, scrubber):
         """Test detect() finds SSN PII."""
