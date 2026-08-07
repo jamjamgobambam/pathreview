@@ -15,6 +15,11 @@ Portfolio Context:
 GitHub Username: {github_username}
 Project Count: {project_count}
 
+Context blocks marked "Shared stack" group multiple projects that use the
+same language or stack. Treat those as one consolidated observation about
+that stack -- do not write a separate near-duplicate paragraph per project
+in the group.
+
 Based on the portfolio evidence above, provide structured feedback on:
 1. Demonstrated technical skills (with specific examples from projects)
 2. Depth of expertise in key areas
@@ -36,6 +41,11 @@ Portfolio Context:
 
 GitHub Username: {github_username}
 Project Count: {project_count}
+
+Context blocks marked "Shared stack" group multiple projects that use the
+same language or stack. When summarizing those, call out the shared
+strength once and note what's genuinely distinct between the projects --
+don't repeat the same observation once per project in the group.
 
 Assess:
 1. Project scope and complexity
@@ -110,7 +120,7 @@ Write a concise, professional summary capturing:
 
 Provide only the summary text, no JSON formatting needed.
 """
-    }
+    },
 }
 
 
