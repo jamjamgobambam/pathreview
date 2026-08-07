@@ -105,3 +105,34 @@ Updated `tests/unit/test_review_service.py`. The modifications directly remediat
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes (Note: Rerun via `pytest tests/unit -v -m unit` due to custom Conda profile environment layout).
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+As noted in the Summer 2026 course guidelines, official maintainer review feedback was not provided for this cohort session. No external pull request comments were received by the closing date.
+
+**How you responded:**
+N/A (no feedback received).
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The subtle mechanics of Python's `unittest.mock` library when mixing asynchronous coroutines with synchronous chained method calls caught me off guard. Initially, diagnosing why `result = await db.execute(stmt)` succeeded while `result.scalars().first()` threw an `AttributeError` required stepping through how `AsyncMock` recursively generates coroutine children for every accessed attribute. Disentangling the `AsyncMock` execution layer from the synchronous `Mock` result container required carefully inspecting the exact SQLAlchemy query execution pipeline.
+
+**What did you learn about working in a large codebase?**
+Working in a multi-module repository like PathReview reinforced that fixing a bug rarely requires touching production application code if the problem is localized to the test harness. I learned that reading existing test patterns and understanding fixture scope in `tests/unit/test_review_service.py` is far more valuable than blindly refactoring functions. Additionally, navigating pre-existing static type errors in un-related modules taught me the importance of maintaining an isolated diff that doesn't attempt to fix the whole codebase at once.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were incredibly useful for quickly analyzing the stack trace of the 13 failing unit tests and pinpointing why `AsyncMock` was causing `.scalars()` to return an unawaited coroutine. They helped draft the initial synchronous `Mock` replacement strategy and structured the markdown planning documents. However, AI fell short when accounting for service-level query counts; it assumed `db.execute` was called once in `test_list_reviews_ordered_by_created_at`, failing to realize the service layer runs two queries (one for the total pagination count and one for the data array), which required manual debugging.
+
+**What would you do differently if you started over?**
+If I started over, I would immediately run `pytest` on the specific test module before doing any environment setup or dependency installs to establish an accurate failure baseline faster. I would also write out the explicit mock object hierarchy on paper during the Week 8 planning phase before touching any code. This would have helped me catch the pagination dual-query requirement in `list_reviews` much earlier in the process.
+
+**What are you most proud of from this module?**
+I am most proud of systematically taking a broken test suite with 13 failing unit tests and bringing it to 100% green (19 passed) while keeping my pull request diff completely surgical. Isolating the issue strictly to `tests/unit/test_review_service.py` without introducing regression side-effects or dirtying unrelated repository files felt like a true production-grade contribution.
