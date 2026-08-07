@@ -1,3 +1,27 @@
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/Azu06FTW/pathreview/commit/cc3f6a7
+
+**Reproduction summary:**
+Created `tests/integration/test_sample_profile_fixture.py`, which uses
+`pytest.mark.skipif` to skip all 11 integration tests when
+`tests/fixtures/sample_profiles/basic_profile.json` is absent. Running
+`pytest tests/integration/test_sample_profile_fixture.py -v` before the
+fixture was restored showed **11 skipped** — confirming the silent-skip
+behaviour described in issue #106.
+
+**PLAN.md link:** https://github.com/Azu06FTW/pathreview/blob/fix/106-restore-basic-profile-fixture/PLAN.md
+
+**Walkthrough video (recommended):** *(not recorded)*
+
+**Blockers or open questions:**
+- `scripts/run_evals.py` loads benchmark portfolios from this directory but
+  the load logic is a `TODO`. The fixture schema was derived from
+  `Orchestrator._build_plan`; if the eval runner is later implemented with a
+  different schema, the fixture may need updating.
+
+---
+
 ## Week 7 — Issue selection
 
 **Issue link:** https://github.com/ascherj/pathreview/issues/106
