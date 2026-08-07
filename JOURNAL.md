@@ -61,3 +61,34 @@ Updated the fixture data in `tests/unit/test_relevance_scorer.py::test_query_wit
 **Self-review confirmation:** [x] make check passes (pre-existing failures documented and unrelated) [x] make test-unit passes (52 pre-existing failures unrelated to this change; target test now passes)
 
 **Draft PR feedback received from:** none (requested in section Slack channel and #ai201-community-su26, no responses received)
+
+## Week 10 — Iteration & Reflection
+
+### Reviewer Feedback
+
+**Feedback received:** [ ] Yes  [x] No — still waiting for review
+
+**Summary of feedback:**
+I didn't receive any feedback from a peer or project maintainer. I asked for reviews in my section Slack channel and in #ai201-community-su26, but no one responded. 
+
+**How you responded:**
+N/A — I didn't receive any feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment setup ended up being much harder than the actual code change. Before I could even run the project, I had to work through several unrelated issues with Docker, WSL, and Node.js on Windows. I ran into a numpy version conflict in the Chroma vector database image, a bcrypt/passlib warning during database seeding, and even discovered that Windows didn't have `make` installed. Once everything was finally working, the actual fix only took about 10 minutes because it was just updating one line in a test fixture after I understood how the scoring worked.
+
+**What did you learn about working in a large codebase?**
+One of the biggest things I learned was not to assume that a failing test automatically means the code is wrong. At first I expected there to be a bug in the implementation, but after tracing through the logic, I realized the scoring function was working correctly and the test data was the real issue. I also learned the importance of verifying that a small change doesn't affect anything else. Running the full test suite before and after my fix gave me confidence that only the intended test changed while everything else behaved the same.
+
+**How did AI tools help — and where did they fall short?**
+AI was really helpful when I was troubleshooting environment issues. It made it much easier to understand errors like the numpy/Chroma crash and the WSL installation problem, which saved me a lot of time. It also helped me follow the scoring logic and estimate what test values would fall within the expected range. That said, AI couldn't actually verify that my solution worked. I still had to run the tests myself, review the results, and make sure the fix was correct. I also needed to read through the `RelevanceScorer.score()` implementation to fully understand why the change worked instead of just relying on AI's suggestions.
+
+**What would you do differently if you started over?**
+If I were starting over, I would make sure my development environment was fully set up before choosing an issue. A lot of my time early on was spent installing and troubleshooting missing tools that could have been handled beforehand. I would also ask for peer review earlier in the process so there would be a better chance of getting feedback before the deadline.
+
+**What are you most proud of from this module?**
+I'm most proud that I was able to identify that the problem was in the test rather than the actual implementation. It would have been easy to assume the scoring function was broken and start changing working code. Instead, I took the time to understand how the scoring worked, verified the calculations, and made a small, targeted fix. That experience taught me the importance of understanding the root cause of a problem instead of just making a failing test pass.
