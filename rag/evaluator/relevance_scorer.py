@@ -29,7 +29,7 @@ class RelevanceScorer:
         relevances = []
 
         for chunk in chunks:
-            text = chunk.get("text", "")
+            text = chunk.get("text") or ""
             chunk_tokens = set(self._tokenize(text))
 
             if not chunk_tokens:
@@ -44,8 +44,12 @@ class RelevanceScorer:
         # Return average relevance
         avg_relevance = sum(relevances) / len(relevances)
 
-        logger.info("relevance_scored", query_len=len(query_tokens),
-                   chunks_count=len(chunks), avg_score=avg_relevance)
+        logger.info(
+            "relevance_scored",
+            query_len=len(query_tokens),
+            chunks_count=len(chunks),
+            avg_score=avg_relevance,
+        )
 
         return min(avg_relevance, 1.0)
 
