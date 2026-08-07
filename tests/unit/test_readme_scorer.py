@@ -18,34 +18,103 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+
+        A comprehensive, production-ready project that helps developers
+        analyze, score, and improve the quality of their open-source
+        repositories. This README documents everything you need to install
+        the project, run it locally, understand its architecture, and
+        contribute changes back to the community. It is intentionally
+        thorough so that new contributors can become productive quickly
+        without having to read the source code first.
+
+        ## Overview
+
+        This project provides a command-line tool and a small library for
+        evaluating README files against a set of well-known quality
+        signals. It inspects each document for the presence of installation
+        instructions, usage examples, badges, a live demo link, and a
+        documented technology stack, then combines those signals into a
+        single normalized score. The scoring model is transparent,
+        deterministic, and easy to extend with your own custom heuristics.
 
         ## Installation
+
+        Install the package from PyPI using pip. We recommend creating an
+        isolated virtual environment first so that dependencies do not
+        collide with other projects on your machine.
+
         ```bash
+        python -m venv .venv
+        source .venv/bin/activate
         pip install package
         ```
 
+        If you prefer to work from source, clone the repository and install
+        the project in editable mode so that your local changes take effect
+        immediately without a reinstall.
+
         ## Usage
+
+        Using the library is straightforward. Import the package, pass in
+        the raw text of a README file, and read back a structured
+        dictionary of results. The example below shows the most common
+        workflow for scoring a single document from a Python script.
+
         ```python
         import package
-        package.run()
+
+        report = package.run("path/to/README.md")
+        print(report["overall_score"])
         ```
 
+        For larger repositories you can batch many files together and
+        export the aggregated results as JSON, CSV, or a formatted Markdown
+        table for easy sharing with your team during code review.
+
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+
+        - Detects installation, setup, and getting-started sections
+        - Recognizes usage, quickstart, and example sections
+        - Classifies documents as minimal, adequate, or comprehensive
+        - Identifies status badges and continuous integration shields
+        - Finds live demo links so reviewers can try the project quickly
+        - Produces a single overall score between zero and one
 
         ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
+
+        This project is built with a modern, well-supported set of
+        technologies that most Python developers will already be
+        comfortable working with day to day.
+
+        - Python 3.9 or newer for the core scoring engine
+        - FastAPI for the optional web service and REST endpoints
+        - PostgreSQL for durable storage of historical scoring runs
+        - Redis for caching expensive computations between requests
+        - pytest for the comprehensive automated test suite
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
 
         ## Live Demo
-        [Try it here](https://demo.example.com)
+
+        Curious how it works before installing anything?
+        [Try it here](https://demo.example.com) and paste in any README to
+        see an instant quality breakdown directly in your browser.
+
+        ## Configuration
+
+        Behavior can be tuned through a small configuration file or through
+        environment variables. You can adjust the word-count thresholds
+        that separate minimal, adequate, and comprehensive documents, and
+        you can supply additional keywords for detecting custom sections
+        that are specific to your organization or team conventions.
+
+        ## Contributing
+
+        Contributions are welcome and appreciated. Please read the
+        contributing guide, open an issue to discuss significant changes,
+        and make sure the test suite passes before submitting a pull
+        request for review by the maintainers.
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -157,9 +226,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +288,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +304,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
