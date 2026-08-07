@@ -76,11 +76,13 @@ The normalized scores are blended as:
 score = vector_weight * vector_score + keyword_weight * keyword_score
 ```
 
-`vector_weight` and `keyword_weight` are constructor parameters of `HybridRetriever`, not hardcoded constants, defaulting to `vector_weight=0.7` and `keyword_weight=0.3`. No call site in this codebase currently constructs `HybridRetriever` with overrides, so these defaults are also the only values in effect today — but they remain tunable per instance.
+`vector_weight` and `keyword_weight` default to `vector_weight=0.7` and `keyword_weight=0.3`. The defaults are tunable per instance since the constructor parameters remain configurable.
 
-Chunks with a blended score below `min_score` (default `0.3`) are dropped before the remaining results are sorted and truncated to `max_chunks`. A short or unusual query can legitimately push every candidate below `min_score`, returning zero chunks — that's expected threshold behavior, not a bug.
+Chunks with a blended score below `min_score` (default `0.3`) are dropped. Remaining results are sorted by score (descending) and truncated to the top `max_chunks` results.
 
-**Worked example:** a chunk with normalized `vector_score=0.8` and `keyword_score=0.4` blends to `0.7 * 0.8 + 0.3 * 0.4 = 0.68`, which clears the `0.3` `min_score` cutoff.
+**Worked examples:**
+- A chunk with normalized `vector_score=0.8` and `keyword_score=0.4` blends to `0.7 * 0.8 + 0.3 * 0.4 = 0.68`, which clears the `0.3` `min_score` cutoff and is returned.
+- A chunk with normalized `vector_score=0.2` and `keyword_score=0.1` blends to `0.7 * 0.2 + 0.3 * 0.1 = 0.17`, which falls below the `0.3` cutoff and is dropped. If every candidate for a query scores this low, `retrieve` legitimately returns zero chunks — that's expected threshold behavior, not a bug.
 
 ### Safety Layer (`safety/`)
 Middleware wrapping the generation pipeline. Components run in sequence: prompt injection defense → content filter → bias detector → PII scrubber. All safety events are logged with structured metadata for monitoring.

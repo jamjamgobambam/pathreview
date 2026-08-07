@@ -62,5 +62,37 @@ None. This issue is scoped entirely to `docs/ARCHITECTURE.md` (per PLAN.md and t
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 (Both commands have pre-existing failures unrelated to this change — 182 pre-existing ruff errors and 19 pre-existing test failures across 7 files, confirmed via `git stash` to be identical with and without this change. Per the pre-existing-failures policy, "passes" here means this change introduces no new failures, which is confirmed since it only touches `docs/ARCHITECTURE.md`.)
 
-**Draft PR feedback received from:** Pending — PR posted in course Slack channel, awaiting review.
+**Draft PR feedback received from:** LeslieCodePath (course mentor, informal feedback — no formal review was required this term)
 
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No formal reviewer feedback was assigned or required this term (per the Su26 course note). I posted my draft PR in the course Slack channel, and LeslieCodePath, a course mentor not officially enrolled this cohort, reviewed it on her own. She called it "good overall, but very verbose" and flagged three specific spots: an over-hedged sentence about the tunable weights, a wordier-than-needed `min_score` paragraph, and a worked example that only covered the passing case, not the case where filtering returns zero chunks.
+
+**How you responded:**
+Even though this wasn't required feedback, I applied all three suggestions to `docs/ARCHITECTURE.md`: simplified the tunable-weights sentence to state just the defaults and that they're configurable; condensed the `min_score` paragraph into two short sentences; and added a second worked example showing a chunk that falls below the cutoff and gets dropped, to make the "zero chunks is expected, not a bug" behavior concrete rather than just asserted.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Reading the codebase was the hardest part for me — I had to understand someone else's code well enough to trust it, without having written it myself.
+
+**What did you learn about working in a large codebase?**
+With someone else's production code, you have to be able to read and interpret it before you can even figure out the problem — there's no shortcut. With your own code, you already know the intent behind it, so understanding the issue and what needs to change comes much more naturally.
+
+**How did AI tools help — and where did they fall short?**
+AI was useful for helping me locate the right files for this issue and explaining what functions did. Where it fell short was keeping my writing short and simple — my first draft came out more verbose than it needed to be, which is exactly what my reviewer flagged.
+
+**What would you do differently if you started over?**
+I'd aim to write more simply and get to the point from the start, instead of needing reviewer feedback to catch it.
+
+**What are you most proud of from this module?**
+I'm most proud of figuring out how to approach an unfamiliar problem — knowing what to look for and how to track down the answer on my own.
