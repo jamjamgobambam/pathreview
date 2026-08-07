@@ -111,3 +111,70 @@ Note on "passes": this codebase has documented pre-existing failures. `make test
 
 **Draft PR feedback received from:** none
 
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No
+
+**Summary of feedback:**
+No reviewer feedback came in.
+
+**How you responded:**
+No response was required.
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Deciding what the test should actually assert was much harder than writing it. Issue #88 sounded like a five-line addition. It was like simply "add a test for the empty-profile case" but`POST /reviews` in `api/routes/reviews.py` returns immediately with a `pending`review and hands the real work to `process_review` in `core/services/review_service.py` as a background task. That split meant the behavior which the issue cares about does not happen inside the request I was testing. I spent most of my time working
+out which layer to pin down the endpoint's synchronous contract, or the background
+service's handling of an empty source list rather than writing assertions.
+
+Setup friction also cost real time the async SQLAlchemy session needs `greenlet`
+installed, and getting the test to construct a profile with no `IngestedSource` rows
+meant understanding the data model (no `github_username`, no `portfolio_url`, no
+uploaded resume) rather than just calling a factory.
+
+**What did you learn about working in a large codebase?**
+In my own projects I know the behavior before I open the file, so the code is just a
+reminder. Here the code was the only source of truth, and it did not always agree
+with what the issue implied. Nobody had written down what `POST /reviews` should do
+for an empty profile, so "correct" was something I had to infer from the handler,
+the service, the response schema, and the existing tests together. Writing a test that just asserts whatever the code
+does today makes the suite look better while making future refactors harder, which
+is a failure mode I had never had to think about before.
+
+I also learned how much of contributing is navigation and convention rather than
+logic: matching the `@pytest.mark.unit` / `@pytest.mark.asyncio` markers, the
+fixture style, the docstring format, and the branch/commit conventions in the repo's
+own docs. The actual code change was small; fitting it into someone else's house
+style so it looks like it belongs was most of the work.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest as a search-and-orient tool. Asking where reviews are created, what
+happens after the endpoint returns, and which fixtures exist got me from a cold repo
+to the three files that mattered which are the route, the service, and the test module. 
+
+Where it fell short was exactly the part that made the issue non-trivial. Asked what
+the endpoint *should* do with a profile that has no ingested documents, AI happily
+produced a confident answer but it was describing what the code currently does, or
+what a reasonable API would do, not a decision grounded in this project's intent.
+It could not tell me whether the empty-profile case ought to be a validation error,
+a `pending` review that later fails, or a completed review with empty sections. It
+also mirrored the weak assertion style already in the test file rather than flagging
+it as a problem. Judging what to assert, and reading the existing tests critically
+instead of imitating them, was the part I had to do myself.
+
+**What would you do differently if you started over?**
+I would settle the intended behavior before writing any test code. I would read the route, the service, and the response schema end to end, write down in one sentence what the contract is, and confirm it on the issue thread. I drifted into writing assertions
+while still unsure what the answer was, which meant rewriting them more than once. Finally, on issue selection I would
+still pick a test-only Tier 1 issue, but I would check earlier whether the behavior under test is actually documented anywhere. "Small diff" and "small amount of thinking" turned out to be very different things.
+
+**What are you most proud of from this module?**
+That I did not paper over the ambiguity. The easy path was to write a test asserting
+whatever the endpoint happens to return today, get a green check, and ship it. I
+took the time to work out what the contract should be and to write an assertion that
+describes intended behavior rather than current behavior. I was honest in the PR about the assumption I was making.
