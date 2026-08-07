@@ -104,6 +104,21 @@ class TestTechDetector:
         data = result.data
         assert data["primary_language"] == "Python"
 
+    def test_filename_containing_skip_word_not_excluded(self, detector):
+        """Test that a filename merely containing a skip-word substring
+        (e.g. 'vendor_utils.py') is NOT treated as being inside a skip directory."""
+        files = [
+            "vendor_utils.py",
+            "rebuild_index.py",
+            "main.py",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+        assert "Python" in data["all_languages"]
+
     def test_config_file_detection(self, detector):
         """Test detection from config files."""
         files = [
