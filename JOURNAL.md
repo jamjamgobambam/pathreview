@@ -58,3 +58,34 @@ The `/health` endpoint now reports a real `safety_events_last_hour` count, read 
 
 **Draft PR feedback received from:** [Did not recieve on time]
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in before the end of the week. 
+
+**How you responded:**
+Could not respond :(
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Building the mental map of the project was tough — following how data moves from `safety/monitoring.py` through the Redis-backed `SafetyMonitor` into the `/health` response. But once I could see that flow in my head, the fix became obvious and quick.
+
+**What did you learn about working in a large codebase?**
+How important structure is. I could not have solved issue #68 this fast if the repo were not well documented and organized — I traced the fix across `safety/monitoring.py`, `api/routes/health.py`, and `tests/unit/test_health_route.py`. I also learned a big codebase comes with pre-existing problems (like 53 failing unit tests and a broken Redis probe config) that you work around instead of fixing.
+
+**How did AI tools help — and where did they fall short?**
+I used Claude and DeepSeek as coding assistants. They were most useful for navigating an unfamiliar codebase — tracing data flow and explaining patterns like FastAPI `Depends` injection. Where they fell short: I still had to verify their claims myself, and Claude actually hit its credit limit mid-task, so I had to switch tools to finish the PR.
+
+**What would you do differently if you started over?**
+I would start by asking AI to walk me through the program's logic instead of grinding through it myself. That would have been more time-efficient and would have given me better mental models of how the pipeline works. I would also lean into AI tools earlier, since they are clearly part of how development works now.
+
+**What are you most proud of from this module?**
+I am now able to contribute to open-source projects. The proudest moment was seeing my failing test go from `assert 0 == 7` to passing after wiring the real count into `/health`, and ending with a clean PR (#447) that has its own test coverage.
+
