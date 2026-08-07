@@ -31,6 +31,9 @@ class IngestedSource(Base):
     source_type: Mapped[str] = mapped_column(
         String(50), nullable=False
     )  # "resume", "readme", "repo", "web"
+    source_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, unique=True, index=True
+    )  # Stable identity + content hash, used to detect unchanged resubmissions
     source_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
     content_hash: Mapped[str | None] = mapped_column(
@@ -48,6 +51,7 @@ class IngestedSource(Base):
         Index("ix_ingested_sources_profile_id", "profile_id"),
         Index("ix_ingested_sources_content_hash", "content_hash"),
         Index("ix_ingested_sources_source_type", "source_type"),
+        Index("ix_ingested_sources_source_id", "source_id", unique=True),
     )
 
     def __repr__(self) -> str:
