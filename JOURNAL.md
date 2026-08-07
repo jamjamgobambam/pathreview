@@ -62,3 +62,34 @@ I added tests in their own separate file for the reranker under the name `test_r
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No feedback was received.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+I found it harder than I expected to wrap my head around how the issue code fit into the project as a whole. Specifically, when it came to testing, I had to really take my time to understand what problems arose from my specific issue and not others, to avoid scope-creep. 
+
+**What did you learn about working in a large codebase?**
+Working in a large codebase takes a lot of mindful backtracking. When it is your own personal project, which you built from the ground up, it is easier to isolate issues as you know how each part is set up. Although, joining and contributing to a large codebase invites a lot of unknowns that requires you to need to take the time to figure out how one change might impact other parts of the project.
+
+**How did AI tools help — and where did they fall short?**
+I utilized AI tools to help build out the integration of my code into the current chunking pipeline of the rag system. I wanted to ensure that I was covering all my bases in terms of files and functions I would need to alter. I had to take things into my own hands when it came to testing decisions as the AI hoped to push fixes into other sectors outside my concern.
+
+**What would you do differently if you started over?**
+If I could start over, I would change my approach to how I went about planning. I did not build out my steps very detailed and I think this made me do more work than I anticipated in the actual build process. Whereas if I made it more detailed, it would have streamlined the creation process with clear steps and expectations.
+
+**What are you most proud of from this module?**
+I am proud of how I was able to take everything I have learned and genuinely implement it into this project. It felt like a full-circle moment and I look forward to what I will be capable of following this class.
