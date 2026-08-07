@@ -60,3 +60,34 @@ Fixed the `GET /health` Postgres probe, which passed a raw SQL string to `AsyncS
 *(Both noted relative to a documented pre-existing baseline — see PR description for the exact pre-existing failure counts I diffed against; my change introduces zero new lint/type/test failures. It does not resolve any pre-existing mypy errors — same 11 errors before and after, none on the line this fix touches.)*
 
 **Draft PR feedback received from:** none yet
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback arrived. As noted in the Su26 course guidance, reviewer feedback is not a feature this summer, so this is expected rather than a sign the PR was ignored. I checked [PR #906](https://github.com/ascherj/pathreview/pull/906) at the end of the week: no reviewers assigned and no review comments. I marked it "Ready for review" this week (it had sat in draft through Week 9 while I finished verifying `make check`/`make test-unit` against the pre-existing baseline) — it now shows `Open`, with GitHub's branch-protection rules reporting "Review required" and "Merging is blocked" until an approving review comes in, which won't happen this term but is the accurate state for the PR to be in as a real, mergeable contribution.
+
+**How you responded:**
+N/A — no feedback to respond to. If this were a live open-source contribution, my plan would have been to treat the first maintainer comment as a scope check: given that I deliberately left the Redis `redis_host`/`redis_port` bug (discovered during Week 8 reproduction) out of this PR, I expected a reviewer might either ask me to fix it inline or confirm a separate issue is fine. I would have deferred to whichever the maintainer preferred rather than defending my original scoping choice, since "keep the diff to one root cause" is a convention, not a rule the maintainer is bound by.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Not writing the fix — understanding *why* it was the fix. `db.execute("SELECT 1")` to `db.execute(text("SELECT 1"))` is a one-line change, and Claude could produce it immediately, but I didn't want to paste code into a PR that I couldn't explain myself. So most of my actual effort went into asking follow-up questions: why does SQLAlchemy 2.x reject a raw string in the first place, why does `execute()` require an `Executable`, why does a *mocked* `AsyncSession.execute()` not fail the same way a real engine would. That last question is what exposed the weak first version of my regression test. Pushing for the "why" every time was slower than just accepting generated code, but it's the part that made the codebase exploration actually stick.
+
+**What did you learn about working in a large codebase?**
+That the fastest way into an unfamiliar codebase is to use AI as a guide, not a replacement for reading it. I didn't know `api/routes/health.py` or `core/config.py` going in, so I'd have Claude walk me through how the health check flow worked, then go read the actual file myself to check it against what I'd been told. That's how I ended up confirming the Redis `redis_host`/`redis_port` mismatch — I cross-referenced `core/config.py` against the explanation of what the settings object should look like, and the field names genuinely didn't match. In a large, unfamiliar codebase, "ask a question, then verify it against the real file" got me further than either reading cold or just trusting an answer.
+
+**How did AI tools help — and where did they fall short?**
+The actual code — the fix, the three regression tests, most of PLAN.md and the PR description — was largely AI-written; my own work was mostly in exploring the codebase with AI and pushing on why it wrote what it wrote. Where that helped most was as an explainer: walking through why SQLAlchemy 2.x's `execute()` only accepts `Executable` objects, why `test_review_service.py` mocks `AsyncSession` the way it does, and what the pre-existing mypy/ruff baseline actually meant so I wasn't confused about what my change broke versus what was already broken. Where it fell short was judgment calls specific to this repo — whether the Redis bug belonged in this PR or as a separate follow-up wasn't something Claude could decide for me. It could lay out the tradeoff, but I had to be the one to pick a side and be able to defend it if asked.
+
+**What would you do differently if you started over?**
+Ask "why" earlier and more consistently, not just once something looked off. I got into the habit of interrogating AI-written code around the point I hit the weak test, but earlier in the week I took a few explanations at face value that I should have checked against the actual file right away — including the Redis bug, which I didn't confirm myself until later than I should have. Front-loading that verification instead of doing it reactively would have caught things sooner.
+
+**What are you most proud of from this module?**
+Catching that the first version of my regression test was worthless. Claude's first draft asserted `dependencies.postgres == "healthy"` after the fix, it passed, and it would have been easy to call that done. Instead I asked whether that same assertion would also pass against the *old*, broken code with a mock in place — it would have, since a mock's `execute()` doesn't raise on a plain string the way a real engine does — and rewrote it to check the actual `TextClause` type being passed in instead. That only happened because I pushed on the "why" instead of just taking the green checkmark.
