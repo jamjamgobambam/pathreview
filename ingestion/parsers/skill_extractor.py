@@ -105,6 +105,13 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
+    CI_CD_INDICATORS = {
+        "github actions": ("GitHub Actions", 0.95),
+        "actions/": ("GitHub Actions", 0.90),
+        "pytest": ("Pytest", 0.85),
+        "deploy": ("Deployment", 0.80),
+    }
+
     def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
@@ -132,6 +139,9 @@ class SkillExtractor:
 
         # Detect tools
         self._detect_tools(text, detected_skills)
+
+        # Detect CI/CD-specific skills (GitHub Actions, pytest, deployment)
+        self._detect_ci_cd(text, detected_skills)
 
         # Sort by confidence
         return sorted(
@@ -274,3 +284,16 @@ class SkillExtractor:
                         confidence=confidence,
                         evidence=[f"Found '{tool}' reference in content"],
                     )
+
+    def _detect_ci_cd(self, text: str, skills_dict: dict) -> None:
+        """Detect CI/CD-specific skills (GitHub Actions, pytest, deployment)."""
+        text_lower = text.lower()
+
+        for indicator, (skill_name, confidence) in self.CI_CD_INDICATORS.items():
+            if indicator in text_lower and skill_name not in skills_dict:
+                skills_dict[skill_name] = SkillDetection(
+                    name=skill_name,
+                    category="CI/CD",
+                    confidence=confidence,
+                    evidence=[f"Found '{indicator}' reference in content"],
+                )

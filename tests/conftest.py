@@ -40,3 +40,29 @@ def sample_readme_text() -> str:
     - Tailwind CSS
     - OpenWeatherMap API
     """
+
+
+@pytest.fixture
+def sample_workflow_yaml() -> str:
+    """Return a sample GitHub Actions workflow YAML for testing."""
+    return """
+    name: CI
+    on:
+      push:
+        branches: [main]
+      pull_request: {}
+    jobs:
+      test:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - uses: actions/setup-python@v5
+          - run: pip install -r requirements.txt
+          - run: pytest
+      deploy:
+        runs-on: ubuntu-latest
+        needs: test
+        steps:
+          - uses: docker/build-push-action@v5
+          - run: ./deploy.sh production
+    """

@@ -229,6 +229,50 @@ class TestSkillExtractor:
             assert isinstance(skill.confidence, float)
             assert 0.0 <= skill.confidence <= 1.0
 
+    def test_github_actions_detection(self, extractor):
+        """Test GitHub Actions detection from workflow-derived text."""
+        text = "Actions used: actions/checkout@v4, actions/setup-python@v5"
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert "GitHub Actions" in skill_names
+
+    def test_pytest_detection_from_workflow_run_commands(self, extractor):
+        """Test pytest detection from workflow run commands."""
+        text = "Run commands:\npip install -r requirements.txt\npytest"
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert "Pytest" in skill_names
+
+    def test_deployment_detection_from_workflow(self, extractor):
+        """Test deployment skill detection from workflow job/step content."""
+        text = "Jobs: deploy\nRun commands:\n./deploy.sh production"
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert "Deployment" in skill_names
+
+    def test_ci_cd_skills_have_ci_cd_category(self, extractor):
+        """Test that CI/CD-detected skills are tagged with the CI/CD category."""
+        text = "Actions used: actions/checkout@v4\nRun commands:\npytest"
+        result = extractor.extract_skills(text)
+
+        ci_cd_skills = [s for s in result if s.name in {"GitHub Actions", "Pytest"}]
+        assert ci_cd_skills
+        for skill in ci_cd_skills:
+            assert skill.category == "CI/CD"
+
+    def test_no_ci_cd_false_positive_on_unrelated_text(self, extractor):
+        """Test that plain non-CI/CD text does not trigger CI/CD skills."""
+        text = "This is a simple description of a personal blog project."
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert "GitHub Actions" not in skill_names
+        assert "Pytest" not in skill_names
+        assert "Deployment" not in skill_names
+
     def test_skill_detection_dataclass(self):
         """Test SkillDetection dataclass structure."""
         skill = SkillDetection(
