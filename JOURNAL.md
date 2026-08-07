@@ -66,3 +66,33 @@ I updated `tests/unit/test_relevance_scorer.py`. The focused relevance scorer te
 Note: the repository still has many pre-existing unrelated failures in `tests/unit` and code-quality checks, including failures in `bias_detector`, `faithfulness_checker`, `pii_scrubber`, `review_service`, `skill_extractor`, `tech_detector`, and existing Ruff issues in unrelated files. My change is isolated to `tests/unit/test_relevance_scorer.py`, and the focused relevance scorer test file passes after the fix.
 
 **Draft PR feedback received from:** none
+
+## Week 10 - Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No - still awaiting review
+
+**Summary of feedback:**
+No maintainer or reviewer feedback has come in yet for [PR #718](https://github.com/ascherj/pathreview/pull/718). This also matches the Summer 2026 course note that reviewer feedback is not expected for this term.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was separating the actual bug from the test's wording. At first glance, `test_query_with_partial_overlap` sounded like it was checking a production-code edge case, but the issue was really that the fixture contradicted the scenario. I had to slow down and trace how `RelevanceScorer.score` tokenized the query and chunk text before changing anything. It was also harder than expected to document the local test situation clearly because some repository-wide checks had unrelated pre-existing failures, so I needed to be precise about what my change did and what I could verify.
+
+**What did you learn about working in a large codebase?**
+I learned that even a small one-line fixture change needs context. In my own projects, I might rewrite the test or scorer quickly, but in someone else's codebase I needed to preserve the existing scoring behavior and make the smallest change that matched the issue. The surrounding tests helped define the intended contract: exact matches score high, no overlap scores zero, and partial overlap should land between those. I also learned to read tests as part of the codebase's documentation, because the bug was not just a failing assertion; it was a misleading example of the behavior the project wanted to guarantee.
+
+**How did AI tools help - and where did they fall short?**
+AI tools were most helpful for navigating the repository, comparing the issue description against the test file, and turning my notes into a clear plan and PR explanation. They helped me keep the scope small instead of overthinking the scorer implementation. Where they fell short was final judgment: AI could suggest likely causes, but I still had to inspect the actual scorer logic, confirm which words overlapped, and decide that the production code should not change. AI also could not replace the need to understand the course workflow, the branch URL requirement, and the difference between focused test results and unrelated repository-wide failures.
+
+**What would you do differently if you started over?**
+I would set up the local environment earlier and verify the focused test before writing as much documentation. I would also check the exact token overlap by hand sooner, because that made the fix obvious: the old fixture included every query term, while the corrected fixture needed to include only some of them. For the process side, I would keep a shorter running note of commands, blockers, and verification results each week so the journal entries would be easier to assemble at the end.
+
+**What are you most proud of from this module?**
+I am most proud that I kept the contribution small, specific, and honest. The fix did not try to make the project bigger or more impressive than the issue required; it corrected the test so future contributors can trust what that case is supposed to prove. I also documented the limitations around testing instead of hiding them, which feels like a real part of contributing professionally.
