@@ -61,3 +61,42 @@ Updated test_readme_scorer.py to expand the fixture and validate that the README
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** "none"
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review.
+
+**How you responded:**
+n/a
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Understanding the codebase and specifically the tests  were harder than expected. There were just a large
+amount of scripts.
+
+**What did you learn about working in a large codebase?**
+Working in a large codebase taught me the the importance of code formatting/code standardization,
+so that all the written code is standardized and easily understanable when scanning
+large code bases.
+
+**How did AI tools help — and where did they fall short?**
+AI tools greatly helped me helping me understand the codebase and tests. It feel short on
+decision making when writing specific tests. Such as what to focus on, as well as the proper threshold values for the tests.
+
+**What would you do differently if you started over?**
+I would choose a harder issue. I definetly underestimated myself a little bit and understand
+the process of contribution alot more, so a harder issue would definetly have helped
+me learn alot more.
+
+**What are you most proud of from this module?**
+I'm really proud of my organizational and formatting skills. Specifically, how quickly
+I was able to grasp the concept of pull requests, and writing good pull requests, as well
+as writing good commit titles. 
