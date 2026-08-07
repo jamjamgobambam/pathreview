@@ -252,3 +252,39 @@ class TestPIIScrubber:
 
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
+
+    # --- Reproduction tests for issue #146 ---
+    # The phone_us regex uses \b as a leading anchor. \b requires a boundary between
+    # a word character and a non-word character. Because ( is itself a non-word character,
+    # and the character before it is typically a space (also non-word), no word boundary
+    # exists and the regex fails to match. Additionally, the separator group [-.]? does not
+    # allow a space, so the common (NXX) NXX-XXXX format (closing paren followed by a space)
+    # also fails to match even if the anchor issue were resolved independently.
+
+    def test_parenthesized_phone_mid_sentence(self, scrubber):
+        """Parenthesized phone embedded in text should be redacted — fails with current regex."""
+        text = "Call me at (555) 555-1234 for details."
+        scrubbed = scrubber.scrub(text)
+        assert "[REDACTED]" in scrubbed
+        assert "(555) 555-1234" not in scrubbed
+
+    def test_parenthesized_phone_start_of_text(self, scrubber):
+        """Parenthesized phone at start of string should be redacted — fails with current regex."""
+        text = "(555) 555-1234 is the number to call."
+        scrubbed = scrubber.scrub(text)
+        assert "[REDACTED]" in scrubbed
+        assert "(555) 555-1234" not in scrubbed
+
+    def test_parenthesized_phone_no_space_after_paren(self, scrubber):
+        """Parenthesized phone without space after closing paren should be redacted."""
+        text = "Reach us at (555)555-1234."
+        scrubbed = scrubber.scrub(text)
+        assert "[REDACTED]" in scrubbed
+        assert "(555)555-1234" not in scrubbed
+
+    def test_parenthesized_phone_with_country_code(self, scrubber):
+        """Parenthesized phone with +1 country code should be redacted."""
+        text = "International: +1 (555) 555-1234"
+        scrubbed = scrubber.scrub(text)
+        assert "[REDACTED]" in scrubbed
+        assert "(555) 555-1234" not in scrubbed
