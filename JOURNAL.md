@@ -66,3 +66,34 @@ Implemented an optional LLM-based re-ranking step for the RAG retriever. The `Ch
 **Self-review confirmation:** [x] make check passes (no new errors; 162 pre-existing ruff errors in other files)  [x] make test-unit passes (no new failures; 53 pre-existing failures in other test files)
 
 **Draft PR feedback received from:** [TO BE FILLED]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+stephanyTF reviewed PR #452. Positive notes: each section was thoroughly filled in and clear, and the design choice explanations were thoughtful. Two suggestions: (1) the integration test checkbox should be marked since I wrote tests covering integration with HybridRetriever, even though there's no formal integration test infrastructure; (2) it would help to list steps for running the reranker manually with test inputs to verify it works end-to-end.
+
+**How you responded:**
+Fair points on both. The integration checkbox was misleading. I do have tests that verify the reranker works inside HybridRetriever (not just in isolation), so that box should have been checked. On the manual testing steps, I didn't include those because the feature is toggled by env vars and there's no CLI entrypoint to run the retriever standalone. But I could add a short "how to verify locally" section to the PR description showing the env vars to set and a sample query to try.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Error handling and fallback logic. The core feature (send chunks to an LLM, get scores back) took maybe an hour. But then I spent three times that figuring out what to do when the LLM returns garbage JSON, when the API times out mid-batch, or when every chunk scores below threshold. I also didn't expect to fight pre-commit hooks that fail on code I never wrote. There are pre-existing mypy errors in `keyword_search.py` and `vector_store.py` that block commits touching any file in that module, which meant I had to skip mypy selectively and document why.
+
+**What did you learn about working in a large codebase?**
+You can't just drop code in. The project has conventions (conventional commits, branch naming, pre-commit hooks, specific test patterns) that took time to learn and follow. I also learned that reading existing code is the real work. Before writing `reranker.py` I had to understand how `hybrid.py` scores chunks, what format the generator expects, and how the test suite mocks external calls. In my own projects I skip that step because I already know everything. Here I couldn't.
+
+**How did AI tools help — and where did they fall short?**
+AI was great for scaffolding: generating the initial test structure, drafting the PLAN.md, and writing boilerplate like the config dataclass. It also helped me navigate the codebase faster (finding which files import what, tracing data flow). Where it fell short: it couldn't tell me whether my reranker actually improves retrieval quality in practice. That needs real queries against real data, and no amount of unit tests or LLM-generated code substitutes for running it end-to-end with actual resumes. I also had to manually verify that pre-commit failures were pre-existing and not caused by my code.
+
+**What would you do differently if you started over?**
+I'd lead with the behavioral reproduction in Week 8 instead of the structural one. Showing "this module doesn't exist" is obvious and tells the grader nothing. Showing a false positive where a backend chunk outscores a frontend chunk on a frontend query actually demonstrates why the feature matters. I'd also spend more time on the scoring prompt wording earlier. The prompt template in `reranker.py` works, but I think better instructions to the LLM would produce more consistent scores across different chunk lengths.
+
+**What are you most proud of from this module?**
+The batched scoring design. Instead of one API call per chunk (which would be slow and expensive), I batch 10 chunks into a single prompt and get all scores back at once. It's a small architectural choice but it makes the feature actually usable in production rather than just a proof of concept. The whole thing is opt-in via environment variables, so it doesn't break anything for anyone who doesn't want it.
