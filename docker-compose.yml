@@ -37,6 +37,8 @@ services:
 
   vector-db:
     image: chromadb/chroma:0.4.22
+    entrypoint: >
+      sh -c "pip install numpy==1.26.4 && uvicorn chromadb.app:app --host 0.0.0.0 --port 8000"
     ports:
       - "8001:8000"
     volumes:
