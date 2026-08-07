@@ -2,7 +2,7 @@
 
 import pytest
 
-from ingestion.parsers.skill_extractor import SkillExtractor, SkillDetection
+from ingestion.parsers.skill_extractor import SkillDetection, SkillExtractor
 
 
 @pytest.mark.unit
@@ -135,7 +135,7 @@ class TestSkillExtractor:
         """
         result = extractor.extract_skills(text)
 
-        skill_names = [s.name for s in skill_names]
+        skill_names = [s.name for s in result]
         # Should detect PostgreSQL
         assert any("postgres" in s.lower() or "sql" in s.lower() for s in skill_names)
 
@@ -197,6 +197,153 @@ class TestSkillExtractor:
         skill_names = [s.name for s in result]
         assert any("docker" in s.lower() for s in skill_names)
 
+    # --- PLAN.md lines 66-71: Dockerfile & Compose positive variants ---
+
+    def test_dockerfile_copy_cmd_detection(self, extractor):
+        """Positive: a Dockerfile using COPY and CMD is detected as Docker."""
+        text = """
+        FROM node:18-alpine
+        COPY . /app
+        CMD ["node", "server.js"]
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("docker" in s.lower() for s in skill_names)
+
+    def test_multistage_dockerfile_detection(self, extractor):
+        """Positive: a multi-stage Dockerfile is detected as Docker."""
+        text = """
+        FROM golang:1.21 AS builder
+        WORKDIR /src
+        COPY . .
+        RUN go build -o app
+
+        FROM alpine:latest
+        COPY --from=builder /src/app /usr/local/bin/app
+        CMD ["app"]
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("docker" in s.lower() for s in skill_names)
+
+    def test_compose_services_image_detection(self, extractor):
+        """Positive: a compose file using services + image is detected."""
+        text = """
+        version: "3.9"
+        services:
+          db:
+            image: postgres:15
+            environment:
+              POSTGRES_PASSWORD: secret
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("docker" in s.lower() for s in skill_names)
+
+    def test_compose_volumes_detection(self, extractor):
+        """Positive: a compose file declaring volumes is detected."""
+        text = """
+        services:
+          cache:
+            image: redis:7
+            volumes:
+              - cache-data:/data
+
+        volumes:
+          cache-data:
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("docker" in s.lower() for s in skill_names)
+
+    # --- PLAN.md lines 72-73: Negative cases ---
+
+    def test_non_docker_yaml_not_detected(self, extractor):
+        """Negative: generic YAML with no services/Dockerfile is not Docker."""
+        text = """
+        name: my-app
+        version: 1.0.0
+        settings:
+          debug: true
+          timeout: 30
+        database:
+          host: localhost
+          port: 5432
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert not any("docker" in s.lower() for s in skill_names)
+
+    def test_pip_install_alone_not_detected_as_docker(self, extractor):
+        """Negative: a bare pip install line is not misdetected as Docker."""
+        text = "pip install -r requirements.txt"
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert not any("docker" in s.lower() for s in skill_names)
+
+    # --- PLAN.md line 74: Malformed configs & size extremes ---
+
+    def test_partial_docker_config_does_not_crash(self, extractor):
+        """Malformed/small: incomplete configs return a list without raising."""
+        for snippet in ("FROM", "services:", "version: '3'\nservices:", "RUN echo hi"):
+            result = extractor.extract_skills(snippet)
+            assert isinstance(result, list)
+
+    def test_docker_detected_in_large_multiblock_text(self, extractor):
+        """Size extreme: a Dockerfile embedded in large text is still detected."""
+        filler = "lorem ipsum dolor sit amet\n" * 500
+        dockerfile = """
+        FROM python:3.11-slim
+        WORKDIR /app
+        COPY requirements.txt .
+        RUN pip install -r requirements.txt
+        EXPOSE 8080
+        CMD ["python", "app.py"]
+        """
+        text = filler + dockerfile + filler
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("docker" in s.lower() for s in skill_names)
+
+    # --- PLAN.md line 75: Missing, empty, or neutral filenames ---
+
+    def test_docker_detected_regardless_of_filename(self, extractor):
+        """Filename-agnostic: Dockerfile body detects Docker for any filename."""
+        text = """
+        FROM ubuntu:22.04
+        RUN apt-get update
+        CMD ["bash"]
+        """
+        for filename in (None, "", "notes.txt"):
+            result = extractor.extract_skills(text, filename=filename)
+            skill_names = [s.name for s in result]
+            assert any(
+                "docker" in s.lower() for s in skill_names
+            ), f"filename={filename!r} gave {skill_names}"
+
+    # --- PLAN.md line 76: Contextual keyword collisions ---
+
+    def test_docker_keywords_in_shell_script_not_detected(self, extractor):
+        """Collision: lowercase from/copy/run in a shell script is not Docker."""
+        text = """
+        #!/bin/sh
+        # Deployment script: copy build artifacts from the dist folder
+        build() {
+            echo "running build and copying files from dist"
+        }
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert not any("docker" in s.lower() for s in skill_names)
+
     def test_aws_gcp_azure_detection(self, extractor):
         """Test cloud platform detection."""
         text = """
@@ -229,13 +376,121 @@ class TestSkillExtractor:
             assert isinstance(skill.confidence, float)
             assert 0.0 <= skill.confidence <= 1.0
 
+    # --- PLAN.md line 52: Positive cases (should detect JavaScript/TypeScript) ---
+
+    def test_javascript_es6_import_detection(self, extractor):
+        """Positive: ES6 `import ... from` is detected as JavaScript."""
+        text = """
+        import { readFile } from 'fs/promises';
+        import path from 'path';
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("javascript" in s.lower() for s in skill_names)
+
+    def test_javascript_arrow_function_detection(self, extractor):
+        """Positive: arrow functions and variable declarations are detected."""
+        text = """
+        const add = (a, b) => a + b;
+        let double = x => x * 2;
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("javascript" in s.lower() for s in skill_names)
+
+    def test_javascript_function_class_export_detection(self, extractor):
+        """Positive: function/class/export syntax is detected as JavaScript."""
+        text = """
+        export function greet(name) {
+            return "Hi " + name;
+        }
+
+        class Animal extends Base {}
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("javascript" in s.lower() for s in skill_names)
+
+    # --- PLAN.md line 53: Negative cases (plain text, unsupported langs, no filename) ---
+
+    def test_plain_text_not_detected_as_javascript(self, extractor):
+        """Negative: prose containing JS-like words is not detected as JS/TS."""
+        text = (
+            "This function lets you import ideas from a class of problems "
+            "and does not require any special export."
+        )
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert not any("javascript" in s.lower() or "typescript" in s.lower() for s in skill_names)
+
+    def test_unsupported_language_not_detected_as_javascript(self, extractor):
+        """Negative: Go source is not misdetected as JavaScript/TypeScript."""
+        text = """
+        package main
+
+        import "fmt"
+
+        func main() {
+            fmt.Println("hello")
+        }
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert not any("javascript" in s.lower() or "typescript" in s.lower() for s in skill_names)
+
+    def test_missing_filename_returns_list(self, extractor):
+        """Negative: missing filename with non-code text returns a list, no error."""
+        result = extractor.extract_skills("just some notes", filename=None)
+        assert isinstance(result, list)
+
+    def test_empty_filename_does_not_crash(self, extractor):
+        """Negative: an empty filename string is handled gracefully."""
+        result = extractor.extract_skills("const x = 1;", filename="")
+        assert isinstance(result, list)
+
+    # --- PLAN.md line 54: False positives & cross-language collisions ---
+
+    def test_python_shared_keywords_not_detected_as_javascript(self, extractor):
+        """Collision: Python using import/class/async/await stays Python only."""
+        text = """
+        import asyncio
+
+        class DataProcessor:
+            async def process(self):
+                result = await self.fetch()
+                return result
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("python" in s.lower() for s in skill_names)
+        assert not any("javascript" in s.lower() or "typescript" in s.lower() for s in skill_names)
+
+    # --- PLAN.md line 55: False negatives & malformed/incomplete snippets ---
+
+    def test_malformed_snippet_does_not_crash(self, extractor):
+        """Malformed: truncated/incomplete code returns a list without raising."""
+        text = "function brokenFn( const x ="
+        result = extractor.extract_skills(text)
+        assert isinstance(result, list)
+
+    def test_minimal_valid_snippet_still_detected(self, extractor):
+        """False-negative guard: a tiny valid JS declaration is still detected."""
+        text = "const total = 42;"
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("javascript" in s.lower() for s in skill_names)
+
     def test_skill_detection_dataclass(self):
         """Test SkillDetection dataclass structure."""
         skill = SkillDetection(
-            name="Python",
-            category="Language",
-            confidence=0.95,
-            evidence=["import statement"]
+            name="Python", category="Language", confidence=0.95, evidence=["import statement"]
         )
 
         assert skill.name == "Python"
