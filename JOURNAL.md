@@ -62,7 +62,7 @@ I touched `hybrid.py` and `keyword_search.py` because the focus on the BM25 scor
 
 ### Reviewer feedback
 
-**Feedback received:** [ ] Yes  [ ] No — still awaiting review
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
 
 **Summary of feedback:**
 [What did reviewers comment on? Or note that no review came in.]
@@ -76,20 +76,15 @@ leave blank.]
 ### Reflection
 
 **What was harder than you expected?**
-[Be specific — what part of the process, codebase, or workflow
-surprised you?]
+Something that was harder was learning how to properly run the code and connect it. I was having trouble with Docker and getting the code to run. In the end, I finally got it to work.
 
 **What did you learn about working in a large codebase?**
-[What's different about contributing to someone else's production code
-vs. building your own project?]
+Contributing to someone else's database is more structured. When developing my own personal projects, it is more flexible to update code and push changes. Additionally, there isn't an issue where I need to keep the current branch updated with main.
 
 **How did AI tools help — and where did they fall short?**
-[Where was AI assistance most useful this module? Where did you need
-to go beyond what AI could give you?]
-
+I used AI assistance when brainstorming how to fix the issue. I needed to go beyond when I researched what BM25 was and other information about the modules in the code. It feel short in explaining some of the modules because it was more focused on the solution rather than explaning some of the code.
 **What would you do differently if you started over?**
-[Issue selection, planning, implementation, or process — anything
-you'd change?]
+I would start earlier. I think that if I had started earlier I would have done really good progress and have made a more effective fix.  
 
 **What are you most proud of from this module?**
-[One thing — it doesn't have to be the PR itself.]
+I am proud of picking a issue that wasn't too difficult and not too easy. It was a goldilocks issue that was a good step in my learning.
