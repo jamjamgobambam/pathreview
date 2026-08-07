@@ -18,33 +18,44 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+        A comprehensive project description that explains what the service does,
+        who it is for, and why someone would want to run it. The project ingests
+        events from an upstream queue, scores them against a set of rules, and
+        exposes the results over a small HTTP API.
 
         ## Installation
+        Install the package from PyPI into a virtual environment. Python 3.9 or
+        newer is required, and a running PostgreSQL instance is needed for the
+        persistence layer.
         ```bash
         pip install package
         ```
 
         ## Usage
+        Import the package and call run() to start the worker. Configuration is
+        read from environment variables, so no config file is required for a
+        local development run.
         ```python
         import package
         package.run()
         ```
 
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+        - Feature 1: streaming ingestion with automatic retries and backoff
+        - Feature 2: pluggable scoring rules loaded from a simple YAML file
+        - Feature 3: a JSON API for querying historical scores by date range
 
         ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
+        - Python 3.9 for the worker and the API layer
+        - FastAPI for request handling and automatic schema documentation
+        - PostgreSQL for durable storage of events and their computed scores
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
 
         ## Live Demo
+        A hosted sandbox is available with a small set of seeded example events,
+        so you can explore the API without installing anything locally.
         [Try it here](https://demo.example.com)
         """
 
@@ -54,7 +65,7 @@ class TestReadmeScorer:
         data = result.data
         assert data["has_readme"] is True
         assert data["word_count"] > 100
-        assert data["word_count_category"] == "comprehensive"
+        assert data["word_count_category"] == "adequate"
         assert data["has_installation_section"] is True
         assert data["has_usage_section"] is True
         assert data["has_badges"] is True
@@ -157,9 +168,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +230,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +246,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
