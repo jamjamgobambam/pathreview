@@ -38,37 +38,67 @@ class SafetyMonitor:
             logger.warning("unknown_event_type", event_type=event_type)
             return
 
-        timestamp = datetime.utcnow().isoformat()
+        now = datetime.utcnow()
+        timestamp = now.isoformat()
 
         try:
             # Log to structlog
             logger.warning("safety_event", event_type=event_type, **details)
 
-            # Store count in Redis for monitoring
-            key = f"safety:events:{event_type}"
+            # Store count in an hourly bucket so it can later be scoped to a
+            # specific time window (e.g. "last hour") instead of an
+            # unbounded/rolling total.
+            key = self._hour_bucket_key(event_type, now)
             self.redis.incr(key)
-            # Set expiry to 24 hours
-            self.redis.expire(key, 86400)
+            # Keep buckets around for 48 hours, comfortably longer than any
+            # window we currently query, then let them expire.
+            self.redis.expire(key, 172800)
 
         except Exception as e:
             logger.error("safety_monitor_error", error=str(e))
 
+    def _hour_bucket_key(self, event_type: str, when: datetime) -> str:
+        """Build the Redis key for the hourly bucket containing `when`."""
+        hour_bucket = when.strftime("%Y%m%d%H")
+        return f"safety:events:{event_type}:{hour_bucket}"
+
     def get_event_count(self, event_type: str, window_hours: int = 1) -> int:
-        """Get count of safety events.
+        """Get count of safety events of a given type in the last `window_hours`.
 
         Args:
             event_type: Type of event
-            window_hours: Time window in hours (not enforced here; for reference)
+            window_hours: Time window in hours to sum counts over
 
         Returns:
             Count of events in the window
         """
-        key = f"safety:events:{event_type}"
+        now = datetime.utcnow()
+        total = 0
 
         try:
-            count = self.redis.get(key)
-            return int(count) if count else 0
+            for i in range(window_hours):
+                bucket_time = now - timedelta(hours=i)
+                key = self._hour_bucket_key(event_type, bucket_time)
+                count = self.redis.get(key)
+                if count:
+                    total += int(count)
+            return total
 
         except Exception as e:
             logger.error("event_count_error", event_type=event_type, error=str(e))
             return 0
+
+    def get_total_event_count(self, window_hours: int = 1) -> int:
+        """Get count of safety events across all event types in the last
+        `window_hours`.
+
+        Args:
+            window_hours: Time window in hours to sum counts over
+
+        Returns:
+            Total count of events of any type in the window
+        """
+        total = 0
+        for event_type in self.VALID_EVENT_TYPES:
+            total += self.get_event_count(event_type, window_hours=window_hours)
+        return total
