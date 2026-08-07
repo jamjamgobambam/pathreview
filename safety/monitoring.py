@@ -4,6 +4,8 @@ import redis
 import structlog
 from datetime import datetime, timedelta
 
+from core.config import settings
+
 logger = structlog.get_logger()
 
 
@@ -72,3 +74,25 @@ class SafetyMonitor:
         except Exception as e:
             logger.error("event_count_error", event_type=event_type, error=str(e))
             return 0
+
+    def get_total_event_count(self, window_hours: int = 1) -> int:
+        """Get the total count of safety events across all event types.
+
+        Args:
+            window_hours: Time window in hours (not enforced here; for reference)
+
+        Returns:
+            Total count of events summed across all VALID_EVENT_TYPES
+        """
+        return sum(
+            self.get_event_count(event_type, window_hours) for event_type in self.VALID_EVENT_TYPES
+        )
+
+
+def get_safety_monitor() -> SafetyMonitor:
+    """Build a SafetyMonitor backed by Redis for use as a FastAPI dependency.
+
+    Returns:
+        A SafetyMonitor connected to the configured Redis instance
+    """
+    return SafetyMonitor(redis.from_url(settings.redis_url))
