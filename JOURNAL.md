@@ -61,3 +61,35 @@ A `WorkflowParser` that reads `.github/workflows/*.yml` content into text + meta
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none yet
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review or comments have come in on PR #948 as of this check-in. Per the Su26 course note, reviewer feedback isn't a standard feature this term, so this is expected rather than a signal about the PR itself.
+
+**How you responded:**
+N/A — no feedback to respond to. Left the PR open and ready for review; no further changes made this week beyond re-verifying `make check`/`make test-unit` still pass against the current baseline.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Designing the skill-mapping approach for `CI_CD_INDICATORS` took longer than expected. The blocker I flagged back in Week 8 — hardcoded keyword map (matching the existing `FRAMEWORKS`/`TOOLS` pattern in `skill_extractor.py`) vs. something more structured — didn't have an obviously correct answer, and going back and forth on it ate more time than the actual parsing logic did. In hindsight the existing codebase already had a strong convention (the keyword-map dicts), and I should have trusted that convention sooner instead of treating it as an open design question.
+
+**What did you learn about working in a large codebase?**
+The real cost wasn't writing new code, it was proving the new code didn't break anything that was already broken. `pathreview` has a pre-existing baseline of failures (183 ruff, 103 mypy, 53 test failures) that have nothing to do with my change, and I had to `git stash` my diff and re-run the checks to confirm those numbers were unchanged before I could trust my own results. In a solo project there's no such thing as a "pre-existing failure" to control for — everything failing is yours. Contributing to someone else's production code means the bar isn't "my code works," it's "my code doesn't move any number that isn't already mine to move."
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for drafting the mechanical parts fast — the YAML parsing scaffolding, the initial pass at `WorkflowParser.parse()`, and generating the bulk of the 21 unit tests once I'd decided what needed covering. Where it fell short was exactly the baseline-verification step above: an assistant can't tell you which of 53 failing tests are pre-existing versus newly introduced by your change — that required me to actually stash my diff, re-run the suite against a clean tree, and diff the two failure counts myself. It's a check that only works if you distrust your own change enough to isolate it, which isn't something you can delegate.
+
+**What would you do differently if you started over?**
+Not much — issue selection, planning, and the build itself went the way I expected them to, given the PLAN.md I wrote in Week 8. If anything, I'd resolve the skill-mapping design question faster by defaulting to the codebase's existing convention instead of treating it as open-ended, per the note above.
+
+**What are you most proud of from this module?**
+Catching the PyYAML `on:` gotcha — where PyYAML silently parses the bare YAML key `on:` as the boolean `True` rather than the string `"on"` — before it caused a subtly wrong trigger detection in `WorkflowParser`. It's the kind of bug that wouldn't show up in a quick manual test, only in test cases that specifically exercise real GitHub Actions workflow files, and catching it during implementation rather than after review felt like the moment I was actually thinking like a maintainer of this codebase rather than just a contributor bolting on a feature.
