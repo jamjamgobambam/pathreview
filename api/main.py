@@ -1,11 +1,14 @@
+from typing import Any, cast
+
+import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
-import structlog
+from fastapi.responses import JSONResponse
 
+from api.middleware.rate_limit import RateLimitMiddleware
 from api.middleware.request_id import RequestIDMiddleware
-from api.routes import auth, profiles, reviews, health
+from api.routes import auth, health, profiles, reviews
 from core.database import init_db
 
 log = structlog.get_logger()
@@ -19,23 +22,24 @@ app = FastAPI(
 
 
 # Configure OpenAPI
-def custom_openapi():
+def custom_openapi() -> dict[str, Any]:
     if app.openapi_schema:
-        return app.openapi_schema
+        return cast(dict[str, Any], app.openapi_schema)
 
-    openapi_schema = get_openapi(
-        title="PathReview API",
-        version="1.0.0",
-        description="AI-powered portfolio review assistant",
-        routes=app.routes,
+    openapi_schema = cast(
+        dict[str, Any],
+        get_openapi(
+            title="PathReview API",
+            version="1.0.0",
+            description="AI-powered portfolio review assistant",
+            routes=app.routes,
+        ),
     )
 
-    openapi_schema["info"]["x-logo"] = {
-        "url": "https://pathreview.example.com/logo.png"
-    }
+    openapi_schema["info"]["x-logo"] = {"url": "https://pathreview.example.com/logo.png"}
 
     app.openapi_schema = openapi_schema
-    return app.openapi_schema
+    return openapi_schema
 
 
 app.openapi = custom_openapi
@@ -50,13 +54,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add request ID middleware
+# Add per-IP (and optional per-user) rate limiting (inner)
+app.add_middleware(RateLimitMiddleware)
+
+# Add request ID middleware (outer — so 429 responses can include request_id)
 app.add_middleware(RequestIDMiddleware)
 
 
 # Exception handler for unhandled exceptions
 @app.exception_handler(Exception)
-async def generic_exception_handler(request: Request, exc: Exception):
+async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     request_id = getattr(request.state, "request_id", "unknown")
     log.error(
         "unhandled_exception",
@@ -84,7 +91,7 @@ app.include_router(health.router)
 
 # Startup event
 @app.on_event("startup")
-async def startup_event():
+async def startup_event() -> None:
     """Initialize database on startup."""
     try:
         await init_db()
@@ -96,7 +103,7 @@ async def startup_event():
 
 # Root endpoint
 @app.get("/")
-async def root():
+async def root() -> dict[str, str]:
     """Health check endpoint."""
     return {
         "message": "PathReview API is running",

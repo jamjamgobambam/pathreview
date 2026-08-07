@@ -1,10 +1,12 @@
 """Tests for rate_limiter.py"""
 
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, MagicMock, patch
-import time
 
 from safety.rate_limiter import RateLimiter
+
+TEST_IP = "127.0.0.1"
 
 
 @pytest.mark.unit
@@ -13,8 +15,11 @@ class TestRateLimiter:
 
     @pytest.fixture
     def mock_redis(self):
-        """Create a mock Redis client."""
-        return Mock()
+        """Create a mock Redis client with a working pipeline."""
+        client = Mock()
+        pipe = MagicMock()
+        client.pipeline.return_value = pipe
+        return client
 
     @pytest.fixture
     def limiter(self, mock_redis):
@@ -25,10 +30,8 @@ class TestRateLimiter:
         """Test first request is allowed."""
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=0)
-        mock_redis.zadd = Mock()
-        mock_redis.expire = Mock()
 
-        allowed, remaining = limiter.check_rate_limit("user123", limit=10)
+        allowed, remaining = limiter.check_rate_limit("user123", limit=10, ip_address=TEST_IP)
 
         assert allowed is True
         assert remaining == 9  # limit - current_count - 1
@@ -37,14 +40,14 @@ class TestRateLimiter:
         """Test requests up to limit are all allowed."""
         limit = 5
         mock_redis.zremrangebyscore = Mock()
-        mock_redis.expire = Mock()
 
-        # Simulate requests up to limit
+        # Simulate requests up to limit (same count for IP and user buckets)
         for i in range(limit):
             mock_redis.zcard = Mock(return_value=i)
-            mock_redis.zadd = Mock()
 
-            allowed, remaining = limiter.check_rate_limit("user123", limit=limit)
+            allowed, remaining = limiter.check_rate_limit(
+                "user123", limit=limit, ip_address=TEST_IP
+            )
 
             assert allowed is True
             assert 0 <= remaining <= limit
@@ -55,7 +58,7 @@ class TestRateLimiter:
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=limit)  # Already at limit
 
-        allowed, remaining = limiter.check_rate_limit("user123", limit=limit)
+        allowed, remaining = limiter.check_rate_limit("user123", limit=limit, ip_address=TEST_IP)
 
         assert allowed is False
         assert remaining == 0
@@ -67,10 +70,8 @@ class TestRateLimiter:
 
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=current)
-        mock_redis.zadd = Mock()
-        mock_redis.expire = Mock()
 
-        allowed, remaining = limiter.check_rate_limit("user123", limit=limit)
+        allowed, remaining = limiter.check_rate_limit("user123", limit=limit, ip_address=TEST_IP)
 
         assert allowed is True
         assert remaining == limit - current - 1  # 10 - 3 - 1 = 6
@@ -78,17 +79,14 @@ class TestRateLimiter:
     def test_rolling_window_removes_old_entries(self, limiter, mock_redis):
         """Test rolling window removes entries older than 60 seconds."""
         mock_redis.zcard = Mock(return_value=0)
-        mock_redis.zadd = Mock()
-        mock_redis.expire = Mock()
 
-        with patch('time.time', return_value=1000):
-            limiter.check_rate_limit("user123", limit=10, window_seconds=60)
+        with patch("time.time", return_value=1000):
+            limiter.check_rate_limit("user123", limit=10, window_seconds=60, ip_address=TEST_IP)
 
-        # zremrangebyscore should be called to remove entries older than window_start
+        # zremrangebyscore should be called for IP and user keys
         mock_redis.zremrangebyscore.assert_called()
-        # First arg is key, second should be 0, third should be window_start
-        call_args = mock_redis.zremrangebyscore.call_args
-        assert call_args[0][0] == "rate_limit:user123"
+        call_args = mock_redis.zremrangebyscore.call_args_list[0]
+        assert call_args[0][0] == f"rate_limit:ip:{TEST_IP}"
         assert call_args[0][1] == 0
         # Third argument should be approximately 1000 - 60 = 940
         assert 930 < call_args[0][2] < 950
@@ -97,76 +95,75 @@ class TestRateLimiter:
         """Test different identifiers have independent limits."""
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=0)
-        mock_redis.zadd = Mock()
-        mock_redis.expire = Mock()
 
-        limiter.check_rate_limit("user1", limit=10)
-        limiter.check_rate_limit("user2", limit=10)
+        limiter.check_rate_limit("user1", limit=10, ip_address=TEST_IP)
+        limiter.check_rate_limit("user2", limit=10, ip_address="10.0.0.2")
 
-        # Should create separate Redis keys
-        calls = mock_redis.zadd.call_args_list
-        assert len(calls) == 2
+        # Each allowed request records IP + user via pipeline zadd
+        pipe = mock_redis.pipeline.return_value
+        assert pipe.zadd.call_count == 4
 
     def test_key_format_correct(self, limiter, mock_redis):
-        """Test that Redis key format is correct."""
+        """Test that Redis key format is correct for IP and user."""
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=0)
-        mock_redis.zadd = Mock()
-        mock_redis.expire = Mock()
 
-        limiter.check_rate_limit("test_user", limit=10)
+        limiter.check_rate_limit("test_user", limit=10, ip_address=TEST_IP)
 
-        # Check key format
-        zrem_key = mock_redis.zremrangebyscore.call_args[0][0]
-        assert zrem_key == "rate_limit:test_user"
+        keys = [call[0][0] for call in mock_redis.zremrangebyscore.call_args_list]
+        assert f"rate_limit:ip:{TEST_IP}" in keys
+        assert "rate_limit:user:test_user" in keys
 
     def test_entry_added_to_redis(self, limiter, mock_redis):
-        """Test that request entry is added to Redis."""
+        """Test that request entries are added to Redis for IP and user."""
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=0)
-        mock_redis.zadd = Mock()
-        mock_redis.expire = Mock()
+        pipe = mock_redis.pipeline.return_value
 
-        with patch('time.time', return_value=1000):
-            limiter.check_rate_limit("user123", limit=10)
+        with patch("time.time", return_value=1000):
+            limiter.check_rate_limit("user123", limit=10, ip_address=TEST_IP)
 
-        # zadd should be called with key and score
-        mock_redis.zadd.assert_called_once()
-        call_args = mock_redis.zadd.call_args
-        key = call_args[0][0]
-        value_dict = call_args[0][1]
-
-        assert key == "rate_limit:user123"
-        assert isinstance(value_dict, dict)
+        assert pipe.zadd.call_count == 2
+        zadd_keys = [call[0][0] for call in pipe.zadd.call_args_list]
+        assert f"rate_limit:ip:{TEST_IP}" in zadd_keys
+        assert "rate_limit:user:user123" in zadd_keys
+        for call in pipe.zadd.call_args_list:
+            members = call[0][1]
+            assert isinstance(members, dict)
+            member = next(iter(members))
+            assert member.startswith("1000:")
+            assert members[member] == 1000
+        pipe.execute.assert_called_once()
 
     def test_expiry_set_correctly(self, limiter, mock_redis):
         """Test that Redis key expiry is set."""
         window = 60
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=0)
-        mock_redis.zadd = Mock()
-        mock_redis.expire = Mock()
+        pipe = mock_redis.pipeline.return_value
 
-        limiter.check_rate_limit("user123", limit=10, window_seconds=window)
+        limiter.check_rate_limit("user123", limit=10, window_seconds=window, ip_address=TEST_IP)
 
-        # expire should be called with window_seconds + 1
-        mock_redis.expire.assert_called()
-        call_args = mock_redis.expire.call_args
-        assert call_args[0][1] == window + 1
+        assert pipe.expire.call_count == 2
+        for call in pipe.expire.call_args_list:
+            assert call[0][1] == window + 1
 
     def test_custom_window_size(self, limiter, mock_redis):
         """Test custom window size is respected."""
         custom_window = 120
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=0)
-        mock_redis.zadd = Mock()
-        mock_redis.expire = Mock()
 
-        with patch('time.time', return_value=1000):
-            limiter.check_rate_limit("user123", limit=10, window_seconds=custom_window)
+        with patch("time.time", return_value=1000):
+            limiter.check_rate_limit(
+                "user123",
+                limit=10,
+                window_seconds=custom_window,
+                ip_address=TEST_IP,
+            )
 
         # Window start should be calculated from custom window
-        call_args = mock_redis.zremrangebyscore.call_args
+        call_args = mock_redis.zremrangebyscore.call_args_list[0]
         window_start = call_args[0][2]
         assert 870 < window_start < 890  # 1000 - 120
 
@@ -175,18 +172,19 @@ class TestRateLimiter:
         mock_redis.zremrangebyscore = Mock(side_effect=Exception("Redis error"))
 
         # Should handle error gracefully
-        with patch('safety.rate_limiter.logger'):
-            allowed, remaining = limiter.check_rate_limit("user123", limit=10)
+        with patch("safety.rate_limiter.logger"):
+            allowed, remaining = limiter.check_rate_limit("user123", limit=10, ip_address=TEST_IP)
 
         # Per code comment, "Fail open on Redis error"
         assert allowed is True
+        assert remaining == 10
 
     def test_zero_limit(self, limiter, mock_redis):
         """Test with zero limit."""
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=0)
 
-        allowed, remaining = limiter.check_rate_limit("user123", limit=0)
+        allowed, remaining = limiter.check_rate_limit("user123", limit=0, ip_address=TEST_IP)
 
         assert allowed is False
 
@@ -196,7 +194,7 @@ class TestRateLimiter:
         mock_redis.zcard = Mock(return_value=0)
 
         # Behavior with negative limit depends on implementation
-        allowed, remaining = limiter.check_rate_limit("user123", limit=-1)
+        allowed, remaining = limiter.check_rate_limit("user123", limit=-1, ip_address=TEST_IP)
 
         # Should treat as error condition
         assert isinstance(allowed, bool)
@@ -205,11 +203,11 @@ class TestRateLimiter:
         """Test with large limit."""
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=1000)
-        mock_redis.zadd = Mock()
-        mock_redis.expire = Mock()
 
         large_limit = 10000
-        allowed, remaining = limiter.check_rate_limit("user123", limit=large_limit)
+        allowed, remaining = limiter.check_rate_limit(
+            "user123", limit=large_limit, ip_address=TEST_IP
+        )
 
         assert allowed is True
         assert remaining == large_limit - 1000 - 1
@@ -218,10 +216,8 @@ class TestRateLimiter:
         """Test return value is (bool, int) tuple."""
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=0)
-        mock_redis.zadd = Mock()
-        mock_redis.expire = Mock()
 
-        result = limiter.check_rate_limit("user123", limit=10)
+        result = limiter.check_rate_limit("user123", limit=10, ip_address=TEST_IP)
 
         assert isinstance(result, tuple)
         assert len(result) == 2
@@ -232,18 +228,15 @@ class TestRateLimiter:
     def test_multiple_requests_same_user(self, limiter, mock_redis):
         """Test multiple requests from same user."""
         mock_redis.zremrangebyscore = Mock()
-        mock_redis.expire = Mock()
 
         # First request
         mock_redis.zcard = Mock(return_value=0)
-        mock_redis.zadd = Mock()
-        allowed1, remaining1 = limiter.check_rate_limit("user123", limit=10)
+        allowed1, remaining1 = limiter.check_rate_limit("user123", limit=10, ip_address=TEST_IP)
         assert allowed1 is True
 
         # Second request
         mock_redis.zcard = Mock(return_value=1)
-        mock_redis.zadd = Mock()
-        allowed2, remaining2 = limiter.check_rate_limit("user123", limit=10)
+        allowed2, remaining2 = limiter.check_rate_limit("user123", limit=10, ip_address=TEST_IP)
         assert allowed2 is True
         assert remaining2 < remaining1
 
@@ -251,45 +244,143 @@ class TestRateLimiter:
         """Test that window calculation uses current time."""
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=0)
-        mock_redis.zadd = Mock()
-        mock_redis.expire = Mock()
+        pipe = mock_redis.pipeline.return_value
 
         # First call at time 1000
-        with patch('time.time', return_value=1000):
-            limiter.check_rate_limit("user123", limit=10, window_seconds=60)
-            first_call_time = mock_redis.zadd.call_args[0][1]
+        with patch("time.time", return_value=1000):
+            limiter.check_rate_limit("user123", limit=10, window_seconds=60, ip_address=TEST_IP)
+            first_members = pipe.zadd.call_args_list[0][0][1]
+
+        pipe.zadd.reset_mock()
 
         # Second call at time 1030
-        with patch('time.time', return_value=1030):
-            limiter.check_rate_limit("user123", limit=10, window_seconds=60)
-            second_call_time = mock_redis.zadd.call_args[0][1]
+        with patch("time.time", return_value=1030):
+            limiter.check_rate_limit("user123", limit=10, window_seconds=60, ip_address=TEST_IP)
+            second_members = pipe.zadd.call_args_list[0][0][1]
 
-        # Times should be different
-        assert first_call_time != second_call_time
+        # Scores (and members) should differ across timestamps
+        assert first_members != second_members
+        assert next(iter(first_members.values())) == 1000
+        assert next(iter(second_members.values())) == 1030
 
     def test_ip_address_as_identifier(self, limiter, mock_redis):
-        """Test using IP address as identifier."""
+        """Test IP is tracked via the dedicated ip_address parameter."""
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=0)
-        mock_redis.zadd = Mock()
-        mock_redis.expire = Mock()
 
-        limiter.check_rate_limit("192.168.1.1", limit=100)
+        limiter.check_rate_limit(None, limit=100, ip_address="192.168.1.1")
 
-        # Should work with IP address
         call_args = mock_redis.zremrangebyscore.call_args
-        assert "192.168.1.1" in call_args[0][0]
+        assert call_args[0][0] == "rate_limit:ip:192.168.1.1"
 
     def test_api_key_as_identifier(self, limiter, mock_redis):
         """Test using API key as identifier."""
         mock_redis.zremrangebyscore = Mock()
         mock_redis.zcard = Mock(return_value=0)
-        mock_redis.zadd = Mock()
-        mock_redis.expire = Mock()
 
         api_key = "sk_live_abc123def456"
-        limiter.check_rate_limit(api_key, limit=1000)
+        limiter.check_rate_limit(api_key, limit=1000, ip_address=TEST_IP)
 
-        # Should work with API key
-        call_args = mock_redis.zremrangebyscore.call_args
-        assert api_key in call_args[0][0]
+        keys = [call[0][0] for call in mock_redis.zremrangebyscore.call_args_list]
+        assert f"rate_limit:user:{api_key}" in keys
+
+    def test_reproduce_ip_rate_limit_gap(self, limiter, mock_redis):
+        """Same IP with different user IDs is denied once the IP bucket is full.
+
+        Previously only the user identifier was checked, so rotating user IDs
+        bypassed the limit. After the fix, the shared IP bucket blocks further
+        requests.
+        """
+        limit = 5
+        mock_redis.zremrangebyscore = Mock()
+
+        # First `limit` requests: IP count rises 0..limit-1; each has a fresh user
+        for i in range(limit):
+            mock_redis.zcard = Mock(side_effect=[i, 0])  # IP count, user count
+            allowed, _ = limiter.check_rate_limit(f"user{i}", limit=limit, ip_address=TEST_IP)
+            assert allowed is True
+
+        # Next request from a new user on the same IP must be denied
+        mock_redis.zcard = Mock(return_value=limit)
+        allowed, remaining = limiter.check_rate_limit("user_new", limit=limit, ip_address=TEST_IP)
+        assert allowed is False
+        assert remaining == 0
+
+    def test_ip_over_limit_denies_even_when_user_under(self, limiter, mock_redis):
+        """IP at limit denies even if the user bucket is empty."""
+        mock_redis.zremrangebyscore = Mock()
+        mock_redis.zcard = Mock(return_value=5)
+
+        allowed, remaining = limiter.check_rate_limit("user123", limit=5, ip_address=TEST_IP)
+
+        assert allowed is False
+        assert remaining == 0
+        mock_redis.pipeline.return_value.execute.assert_not_called()
+
+    def test_user_over_limit_denies_even_when_ip_under(self, limiter, mock_redis):
+        """User at limit denies even if the IP bucket has room."""
+        mock_redis.zremrangebyscore = Mock()
+        # IP under limit (2), user at limit (5)
+        mock_redis.zcard = Mock(side_effect=[2, 5])
+
+        allowed, remaining = limiter.check_rate_limit("user123", limit=5, ip_address=TEST_IP)
+
+        assert allowed is False
+        assert remaining == 0
+        mock_redis.pipeline.return_value.execute.assert_not_called()
+
+    def test_unauthenticated_tracks_ip_only(self, limiter, mock_redis):
+        """Unauthenticated requests only record the IP key."""
+        mock_redis.zremrangebyscore = Mock()
+        mock_redis.zcard = Mock(return_value=0)
+        pipe = mock_redis.pipeline.return_value
+
+        allowed, remaining = limiter.check_rate_limit(None, limit=10, ip_address=TEST_IP)
+
+        assert allowed is True
+        assert remaining == 9
+        assert mock_redis.zremrangebyscore.call_count == 1
+        assert mock_redis.zremrangebyscore.call_args[0][0] == f"rate_limit:ip:{TEST_IP}"
+        assert pipe.zadd.call_count == 1
+        assert pipe.zadd.call_args[0][0] == f"rate_limit:ip:{TEST_IP}"
+
+    def test_remaining_is_min_of_ip_and_user(self, limiter, mock_redis):
+        """Remaining reflects the tighter of the two buckets."""
+        mock_redis.zremrangebyscore = Mock()
+        # IP has 8 used (1 left after this), user has 2 used (7 left after this)
+        mock_redis.zcard = Mock(side_effect=[8, 2])
+
+        allowed, remaining = limiter.check_rate_limit("user123", limit=10, ip_address=TEST_IP)
+
+        assert allowed is True
+        assert remaining == 1  # min(10-8-1, 10-2-1) = min(1, 7)
+
+    def test_ip_and_user_keys_do_not_collide(self, limiter, mock_redis):
+        """Identifier equal to the IP still uses distinct Redis key prefixes."""
+        mock_redis.zremrangebyscore = Mock()
+        mock_redis.zcard = Mock(return_value=0)
+
+        limiter.check_rate_limit(TEST_IP, limit=10, ip_address=TEST_IP)
+
+        keys = [call[0][0] for call in mock_redis.zremrangebyscore.call_args_list]
+        assert keys == [f"rate_limit:ip:{TEST_IP}", f"rate_limit:user:{TEST_IP}"]
+
+    def test_zadd_members_unique_at_same_timestamp(self, limiter, mock_redis):
+        """Concurrent requests at the same timestamp get distinct ZADD members."""
+        mock_redis.zremrangebyscore = Mock()
+        mock_redis.zcard = Mock(return_value=0)
+        pipe = mock_redis.pipeline.return_value
+
+        with patch("time.time", return_value=1000.0):
+            limiter.check_rate_limit("user123", limit=10, ip_address=TEST_IP)
+            first_member = next(iter(pipe.zadd.call_args_list[0][0][1]))
+
+        pipe.zadd.reset_mock()
+
+        with patch("time.time", return_value=1000.0):
+            limiter.check_rate_limit("user123", limit=10, ip_address=TEST_IP)
+            second_member = next(iter(pipe.zadd.call_args_list[0][0][1]))
+
+        assert first_member != second_member
+        assert first_member.startswith("1000.0:")
+        assert second_member.startswith("1000.0:")
