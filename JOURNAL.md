@@ -59,3 +59,33 @@ I added `tests/unit/test_rate_limit_middleware.py` to assert that X-RateLimit-Li
 **Self-review confirmation:** [✅] make check passes  [✅] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [✅] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Understanding the architecture of a route within the app was harder than I expected. I read through multiple files to understand where the headers would be returned, how they were included in the response, and what a "dispatch" method is in relation to the middleware.
+
+**What did you learn about working in a large codebase?**
+I learned the importance of pushing small, specifc commits so that tracking my work was easier in relation to the larger codebase. I also learned the importance of first reading through the codebase, specifically any README files or routes, to understand the current structure before making any changes.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was very helpful with understanding the structure of the codebase and explaining unfamiliar parts. For example, AI was very helpful when I was trying to understand the middleware and how `request_id.py` could use the dispatch method to add the `X-RateLimit-Limit` and `X-RateLimit-Remaining` headers. I needed to go beyond the context that AI gave me to fully read through the files and understand the structure from my own perspective.
+
+**What would you do differently if you started over?**
+If I were to start over, I would spend even more time reading through the codebase. I think that if I spent more time reading through files that weren't necessarily linked to my PR, it would be helpful to gather more context about the codebase and support my ability to make the PR.
+
+**What are you most proud of from this module?**
+I'm most proud of quickly onboarding onto a large codebase and understanding how headers work in routes. This was my first time adding headerst to an API route and I enjoyed learning all of the different components that went into this task.
