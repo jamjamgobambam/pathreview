@@ -274,3 +274,53 @@ class TestBiasDetector:
 
         assert is_biased_obs is False  # Factual
         assert is_biased_ass is True  # Biased assumption
+
+    # Both tests below use phrasings quoted directly in issue #151:
+    # bias split across two clauses ("so", "they likely") rather than
+    # appearing in direct adjacency, which the 9 originally-failing
+    # tests above did not exercise.
+    def test_clause_split_dismissive_detected(self) -> None:
+        """Test dismissive language split across clauses via 'so' is detected."""
+        text = (
+            "The candidate only attended a bootcamp, so this "
+            "project lacks the rigor of a formal CS education"
+        )
+
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is True
+        assert reason != ""
+
+    def test_clause_split_demographic_detected(self) -> None:
+        """Test age assumption split across clauses via 'they likely' is detected."""
+        text = "Given their age, they likely cannot keep up with modern frameworks"
+
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is True
+        assert "demographic" in reason.lower()
+
+    # Edge-case tests for the clause-split patterns above: the '.*' wildcard
+    # bridging trigger and claim was unbounded and could cross sentence
+    # boundaries into unrelated text.
+    def test_unrelated_documentation_rigor_not_flagged(self) -> None:
+        """Test that unrelated mentions across separate sentences are not flagged."""
+        text = (
+            "The candidate did a bootcamp. Separately, the "
+            "documentation lacks rigor and needs work."
+        )
+
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is False
+
+    def test_distant_unrelated_system_requirement_not_flagged(self) -> None:
+        """Test that a distant, unrelated negative verb is not flagged."""
+        text = (
+            "Their age is listed as 34 on the application. The system "
+            "won't process it without a signature."
+        )
+
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is False
