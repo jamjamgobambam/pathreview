@@ -72,3 +72,38 @@ Per reviewer feedback, grepped the codebase for other occurrences of the same `.
 **Self-review confirmation:** [x] make check passes (3 pre-existing mypy errors in `vector_store.py`, `keyword_search.py`, `output_parser.py` — unrelated to this change, confirmed via `git stash`)  [x] make test-unit passes (62 pre-existing failures unchanged; fix resolves 1)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback arrived. Per the Su26 course note, reviewer feedback isn't a feature this term, so this is expected rather than a gap in the process.
+
+**How you responded:**
+N/A — no feedback to respond to. I requested a peer review in the course Slack channel earlier in the module as required by Week 9, and incorporated my own self-review against CONTRIBUTING.md before finalizing.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The bug itself — a one-line fix — was the easy part. What took real time was environment setup: I hit a macOS SSH conflict between my personal GitHub account and my NutriScan work account, since both were trying to use the same default SSH key. I had to set up a `github-personal` SSH alias and rewrite my remote URLs to point through it. That's not something the assignment prepared me for, and it ate a chunk of Week 7 that I expected to spend reading code instead.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was realizing that a "small" fix isn't small once you account for its blast radius. `chunk.get("text", "")` looked like an isolated bug in one function, but once I understood the actual failure mode — `.get()`'s default only applies to missing keys, not `None` values — I found the same pattern repeated at three other call sites in the codebase. In my own projects I'd probably have patched the one spot I hit and moved on. Here, I had to think about consistency across the codebase and whether leaving the other three instances would just mean someone else hits the same crash later.
+
+I also learned to take "passing tests" less literally. The codebase had 52 pre-existing failing tests unrelated to my change. In a solo project, a failing test means something's broken and I fix it. In a shared codebase, I had to learn to document what's pre-existing, prove I didn't add to it, and move on — the standard isn't "everything is green," it's "I didn't make it worse."
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for fast codebase orientation — pointing me toward where `context_text` was constructed and helping me trace the call sites that shared the same `.get()` pattern. That's the kind of broad-but-shallow search that would've taken me a lot longer to do manually across a codebase I didn't write.
+
+Where it fell short was judgment about scope. AI suggestions on how far to extend the fix (just the one call site vs. all four) weren't reliable on their own — I had to actually read each call site to confirm the fix was appropriate there and wasn't masking a different bug. It was also unreliable for understanding project-specific conventions (commit message format, PR template expectations) — those came from reading CONTRIBUTING.md directly, not from AI suggestions.
+
+**What would you do differently if you started over?**
+I'd sort out my Git/SSH setup before claiming an issue, not during Week 7 while trying to also read the codebase for the first time. I'd also start the "search for repeated bug patterns" step earlier — I found the other three call sites somewhat late in the process, and if I'd looked for them right after understanding the root cause, I could've bundled that investigation into my PLAN.md instead of it feeling like a late addition.
+
+**What are you most proud of from this module?**
+Catching that the bug wasn't isolated to one line. It would've been easy to submit the minimal one-line diff and call it done — the issue was closed either way — but going back and checking for the same failure mode elsewhere in the codebase felt like the difference between patching a symptom and actually fixing the underlying issue.
