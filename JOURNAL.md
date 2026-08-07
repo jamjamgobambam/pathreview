@@ -72,3 +72,58 @@ I updated `tests/unit/test_review_service.py`. I modified the mock configuration
 **Self-review confirmation:** All 19 tests in review service pass. make check and make test-unit have pre-existing failures which I have documented.[x] make check passes [x] make test-unit passes
 
 **Draft PR feedback received from:**
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No — still awaiting review
+
+**Summary of feedback:**
+No review feedback
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Some of it was dealing with my local environment setup. Docker Desktop and Windows Subsystem for Linux (WSL) encountered a catastrophic failure (`E_UNEXPECTED`) right when I was trying to run tests. Because of that, I completely lost access to the standard `make` commands. It was definitely harder than expected to pivot and figure out how to bypass Docker entirely by running `pytest` and the linting tools directly through the Python virtual environment on Windows PowerShell.
+
+**What did you learn about working in a large codebase?**
+Mostly the context... that applies to just about anything I would be given to pick up on if I haven't ever worked in it or seen it before. Not only that, but finding the exact reason why the unit tests were failing took a while to figure out, as I hadn't worked with SQLAlchemy before, and didn't realize there were two different query objects (one for async and one for sync).
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful in giving feedback on existing code, and suggesting changes after scanning the codebase, which I delegated to Antigravity. I self-relied on my own knowledge of Python and pytest to run the tests and cross-check the fix!
+
+**What would you do differently if you started over?**
+I would have chosen an issue that was more self-contained. While this issue was well-documented, it took me a while to get up to speed with the codebase. Or, I would have chosen a different issue that challenged me differently!
+
+**What are you most proud of from this module?**
+I'm most proud of the fact that I followed through on all aspects of the module, even when I faced challenges and had to learn new things to overcome certain blockers. I also learned a lot about open source development and how to contribute to a codebase. I'm looking forward to continuing to contribute to open source projects in the future!
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No — still awaiting review
+
+**Summary of feedback:**
+No review feedback
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+**What did you learn about working in a large codebase?**
+Mostly the context... that applies to just about anything I would be given to pick up on if I haven't ever worked in it or seen it before. Not only that, but finding the exact reason why the unit tests were failing took a while to figure out, as I hadn't worked with SQLAlchemy before, and didn't realize there were two different query objects (one for async and one for sync).
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful in giving feedback on existing code, and suggesting changes after scanning the codebase, which I delegated to Antigravity. I self-relied on my own knowledge of Python and pytest to run the tests and cross-check the fix!
+
+**What would you do differently if you started over?**
+I would have chosen an issue that was more self-contained. While this issue was well-documented, it took me a while to get up to speed with the codebase. Or, I would have chosen a different issue that challenged me differently!
+
+**What are you most proud of from this module?**
+I'm most proud of the fact that I followed through on all aspects of the module, even when I faced challenges and had to learn new things to overcome certain blockers. I also learned a lot about open source development and how to contribute to a codebase. I'm looking forward to continuing to contribute to open source projects in the future!
