@@ -3,6 +3,7 @@
 import pytest
 
 from rag.generator.output_parser import FeedbackSection
+from rag.generator.prompt_templates import get_template
 from rag.generator.review_generator import ReviewGenerator
 
 
@@ -118,6 +119,23 @@ class TestFormatContext:
         assert "repo_10" not in context
         for i in range(10):
             assert f"repo_{i}" in context
+
+
+@pytest.mark.unit
+class TestPromptTemplateConsolidationInstruction:
+    """The grouping fix in _format_context only works because the prompt
+    templates tell the model what a "Shared stack" block means. These
+    tests pin that wording so an edit to prompt_templates.py can't silently
+    break the contract _format_context depends on."""
+
+    @pytest.mark.parametrize("template_name", ["skills_feedback", "projects_feedback"])
+    def test_template_instructs_model_to_consolidate_shared_stack_blocks(
+        self, template_name: str
+    ) -> None:
+        template = get_template(template_name)
+
+        assert "Shared stack" in template
+        assert "consolidat" in template.lower() or "don't repeat" in template.lower()
 
 
 @pytest.mark.unit
