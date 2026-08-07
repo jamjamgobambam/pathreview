@@ -80,6 +80,16 @@ disallow_untyped_defs = true
 check_untyped_defs = true
 exclude = ["alembic/versions/"]
 
+[[tool.mypy.overrides]]
+module = [
+    "api.middleware.request_id",
+    "api.routes.health",
+    "api.routes.profiles",
+    "core.services.profile_service",
+    "core.services.review_service",
+]
+follow_imports = "silent"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [

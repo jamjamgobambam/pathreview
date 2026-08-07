@@ -1,4 +1,4 @@
-import { AuthResponse, Profile, Review, ReviewListResponse } from '../types'
+import { AuthResponse, Profile, PublicReview, Review, ReviewListResponse, ShareLinkResponse } from '../types'
 
 const API_BASE = '/api'
 
@@ -113,6 +113,24 @@ class ApiClient {
 
   async deleteProfile(id: string): Promise<void> {
     return this.request(`/profiles/${id}`, { method: 'DELETE' })
+  }
+
+  async createShareLink(reviewId: string): Promise<ShareLinkResponse> {
+    return this.request(`/reviews/${reviewId}/share-link`, { method: 'POST' })
+  }
+
+  async getPublicReview(token: string): Promise<PublicReview> {
+    const url = `${API_BASE}/public/reviews/${token}`
+    const response = await fetch(url, {
+      headers: { 'Content-Type': 'application/json' }
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.detail || `Request failed with status ${response.status}`)
+    }
+
+    return response.json()
   }
 }
 

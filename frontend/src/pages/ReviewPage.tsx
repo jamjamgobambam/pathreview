@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Share2, Download, ArrowLeft, Loader } from 'lucide-react'
+import { Link, Download, ArrowLeft, Loader } from 'lucide-react'
 import { useReviewStatus } from '../hooks/useReviewStatus'
 import { ReviewSection } from '../components/ReviewSection'
 import { apiClient } from '../services/api'
@@ -12,6 +12,9 @@ export const ReviewPage: React.FC = () => {
   const [fullReview, setFullReview] = useState<Review | null>(null)
   const { review: statusReview, isPolling, error } = useReviewStatus(reviewId || '')
   const [fetchError, setFetchError] = useState('')
+  const [isCopying, setIsCopying] = useState(false)
+  const [copySuccess, setCopySuccess] = useState(false)
+  const [copyError, setCopyError] = useState('')
 
   useEffect(() => {
     if (!isPolling && statusReview?.status === 'complete') {
@@ -29,11 +32,21 @@ export const ReviewPage: React.FC = () => {
 
   const currentReview = fullReview || statusReview
 
-  const handleShare = () => {
-    const url = window.location.href
-    navigator.clipboard.writeText(url).then(() => {
-      alert('Review link copied to clipboard!')
-    })
+  const handleCopyLink = async () => {
+    if (!reviewId) return
+    setIsCopying(true)
+    setCopyError('')
+    try {
+      const { token } = await apiClient.createShareLink(reviewId)
+      const url = `${window.location.origin}/public/reviews/${token}`
+      await navigator.clipboard.writeText(url)
+      setCopySuccess(true)
+      setTimeout(() => setCopySuccess(false), 2000)
+    } catch (err) {
+      setCopyError('Failed to generate share link')
+    } finally {
+      setIsCopying(false)
+    }
   }
 
   const handleExport = () => {
@@ -91,6 +104,12 @@ ${section.suggestions.map((s) => `- ${s}`).join('\n')}
           </div>
         )}
 
+        {copyError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-800">{copyError}</p>
+          </div>
+        )}
+
         {isPolling && (
           <div className="mb-12 p-8 bg-white rounded-lg shadow text-center">
             <Loader className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
@@ -112,11 +131,12 @@ ${section.suggestions.map((s) => `- ${s}`).join('\n')}
               <h1 className="text-3xl font-bold text-gray-900">Portfolio Review</h1>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={handleShare}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors"
+                  onClick={handleCopyLink}
+                  disabled={isCopying}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50"
                 >
-                  <Share2 className="w-5 h-5" />
-                  Share
+                  {isCopying ? <Loader className="w-5 h-5 animate-spin" /> : <Link className="w-5 h-5" />}
+                  {copySuccess ? 'Copied!' : 'Copy Link'}
                 </button>
                 <button
                   onClick={handleExport}

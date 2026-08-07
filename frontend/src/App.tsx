@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import { NavBar } from './components/NavBar'
 import { LoginPage } from './pages/LoginPage'
@@ -8,6 +8,14 @@ import { DashboardPage } from './pages/DashboardPage'
 import { NewProfilePage } from './pages/NewProfilePage'
 import { ReviewPage } from './pages/ReviewPage'
 import { ReviewHistoryPage } from './pages/ReviewHistoryPage'
+import { PublicReviewPage } from './pages/PublicReviewPage'
+
+const AppLayout: React.FC = () => (
+  <>
+    <NavBar />
+    <Outlet />
+  </>
+)
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth()
@@ -43,9 +51,8 @@ function App() {
   }
 
   return (
-    <>
-      <NavBar />
-      <Routes>
+    <Routes>
+      <Route element={<AppLayout />}>
         <Route
           path="/"
           element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
@@ -84,8 +91,9 @@ function App() {
             </ProtectedRoute>
           }
         />
-      </Routes>
-    </>
+      </Route>
+      <Route path="/public/reviews/:token" element={<PublicReviewPage />} />
+    </Routes>
   )
 }
 

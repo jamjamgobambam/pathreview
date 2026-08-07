@@ -41,3 +41,16 @@ export interface AuthResponse {
   access_token: string
   token_type: string
 }
+
+export interface ShareLinkResponse {
+  token: string
+  expires_at: string
+}
+
+export interface PublicReview {
+  id: string
+  status: string
+  overall_score?: number
+  sections?: FeedbackSection[]
+  created_at: string
+}
