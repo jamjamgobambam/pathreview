@@ -59,3 +59,24 @@ Only `tests/unit/test_pii_scrubber.py` was touched. Extended `test_us_phone_form
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reflection
+
+**What was harder than you expected?**
+At first I thought it was going to be a simple 3-line regex change but when I was going to open a pull request I realized that my fix had a slight bug (it was supposed to redact phone numbers to `[REDACTED]` but it would leave a "(" in front). I had to go back through the code and realize that this second fix could still be considered within the reasonable scope and applied that fix as well. Before I could even commit the 1-line regex fix, I had to deal with pre-existing lint debt already in the file. I then got blocked by 409 unrelated pre-existing errors across the whole test suite and I had to figure out that the project's `make check` excludes `tests/` but the local hook doesn't.
+
+**What did you learn about working in a large codebase?**
+I learned that passing checks is defined by convention and documentation and not just running every tool to check. That was my initial thought and it took me some time to realize I didn't need every `check/lint` rule to be 100% clean repo-wide. I also learned about scope and having discipline to stick to the scope of the chosen bug. When working on my own projects I can just try and fix every bug I see but to work in a large codebase with known bugs, I have to fix one bug at a time as its own PR. Lastly, I learned that touching one file means inheriting whatever debt already lives there, I don't just fix my lines of code in isolation and any single line of code changed has the potential to impact everything else.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for fast, mechanical verification at scale like counting all 410 test functions repo-wide to check a claim, diffing exact failing-test sets before and after each change, confirming a reformatted regex was byte-identical to the original. Those are things I could have done by hand but would have been slow and error-prone. It also helped cross-reference scattered project docs that disagreed with each other. `CONTRIBUTING.md`, the `Makefile`, and `pyproject.toml` had different opinions about whether `tests/` should be type-checked, and catching that took reading all three side by side.
+
+Where it fell short: it got a real judgment call wrong at first when it called a second bug I found "out of scope" for the issue. I had to push back and point at the issue's own title before it reconsidered. It also stated a specific fact (409 test functions lacking annotations) that had already gone stale by the time it mattered, and only got caught because I asked it to double-check itself before that number went into a public PR. That was probably the most useful lesson of the module: AI can be confident and still wrong, and the actual scope decisions, and verifying anything before it goes public, stayed on me the whole time.
+
+**What would you do differently if you started over?**
+I would consider picking a harder issue if I started over, but, since this issue wasn't too complex, it allowed me to spend more time better understanding the logistics of entering a new codebase as well as opening a PR. I also would have kept lint-hygiene fixes in their own commit from the start rather than bundling them into the feature commit. Lastly, I would have written the tradeoff-documenting test as soon as I widened the regex, rather than waiting some time and realizing I needed to write another test.
+
+**What are you most proud of from this module?**
+Learning lots more about reading an existing codebase, following codebase standards, how to properly title and structure commits, and how to professionally open a PR.
