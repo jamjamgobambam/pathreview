@@ -33,3 +33,17 @@ class ReviewListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class ShareCreateResponse(BaseModel):
+    share_token: str
+    share_url: str
+    expires_at: datetime
+
+
+class SharedReviewResponse(BaseModel):
+    sections: list[FeedbackSection] | None
+    overall_score: float | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

@@ -4,6 +4,7 @@ import { Share2, Download, ArrowLeft, Loader } from 'lucide-react'
 import { useReviewStatus } from '../hooks/useReviewStatus'
 import { ReviewSection } from '../components/ReviewSection'
 import { apiClient } from '../services/api'
+import { generateShareLink } from '../services/shareService'
 import { Review } from '../types'
 
 export const ReviewPage: React.FC = () => {
@@ -29,11 +30,15 @@ export const ReviewPage: React.FC = () => {
 
   const currentReview = fullReview || statusReview
 
-  const handleShare = () => {
-    const url = window.location.href
-    navigator.clipboard.writeText(url).then(() => {
-      alert('Review link copied to clipboard!')
-    })
+  const handleShare = async () => {
+    if (!reviewId) return
+    try {
+      const { shareUrl } = await generateShareLink(reviewId)
+      await navigator.clipboard.writeText(shareUrl)
+      alert('Share link copied to clipboard!')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to generate share link')
+    }
   }
 
   const handleExport = () => {

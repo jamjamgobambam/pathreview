@@ -41,3 +41,15 @@ export interface AuthResponse {
   access_token: string
   token_type: string
 }
+
+export interface ShareResponse {
+  share_token: string
+  share_url: string
+  expires_at: string
+}
+
+export interface SharedReview {
+  sections?: FeedbackSection[]
+  overall_score?: number
+  created_at: string
+}

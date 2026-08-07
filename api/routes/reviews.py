@@ -1,15 +1,24 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import (
+    ReviewCreate,
+    ReviewListResponse,
+    ReviewResponse,
+    ShareCreateResponse,
+    SharedReviewResponse,
+)
 from core.database import get_db
+from core.models.user import User
 from core.services.review_service import (
     create_review,
+    create_share_token,
     get_review,
+    get_review_by_share_token,
     list_reviews,
     process_review,
 )
@@ -134,6 +143,72 @@ async def list_reviews_endpoint(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to list reviews",
         )
+
+
+@router.post("/{review_id}/share", response_model=ShareCreateResponse)
+async def create_share_endpoint(
+    review_id: UUID,
+    current_user: User = Depends(get_current_user),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> ShareCreateResponse:
+    """
+    Create a public share link for a review.
+    Only works for reviews owned by the current user and in 'complete' status.
+    Returns 404 if not found/not owned, 409 if not complete.
+    """
+    try:
+        share = await create_share_token(db=db, review_id=review_id, user_id=current_user.id)
+
+        if not share:
+            review = await get_review(db=db, review_id=review_id, user_id=current_user.id)
+            if not review:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Review not found"
+                )
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail="Review is not yet complete"
+            )
+
+        return ShareCreateResponse(
+            share_token=share.share_token,
+            share_url=f"/shared-review/{share.share_token}",
+            expires_at=share.expires_at,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        log.error("create_share_error", error=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create share link"
+        ) from exc
+
+
+@router.get("/shared/{share_token}", response_model=SharedReviewResponse)
+async def get_shared_review_endpoint(
+    share_token: str,
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+) -> SharedReviewResponse:
+    """
+    Get a shared review via public share token.
+    No authentication required. Returns 404 for unknown or expired tokens.
+    """
+    try:
+        review = await get_review_by_share_token(db=db, share_token=share_token)
+
+        if not review:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Share link not found"
+            )
+
+        return SharedReviewResponse.model_validate(review)  # type: ignore[no-any-return]
+    except HTTPException:
+        raise
+    except Exception as exc:
+        log.error("get_shared_review_error", error=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to load shared review",
+        ) from exc
 
 
 @router.get("/{review_id}/status")

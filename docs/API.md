@@ -24,6 +24,8 @@ Base URL: `http://localhost:8000`
 `POST /reviews` — Request a new portfolio review for a profile.
 `GET /reviews/{review_id}` — Retrieve a completed review.
 `GET /reviews` — List reviews for the authenticated user (paginated).
+`POST /reviews/{review_id}/share` — Generate (or reuse) a 30-day public share token for a completed review.
+`GET /reviews/shared/{share_token}` — Public, unauthenticated retrieval of a read-only review summary by share token.
 
 ## Interactive Docs
 

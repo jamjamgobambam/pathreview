@@ -12,6 +12,7 @@ from core.database import Base
 
 if TYPE_CHECKING:
     from core.models.profile import Profile
+    from core.models.review_share import ReviewShare
 
 
 class Review(Base):
@@ -43,6 +44,9 @@ class Review(Base):
 
     # Relationships
     profile: Mapped["Profile"] = relationship("Profile", back_populates="reviews")
+    shares: Mapped[list["ReviewShare"]] = relationship(
+        "ReviewShare", back_populates="review", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         Index("ix_reviews_profile_id", "profile_id"),
