@@ -42,7 +42,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [TBD]
+**PR link:** https://github.com/ascherj/pathreview/pull/1002
 
 **Branch:** `docs/121-contributor-onboarding-guide`
 
