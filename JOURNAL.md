@@ -79,3 +79,36 @@ Created a PDF resume that looks like a normal resume but embeds prompt injection
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes (all failures are pre-existing, none introduced by this PR)
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviews came in yet
+
+**How you responded:**
+N/A
+---
+
+### Reflection
+
+**What was harder than you expected?**
+I think cross cheking if my fix works and integrates well with the whole codebase was not as straight forward. I did use unit tests and run existing tests but due to some already failing tests(not introduced by my work) I couldn't for sure comfirm that everything works well.
+
+**What did you learn about working in a large codebase?**
+I learnt to not just change things, there should be a communicated reason for changing anything. Forexample, I wanted to add screenshots to my JOURNAL.md, but I couldn't just add a screenshots folder because it was unrelated to the actual issue I was working on. 
+
+Also avoiding adding a temporary fix to parts that are not related to my PR. In short, only changing what's related to the issue I'm working on and document why each change needed to happen.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were good with codebase navigation and debugging, but when using them to write code sometimes they introduced complex unrelated changes that made changes to parts that are not related to my PR.
+
+**What would you do differently if you started over?**
+I would maybe navigate the codebase more, but I think the issue I picked was very specific that I could go directly into the concerned file. If it was a bigger issue, I would navigate the code more to read all files related to the change.
+
+**What are you most proud of from this module?**
+Being able to document things well, and following the community contribution guidelines.
