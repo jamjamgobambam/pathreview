@@ -2,8 +2,8 @@
 
 import pytest
 
-from ingestion.chunking.structural_chunker import StructuralChunker
 from ingestion.chunking.base import Chunk
+from ingestion.chunking.structural_chunker import StructuralChunker
 
 
 @pytest.mark.unit
@@ -26,13 +26,16 @@ class TestStructuralChunker:
         assert result == []
 
     def test_document_with_no_headings(self, chunker):
-        """Test document with no headings returns single chunk."""
+        """Test document with no headings returns one chunk with preserved content."""
         text = "This is plain text without any markdown headings. " * 20
         result = chunker.chunk(text, {"source": "test"})
 
-        assert len(result) >= 1
+        assert len(result) == 1
         assert isinstance(result[0], Chunk)
-        assert all(isinstance(c, Chunk) for c in result)
+        assert result[0].text == text.strip()
+        assert result[0].metadata["source"] == "test"
+        assert result[0].metadata["heading_path"] == ""
+        assert result[0].metadata["heading_level"] == 0
 
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
@@ -83,11 +86,16 @@ Content under grandchild.
                     found_path = True
                     assert isinstance(path, str)
 
+        assert found_path
+
     def test_large_section_sub_chunked(self, chunker):
         """Test large section (> 800 tokens) gets sub-chunked."""
         # Create a large section
-        large_section = """# Large Section
-""" + "This is a paragraph with lots of content. " * 50
+        large_section = (
+            """# Large Section
+"""
+            + "This is a paragraph with lots of content. " * 50
+        )
 
         result = chunker.chunk(large_section, {})
 
@@ -172,6 +180,8 @@ Content here.
                 # Should contain the hierarchy
                 if "Installation" in path or "Prerequisites" in path:
                     found_full_path = True
+
+        assert found_full_path
 
     def test_chunks_have_text_content(self, chunker):
         """Test that all chunks have text content."""
