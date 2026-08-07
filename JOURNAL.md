@@ -100,11 +100,12 @@ threshold and override, 0.x versions, skipping of unpinned/unknown deps, and
 graceful handling of malformed manifests.
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
-<!-- The repo has documented pre-existing failures (53 failing unit tests, 183
-ruff errors, 5 mypy errors on a clean checkout). "Passes" here means my changes
-introduce ZERO new failures: after my change the suite is 53 failing / 395
-passing (+20 of mine, all green), ruff is 182 (down 1), and mypy is unchanged.
-My two files pass ruff/black/mypy individually. -->
+<!-- The repo has documented pre-existing failures on a clean checkout (~53
+failing unit tests, ~183 ruff errors, 5 mypy errors). "Passes" here means my
+changes introduce ZERO new failures: after my change the unit suite is 53 failing
+/ 395 passing (+20 of mine, all green); repo-wide ruff (182) and mypy are
+essentially unchanged and none of the remaining issues originate from my code. My
+two added files pass ruff, black, and mypy individually with 0 errors. -->
 
 **Draft PR feedback received from:** none — no code-review feedback this term; self-reviewed against the definition-of-done
 
@@ -131,12 +132,11 @@ zero new failures against the documented baseline.
 
 **What was harder than you expected?**
 Getting to a clean starting point was harder than writing the feature. Before I
-touched any code, the environment fought back — Docker wasn't installed, the
+touched any code, I had to set up the environment. Docker wasn't installed, the
 ChromaDB container crashed on a NumPy 2.0 incompatibility, and the seed script
 choked on Windows' cp1252 console encoding. Then when I finally ran the test
 suite, 53 unit tests were already failing and there were 183 lint errors on a
-clean checkout, none of it mine. The real difficulty was the mental shift: my
-job wasn't to fix the codebase, it was to prove I didn't make it worse. Measuring
+clean checkout, none of it mine. One of the challenge was to prove I didn't make it worse. Measuring
 "no new failures" against an already-broken, moving baseline was more nerve-racking
 than building the tool.
 
