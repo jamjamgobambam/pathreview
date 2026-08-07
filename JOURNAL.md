@@ -103,3 +103,39 @@ Created `tests/unit/test_health.py` with tests for Redis healthy/unhealthy scena
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** @theoneineed
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes
+
+**Summary of feedback:**
+Received positive feedback from @theoneineed, who was working on the same issue (#155). They commented: "I was working on the same issue. Nice fix! Good job adding the new test file." No changes were requested — the feedback was purely encouraging.
+
+**How you responded:**
+I thanked @theoneineed for the feedback and noted that both of us approached the same issue with different solutions, which was a great learning opportunity.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The most challenging part was getting the development environment set up correctly. I had issues with Docker, PostgreSQL ports, and the `.env` configuration. The database connection was tricky because the health check was looking for `settings.redis_host` which didn't exist, and I had to trace through multiple files to understand the Settings model. Once I found the root cause, the fix was simple, but finding it took more time than I expected.
+
+**What did you learn about working in a large codebase?**
+
+I learned that production codebases have many moving parts. You can't just change one file and assume everything works — you need to understand how modules connect and what dependencies exist. I also learned the importance of testing: writing tests for the health endpoint helped me verify that my fix actually worked and didn't break anything else. Another big takeaway was that large projects have pre-existing issues (like the PostgreSQL health check bug #154) that you need to document and work around without trying to fix everything at once.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools were most helpful for explaining the codebase structure, suggesting the correct Redis connection pattern (`redis.Redis.from_url()`), and debugging errors during setup. However, AI fell short when it came to understanding the full context of the project — it couldn't tell me that PostgreSQL showing "unhealthy" was a separate issue. I had to investigate manually to confirm the bug was isolated to Redis.
+
+**What would you do differently if you started over?**
+
+I would have spent more time understanding the Settings model and the health check endpoint before writing any code. I also would have committed more frequently to show progress. I think I could have been more thorough in my PLAN.md by adding more specific edge cases to test.
+
+**What are you most proud of from this module?**
+
+I'm most proud of successfully fixing the bug and verifying it with `curl` — seeing `"redis": "healthy"` after running the health check was really satisfying. I'm also proud of creating a complete test file and following the proper PR process, including writing a detailed PR description and getting peer feedback from @theoneineed. It was great to see someone else working on the same issue and to compare our different approaches.
