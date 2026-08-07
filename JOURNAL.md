@@ -102,3 +102,35 @@ There were no tests for the /health endpoint. I created `tests/unit/test_health.
 After my fix, `make check` actually reduced the number of errors. The total count dropped to 179 from 183. `make test-unit` produced the same failed and passed test counts before I added tests for the fix. Afterwards, my added tests were all marked passed.
 
 **Draft PR feedback received from:** "none"
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+I was surprised when I realized that I was not actually done with the project when I thought. I had never really considered all of the necessary criteria that is needed for proper integration into a database to make sure the change is integrated properly. I am glad we discussed this in class so I could add tests for robustness.
+
+**What did you learn about working in a large codebase?**
+I learned how important it is to stay organized after breaking a rule with issue selection. I decided to fix two issues in one PR even though the issue I hadn't selected originally had its own issue. At first, I was just fixing it since it was related to the endpoint I was working on and in my own projects I would fix all issues I came across. In hindsight, issues are created for structure and organization and there could have been conflicts from me choosing to work on two different issues at once. There are rules when contributing to other projects and I have learned that they have to be respected.
+
+**How did AI tools help — and where did they fall short?**
+For my selected issue, AI assistance was most useful in writing tests and helping me debug database connections. I had some Docker issues that I would not have been able to figure out on my own. It was great in getting me started. I don't think it fell short anywhere as there was not too much to be done where that could be the case.
+
+**What would you do differently if you started over?**
+If I could start over, I would try to select an issue in a higher tier of difficulty. I did not want to be overwhelmed or unable to complete the project so I chose a tier 1 issue that spanned one line of code, but it was not very challenging since the issue description included the fix itself. I think it was a solid starting issue to get experience contributing to a codebase, but I feel I should have challenged myself more. This would have kept me working on a single issue rather than two.
+
+**What are you most proud of from this module?**
+I am most proud of improving my communication skills in the stand-ups that we had to deliver to our breakout rooms. I think it is a really useful practice that will help me be grow in my contributions to a team in a full-time role.
