@@ -1,0 +1,94 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/157
+
+**Issue title:** Relevance scorer "partial overlap" test fixture actually has full query overlap
+
+**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
+
+**Problem summary:**
+There's a unit test, `test_query_with_partial_overlap`, that's supposed to check how the system scores a search query against a document chunk when they only partially match. Problem is, the test data doesn't actually represent a partial match. The query "Python Django web framework" and the chunk it's being compared to share all four words, so it's a 100% overlap, not partial. Because of that, the scorer correctly returns a perfect score of 1.0, but the test expects the score to be below 0.9, so it fails even though the scoring logic itself is working fine. The fix is just rewriting the fixture data so the chunk only shares some of the query's words, which will let the test actually verify partial-match behavior instead of accidentally testing full-match behavior. This is all in the `rag/` module, specifically the relevance scoring logic and its test file.
+
+**Scope reasoning ("Is this issue right for me?"):**
+I can explain the bug without going back to reread the issue: a test fixture that's supposed to represent partial overlap actually has full overlap, so the test fails even though the code itself is correct. It's a Tier 1 fix scoped to a single test file, which fits where I'm at as a first-time contributor to a large codebase. I already confirmed the relevant test file exists (`tests/unit/test_relevance_scorer.py`) and can be run directly with `pytest tests/unit/test_relevance_scorer.py -q` to reproduce the failure. There's an open PR (#164) already against this issue, so I know someone else is working it too, but since claims are non-exclusive I'm fine moving forward. I'm estimating this is a 1-2 hour fix once I'm actually in the code, which fits comfortably within the Week 8-9 timeline, and there don't seem to be any blockers or dependencies mentioned in the issue.
+
+**Branch name:** fix/157-relevance-scorer-partial-overlap-fixture
+
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+**Cohort ledger:** [ ] Issue added to cohort ledger
+(Note: the ledger spreadsheet isn't allowing edit access on my account, issue and claim are documented here and on GitHub instead.)
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction summary:**
+I ran `pytest tests/unit/test_relevance_scorer.py -q` and was able to reproduce the failure described in the issue. The test uses the query **"Python Django web framework"** and compares it against the chunk **"Django is a Python web framework for rapid development."** Since every query word appears in the chunk, the relevance scorer correctly returns a score of **1.0**. However, the test expects the score to be between **0.3** and **0.9**, so it fails with `assert 1.0 < 0.9`. This confirms that the problem is with the test fixture, not the scoring logic—the current fixture is actually a full-overlap example instead of a partial-overlap one.
+
+**Reproduction commit link:** https://github.com/tanvij69/pathreview/commit/860043b
+
+**PLAN.md link:** https://github.com/tanvij69/pathreview/blob/fix/157-relevance-scorer-partial-overlap-fixture/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded
+
+**Blockers or open questions:**
+Still need to confirm the exact scoring formula in `RelevanceScorer.score()` before finalizing new fixture values.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed the fix for issue #157 by modifying the fixture in `test_query_with_partial_overlap` (`tests/unit/test_relevance_scorer.py`) so the chunk text overlaps with only 2 of the 4 query tokens, resulting in a relevance score of 0.5 that falls within the expected 0.3–0.9 range. Ran `make test-unit` before and after the update to verify the change was isolated: 53 failures beforehand (all pre-existing and unrelated), 52 afterward, with the only difference being the target test now passing. Created a draft PR (#484), completed the required template, and documented that the remaining mypy and lint issues were already present and unrelated to this fix.
+
+**Next steps:**
+Waiting on peer review after posting a request in both my section Slack channel and the `#ai201-community-su26` channel. After receiving feedback, or once the review window has passed, I'll respond to any comments, mark the PR as ready for review, and complete one final self-review against `CONTRIBUTING.md` before Sunday's deadline.
+
+**Blockers:**
+No implementation blockers at this point. The only outstanding item is peer review, which has been requested but I haven't received any feedback yet.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/484
+
+**Branch:** fix/157-relevance-scorer-partial-overlap-fixture
+
+**What you built:**
+Fixed a mislabeled test fixture in `test_query_with_partial_overlap` — the query and chunk previously shared 100% of tokens (a full-match case), so the scorer's correct 1.0 score failed the test's expected 0.3–0.9 range. Updated the chunk text so only 2 of 4 query tokens overlap, producing a score of 0.5 that genuinely represents partial-overlap behavior.
+
+**Tests added or updated:**
+Updated the fixture data in `tests/unit/test_relevance_scorer.py::test_query_with_partial_overlap`. No new test files were needed since the existing test structure was correct, only the fixture data was wrong.
+
+**Self-review confirmation:** [x] make check passes (pre-existing failures documented and unrelated) [x] make test-unit passes (52 pre-existing failures unrelated to this change; target test now passes)
+
+**Draft PR feedback received from:** none (requested in section Slack channel and #ai201-community-su26, no responses received)
+
+## Week 10 — Iteration & Reflection
+
+### Reviewer Feedback
+
+**Feedback received:** [ ] Yes  [x] No — still waiting for review
+
+**Summary of feedback:**
+I didn't receive any feedback from a peer or project maintainer. I asked for reviews in my section Slack channel and in #ai201-community-su26, but no one responded. 
+
+**How you responded:**
+N/A — I didn't receive any feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment setup ended up being much harder than the actual code change. Before I could even run the project, I had to work through several unrelated issues with Docker, WSL, and Node.js on Windows. I ran into a numpy version conflict in the Chroma vector database image, a bcrypt/passlib warning during database seeding, and even discovered that Windows didn't have `make` installed. Once everything was finally working, the actual fix only took about 10 minutes because it was just updating one line in a test fixture after I understood how the scoring worked.
+
+**What did you learn about working in a large codebase?**
+One of the biggest things I learned was not to assume that a failing test automatically means the code is wrong. At first I expected there to be a bug in the implementation, but after tracing through the logic, I realized the scoring function was working correctly and the test data was the real issue. I also learned the importance of verifying that a small change doesn't affect anything else. Running the full test suite before and after my fix gave me confidence that only the intended test changed while everything else behaved the same.
+
+**How did AI tools help — and where did they fall short?**
+AI was really helpful when I was troubleshooting environment issues. It made it much easier to understand errors like the numpy/Chroma crash and the WSL installation problem, which saved me a lot of time. It also helped me follow the scoring logic and estimate what test values would fall within the expected range. That said, AI couldn't actually verify that my solution worked. I still had to run the tests myself, review the results, and make sure the fix was correct. I also needed to read through the `RelevanceScorer.score()` implementation to fully understand why the change worked instead of just relying on AI's suggestions.
+
+**What would you do differently if you started over?**
+If I were starting over, I would make sure my development environment was fully set up before choosing an issue. A lot of my time early on was spent installing and troubleshooting missing tools that could have been handled beforehand. I would also ask for peer review earlier in the process so there would be a better chance of getting feedback before the deadline.
+
+**What are you most proud of from this module?**
+I'm most proud that I was able to identify that the problem was in the test rather than the actual implementation. It would have been easy to assume the scoring function was broken and start changing working code. Instead, I took the time to understand how the scoring worked, verified the calculations, and made a small, targeted fix. That experience taught me the importance of understanding the root cause of a problem instead of just making a failing test pass.
