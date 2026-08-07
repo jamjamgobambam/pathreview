@@ -146,3 +146,77 @@ ruff errors reduced 182 → 179, and two `redis_host`/`redis_port` mypy errors
 removed.)_
 
 **Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments arrived on PR #431 during the week (0 reviews,
+0 comments as of submission). Per the Summer 2026 note, reviewer feedback isn't a
+feature this term, so this is expected.
+
+**How you responded:**
+No feedback to respond to. The PR remains open and ready for review at
+https://github.com/ascherj/pathreview/pull/431.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Two things, neither of which was the actual bug. First, just getting the app to
+run: `make setup` blew up on a dependency conflict (`onnxruntime`, pulled in by
+`chromadb`, has no wheels for Python 3.14, which was my default interpreter). The
+error message pointed at `onnxruntime`, but the real cause was my Python version —
+diagnosing that took longer than writing the fix. Second, the fix itself is one
+line, but proving it was *correct and safe* in a codebase with 53 pre-existing
+failing tests and 182 pre-existing lint errors was the hard part. Most of my effort
+went into separating "my change" from "the codebase was already broken."
+
+**What did you learn about working in a large codebase?**
+That you inherit the codebase's existing state, mess and all, and your job is to not
+make it worse — not to fix everything. On my own projects, `make check` either
+passes or I broke it. Here, `check` was already failing repo-wide (even `mypy` was
+broken by a numpy stub needing Python 3.12 syntax against a 3.11 pin), so "passing"
+had to be redefined as "introduces no new failures versus a recorded baseline." I
+also learned to read the *contract* before touching code: the whole bug was that the
+health route assumed `Settings` had `redis_host`/`redis_port` fields that never
+existed — the real config only had `redis_url`. And I learned to respect blast
+radius: I found a *second*, unrelated bug (the Postgres probe needs
+`text("SELECT 1")` under SQLAlchemy 2.0), and the right move was to document it as
+out of scope, not to expand my PR into it.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for speed on the mechanical and investigative parts: locating the
+health route and `Settings` class, diagnosing the Python 3.14/`onnxruntime` wheel
+gap quickly, scaffolding the reproduction test and the negative-path test, and
+drafting the PLAN and PR description. Where it fell short was judgment. Deciding to
+use `redis.Redis.from_url(settings.redis_url)` instead of adding new settings,
+recognizing that the Postgres failure was a *separate* pre-existing bug rather than
+something my change broke, choosing to record a baseline and justify a `--no-verify`
+commit honestly rather than paper over the pre-existing hook failures — those were
+calls I had to make and stand behind. AI could generate options fast, but scoping,
+verifying the reproduction was genuine, and deciding what *not* to touch were on me.
+
+**What would you do differently if you started over?**
+I'd check the environment prerequisites (especially the Python version) *before*
+running `make setup`, which would have saved the whole 3.14 detour up front. I'd
+also run the full `/health` endpoint end-to-end earlier — I verified the Redis probe
+in isolation first, and only later hitting the live endpoint surfaced the separate
+Postgres bug; finding that on day one would have shaped my PR notes sooner. And I'd
+open the draft PR earlier in the week to leave room for feedback, rather than near
+submission.
+
+**What are you most proud of from this module?**
+The integrity of the write-up, more than the one-line fix. I recorded a real
+before/after baseline, proved my change reduced (not increased) the error counts,
+demonstrated the Redis probe going from `unhealthy` to `healthy` against a live
+service, and honestly flagged the unrelated Postgres bug as future work instead of
+hiding it. Patching the `Makefile` so the next person doesn't hit the same Python
+3.14 setup wall is a close second — it's a small thing that makes the project a
+little easier for whoever comes next.
