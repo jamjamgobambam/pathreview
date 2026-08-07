@@ -68,3 +68,35 @@ Added 4 new tests to tests/unit/test_skill_extractor.py: `test_issue_148_javascr
 **Self-review confirmation:** [x] make check passes for the files I touched (ruff, black, mypy all clean on skill_extractor.py and my new tests; the full repo-wide `make check` still fails from unrelated pre-existing lint errors in files I never touched)  [x] make test-unit passes for the tests this issue covers (ran the full suite before and after: 53 failed/375 passed before any of my changes, 51 failed/381 passed after, so 6 more tests pass overall with zero new failures anywhere)
 
 **Draft PR feedback received from:** none yet
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+As of 08/07/2026 There has been no feedback yet on my PR. 
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part of this entire pull request was not solving the bug itself, but following the practices of a industry standard PR. Throughout all my academic career, I have been used to writing code and tests, then submitting them with a single commit and a brief description. In this module, it emphasized how intricate and important the PR process is. Getting familiar with maneuvering through the Github interface, writing a detailed PR description, and following the review process was more time-consuming than I expected. I also had to learn how to write tests that accurately reflect the issue's examples, which required careful reading and understanding of the problem.
+
+**What did you learn about working in a large codebase?**
+The biggest difference between contributing to a large codebase and writing my own code is the importance of understanding the existing structure and conventions. Jumping into a large codebase practically highlighted how a small change that you are contributing on can have an impact on other parts of the system. When working on your own project, you understand the entire codebase and can make changes without worrying about any large scale issues as much due to your familiarity with the code making and decisions from scratch.
+
+**How did AI tools help — and where did they fall short?**
+AI was imperative in helping me understand the existing codebase and the problem at hand. To me, that was the main premise of this module and where AI is most effective. I prompted claude to narrow down the relevant files and functions to understand the bug and understand the existing test and any other relevant code associated with the issue. After familiarizing myself with the issue and codebase, I just followed the usual effective prompting procedures to get the AI to help me write the code and tests eventually fixing the bug. Where it may fell short was missing some of the nuances of the existing codebase and the problem at hand, which required me to read and understand the codebase myself. A few draft fixes didn't immediately work and resulted in some new problems, and I had to iterate on them to get the final solution.
+
+**What would you do differently if you started over?**
+If I were to start over, I would spend more time upfront understanding the existing codebase as a whole. To be completely transparent, I spent a lot of time understanding the specific function and test files related to the issue, but I did not spend as much time understanding the overall structure of the codebase. Not to say I did not spend enough time on that, but in a real world scenario, I would have spent more time understanding the overall structure of the codebase and how the different components interact with each other to fully immerse myself into the project. This would have helped me to understand the bigger picture and how my changes fit into it.
+
+**What are you most proud of from this module?**
+I am most proud of my ability to adapt to the PR process and the review process. That essentially was the main goal of this module. I'm proud to have had an actual practical experience of contributing to a large codebase from beginning to end. Learning how to select an issue, understanding the process of reproducing it, building a solution, writing tests, and submitting a PR for review was a very valuable experience. 
