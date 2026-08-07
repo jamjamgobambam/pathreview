@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/devmilano/git/pathreview/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/devmilano/git/pathreview
+configfile: pyproject.toml
+collecting ... collected 15 items / 1 deselected / 14 selected
+
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_empty_input_returns_empty_list PASSED [  7%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_whitespace_only_input PASSED [ 14%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_document_with_nested_headings PASSED [ 21%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_heading_path_format PASSED [ 28%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_large_section_sub_chunked PASSED [ 35%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_chunk_metadata_includes_heading_level PASSED [ 42%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_chunk_metadata_structure PASSED [ 50%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_preserve_source_metadata PASSED [ 57%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_multiple_h1_headings PASSED [ 64%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_heading_path_breadcrumb PASSED [ 71%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_chunks_have_text_content PASSED [ 78%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_section_extraction_with_multiple_levels PASSED [ 85%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_heading_not_in_middle_of_content PASSED [ 92%]
+tests/unit/test_structural_chunker.py::TestStructuralChunker::test_empty_sections_handled PASSED [100%]
+
+======================= 14 passed, 1 deselected in 0.17s =======================

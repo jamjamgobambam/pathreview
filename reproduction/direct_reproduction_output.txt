@@ -1,0 +1,4 @@
+Input characters: 1000
+Chunks returned: 0
+Expected chunks: at least 1
+Actual chunks: []

@@ -26,13 +26,49 @@ class TestStructuralChunker:
         assert result == []
 
     def test_document_with_no_headings(self, chunker):
-        """Test document with no headings returns single chunk."""
+        """Test document with no headings returns a single usable chunk."""
         text = "This is plain text without any markdown headings. " * 20
         result = chunker.chunk(text, {"source": "test"})
 
+        # Content must not be silently dropped (issue #149).
         assert len(result) >= 1
-        assert isinstance(result[0], Chunk)
         assert all(isinstance(c, Chunk) for c in result)
+
+        # A short heading-less document fits in one chunk.
+        assert len(result) == 1
+        chunk = result[0]
+
+        # The original text is preserved.
+        assert chunk.text == text.strip()
+
+        # Caller metadata survives.
+        assert chunk.metadata["source"] == "test"
+
+        # Heading context defaults for an untitled document.
+        assert chunk.metadata["heading_path"] == ""
+        assert chunk.metadata["heading_level"] == 0
+
+    def test_large_document_with_no_headings_sub_chunked(self, chunker):
+        """Test a large heading-less document is sub-chunked, not dropped."""
+        # Exceed the 800-token section threshold so the semantic sub-chunking
+        # path is exercised for a document that contains no headings.
+        text = "This is a paragraph with plenty of content to embed. " * 200
+        result = chunker.chunk(text, {"source": "large-doc"})
+
+        # Should produce multiple sub-chunks rather than a single oversized one.
+        assert len(result) > 1
+        assert all(isinstance(c, Chunk) for c in result)
+
+        # Every sub-chunk carries text, caller metadata, and heading defaults.
+        for chunk in result:
+            assert chunk.text.strip()
+            assert chunk.metadata["source"] == "large-doc"
+            assert chunk.metadata.get("heading_path", "") == ""
+            assert chunk.metadata.get("heading_level", 0) == 0
+
+        # Chunk indexes are sequential and unique (embedding-id safety).
+        indexes = [c.metadata["chunk_index"] for c in result]
+        assert indexes == list(range(len(result)))
 
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
