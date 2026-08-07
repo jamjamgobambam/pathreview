@@ -77,3 +77,34 @@ I fixed issue #156 by expanding the too-short inline fixture in `test_readme_wit
      no new black issues on my edited lines). Do not check these boxes unless you re-run and choose to. -->
 
 **Draft PR feedback received from:** [NAME OR SLACK HANDLE, OR "none"]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback has come in yet. Since reviewer feedback is not active for Summer 2026, I am documenting that the PR is still awaiting review and using this week to reflect on the full contribution process.
+
+**How you responded:**
+No code changes were needed in response to reviewer feedback. I reviewed my PR, branch, and `JOURNAL.md` to make sure my work and process documentation were complete.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The local setup was much harder than the actual code change. PathReview is a real multi-service environment, and `make setup` / `make run` would not run at first. I had to work through a chain of problems: `make` and Node.js were not installed, my Git Bash `~/.bashrc` was saved as UTF-16 so the PATH export silently failed, Docker Desktop was not running so Postgres refused connections during Alembic migrations, and the seed script crashed on Windows because the console could not encode a Unicode checkmark until I set `PYTHONUTF8=1`. None of that was in the issue itself — it was the cost of getting a production-style project to run on my machine before I could even reproduce issue #156.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's code is mostly reading and verifying, not writing. For my own projects I already know the intent; here I had to prove the scorer's intended behavior before touching anything. I confirmed that 22 of 23 tests in `tests/unit/test_readme_scorer.py` already passed and that the scorer defines "comprehensive" as >= 500 words, which told me the bug was in the test fixture, not the scorer. I also learned that a large repo has guardrails I did not create — pre-commit hooks (black, ruff, mypy) ran on commit and failed on pre-existing type-annotation issues in test files that had nothing to do with my change, and I had to reason about scope (the project's own Makefile only type-checks source dirs, not `tests/`) instead of "fixing" unrelated files.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for orientation and process: diagnosing the environment failures, drafting `PLAN.md`, structuring the reproduction and journal entries, and reasoning through whether to fix the fixture, the assertion, or the scorer. It helped me articulate why lengthening the fixture (51 -> 555 words) was the correct, non-weakening fix. Where it fell short was anything requiring ground truth: it could not tell me the real word count or category without actually running the scorer, and it could not confirm the failure until I ran `pytest` and saw `assert 51 > 100` for myself. The evidence — 23 passed in the file, the 53-vs-52 pre/post-fix baseline — came from running the project, not from AI.
+
+**What would you do differently if you started over?**
+I would stabilize the local environment first, before issue selection, so setup problems did not blend into the technical work. I would also capture exact terminal output as I went (branch, test command, failing assertion, word count) rather than reconstructing it later, since that evidence is what makes the reproduction and PR credible. On scope, I would decide up front how to handle unrelated lint/format/type noise so it never lands in my diff.
+
+**What are you most proud of from this module?**
+That I followed a realistic contributor workflow end to end — issue selection, environment setup, reproduction with real output, a written plan, the smallest correct fix, verification against a baseline, and an honest PR (including documenting that I used `--no-verify` and why) — rather than jumping straight to a one-line change. The fix itself was small; doing it the way a real contributor would is what I am proud of.
