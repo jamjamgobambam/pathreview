@@ -64,7 +64,7 @@ class TestTechDetector:
         # .ipynb should be treated as Python, not JSON
 
     def test_node_modules_excluded(self, detector):
-        """Test node_modules/ directory is excluded from counts."""
+        """Test node_modules directory is excluded from detection."""
         files = [
             "src/main.py",
             "node_modules/package1/index.js",
@@ -74,12 +74,13 @@ class TestTechDetector:
 
         result = detector.execute({"files": files})
 
-        data = result.data
-        assert data["primary_language"] == "Python"
-        # node_modules shouldn't dominate
+        assert result.success is True
+        assert result.data["primary_language"] == "Python"
+        assert result.data["all_languages"] == ["Python"]
+        assert result.data["frameworks"] == []
 
     def test_vendor_files_excluded(self, detector):
-        """Test vendor files are excluded."""
+        """Test vendor directory is excluded from detection."""
         files = [
             "src/main.py",
             "vendor/lib.js",
@@ -89,10 +90,12 @@ class TestTechDetector:
 
         result = detector.execute({"files": files})
 
-        # Python should be primary despite vendor files
+        assert result.success is True
+        assert result.data["primary_language"] == "Python"
+        assert result.data["all_languages"] == ["Python"]
 
     def test_build_directory_excluded(self, detector):
-        """Test build directory is excluded."""
+        """Test build directory is excluded from detection."""
         files = [
             "src/main.py",
             "build/generated.js",
@@ -101,8 +104,79 @@ class TestTechDetector:
 
         result = detector.execute({"files": files})
 
-        data = result.data
-        assert data["primary_language"] == "Python"
+        assert result.success is True
+        assert result.data["primary_language"] == "Python"
+        assert result.data["all_languages"] == ["Python"]
+
+    def test_nested_ignored_directories_excluded(self, detector):
+        """Test ignored directories are detected below the repo root."""
+        files = [
+            "src/main.py",
+            "frontend/node_modules/package/index.js",
+            "frontend/dist/generated.ts",
+        ]
+
+        result = detector.execute({"files": files})
+
+        assert result.success is True
+        assert result.data["all_languages"] == ["Python"]
+
+    def test_windows_path_separators_supported(self, detector):
+        """Test ignored directories in Windows-style paths."""
+        files = [
+            "src/main.py",
+            r"frontend\node_modules\package\index.js",
+            r"frontend\build\bundle.ts",
+        ]
+
+        result = detector.execute({"files": files})
+
+        assert result.success is True
+        assert result.data["all_languages"] == ["Python"]
+
+    def test_similarly_named_directories_not_excluded(self, detector):
+        """Test partial directory-name matches are preserved."""
+        files = [
+            "src/main.py",
+            "src/rebuild/parser.js",
+            "src/vendor_tools/helper.ts",
+        ]
+
+        result = detector.execute({"files": files})
+
+        assert result.success is True
+        assert set(result.data["all_languages"]) == {
+            "JavaScript",
+            "Python",
+            "TypeScript",
+        }
+
+    def test_config_files_in_ignored_directories_excluded(self, detector):
+        """Test ignored config files do not introduce frameworks."""
+        files = [
+            "src/main.py",
+            "node_modules/package/package.json",
+        ]
+
+        result = detector.execute({"files": files})
+
+        assert result.success is True
+        assert result.data["all_languages"] == ["Python"]
+        assert result.data["frameworks"] == []
+
+    def test_all_files_excluded_returns_unknown(self, detector):
+        """Test detection when every file belongs to an ignored directory."""
+        files = [
+            "node_modules/package/index.js",
+            "build/bundle.ts",
+        ]
+
+        result = detector.execute({"files": files})
+
+        assert result.success is True
+        assert result.data["primary_language"] == "Unknown"
+        assert result.data["all_languages"] == []
+        assert result.data["frameworks"] == []
 
     def test_config_file_detection(self, detector):
         """Test detection from config files."""

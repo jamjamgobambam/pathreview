@@ -56,6 +56,20 @@ class TechDetector(BaseTool):
         "cmake": ("CMake", "Build"),
     }
 
+    # Directories whose files should never affect tech detection
+    SKIP_DIRECTORIES = frozenset(
+        {
+            ".git",
+            ".venv",
+            "__pycache__",
+            "build",
+            "dist",
+            "node_modules",
+            "vendor",
+            "venv",
+        }
+    )
+
     def execute(self, input_data: dict) -> ToolResult:
         """Detect tech stack from files.
 
@@ -140,25 +154,17 @@ class TechDetector(BaseTool):
             "frameworks": all_frameworks,
         }
 
-    @staticmethod
-    def _should_skip_file(filepath: str) -> bool:
-        """Check if file should be skipped.
+    @classmethod
+    def _should_skip_file(cls, filepath: str) -> bool:
+        """Check whether a file is inside an ignored directory.
 
         Args:
-            filepath: File path
+            filepath: Repository-relative file path.
 
         Returns:
-            True if file should be skipped
+            True if any parent directory should be ignored.
         """
-        skip_patterns = [
-            "/node_modules/",
-            "/vendor/",
-            "/dist/",
-            "/build/",
-            "/.git/",
-            "/__pycache__/",
-            "/.venv/",
-            "/venv/",
-        ]
+        normalized_path = filepath.replace("\\", "/")
+        directory_parts = normalized_path.split("/")[:-1]
 
-        return any(pattern in filepath for pattern in skip_patterns)
+        return any(part in cls.SKIP_DIRECTORIES for part in directory_parts)
