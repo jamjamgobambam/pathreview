@@ -55,7 +55,7 @@ For a detailed architecture overview, see [docs/ARCHITECTURE.md](docs/ARCHITECTU
 
 ## Contributing
 
-We welcome contributions! Please read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) before submitting a pull request.
+We welcome contributions! Please read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) before submitting a pull request. For a step-by-step walkthrough of the full issue-to-PR lifecycle, see [docs/ONBOARDING.md](docs/ONBOARDING.md).
 
 ## Development
 

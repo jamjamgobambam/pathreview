@@ -8,6 +8,7 @@ Thank you for contributing to PathReview! This guide explains our development wo
 2. **Set up** your development environment following [SETUP.md](SETUP.md)
 3. **Browse issues** and find one that interests you
 4. **Comment** on the issue to let others know you're working on it
+5. **Follow the full contributor workflow** in [ONBOARDING.md](ONBOARDING.md) for a complete issue → branch → PR walkthrough
 
 ## Branch Naming Convention
 
