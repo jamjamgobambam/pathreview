@@ -263,3 +263,143 @@ full here since it spans 61 files. None of these were touched by this branch
 and after counts are identical by construction, not by re-running against a
 `main` checkout.
 
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. I checked PR #429 on `ascherj/pathreview`
+(`main...matthewpeck6:pathreview:test/38-integration-test_rag-pipeline`) at
+the end of the week and there are no review comments, no line comments, and
+no maintainer replies on the PR or on issue #38. Per the Su26 note, reviewer
+feedback isn't a feature this term, so this is the expected outcome rather
+than a stalled PR. The PR is still open and unmerged as of this entry.
+
+**How you responded:**
+No response required — nothing to respond to. I re-ran `pytest tests/integration
+-v -m integration` and `ruff check tests/integration/test_rag_pipeline.py` one
+more time to confirm the branch is still in the state I described in Week 9,
+and left the PR open in case a maintainer picks it up after the course window.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was that the issue described a pipeline stage that doesn't
+exist. Issue #38 asks for a test covering "retrieval → reranking → generation
+→ parsing," and I planned around four modules. There is no reranker module in
+`rag/`. `HybridRetriever.retrieve()` (`rag/retriever/hybrid.py:78-94`)
+normalizes the vector and BM25 score sets, blends them `0.7 * vector + 0.3 *
+keyword`, and sorts descending, all inline. I lost real time looking for a
+file that was never written before concluding the blend-and-sort *is* the
+reranking stage, then had to decide whether to say so or quietly test three
+stages and call it four. I documented it in the test docstring and in
+`EXPLANATION.md` — that felt more honest than pretending the issue's framing
+matched the code.
+
+The second surprise was `MockEmbeddingProvider`. I assumed "mock" meant
+"cheap but semantically reasonable." It actually SHA-256 hashes the text to
+seed numpy's RNG and returns a deterministic 1536-dim vector with no semantic
+meaning at all. My first assertion — that the top retrieved chunk would be the
+Python resume line — passed, and I nearly moved on. It only passed because
+BM25 caught the literal word "Python"; the vector half of the hybrid score was
+pure noise. If I'd written the query without a literal keyword overlap, the
+test would have been flaky for reasons I wouldn't have understood. That's the
+kind of thing that reads as a green checkmark and is actually a trap.
+
+Third: the repo isn't clean. `make test-unit` fails with 53 pre-existing
+failures and `ruff check .` reports 182 errors on `main`. The self-review
+checklist asks you to confirm "make check passes," and it does not pass and
+never did. Working out how to honestly report that — proving by `git diff
+main...HEAD --stat` that I touched no file under `rag/` or `tests/unit/`, so
+the before/after counts are identical by construction — took longer than
+writing the test did.
+
+**What did you learn about working in a large codebase?**
+
+On my own projects I know the contract of every function because I wrote it,
+so I test what I intended. Here I had to test what the code *actually does*,
+and those turned out to be different things. The clearest example: I expected
+five sections named after the five prompt templates, ending in
+`first_impression`. The last one comes back as `general_feedback`, because the
+`first_impression` template asks for plain text, and
+`parse_review_output()` falls through JSON-fence → raw JSON → plain-text
+fallback, and the fallback hardcodes the name `general_feedback`. Neither the
+generator's unit test nor the parser's unit test catches that, because each
+one is right about its own half. Only the seam is wrong. That is the entire
+argument for integration tests, and I didn't really understand it until I hit
+it.
+
+I also learned that scope discipline is mostly about what you *don't* touch.
+It was tempting to fix a few of the 53 failing unit tests while I was in
+there. Not touching them is what let me make a clean, verifiable claim that my
+branch introduces zero new failures. A diff that only adds files is trivially
+easy for a reviewer to trust; one that also "fixes a couple things" is not.
+
+The other thing: reading tests is the fastest way into an unfamiliar codebase.
+`tests/conftest.py` gave me `sample_resume_text` and `sample_readme_text` for
+free, which meant my corpus was realistic text rather than `"foo bar baz"` —
+and the realism is what made the BM25 assertion meaningful.
+
+**How did AI tools help — and where did they fall short?**
+
+Most useful for orientation and for mechanical work. Tracing the call chain
+from `generate_full_review()` down through `generate_section()` into
+`parse_review_output()` across four files, and getting the shape of the
+`openai` client right so `SimpleNamespace(chat=SimpleNamespace(completions=...))`
+matched what `ReviewGenerator` actually calls — that would have been slow by
+hand and AI collapsed it into minutes. Same for cleanup: import ordering,
+`black`, the two `E501` violations.
+
+Where it fell short was on the things that required looking at *this* repo and
+believing what I saw. Asked about the pipeline, AI happily went along with the
+issue's four-stage framing and would have had me import a reranker; the code
+says otherwise, and only reading `hybrid.py` settled it. It also had no
+opinion on whether my "top result is the resume Python line" assertion was
+load-bearing or accidental that required understanding that
+`MockEmbeddingProvider` returns hash-seeded noise and reasoning about which
+half of the hybrid score was actually doing the work. AI generates a passing
+test easily. Whether a passing test *proves anything* is a judgment call about
+the specific system, and that part stayed mine. The rule I ended up with: use
+it to move fast through code I could have read myself, don't use it to decide
+what's true about the code.
+
+**What would you do differently if you started over?**
+
+Verify the issue's premises against the source before writing PLAN.md, not
+during. My Week 7 plan listed "reranking" as a stage with a `[confirm: where
+does reranking live?]` note attached, and I wrote the rest of the plan as if
+that would resolve cleanly. It didn't, and every downstream estimate was off
+because of it. Thirty minutes of reading `rag/` first would have changed the
+plan's whole shape.
+
+I'd also run the full test suite on `main` on day one and write the numbers
+down. I discovered the 53 failures and 182 Ruff errors mid-implementation,
+which meant a stretch of wondering whether I'd broken something. A baseline
+captured before touching anything turns that panic into a one-line
+comparison.
+
+Smaller: my time estimate contradicts itself in the Week 7 entry — I wrote
+"4-6 hours" and then "8–12 hours" two paragraphs later. I should have picked
+one and revised it deliberately. And I'd write `EXPLANATION.md` as I went
+rather than after; reconstructing why each assertion existed after the fact
+was harder than narrating it in the moment would have been.
+
+**What are you most proud of?**
+
+`EXPLANATION.md` — specifically the part explaining *why* the top-result
+assertion is safe despite fake embeddings. It documents a piece of reasoning
+that isn't visible in the test code and would be invisible to anyone reading
+the diff: that the assertion rides on the BM25 signal, not the vector signal,
+because `MockEmbeddingProvider`'s vectors are hash-derived noise. Six months
+from now, someone swapping in a real embedding provider or changing the hybrid
+weights will know exactly why that line is written the way it is instead of
+deleting it as an odd assertion. The test is the deliverable; explaining the
+non-obvious reasoning behind it is the part I'd want a reviewer to notice.
+
