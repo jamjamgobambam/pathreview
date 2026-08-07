@@ -1,6 +1,7 @@
 """Prompt injection detection and defense."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -38,6 +39,11 @@ class PromptDefense:
             Sanitized text
         """
         sanitized = text
+
+        # Strip newline characters to prevent prompt injection via role-switching
+        sanitized = sanitized.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+        sanitized = sanitized.replace("\x0b", " ").replace("\x0c", " ")
+        sanitized = sanitized.replace("\x85", " ").replace("\u2028", " ").replace("\u2029", " ")
 
         # Strip template delimiters
         sanitized = sanitized.replace("{{", "").replace("}}", "")
