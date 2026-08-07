@@ -1,15 +1,33 @@
 """Tests for review_service.py"""
 
-import pytest
-from uuid import uuid4
 from unittest.mock import AsyncMock, Mock, patch
-import asyncio
+from uuid import uuid4
+
+import pytest
 
 from core.services.review_service import (
+    _run_ingestion_pipeline,
+    _run_safety_checks,
     create_review,
     get_review,
     list_reviews,
+    process_review,
 )
+
+
+def make_execute_result(first=None, all=None):
+    """Build a plain (non-AsyncMock) result object for a mocked db.execute() call.
+
+    Production code calls `.scalars()` synchronously on the object returned by
+    `await db.execute(...)`. If that returned object is itself an AsyncMock,
+    `.scalars` is auto-specced as an AsyncMock too, so calling it returns an
+    unawaited coroutine instead of the configured Mock chain (this is the bug
+    tracked in issue #158). Using a plain Mock() here avoids that trap.
+    """
+    result = Mock()
+    result.scalars.return_value.first.return_value = first
+    result.scalars.return_value.all.return_value = all if all is not None else []
+    return result
 
 
 @pytest.mark.unit
@@ -45,7 +63,9 @@ class TestReviewService:
         return profile
 
     @pytest.mark.asyncio
-    async def test_create_review_returns_review_with_pending_status(self, mock_db_session, mock_review):
+    async def test_create_review_returns_review_with_pending_status(
+        self, mock_db_session, mock_review
+    ):
         """Test create_review returns Review with status='pending'."""
         profile_id = uuid4()
         user_id = uuid4()
@@ -55,7 +75,7 @@ class TestReviewService:
         mock_db_session.commit = AsyncMock()
         mock_db_session.refresh = AsyncMock()
 
-        with patch('core.services.review_service.Review') as MockReview:
+        with patch("core.services.review_service.Review") as MockReview:
             mock_instance = MockReview.return_value
             mock_instance.status = "pending"
             mock_instance.sections = None
@@ -66,7 +86,7 @@ class TestReviewService:
             # Check that Review was instantiated
             MockReview.assert_called()
             call_kwargs = MockReview.call_args[1]
-            assert call_kwargs['status'] == "pending"
+            assert call_kwargs["status"] == "pending"
 
     @pytest.mark.asyncio
     async def test_get_review_returns_review_for_correct_owner(self, mock_db_session):
@@ -133,9 +153,7 @@ class TestReviewService:
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
-        reviews, total = await list_reviews(
-            mock_db_session, user_id, page=2, page_size=page_size
-        )
+        reviews, total = await list_reviews(mock_db_session, user_id, page=2, page_size=page_size)
 
         # Second call should pass offset for page 2
         calls = mock_db_session.execute.call_args_list
@@ -165,7 +183,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.add.assert_called_once()
@@ -176,7 +194,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.commit.assert_called_once()
@@ -187,7 +205,7 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review'):
+        with patch("core.services.review_service.Review"):
             await create_review(mock_db_session, profile_id, user_id)
 
             mock_db_session.refresh.assert_called_once()
@@ -244,13 +262,13 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review') as MockReview:
+        with patch("core.services.review_service.Review") as MockReview:
             MockReview.return_value = Mock()
             await create_review(mock_db_session, profile_id, user_id)
 
             call_kwargs = MockReview.call_args[1]
-            assert 'profile_id' in call_kwargs
-            assert 'status' in call_kwargs
+            assert "profile_id" in call_kwargs
+            assert "status" in call_kwargs
 
     @pytest.mark.asyncio
     async def test_get_review_verifies_ownership(self, mock_db_session):
@@ -287,7 +305,7 @@ class TestReviewService:
         """Test list_reviews returns list of Review objects."""
         user_id = uuid4()
 
-        mock_reviews = [Mock(spec=['id', 'status']) for _ in range(3)]
+        mock_reviews = [Mock(spec=["id", "status"]) for _ in range(3)]
         mock_result = AsyncMock()
         mock_result.scalars.return_value.all.return_value = mock_reviews
         mock_db_session.execute = AsyncMock(return_value=mock_result)
@@ -302,13 +320,13 @@ class TestReviewService:
         profile_id = uuid4()
         user_id = uuid4()
 
-        with patch('core.services.review_service.Review') as MockReview:
+        with patch("core.services.review_service.Review") as MockReview:
             MockReview.return_value = Mock()
             await create_review(mock_db_session, profile_id, user_id)
 
             call_kwargs = MockReview.call_args[1]
-            assert call_kwargs['sections'] is None
-            assert call_kwargs['overall_score'] is None
+            assert call_kwargs["sections"] is None
+            assert call_kwargs["overall_score"] is None
 
     @pytest.mark.asyncio
     async def test_get_review_with_valid_uuid(self, mock_db_session):
@@ -338,3 +356,267 @@ class TestReviewService:
 
         # Should order by created_at descending
         mock_db_session.execute.assert_called_once()
+
+    # ---- process_review: success path ----
+
+    @pytest.mark.asyncio
+    async def test_process_review_success_path(self, mock_db_session, mock_review, mock_profile):
+        """Test process_review sets status='complete' and stores sections on success."""
+        review_result = make_execute_result(first=mock_review)
+        profile_result = make_execute_result(first=mock_profile)
+        mock_db_session.execute = AsyncMock(side_effect=[review_result, profile_result])
+
+        rag_output = {
+            "sections": [
+                {
+                    "section_name": "Technical Skills",
+                    "content": "Detailed feedback on technical skills",
+                    "confidence": 0.85,
+                    "suggestions": ["Add more detail"],
+                }
+            ],
+            "overall_score": 0.81,
+        }
+
+        with (
+            patch(
+                "core.services.review_service._run_ingestion_pipeline",
+                new=AsyncMock(return_value=[]),
+            ),
+            patch(
+                "core.services.review_service._run_agent_orchestration",
+                new=AsyncMock(return_value={"sections": [], "overall_score": 0.75}),
+            ),
+            patch(
+                "core.services.review_service._run_rag_retrieval_generation",
+                new=AsyncMock(return_value=rag_output),
+            ),
+            patch(
+                "core.services.review_service._run_safety_checks", new=AsyncMock(return_value=True)
+            ),
+        ):
+            await process_review(mock_db_session, mock_review.id, mock_profile.id)
+
+        assert mock_review.status == "complete"
+        assert mock_review.sections is not None
+        assert len(mock_review.sections) == 1
+        assert mock_review.overall_score == 0.81
+
+    # ---- process_review: partial-failure paths ----
+
+    @pytest.mark.asyncio
+    async def test_process_review_review_not_found_returns_early(self, mock_db_session):
+        """Test process_review returns early without committing when the review doesn't exist."""
+        review_result = make_execute_result(first=None)
+        mock_db_session.execute = AsyncMock(return_value=review_result)
+
+        await process_review(mock_db_session, uuid4(), uuid4())
+
+        mock_db_session.commit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_process_review_profile_not_found_sets_failed(self, mock_db_session, mock_review):
+        """Test process_review sets status='failed' when the profile lookup returns None."""
+        review_result = make_execute_result(first=mock_review)
+        profile_result = make_execute_result(first=None)
+        mock_db_session.execute = AsyncMock(side_effect=[review_result, profile_result])
+
+        with patch(
+            "core.services.review_service._run_ingestion_pipeline", new=AsyncMock()
+        ) as mock_ingest:
+            await process_review(mock_db_session, mock_review.id, uuid4())
+
+        assert mock_review.status == "failed"
+        mock_ingest.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_process_review_safety_check_failed_sets_failed(
+        self, mock_db_session, mock_review, mock_profile
+    ):
+        """Test process_review sets status='failed' when safety checks fail."""
+        review_result = make_execute_result(first=mock_review)
+        profile_result = make_execute_result(first=mock_profile)
+        mock_db_session.execute = AsyncMock(side_effect=[review_result, profile_result])
+
+        with (
+            patch(
+                "core.services.review_service._run_ingestion_pipeline",
+                new=AsyncMock(return_value=[]),
+            ),
+            patch(
+                "core.services.review_service._run_agent_orchestration",
+                new=AsyncMock(return_value={"sections": [], "overall_score": 0.5}),
+            ),
+            patch(
+                "core.services.review_service._run_rag_retrieval_generation",
+                new=AsyncMock(return_value={"sections": [], "overall_score": 0.5}),
+            ),
+            patch(
+                "core.services.review_service._run_safety_checks", new=AsyncMock(return_value=False)
+            ),
+        ):
+            await process_review(mock_db_session, mock_review.id, mock_profile.id)
+
+        assert mock_review.status == "failed"
+        assert mock_review.sections is None
+        assert mock_review.overall_score is None
+
+    # ---- process_review: full-failure paths ----
+
+    @pytest.mark.asyncio
+    async def test_process_review_exception_sets_failed(
+        self, mock_db_session, mock_review, mock_profile
+    ):
+        """Test the outer except sets status='failed' when a pipeline step raises."""
+        review_result = make_execute_result(first=mock_review)
+        profile_result = make_execute_result(first=mock_profile)
+        recovery_result = make_execute_result(first=mock_review)
+        mock_db_session.execute = AsyncMock(
+            side_effect=[review_result, profile_result, recovery_result]
+        )
+
+        with patch(
+            "core.services.review_service._run_ingestion_pipeline",
+            new=AsyncMock(side_effect=Exception("boom")),
+        ):
+            await process_review(mock_db_session, mock_review.id, mock_profile.id)
+
+        assert mock_review.status == "failed"
+
+    @pytest.mark.asyncio
+    async def test_process_review_recovery_exception_is_swallowed(
+        self, mock_db_session, mock_review, mock_profile
+    ):
+        """Test that a failure in the except-block's own recovery query doesn't propagate."""
+        review_result = make_execute_result(first=mock_review)
+        profile_result = make_execute_result(first=mock_profile)
+        mock_db_session.execute = AsyncMock(
+            side_effect=[review_result, profile_result, Exception("recovery db down")]
+        )
+
+        with patch(
+            "core.services.review_service._run_ingestion_pipeline",
+            new=AsyncMock(side_effect=Exception("boom")),
+        ):
+            # Should not raise even though the recovery block's db.execute also fails.
+            await process_review(mock_db_session, mock_review.id, mock_profile.id)
+
+    # ---- _run_ingestion_pipeline ----
+
+    @pytest.mark.asyncio
+    async def test_run_ingestion_pipeline_all_sources_present(self, mock_db_session):
+        """Test all three source types are ingested when present on the profile."""
+        profile = Mock()
+        profile.id = uuid4()
+        profile.github_username = "octocat"
+        profile.portfolio_url = "https://example.com/portfolio"
+        profile.resume_text = "resume contents"
+        profile.resume_filename = "resume.pdf"
+
+        sources = await _run_ingestion_pipeline(mock_db_session, profile)
+
+        assert len(sources) == 3
+        assert {s["source_type"] for s in sources} == {"github", "portfolio", "resume"}
+        # Note: db.add() is not currently reached for any source here because
+        # `IngestedSource(..., raw_data=...)` is called with a kwarg the real
+        # model doesn't define (pre-existing bug, out of scope for #109 —
+        # each branch's own except catches it and logs, per source_type).
+        mock_db_session.commit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_run_ingestion_pipeline_no_sources(self, mock_db_session):
+        """Test no sources are ingested and no error occurs when none are present."""
+        profile = Mock()
+        profile.id = uuid4()
+        profile.github_username = None
+        profile.portfolio_url = None
+        profile.resume_text = None
+        profile.resume_filename = None
+
+        sources = await _run_ingestion_pipeline(mock_db_session, profile)
+
+        assert sources == []
+        mock_db_session.add.assert_not_called()
+        mock_db_session.commit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_run_ingestion_pipeline_only_github(self, mock_db_session):
+        """Test only the github source is ingested when other sources are absent."""
+        profile = Mock()
+        profile.id = uuid4()
+        profile.github_username = "octocat"
+        profile.portfolio_url = None
+        profile.resume_text = None
+        profile.resume_filename = None
+
+        sources = await _run_ingestion_pipeline(mock_db_session, profile)
+
+        assert len(sources) == 1
+        assert sources[0]["source_type"] == "github"
+
+    @pytest.mark.asyncio
+    async def test_run_ingestion_pipeline_source_error_does_not_abort_others(self, mock_db_session):
+        """Test a failure in one source's ingestion doesn't prevent the others from completing."""
+        profile = Mock()
+        profile.id = uuid4()
+        profile.github_username = "octocat"
+        profile.portfolio_url = "https://example.com/portfolio"
+        profile.resume_text = "resume contents"
+        profile.resume_filename = "resume.pdf"
+
+        with patch(
+            "core.services.review_service.IngestedSource",
+            side_effect=[RuntimeError("github row boom"), Mock(), Mock()],
+        ):
+            sources = await _run_ingestion_pipeline(mock_db_session, profile)
+
+        assert len(sources) == 3
+        assert {s["source_type"] for s in sources} == {"github", "portfolio", "resume"}
+        assert mock_db_session.add.call_count == 2
+
+    # ---- _run_safety_checks ----
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_passes_with_valid_sections(self):
+        """Test safety checks pass for well-formed sections with valid confidence."""
+        output = {
+            "sections": [
+                {"section_name": "Skills", "content": "Good content", "confidence": 0.8},
+            ]
+        }
+        assert await _run_safety_checks(output) is True
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_fails_empty_sections(self):
+        """Test safety checks fail when there are no sections."""
+        assert await _run_safety_checks({"sections": []}) is False
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_fails_missing_section_name(self):
+        """Test safety checks fail when a section is missing its name."""
+        output = {"sections": [{"section_name": "", "content": "text", "confidence": 0.5}]}
+        assert await _run_safety_checks(output) is False
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_fails_missing_content(self):
+        """Test safety checks fail when a section is missing its content."""
+        output = {"sections": [{"section_name": "Skills", "content": "", "confidence": 0.5}]}
+        assert await _run_safety_checks(output) is False
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_fails_negative_confidence(self):
+        """Test safety checks fail when confidence is below 0."""
+        output = {"sections": [{"section_name": "Skills", "content": "text", "confidence": -0.1}]}
+        assert await _run_safety_checks(output) is False
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_fails_confidence_above_one(self):
+        """Test safety checks fail when confidence is above 1."""
+        output = {"sections": [{"section_name": "Skills", "content": "text", "confidence": 1.5}]}
+        assert await _run_safety_checks(output) is False
+
+    @pytest.mark.asyncio
+    async def test_run_safety_checks_catches_internal_exception(self):
+        """Test an internal error (e.g. a malformed section) is caught and returns False."""
+        output = {"sections": ["not-a-dict"]}
+        assert await _run_safety_checks(output) is False
