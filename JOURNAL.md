@@ -76,3 +76,33 @@ My fix populates the previously hardcoded safety_events_last_hour field in the /
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review has come in
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Setting up my local environment and reproducing the issue was harder than expected. I kept running into errors. I eventually 
+
+**What did you learn about working in a large codebase?**
+I learned that that when you contribute in a large codebase, there's a different syntax in code that you must follow. It also can be time consuming to set it up on your local environment. 
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped me my understand the issue and which steps I would require to solve it. They fell short when it comes to actually understanding the codebase. AI would often give suggestions that doesn't align with the exising codebase, like using a package that doesn't exist or not following the proper coding format. 
+
+**What would you do differently if you started over?**
+I would've definitely added more tests, specifically integration tests. 
+
+**What are you most proud of from this module?**
+I am proud of being able to fix my issue and opening a complete PR. I also learned a lot about open source contribution. 
