@@ -61,10 +61,10 @@ class Orchestrator:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
                 results[tool_name] = {"error": str(e), "success": False}
 
-        # Persist state
-        if self.session_store:
-            session_state.update(results)
-            self.session_store.set(profile_id, session_state)
+            # Persist state incrementally
+            if self.session_store:
+                session_state.update(results)
+                self.session_store.set(profile_id, session_state)
 
         logger.info("orchestrator_complete", profile_id=profile_id,
                    tools_executed=len(results))

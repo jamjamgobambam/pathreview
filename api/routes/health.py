@@ -41,10 +41,8 @@ async def health_check(db=Depends(get_db)):
         import redis
         from core.config import settings
 
-        r = redis.Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            db=0,
+        r = redis.Redis.from_url(
+            settings.redis_url,
             decode_responses=True,
         )
         r.ping()
