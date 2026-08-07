@@ -31,7 +31,7 @@ docker compose up -d
 make setup
 
 # Start the application
-make run
+make run 
 ```
 
 Then open http://localhost:5173 in your browser.
