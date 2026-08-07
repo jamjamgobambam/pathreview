@@ -130,12 +130,20 @@ class ResumeParser(BaseParser):
         text_lower = text.lower()
 
         for section in SECTION_HEADERS:
-            # Look for section header patterns
+            # Look for section header patterns (issue #147).
+            # A header can carry leading indentation — PDF text extraction
+            # routinely preserves leading spaces/tabs (e.g. "    Experience:").
+            # `[ \t]*` after each line anchor absorbs that indentation. It is
+            # deliberately horizontal-only (not `\s*`) so a match cannot leak
+            # across a newline onto the following line. The trailing `\s*$` /
+            # `\s*[:|-]` boundary is kept so the header still has to end its
+            # field, which prevents substring false positives like
+            # "Work Experience Highlights".
             patterns = [
-                rf"^{re.escape(section)}\s*$",
-                rf"^{re.escape(section)}\s*[:|-]",
-                rf"\n{re.escape(section)}\s*$",
-                rf"\n{re.escape(section)}\s*[:|-]",
+                rf"^[ \t]*{re.escape(section)}\s*$",
+                rf"^[ \t]*{re.escape(section)}\s*[:|-]",
+                rf"\n[ \t]*{re.escape(section)}\s*$",
+                rf"\n[ \t]*{re.escape(section)}\s*[:|-]",
             ]
 
             for pattern in patterns:

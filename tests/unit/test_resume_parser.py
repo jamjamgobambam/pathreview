@@ -143,6 +143,68 @@ class TestResumeParser:
         assert any("education" in s for s in sections_lower)
         assert any("skills" in s for s in sections_lower)
 
+    def test_detect_sections_with_leading_whitespace(self, parser):
+        """Regression test for issue #147.
+
+        Section detection must tolerate leading indentation. PDF text extraction
+        routinely preserves leading spaces/tabs, but `_detect_sections()` anchors
+        every header pattern to the exact start of a line (`^Experience`,
+        `\\nExperience`), so an indented header matches nothing and
+        `detected_sections` silently comes back empty.
+
+        Reproduction: identical content, only difference is leading whitespace.
+        The flush-left variant is detected; the indented variant currently is not.
+        """
+        flush = "Experience:\nSenior Dev\nEducation:\nBS CS\nSkills: Python"
+        indented = "    Experience:\n    Senior Dev\n    Education:\n    BS CS\n    Skills: Python"
+
+        # Sanity check: flush-left text detects sections today.
+        assert len(parser._detect_sections(flush)) > 0
+
+        # The bug: the same text with leading whitespace detects nothing.
+        indented_sections = [s.lower() for s in parser._detect_sections(indented)]
+        assert any("experience" in s for s in indented_sections)
+        assert any("education" in s for s in indented_sections)
+        assert any("skills" in s for s in indented_sections)
+
+    def test_detect_sections_tab_indented(self, parser):
+        """Headers indented with tabs are detected (issue #147)."""
+        text = "\tExperience:\n\tSenior Dev\n\tEducation:\n\tBS CS"
+        sections = [s.lower() for s in parser._detect_sections(text)]
+        assert any("experience" in s for s in sections)
+        assert any("education" in s for s in sections)
+
+    def test_detect_sections_mixed_space_tab_indent(self, parser):
+        """Headers indented with mixed spaces and tabs are detected (issue #147)."""
+        text = " \t Experience:\n\t  Skills: Python"
+        sections = [s.lower() for s in parser._detect_sections(text)]
+        assert any("experience" in s for s in sections)
+        assert any("skills" in s for s in sections)
+
+    def test_detect_sections_first_line_indented(self, parser):
+        """An indented header on the very first line (no preceding newline) is detected."""
+        text = "    Summary:\nExperienced engineer"
+        sections = [s.lower() for s in parser._detect_sections(text)]
+        assert any("summary" in s for s in sections)
+
+    def test_detect_sections_crlf_line_endings(self, parser):
+        """Indented headers survive CRLF (\\r\\n) line endings from PDF extraction (issue #147)."""
+        text = "    Experience:\r\n    Senior Dev\r\n    Education:\r\n    BS CS"
+        sections = [s.lower() for s in parser._detect_sections(text)]
+        assert any("experience" in s for s in sections)
+        assert any("education" in s for s in sections)
+
+    def test_detect_sections_ignores_midsentence_occurrence(self, parser):
+        """A header word appearing mid-sentence must not be falsely detected (issue #147).
+
+        Guards against the whitespace-tolerant anchors over-matching: the
+        trailing boundary still requires the header to end its own field.
+        """
+        text = "    I gained experience building scalable education tools."
+        sections = [s.lower() for s in parser._detect_sections(text)]
+        assert not any("experience" in s for s in sections)
+        assert not any("education" in s for s in sections)
+
     def test_strip_markdown_syntax(self, parser):
         """Test markdown syntax stripping."""
         markdown_text = """
