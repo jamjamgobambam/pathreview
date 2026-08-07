@@ -64,3 +64,32 @@ This is a good Tier 1 issue because it is important but tightly scoped. The bug 
 **Self-review confirmation:** [x] make check passes for changed files; full repo `make check` was run and fails on unrelated pre-existing lint issues outside this PR. [x] make test-unit passes for the changed PII scrubber test file; full repo `make test-unit` was run and fails on unrelated pre-existing unit-test failures outside this PR.
 
 **Draft PR feedback received from:** none
+
+## Week 10 - Iteration & Reflection
+
+### Reviewer Feedback
+
+**Feedback received:** [ ] Yes  [x] No - still awaiting review
+
+**Summary of feedback:** No reviewer or maintainer feedback had arrived on PR #442 by the time I completed this Week 10 journal entry. I checked the open pull request and it is still awaiting review, which matches the Summer 2026 note that formal reviewer feedback is not part of this version of the module.
+
+**How you responded:** Since no review comments were posted, there was nothing to reply to or revise in response to a reviewer. I left the PR open and ready for review with the filled-out template, testing notes, and manual verification steps so a future reviewer can understand the change.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+I expected the actual code change for issue #146 to be the hard part, but the harder part was proving the regex fix was safe around the edges. Updating `phone_us` in `safety/pii_scrubber.py` to catch `(555) 123-4567` was small, but I had to think carefully about not matching SSNs, version numbers, or long numeric IDs. I also did not expect the existing `street_address` regex to show a false positive in `test_mixed_pii_and_text`, where `Pl` could match inside the word `applications`.
+
+**What did you learn about working in a large codebase?**
+I learned that a small fix can still touch the expectations of a much larger system. `PIIScrubber.scrub()` and `PIIScrubber.detect()` looked simple at first, but they sit in a safety layer where a regex being too narrow leaks PII and a regex being too broad destroys normal user text. I also learned that project-wide commands like `make check` and `make test-unit` may reveal unrelated baseline failures, so it is important to separate "my changed files pass" from "the whole inherited repo is clean."
+
+**How did AI tools help - and where did they fall short?**
+AI tools helped me trace the issue from the failing tests to the exact `phone_us` pattern and helped me turn the Week 8 plan into concrete implementation steps. They were also useful for drafting the PR body, journal entries, and manual verification instructions in a way that matched the rubric. Where AI fell short was that it could not replace actually running the tests: the first focused run exposed the unexpected street-address false positive, and the full repo checks showed many unrelated failures that had to be interpreted rather than blindly "fixed."
+
+**What would you do differently if you started over?**
+If I started over, I would capture a baseline `make check` and `make test-unit` result before making any Week 9 code changes, not just the focused reproduction file. That would make the distinction between pre-existing failures and my PR's behavior even cleaner in the PR description. I would also make the PR description draft before clicking "Create pull request" so I would not accidentally publish the empty GitHub template first and have to edit it afterward.
+
+**What are you most proud of from this module?**
+I am most proud that the final PR is not just a one-line regex change; it includes a reproduction record, a plan, a focused implementation, and tests that explain the intended boundary. The test updates in `tests/unit/test_pii_scrubber.py` cover the actual bug format, adjacent valid formats like `+1 (555) 123-4567`, and false-positive cases like SSNs and long tracking IDs. That made the contribution feel like a real safety fix rather than just making one failing assertion turn green.
