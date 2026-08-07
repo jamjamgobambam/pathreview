@@ -90,3 +90,53 @@ introduces no new failures. All four issue-specific tests pass; the full
 commands retain the unrelated failures recorded before implementation.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+No review came in
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+Couple of things were actually harder than I expected. First and foremost, was trying to reproduce the issue such with two different users. I had to understand how authentication works, obtain the correct profile UUIDs, and trace the request through the route and service. 
+It was also challenging to separate failures caused by my changes from the repository’s existing set of test and formatting failures.
+
+
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+I learned that instead of trying to understand the entire project at once, its better to focus on smaller aspect and continue from there. I learn how to trace one request at a time through the route, service, database model, and tests instead of trying to understand the entire project at once. 
+I also learned the importance of following existing patterns, testing side effects with changes, and recording baseline failures before making changes can be useful.
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+AI tools helped me navigate this unfamiliar codebase such as tracing the request from the API route to the service and database models, and understand the project’s testing conventions. They also helped me reproduce the issue once I figured out whats going on, understand and write test matching the testing convention , and interpret unrelated failures from the full test suite. 
+However, AI-generated suggestions still needed careful review because they did not always match the project’s conventions. They did not recognize which failures already existed.
+
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+I would run the full tests and quality checks before changing anything and save the baseline results immediately.
+I would also inspect the existing test files and contribution guide earlier, then build the fix in smaller steps: reproduce the bug, update the service, update the route, and test each step.
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+I am most proud that I was able to navigate through unfamiliar codebase with help of AI and able to understand and reproduce a authorization issue that can happen in real world and implemented a focused fix along with tests that follows the project’s architecture. 
