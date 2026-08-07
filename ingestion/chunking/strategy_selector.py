@@ -16,7 +16,7 @@ class StrategySelector:
         Select appropriate chunker based on document type.
 
         Args:
-            source_type: One of "resume", "readme", "repo", or default
+            source_type: One of "resume", "readme", "repo", "workflow", or default
 
         Returns:
             Appropriate BaseChunker instance
@@ -27,6 +27,9 @@ class StrategySelector:
             return self.structural_chunker
         elif source_type == "repo":
             return self.semantic_chunker
+        elif source_type == "workflow":
+            # Workflow YAML is highly structured; chunk by structure.
+            return self.structural_chunker
         else:
             # Default to semantic chunking
             return self.semantic_chunker
