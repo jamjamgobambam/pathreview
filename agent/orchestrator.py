@@ -1,12 +1,12 @@
 """Plan-execute orchestrator for agent tools."""
 
 import time
-import structlog
-from typing import Optional
 
-from .memory.session_store import SessionStore
-from .memory.context_manager import ContextManager
+import structlog
+
 from .error_handling import retry_with_backoff
+from .memory.context_manager import ContextManager
+from .memory.session_store import SessionStore
 
 logger = structlog.get_logger()
 
@@ -14,8 +14,9 @@ logger = structlog.get_logger()
 class Orchestrator:
     """Orchestrate tool execution with planning and memoization."""
 
-    def __init__(self, tools: dict, session_store: Optional[SessionStore] = None,
-                 tool_timeout: float = 30.0):
+    def __init__(
+        self, tools: dict, session_store: SessionStore | None = None, tool_timeout: float = 30.0
+    ):
         """Initialize orchestrator.
 
         Args:
@@ -30,6 +31,13 @@ class Orchestrator:
 
     def run(self, profile_id: str, profile_data: dict) -> dict:
         """Execute analysis plan for a profile.
+
+        Resumable across API restarts: any tool that already has a
+        successful result in the persisted session state is reused instead
+        of re-executed, and each tool's result is persisted immediately
+        (not just once at the end), so a review interrupted mid-run picks
+        up where it left off instead of restarting from scratch. Tools
+        whose previous attempt recorded an error are retried, not skipped.
 
         Args:
             profile_id: Profile identifier
@@ -47,33 +55,52 @@ class Orchestrator:
         session_state = {}
         if self.session_store:
             session_state = self.session_store.get(profile_id) or {}
+            logger.info(
+                "session_loaded", profile_id=profile_id, previous_results=len(session_state)
+            )
 
-        # Execute plan
-        results = {}
+        # Execute plan, resuming any tools already completed successfully
+        results = dict(session_state)
         for tool_name, tool_input in plan:
-            try:
-                result = self._execute_tool(tool_name, tool_input)
-                results[tool_name] = result.data if hasattr(result, 'data') else result
+            previous_result = session_state.get(tool_name)
+            if previous_result is not None and not self._is_failed_result(previous_result):
+                logger.info("tool_resumed", tool=tool_name, profile_id=profile_id)
+                results[tool_name] = previous_result
+            else:
+                try:
+                    result = self._execute_tool(tool_name, tool_input)
+                    results[tool_name] = result.data if hasattr(result, "data") else result
 
-                logger.info("tool_executed", tool=tool_name, success=True)
+                    logger.info("tool_executed", tool=tool_name, success=True)
 
-            except Exception as e:
-                logger.error("tool_execution_failed", tool=tool_name, error=str(e))
-                results[tool_name] = {"error": str(e), "success": False}
+                except Exception as e:
+                    logger.error("tool_execution_failed", tool=tool_name, error=str(e))
+                    results[tool_name] = {"error": str(e), "success": False}
 
-        # Persist state
-        if self.session_store:
-            session_state.update(results)
-            self.session_store.set(profile_id, session_state)
+            # Persist after every tool so a mid-review restart loses at
+            # most the tool that was in flight, not everything already done.
+            if self.session_store:
+                self.session_store.set(profile_id, results)
 
-        logger.info("orchestrator_complete", profile_id=profile_id,
-                   tools_executed=len(results))
+        logger.info("orchestrator_complete", profile_id=profile_id, tools_executed=len(results))
 
         return {
             "profile_id": profile_id,
             "tool_results": results,
-            "cached_results": self.context_manager.get_all_results()
+            "cached_results": self.context_manager.get_all_results(),
         }
+
+    @staticmethod
+    def _is_failed_result(result: dict) -> bool:
+        """Check whether a persisted tool result represents a failure.
+
+        Args:
+            result: Previously stored result for a tool from session state
+
+        Returns:
+            True if the result should be retried on resume rather than reused
+        """
+        return isinstance(result, dict) and result.get("success") is False
 
     def _build_plan(self, profile_data: dict) -> list[tuple[str, dict]]:
         """Build execution plan based on available data.
@@ -90,45 +117,42 @@ class Orchestrator:
         if profile_data.get("github_username"):
             for project in profile_data.get("projects", []):
                 if project.get("github_repo"):
-                    plan.append((
-                        "github_tool",
-                        {
-                            "github_username": profile_data["github_username"],
-                            "repo_name": project["github_repo"]
-                        }
-                    ))
+                    plan.append(
+                        (
+                            "github_tool",
+                            {
+                                "github_username": profile_data["github_username"],
+                                "repo_name": project["github_repo"],
+                            },
+                        )
+                    )
                     break  # Only process first repo for now
 
         # Tech detector (if files available)
         if profile_data.get("files"):
-            plan.append((
-                "tech_detector",
-                {"files": profile_data["files"]}
-            ))
+            plan.append(("tech_detector", {"files": profile_data["files"]}))
 
         # README scorer
         if profile_data.get("readme_content"):
-            plan.append((
-                "readme_scorer",
-                {"readme_content": profile_data["readme_content"]}
-            ))
+            plan.append(("readme_scorer", {"readme_content": profile_data["readme_content"]}))
 
         # Skill extractor
         if profile_data.get("resume_text"):
-            plan.append((
-                "skill_extractor",
-                {
-                    "resume_text": profile_data["resume_text"],
-                    "repo_metadata": profile_data.get("repo_metadata", {})
-                }
-            ))
+            plan.append(
+                (
+                    "skill_extractor",
+                    {
+                        "resume_text": profile_data["resume_text"],
+                        "repo_metadata": profile_data.get("repo_metadata", {}),
+                    },
+                )
+            )
 
         # Market analyzer (if skills detected)
         if plan:  # Only if other tools executed
-            plan.append((
-                "market_analyzer",
-                {"detected_skills": {}}  # Will be populated by context
-            ))
+            plan.append(
+                ("market_analyzer", {"detected_skills": {}})  # Will be populated by context
+            )
 
         logger.info("plan_built", plan_size=len(plan))
         return plan
@@ -172,7 +196,7 @@ class Orchestrator:
             logger.error("tool_execution_error", tool=tool_name, error=str(e))
             raise
 
-    def _execute_with_timeout(self, tool, tool_input: dict, timeout: Optional[float] = None):
+    def _execute_with_timeout(self, tool, tool_input: dict, timeout: float | None = None):
         """Execute tool with timeout.
 
         Args:
