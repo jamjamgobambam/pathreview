@@ -76,3 +76,31 @@ Updated the health check to use 'redis_url' correctly via 'redis.from_url()' bec
 - [X] make check pass
 
 **Draft PR feedback recieved from:** none
+
+## Week 10 - Iteration & reflection 
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+Something that was harder than I expected was completing this JOURNAL.md file. In my previous projects and hackathons, I've made files, written code, pushed my changes to GitHub, and kept everything updated. However, in this module, I had to keep track of my thought process. I used to think all I had to do was code, push changes, and pull the changes from my team members. But keeping track of my progress each week helped me understand the project on a better level. It was hard because there were still a lot of things I didn't understand and had to look up. Although AI agents tend to be very helpful and can find the issues within a codebase very quickly, I had to actually understand what I was doing and how the changes I made effected the codebase in order to fill out JOURNAL.md. This process hard because there were still a lot of things I didn't understand and had to look up but it taught me valuable things about the codebase and also about good coding practices. 
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+Something that was different about contributing to someone else's production code rather than building my own project was that my changes needed approval before they were pushed to the owner's repository. This also meant I had to follow certain guidelines, such as making a pull request with the proper outline, to get my changes approved. Another aspect of contributing to someone else's production code was creating  tests and making sure that the changed code was passing all possible test cases. 
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+AI assistance was the most useful in understanding the codebase. Because of how many files there are, it was hard to read through everything and find where the exact issue was, especially with the time crunch. So, I told Claude what I was working with and which issue I was planning on fixing and it read through the codebase and pinpointed which exact files to focus on throughout the PathReview project. With the issue I chose to work on, Claude was able to help me through all of my questions so I didn't have to seek help outside of what AI could give me. 
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+Something I would do differently if I had started over is spend more time planning out how I wanted to fix the issue. Because I had other classes and assignments to work on, I could only spend so much time on this project, so I rushed to complete the assignment each week. However, I would have liked to plan out my thought process a little bit more, rather than jumping straight into the fixing the issue once I understood what it was asking me to do. 
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+Something I am most proud of from this module is how well I understood the issue. I was able to understand what exactly I needed to fix and which files to search through, with the help of AI breaking down the large codebase. 
