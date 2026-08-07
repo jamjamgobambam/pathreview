@@ -59,6 +59,31 @@ A plan-execute orchestrator that coordinates multiple analysis tools. Each tool 
 ### RAG System (`rag/`)
 Hybrid retrieval (vector similarity + BM25 keyword) fetches relevant context from the user's ingested documents. The generator uses prompt templates to produce structured, evidence-based feedback. The evaluator scores retrieval relevance and generation faithfulness.
 
+#### Hybrid Retrieval Scoring
+
+`HybridRetriever.retrieve` (`rag/retriever/hybrid.py`) combines two independent signals for each candidate chunk:
+
+- **Vector score** — cosine similarity from `VectorStore.query`.
+- **Keyword score** — BM25 relevance from `KeywordSearcher.search`.
+
+The two signals live on different scales, so each is normalized to 0–1 before blending by dividing every score in a result set by the maximum score in that same result set. This normalization is per query, not a fixed global scale — a vector score of `1.0` means "the best vector match for this query," not an absolute similarity threshold. If a result set is empty, its max defaults to `1.0` to avoid a divide-by-zero.
+
+A chunk found by only one retrieval method (say, a strong keyword match with no vector hit) is not excluded — the missing side's score defaults to `0`, so the chunk is still scored using only the signal it has.
+
+The normalized scores are blended as:
+
+```
+score = vector_weight * vector_score + keyword_weight * keyword_score
+```
+
+`vector_weight` and `keyword_weight` default to `vector_weight=0.7` and `keyword_weight=0.3`. The defaults are tunable per instance since the constructor parameters remain configurable.
+
+Chunks with a blended score below `min_score` (default `0.3`) are dropped. Remaining results are sorted by score (descending) and truncated to the top `max_chunks` results.
+
+**Worked examples:**
+- A chunk with normalized `vector_score=0.8` and `keyword_score=0.4` blends to `0.7 * 0.8 + 0.3 * 0.4 = 0.68`, which clears the `0.3` `min_score` cutoff and is returned.
+- A chunk with normalized `vector_score=0.2` and `keyword_score=0.1` blends to `0.7 * 0.2 + 0.3 * 0.1 = 0.17`, which falls below the `0.3` cutoff and is dropped. If every candidate for a query scores this low, `retrieve` legitimately returns zero chunks — that's expected threshold behavior, not a bug.
+
 ### Safety Layer (`safety/`)
 Middleware wrapping the generation pipeline. Components run in sequence: prompt injection defense → content filter → bias detector → PII scrubber. All safety events are logged with structured metadata for monitoring.
 
