@@ -108,3 +108,70 @@ The complete unit-test comparison produced 376 passed and 52 failed on my branch
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
 none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [ x] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+No review came in
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was understanding why the warning appeared in the terminal but was not captured by pytest's `caplog` fixture. At first, I thought that seeing the warning in the output meant the logging behavior was working correctly. However, the test still failed because the warning was being printed by Structlog without becoming a record in Python's standard logging system.
+
+It took me time to understand that the problem was not the warning message itself. The problem was the connection between Structlog, Python logging, and pytest. I also had difficulty keeping track of my working branch and the separate worktree I created to test a clean copy of `upstream/main`. At one point, I ran commands inside the comparison worktree and was confused when Git reported that I was not currently on a branch.
+
+The contribution process was also more difficult than I expected. I did not complete every planning and check-in step in the original order. For example, I committed `PLAN.md` after beginning the implementation. I decided to document that honestly instead of changing the Git history to make the process appear perfect.
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+
+I learned that even a small change can require understanding several connected parts of a large codebase. My fix was made in `tests/conftest.py`, but that file configures the testing environment for the entire project. Because of that, I had to think about whether the change could affect unrelated tests, create duplicate log records, or accidentally change production logging.
+
+I also learned that I cannot assume every failure in a large repository was caused by my branch. When I ran the complete unit-test suite, my branch had 376 passing tests and 52 failing tests. A clean copy of `upstream/main` had 375 passing tests and 53 failing tests. The targeted Issue #159 test failed on upstream but passed on my branch. Ruff also reported the same 182 existing errors on both versions.
+
+Comparing my results with the original codebase gave me evidence that my change fixed the intended problem without introducing additional observed failures. This was different from working on my own project, where I already understand most of the code and usually control the entire environment.
+
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+
+AI tools helped me understand the unfamiliar codebase, organize my investigation, and learn the difference between Structlog output and records handled by Python's standard logging system. They also helped me locate the relevant files, think through possible risks, prepare my `PLAN.md`, interpret test results, and improve the documentation for my pull request.
+
+However, AI could not prove that the suggested solution was correct. I still had to run the commands, reproduce the failure, inspect the output, test the change, and compare my branch with a clean version of `upstream/main`. There were also moments when following many suggested steps became confusing, especially while switching between my real branch and the comparison worktree.
+
+This experience taught me that AI is useful for guidance and explanations, but its suggestions still need to be checked. The actual evidence must come from the code, the tests, Git, and the results I observe myself.
+
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+
+I would still choose Issue #159 instead of the much larger Tier 3 Issue #59. Issue #159 was more focused and had a clear result that I could reproduce and test. Switching to the smaller issue helped me complete a real contribution while learning the full workflow.
+
+If I started over, I would study the contribution instructions more carefully before editing the code. I would complete and commit `PLAN.md` before implementing the solution, open the draft pull request earlier, and submit both Week 9 check-ins on schedule. I would also record every important command and test result immediately instead of trying to reconstruct the results later.
+
+I would create the clean upstream comparison worktree earlier and give it a very clear purpose. I would also double check my current directory and branch before running Git commands so I would not confuse the detached comparison worktree with my actual Issue #159 branch.
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+
+I am most proud that I did not stop after making the targeted test pass. I continued investigating until I could explain why it failed, why the change fixed it, and whether my branch introduced other problems.
+
+I reproduced the failure, identified that it came from the test logging configuration rather than the application warning itself, and kept the change limited to the pytest environment. I then compared my branch with `upstream/main` and showed that the targeted test changed from failing to passing, the overall unit-test results improved by one test, and the number of lint errors remained the same.
+
+More importantly, I completed a professional contribution process in a codebase that I did not create. I made mistakes during that process, but I learned how to document them honestly, verify my work with evidence, and explain the reasoning behind my solution.
