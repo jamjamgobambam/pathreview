@@ -1,19 +1,22 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
+from core.services.review_cache import review_cache
 
 log = structlog.get_logger()
 
 
 async def create_review(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
@@ -33,22 +36,23 @@ async def create_review(
 
 
 async def get_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    review: Review | None = result.scalars().first()
+    return review
 
 
 async def list_reviews(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     page: int = 1,
     page_size: int = 20,
@@ -80,7 +84,7 @@ async def list_reviews(
 
 
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
@@ -132,19 +136,31 @@ async def process_review(
             sources_count=len(ingestion_results),
         )
 
-        # Step 3: Run agent orchestration
-        agent_output = await _run_agent_orchestration(profile, ingestion_results)
-        log.info(
-            "agent_orchestration_completed",
-            review_id=str(review_id),
-            sections_count=len(agent_output.get("sections", [])),
-        )
+        # Step 3: Reuse an identical review or run agent + RAG generation
+        rag_output = await review_cache.get(profile.user_id, ingestion_results)
 
-        # Step 4: Run RAG retrieval + generation
-        rag_output = await _run_rag_retrieval_generation(profile, ingestion_results, agent_output)
-        log.info("rag_retrieval_completed", review_id=str(review_id))
+        if rag_output is not None:
+            cache_hit = True
+            log.info(
+                "review_processing_cache_hit",
+                review_id=str(review_id),
+                profile_id=str(profile_id),
+            )
+        else:
+            cache_hit = False
+            agent_output = await _run_agent_orchestration(profile, ingestion_results)
+            log.info(
+                "agent_orchestration_completed",
+                review_id=str(review_id),
+                sections_count=len(agent_output.get("sections", [])),
+            )
 
-        # Step 5: Run safety checks
+            rag_output = await _run_rag_retrieval_generation(
+                profile, ingestion_results, agent_output
+            )
+            log.info("rag_retrieval_completed", review_id=str(review_id))
+
+        # Step 4: Run safety checks for both generated and cached output
         safety_checks_passed = await _run_safety_checks(rag_output)
         if not safety_checks_passed:
             log.warning("safety_checks_failed", review_id=str(review_id))
@@ -153,7 +169,10 @@ async def process_review(
             await db.commit()
             return
 
-        # Step 6: Set status to complete and store sections
+        if not cache_hit:
+            await review_cache.set(profile.user_id, ingestion_results, rag_output)
+
+        # Step 5: Set status to complete and store sections
         sections_data = rag_output.get("sections", [])
         sections = [
             FeedbackSection(
@@ -194,7 +213,7 @@ async def process_review(
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
 
-async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
+async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[dict]:
     """
     Run ingestion pipeline to extract data from profile sources.
     Returns list of ingested source data.

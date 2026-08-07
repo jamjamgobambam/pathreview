@@ -8,9 +8,13 @@ class Settings(BaseSettings):
     """Application settings with support for .env file and environment variables."""
 
     # Database
-    database_url: str = Field(default="postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_dev")
+    database_url: str = Field(
+        default="postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_dev"
+    )
     redis_url: str = Field(default="redis://localhost:6379/0")
     vector_db_url: str = Field(default="http://localhost:8001")
+    review_cache_ttl_seconds: int = Field(default=86400, gt=0)
+    review_cache_key_version: str = Field(default="v1", min_length=1)
 
     # LLM Configuration
     llm_provider: str = Field(default="mock")
