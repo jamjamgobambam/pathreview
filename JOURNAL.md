@@ -43,3 +43,20 @@ I will run `make check` and `make test-unit`, review the documentation against t
 None currently.
 
 ---
+### Check-in 2 (end of week)
+
+**PR link:** (https://github.com/ascherj/pathreview/pull/937)
+
+**Branch:** `docs/36-hybrid-retrieval-scoring`
+
+**What you built:**
+I updated `docs/ARCHITECTURE.md` to explain how hybrid retrieval combines normalized vector similarity and BM25 keyword scores. The documentation now includes the weighted scoring formula, the default weights, a worked numerical example, and an explanation of how the results are filtered and ranked.
+
+**Tests added or updated:**
+No tests were added or updated because this was a documentation-only change and did not modify application behavior. I ran the existing unit test suite. It completed with 375 passing tests and 53 pre-existing failures in unrelated modules, including resume parsing, review services, security, skill extraction, structural chunking, and technology detection. My changes did not introduce new test failures.
+
+**Self-review confirmation:** [ ] `make check` passes  [ ] `make test-unit` passes
+
+`make test-unit` currently reports 375 passed, 53 failed, and 1 warning. The failures are in unrelated existing modules and are not caused by this documentation-only change. This PR only modifies `docs/ARCHITECTURE.md`.
+
+**Draft PR feedback received from:** None for right now
