@@ -1,12 +1,13 @@
 """Plan-execute orchestrator for agent tools."""
 
 import time
-import structlog
-from typing import Optional
+from typing import Any
 
-from .memory.session_store import SessionStore
-from .memory.context_manager import ContextManager
+import structlog
+
 from .error_handling import retry_with_backoff
+from .memory.context_manager import ContextManager
+from .memory.session_store import SessionStore
 
 logger = structlog.get_logger()
 
@@ -14,8 +15,9 @@ logger = structlog.get_logger()
 class Orchestrator:
     """Orchestrate tool execution with planning and memoization."""
 
-    def __init__(self, tools: dict, session_store: Optional[SessionStore] = None,
-                 tool_timeout: float = 30.0):
+    def __init__(
+        self, tools: dict, session_store: SessionStore | None = None, tool_timeout: float = 30.0
+    ):
         """Initialize orchestrator.
 
         Args:
@@ -43,17 +45,25 @@ class Orchestrator:
         # Build execution plan
         plan = self._build_plan(profile_data)
 
-        # Load previous session state if available
-        session_state = {}
-        if self.session_store:
-            session_state = self.session_store.get(profile_id) or {}
-
-        # Execute plan
+        # Load previous session state if available (resume support)
         results = {}
+        if self.session_store:
+            results = self.session_store.get(profile_id) or {}
+
+        # Execute plan, skipping tools a prior run already completed
+        # successfully so a restart resumes instead of starting over.
         for tool_name, tool_input in plan:
+            previous = results.get(tool_name)
+            already_done = previous is not None and not (
+                isinstance(previous, dict) and previous.get("success") is False
+            )
+            if already_done:
+                logger.info("tool_resumed_from_checkpoint", tool=tool_name)
+                continue
+
             try:
                 result = self._execute_tool(tool_name, tool_input)
-                results[tool_name] = result.data if hasattr(result, 'data') else result
+                results[tool_name] = result.data if hasattr(result, "data") else result
 
                 logger.info("tool_executed", tool=tool_name, success=True)
 
@@ -61,18 +71,17 @@ class Orchestrator:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
                 results[tool_name] = {"error": str(e), "success": False}
 
-        # Persist state
-        if self.session_store:
-            session_state.update(results)
-            self.session_store.set(profile_id, session_state)
+            # Checkpoint after every tool, not just at the end, so an API
+            # restart mid-run only loses the in-flight tool, not everything.
+            if self.session_store:
+                self.session_store.set(profile_id, results)
 
-        logger.info("orchestrator_complete", profile_id=profile_id,
-                   tools_executed=len(results))
+        logger.info("orchestrator_complete", profile_id=profile_id, tools_executed=len(results))
 
         return {
             "profile_id": profile_id,
             "tool_results": results,
-            "cached_results": self.context_manager.get_all_results()
+            "cached_results": self.context_manager.get_all_results(),
         }
 
     def _build_plan(self, profile_data: dict) -> list[tuple[str, dict]]:
@@ -90,50 +99,47 @@ class Orchestrator:
         if profile_data.get("github_username"):
             for project in profile_data.get("projects", []):
                 if project.get("github_repo"):
-                    plan.append((
-                        "github_tool",
-                        {
-                            "github_username": profile_data["github_username"],
-                            "repo_name": project["github_repo"]
-                        }
-                    ))
+                    plan.append(
+                        (
+                            "github_tool",
+                            {
+                                "github_username": profile_data["github_username"],
+                                "repo_name": project["github_repo"],
+                            },
+                        )
+                    )
                     break  # Only process first repo for now
 
         # Tech detector (if files available)
         if profile_data.get("files"):
-            plan.append((
-                "tech_detector",
-                {"files": profile_data["files"]}
-            ))
+            plan.append(("tech_detector", {"files": profile_data["files"]}))
 
         # README scorer
         if profile_data.get("readme_content"):
-            plan.append((
-                "readme_scorer",
-                {"readme_content": profile_data["readme_content"]}
-            ))
+            plan.append(("readme_scorer", {"readme_content": profile_data["readme_content"]}))
 
         # Skill extractor
         if profile_data.get("resume_text"):
-            plan.append((
-                "skill_extractor",
-                {
-                    "resume_text": profile_data["resume_text"],
-                    "repo_metadata": profile_data.get("repo_metadata", {})
-                }
-            ))
+            plan.append(
+                (
+                    "skill_extractor",
+                    {
+                        "resume_text": profile_data["resume_text"],
+                        "repo_metadata": profile_data.get("repo_metadata", {}),
+                    },
+                )
+            )
 
         # Market analyzer (if skills detected)
         if plan:  # Only if other tools executed
-            plan.append((
-                "market_analyzer",
-                {"detected_skills": {}}  # Will be populated by context
-            ))
+            plan.append(
+                ("market_analyzer", {"detected_skills": {}})  # Will be populated by context
+            )
 
         logger.info("plan_built", plan_size=len(plan))
         return plan
 
-    def _execute_tool(self, tool_name: str, tool_input: dict):
+    def _execute_tool(self, tool_name: str, tool_input: dict) -> Any:
         """Execute a single tool with retry and memoization.
 
         Args:
@@ -172,7 +178,9 @@ class Orchestrator:
             logger.error("tool_execution_error", tool=tool_name, error=str(e))
             raise
 
-    def _execute_with_timeout(self, tool, tool_input: dict, timeout: Optional[float] = None):
+    def _execute_with_timeout(
+        self, tool: Any, tool_input: dict, timeout: float | None = None
+    ) -> Any:
         """Execute tool with timeout.
 
         Args:
@@ -189,7 +197,7 @@ class Orchestrator:
         timeout = timeout or self.tool_timeout
 
         @retry_with_backoff(max_retries=2, backoff_factor=1.5)
-        def _execute():
+        def _execute() -> Any:
             return tool.execute(tool_input)
 
         start = time.time()
