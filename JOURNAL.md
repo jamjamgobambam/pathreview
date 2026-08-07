@@ -72,3 +72,41 @@ Both required commands were run and reviewed. The repository contains pre-existi
 **Draft PR feedback received from:** none
 
 
+## Week 10 — Iteration & Reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+
+No reviewer feedback was received before the end of the course. My pull request remains open and available for review.
+
+**How you responded:**
+
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+Understanding the existing codebase was much harder than writing the actual fix. Even though my issue was relatively small, I first had to understand how the structural chunker interacted with semantic chunking, how metadata was preserved, and how the existing unit tests were organized. It took time to trace the flow before I felt confident making changes.
+
+**What did you learn about working in a large codebase?**
+
+I learned that making even a small change requires understanding the surrounding system. Instead of immediately writing code, I spent time reading existing implementations, following established patterns, and making sure my solution fit naturally with the rest of the project. I also learned that tests are just as important as the implementation because they document expected behavior and help prevent regressions.
+
+**How did AI tools help — and where did they fall short?**
+
+AI was extremely helpful for navigating an unfamiliar codebase, explaining functions, identifying where logic lived, and helping me reason through possible solutions. It also helped me understand the project's architecture much faster than reading everything from scratch. However, AI could not determine the correct solution on its own. I still had to verify its suggestions by reading the code, reproducing the issue myself, running tests, and ensuring that my implementation followed the project's conventions rather than simply accepting generated code.
+
+**What would you do differently if you started over?**
+
+If I started over, I would spend more time understanding the codebase before trying to implement a solution. Early on, I focused on the specific issue too quickly instead of first building a mental model of how the chunking pipeline worked. I would also open my pull request earlier to allow more time for discussion and any potential reviewer feedback.
+
+**What are you most proud of from this module?**
+
+I'm most proud that I completed an end-to-end open source contribution using a real development workflow. From selecting an issue and reproducing the bug to planning, implementing the fix, writing tests, documenting my work, and submitting a professional pull request, I experienced the complete contribution process instead of working on an isolated assignment.
+
