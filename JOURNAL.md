@@ -62,14 +62,13 @@ I touched `hybrid.py` and `keyword_search.py` because the focus on the BM25 scor
 
 ### Reviewer feedback
 
-**Feedback received:** [ ] Yes  [X] No — still awaiting review
+**Feedback received:** [X] Yes  [] No — still awaiting review
 
 **Summary of feedback:**
-[What did reviewers comment on? Or note that no review came in.]
+My reviewer told me to talk more about what files were changed and have better commit messages.
 
 **How you responded:**
-[What changes did you make, or what did you reply? If no feedback,
-leave blank.]
+I responded by updating the PR to have more files and details about those files. I will work on having more detailed commit messages in the future.
 
 ---
 
