@@ -80,3 +80,48 @@ commit occurs, and that no background task is scheduled.
 pre-existing failures, so `make test-unit` is not marked as passing.
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review received yet
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Following the flow of data through the codebase was harder than I expected. A single feature could span routes, services, database models, background tasks, and tests, so I sometimes lost track of where a behavior originated. I learned to slow down, trace function calls, and map the dependencies before making changes.
+
+**What did you learn about working in a large codebase?**
+I learned that contributing to production code requires more caution than building my own project. In my own projects, I understand most of the decisions because I made them. In an existing codebase, I first have to understand its architecture, conventions, and assumptions. Even a small change can affect other parts of the application, so testing both the expected result and unwanted side effects is important. For example, my test verified not only the error response, but also that no review was created, no database commit occurred, and no background task was scheduled.
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped me trace unfamiliar code, visualize how the different layers connected, and explain concepts such as RAG, embeddings, and LLM-based generation. They were also useful for brainstorming tests and interpreting errors. However, AI could not replace reading the code or running the tests. Its suggestions sometimes lacked project-specific context, and it could not always distinguish problems caused by my changes from pre-existing test failures. I still had to verify every suggestion and decide whether it matched the intended behavior.
+
+**What would you do differently if you started over?**
+I would also run the full test suite at the beginning to identify pre-existing failures and avoid confusing them with regressions from my work. Finally, I would make smaller changes and test each one immediately.
+
+**What are you most proud of from this module?**
+**What was harder than you expected?**  
+Following the flow of data through the codebase was harder than I expected. A single feature could span routes, services, database models, background tasks, and tests, so I sometimes lost track of where a behavior originated. I learned to slow down, trace function calls, and map the dependencies before making changes.
+
+**What did you learn about working in a large codebase?**  
+I learned that contributing to production code requires more caution than building my own project. In my own projects, I understand most of the decisions because I made them. In an existing codebase, I first have to understand its architecture, conventions, and assumptions. Even a small change can affect other parts of the application, so testing both the expected result and unwanted side effects is important. For example, my test verified not only the error response, but also that no review was created, no database commit occurred, and no background task was scheduled.
+
+**How did AI tools help—and where did they fall short?**  
+AI tools helped me trace unfamiliar code, visualize how the different layers connected, and explain concepts such as RAG, embeddings, and LLM-based generation. They were also useful for brainstorming tests and interpreting errors. However, AI could not replace reading the code or running the tests. Its suggestions sometimes lacked project-specific context, and it could not always distinguish problems caused by my changes from pre-existing test failures. I still had to verify every suggestion and decide whether it matched the intended behavior.
+
+**What would you do differently if you started over?**  
+I would begin by studying the architecture documentation and drawing a small map of the request flow before changing any code. I would also run the full test suite at the beginning to identify pre-existing failures and avoid confusing them with regressions from my work. Finally, I would make smaller changes and test each one immediately.
+
+**What are you most proud of from this module?**  
+I am most proud that I developed a practical understanding of how LLM applications work, including ingestion, chunking, embeddings, retrieval, and generation. I also contributed a focused production fix and regression test that prevent the system from creating a review when a profile has no ingested documents. This showed me that I can navigate an unfamiliar codebase and make a small but meaningful improvement.
