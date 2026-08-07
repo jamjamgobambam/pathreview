@@ -163,3 +163,38 @@ There, with the help of Gemini I added:
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+I haven't received a review yet.
+
+**How you responded:**
+Thought "Where in the world is my review?" and checked the repository pull request notifications multiple times.
+
+### Reflection
+
+**What was harder than you expected?** 
+
+The harder part was forcing myself to sit down and read someone else's raw code line-by-line without leaning on an AI to summarize everything for me. Breaking that instant-gratification habit and manually parsing another developer's logic structure proved to be a genuinely challenging mental hurdle. It was an interesting and necessary process, but definitely required a lot more sustained focus than I anticipated.
+
+**What did you learn about working in a large codebase?**
+
+I learned to actively search for the core "nutshell" components rather than getting bogged down in individual implementation files right away. This includes reading high-level documentation, examining the core data models, and checking function naming conventions first. Doing this helps grasp the architectural intent of the code quickly, rather than jumping straight into debugging a specific problem blindly.
+
+**How did AI tools help — and where did they fall short?**
+
+I primarily used AI to aid with debugging complex error traces or to quickly remind me of specific Git commands. Where AI fell short was in helping me understand the unique, domain-specific logic of the repository's existing codebase, which required human reading. I relied on it the most during a tedious rebase conflict, as I was fairly new to handling merge conflicts and it wasn't the simple "add, commit, push" workflow I was used to.
+
+**What would you do differently if you started over?**
+
+If I started over, I would rely much less on quick AI prompts and instead dive straight into official documentation and targeted Google searches to understand the underlying core concepts. Taking the extra time to read the primary documentation would have built a stronger mental model of Git rebasing and code architecture from day one. It would have saved me a lot of trial-and-error guessing in the terminal.
+
+**What are you most proud of from this module?**
+
+I am most proud of successfully navigating the end-to-end process of preparing, committing, and uploading my code while managing my first major branch rebase. Overcoming the anxiety of potentially breaking the build and learning how to safely push my contributions gave me a huge confidence boost. It made me feel like a much more capable software developer ready for collaborative environments.
+
