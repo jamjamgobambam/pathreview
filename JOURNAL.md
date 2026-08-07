@@ -1,0 +1,141 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/155
+
+**Issue title:** Health check references settings.redis_host, which does not exist on Settings
+
+**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
+
+**Problem summary:**
+The health check endpoint at api/routes/health.py tries to access settings.redis_host and settings.redis_port to check Redis connectivity, but these fields don't exist in the Settings model (core/config.py). Instead of properly reporting Redis status, the endpoint raises an AttributeError that's silently caught and always reports "redis": "unhealthy" regardless of whether Redis is actually running. A successful fix will modify the health check to use the existing redis_url configuration from Settings, allowing it to correctly report Redis status.
+
+**Branch name:** fix/155-redis-health-check
+
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+**Is this issue right for me? — Reasoning:**
+
+**Part 1 — Understanding the Issue**
+- ✅ I can explain the problem: The health check tries to read settings.redis_host but it doesn't exist, causing a false "unhealthy" report
+- ✅ I understand which part is affected: api/routes/health.py and core/config.py
+- ✅ I understand what "done" looks like: The health check properly reports Redis status using settings.redis_url
+
+**Code Analysis:**
+- `core/config.py` defines Settings with `redis_url` (line 10)
+- `api/routes/health.py` incorrectly uses `settings.redis_host` and `settings.redis_port` (lines 39-40)
+- The fix is to use `redis.Redis.from_url(settings.redis_url)` instead
+
+**Part 2 — Tier Fit**
+- ✅ This is my first contribution, so Tier 1 is appropriate
+- ✅ The fix is localized to the health check endpoint
+
+**Part 3 — Codebase Readiness**
+- ✅ I've found the relevant code: api/routes/health.py and core/config.py
+- ✅ I understand the surrounding code: The Settings model uses redis_url, and the health check should use it too
+- ✅ I've read the relevant test file: tests/unit/test_health.py exists and I understand the pattern
+
+**Part 4 — Scope and Time**
+- ✅ I've checked the issue comments and understand multiple students are working on this
+- ✅ The scope is realistic: 1-2 hours of focused work
+- ✅ No blockers or dependencies on other issues
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/fperezrugama/pathreview/commit/421f7256c5949eddbe3cb07258f1bafc42014da5
+
+**Reproduction summary:**
+Successfully reproduced the issue by calling `GET /health` endpoint. Redis container is running (verified with `docker compose ps` showing "Up 6 days (healthy)" and `redis-cli ping` returning PONG), but the health check incorrectly reports `"redis": "unhealthy"`. The bug exists because the health check code tries to access `settings.redis_host` and `settings.redis_port`, but these fields don't exist in the Settings model (`core/config.py`). The error is silently caught and always reports unhealthy.
+
+**Reproduction Steps:**
+1. Started the app with `make run`
+2. In a new terminal, ran `curl http://localhost:8000/health`
+3. Received response showing `"redis": "unhealthy"`
+4. Verified Redis is actually running with:
+   - `docker compose ps` → shows "Up 6 days (healthy)"
+   - `docker exec -it pathreview-redis-1 redis-cli ping` → returns `PONG`
+5. Confirmed the bug: Redis is working but health check says unhealthy
+
+**Test Results:**
+- Created `tests/unit/test_health.py` with initial tests for the health endpoint ([see commit](https://github.com/fperezrugama/pathreview/commit/421f7256c5949eddbe3cb07258f1bafc42014da5))
+- Ran `make test-unit` - health tests pass, confirming the tests work
+- The bug is confirmed: Redis is running but health check says unhealthy
+- The tests mock Redis, so they pass, but they demonstrate the real issue
+
+**PLAN.md link:** https://github.com/fperezrugama/pathreview/blob/fix/155-redis-health-check/PLAN.md
+
+**Blockers or open questions:**
+None identified. The actual bug is that `settings.redis_host` doesn't exist, causing the false "unhealthy" status. I'll fix this in Week 9 by using `settings.redis_url` instead.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+- ✅ Sub-task 1: Updated Redis connection in `api/routes/health.py` — replaced `redis.Redis(host=settings.redis_host, port=settings.redis_port)` with `redis.Redis.from_url(settings.redis_url)`
+- ✅ Sub-task 2: Tested locally — `curl http://localhost:8000/health` now returns `"redis": "healthy"` ✅
+- ✅ Sub-task 3: Ran `make check` and `make test-unit` — no new failures introduced
+- ✅ Sub-task 4: Created `tests/unit/test_health.py` with tests for Redis healthy/unhealthy scenarios
+- ✅ Sub-task 5: Opened draft PR for peer feedback
+
+**Next steps:**
+- Get peer feedback on draft PR
+- Address any feedback I agree with
+- Mark PR as ready for review
+
+**Blockers:**
+None identified. PostgreSQL showing "unhealthy" is a separate pre-existing issue (#154) not related to my fix.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/486
+
+**Branch:** [fix/155-redis-health-check](https://github.com/fperezrugama/pathreview/tree/fix/155-redis-health-check)
+
+**What you built:**
+Updated the health check endpoint to use `settings.redis_url` instead of the nonexistent `settings.redis_host` and `settings.redis_port`. This fixes the false "unhealthy" report when Redis is actually running.
+
+**Tests added or updated:**
+Created `tests/unit/test_health.py` with tests for Redis healthy/unhealthy scenarios and PostgreSQL healthy/unhealthy scenarios.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** @theoneineed
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes
+
+**Summary of feedback:**
+Received positive feedback from @theoneineed, who was working on the same issue (#155). They commented: "I was working on the same issue. Nice fix! Good job adding the new test file." No changes were requested — the feedback was purely encouraging.
+
+**How you responded:**
+I thanked @theoneineed for the feedback and noted that both of us approached the same issue with different solutions, which was a great learning opportunity.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The most challenging part was getting the development environment set up correctly. I had issues with Docker, PostgreSQL ports, and the `.env` configuration. The database connection was tricky because the health check was looking for `settings.redis_host` which didn't exist, and I had to trace through multiple files to understand the Settings model. Once I found the root cause, the fix was simple, but finding it took more time than I expected.
+
+**What did you learn about working in a large codebase?**
+
+I learned that production codebases have many moving parts. You can't just change one file and assume everything works — you need to understand how modules connect and what dependencies exist. I also learned the importance of testing: writing tests for the health endpoint helped me verify that my fix actually worked and didn't break anything else. Another big takeaway was that large projects have pre-existing issues (like the PostgreSQL health check bug #154) that you need to document and work around without trying to fix everything at once.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools were most helpful for explaining the codebase structure, suggesting the correct Redis connection pattern (`redis.Redis.from_url()`), and debugging errors during setup. However, AI fell short when it came to understanding the full context of the project — it couldn't tell me that PostgreSQL showing "unhealthy" was a separate issue. I had to investigate manually to confirm the bug was isolated to Redis.
+
+**What would you do differently if you started over?**
+
+I would have spent more time understanding the Settings model and the health check endpoint before writing any code. I also would have committed more frequently to show progress. I think I could have been more thorough in my PLAN.md by adding more specific edge cases to test.
+
+**What are you most proud of from this module?**
+
+I'm most proud of successfully fixing the bug and verifying it with `curl` — seeing `"redis": "healthy"` after running the health check was really satisfying. I'm also proud of creating a complete test file and following the proper PR process, including writing a detailed PR description and getting peer feedback from @theoneineed. It was great to see someone else working on the same issue and to compare our different approaches.

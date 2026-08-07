@@ -40,13 +40,10 @@ async def health_check(db=Depends(get_db)):
         # Check Redis (if available)
         import redis
         from core.config import settings
-
-        r = redis.Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            db=0,
-            decode_responses=True,
-        )
+            # host=settings.redis_host, # this doesn't exist
+            # port=settings.redis_port, # this doesn't exist
+            # Use redis_url from Settings instead of nonexistent redis_host/redis_port
+        r = redis.Redis.from_url(settings.redis_url)
         r.ping()
         health_status["dependencies"]["redis"] = "healthy"
         log.debug("redis_health_check_passed")
