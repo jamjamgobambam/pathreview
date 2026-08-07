@@ -24,3 +24,34 @@ This issue is a documentation-focused investigation of the repository structure 
 
 **Blockers or open questions:**
 I am still working through how the API, agent, ingestion, and frontend components fit together so the onboarding guide can describe the project clearly without oversimplifying it.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I created a dedicated contributor onboarding guide and linked it from the main documentation entry points so new contributors can find a complete issue-to-PR walkthrough.
+
+**Next steps:**
+I am validating the documentation updates locally and preparing the pull request details and branch summary.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [TBD]
+
+**Branch:** `docs/121-contributor-onboarding-guide`
+
+**What you built:**
+I added a contributor-facing onboarding guide that explains how to choose an issue, set up the local environment, understand the repository layout, make a focused change, and prepare a pull request.
+
+**Tests added or updated:**
+No code tests were necessary for this documentation-only change.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+Note: I ran both commands locally. The repository currently has existing lint and test failures outside this documentation-only change, so the self-review remains pending until those upstream issues are resolved.
