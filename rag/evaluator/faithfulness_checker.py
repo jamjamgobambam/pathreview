@@ -78,11 +78,23 @@ class FaithfulnessChecker:
         claim_tokens = set(claim.lower().split())
         context_tokens = set(context.lower().split())
 
-        # Require at least some meaningful overlap
-        overlap = claim_tokens & context_tokens
         # Filter out common stop words
         stop_words = {'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been',
                      'and', 'or', 'but', 'in', 'of', 'to', 'for', 'that'}
+        meaningful_claim_tokens = claim_tokens - stop_words
+        if not meaningful_claim_tokens:
+            # A claim with nothing but stop words has nothing to verify.
+            return False
+
+        # Require at least some meaningful overlap
+        overlap = claim_tokens & context_tokens
         meaningful_overlap = overlap - stop_words
 
-        return len(meaningful_overlap) >= 2
+        # Scale the required overlap down for short claims: a fixed 2-word
+        # bar can never be met by a claim built from 1-3 meaningful tokens
+        # (issue #152), since the claim's own filler tokens (e.g. "knows")
+        # count against it. Require roughly half the claim's meaningful
+        # tokens to overlap, floored at 1 match and capped at the original 2.
+        required = min(2, max(1, len(meaningful_claim_tokens) // 2))
+
+        return len(meaningful_overlap) >= required
