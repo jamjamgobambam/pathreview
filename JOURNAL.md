@@ -95,7 +95,7 @@ Note on `make test-unit`: 53 pre-existing test failures across the project on `m
 
 ### Reviewer feedback
 
-**Feedback received:** [ ] Yes  [x0] No — still awaiting review
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
 
 **Summary of feedback:**
 No reviewer feedback came in during the module (per the Summer 2026 cohort note, reviewer feedback is not a course feature this term). The PR is open at ascherj/pathreview#301 and passing all tests in the file it touches.
