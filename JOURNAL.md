@@ -25,7 +25,7 @@ The estimated effort is 7–10 hours, which is realistic for me to complete duri
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [(https://github.com/mehakgupta9/pathreview/commit/1f3234e7d6207635d53f53290ebc9ff4561bc04e)]
+**Reproduction commit link:** [reproduction commit](https://github.com/mehakgupta9/pathreview/commit/1f3234e7d6207635d53f53290ebc9ff4561bc04e)
 
 **Reproduction summary:**
 Since this is a feature-gap issue, I reproduced it by confirming — through code inspection — that the re-ranking step does not exist and locating exactly where it would live. Running `grep -rin "rerank"` across `rag/`, `core/`, `api/`, and `agent/` returns no matches, and `rag/retriever/reranker.py` is absent. Reading `HybridRetriever.retrieve()` confirms the gap: at `rag/retriever/hybrid.py:94` the candidate chunks are sorted purely by the blended vector+keyword `score` and the top-k are handed straight to the generator (`rag/generator/review_generator.py:39`), with no LLM relevance step in between. This documents that the highest-scoring chunks are chosen by a lexical/embedding proxy rather than judged for relevance to the specific query.
@@ -107,9 +107,8 @@ per-chunk fallback, settings factory, removed dead code, client-boundary test).
 
 **Feedback received:** [x] Yes (peer review)  [ ] No — still awaiting review
 
-_Note: per the Summer 2026 course note, upstream maintainer review is not a feature
-this term, so no maintainer/official review came in on PR #183. The feedback below
-came from the Week 9 peer-review step (draft PR review by aishadeveloper)._
+The feedback below
+came from the Week 9 peer review, by aishadeveloper.
 
 **Summary of feedback:**
 The reviewer called the layering and test suite clean but flagged five concrete
@@ -190,5 +189,4 @@ every level — empty input skips the LLM entirely, one failed chunk falls back 
 hybrid score instead of nuking the batch, and a fully unavailable LLM just returns the
 original hybrid order. A retrieval quality feature should never be able to break the
 core pipeline, and by the end it genuinely can't. I'm also proud that I handled the peer
-review professionally — agreed on the real bugs, fixed them properly with tests, and
-replied clearly rather than getting defensive.
+review professionally — agreed on the real bugs, fixed them properly with tests.
