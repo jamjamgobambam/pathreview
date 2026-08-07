@@ -76,3 +76,37 @@ Fixed indented resume/markdown text losing its section headers: `_strip_markdown
 **Self-review confirmation:** [✓] make check passes  [✓] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The part that I found harder was sticking to the contribution rules. I have usually worked in private repos and have used naming and messaging conventions as I would like.
+Sticking to a specific format was challenging, I would have to remember the format or look it up. I did realize that following the standard conventions would make life much easier for the entire team.
+
+**What did you learn about working in a large codebase?**
+I learnt that navigating a large codebase can be easy once you have the habit of reading the documentation and following standard formats.
+
+**How did AI tools help — and where did they fall short?**
+AI tool were helpful in identifying edge cases of the bug I fixed. AI tools were pretty handy for me, and since I was working on a tier 1 issue, I received the help I needed from AI tools as needed.
+
+**What would you do differently if you started over?**
+I would change how I selected the issue. I could have been a bit more thorough while selecting the issue. I would also choose an issue that would push me to learn something new.
+
+**What are you most proud of from this module?**
+I am proud of how I was able to navigate the codebase, follow documentation and establish a good practice as a software developer.
