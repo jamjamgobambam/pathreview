@@ -1,9 +1,10 @@
 """Redis-backed session store."""
 
-import redis
 import json
+from typing import Any, cast
+
+import redis
 import structlog
-from typing import Optional
 
 logger = structlog.get_logger()
 
@@ -19,7 +20,7 @@ class SessionStore:
         """
         self.redis = redis_client
 
-    def get(self, session_id: str) -> Optional[dict]:
+    def get(self, session_id: str) -> dict | None:
         """Get session data.
 
         Args:
@@ -38,7 +39,7 @@ class SessionStore:
 
             parsed = json.loads(data)
             logger.info("session_retrieved", session_id=session_id)
-            return parsed
+            return cast(dict[Any, Any], parsed)
 
         except json.JSONDecodeError:
             logger.error("session_decode_error", session_id=session_id)
