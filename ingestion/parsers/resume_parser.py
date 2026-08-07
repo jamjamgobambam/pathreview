@@ -5,7 +5,6 @@ from pypdf import PdfReader
 
 from .base import BaseParser, ParseResult
 
-
 SECTION_HEADERS = {
     "experience",
     "education",
@@ -132,10 +131,10 @@ class ResumeParser(BaseParser):
         for section in SECTION_HEADERS:
             # Look for section header patterns
             patterns = [
-                rf"^{re.escape(section)}\s*$",
-                rf"^{re.escape(section)}\s*[:|-]",
-                rf"\n{re.escape(section)}\s*$",
-                rf"\n{re.escape(section)}\s*[:|-]",
+                rf"^[^\S\r\n]*{re.escape(section)}\s*$",
+                rf"^[^\S\r\n]*{re.escape(section)}\s*[:|-]",
+                rf"\n[^\S\r\n]*{re.escape(section)}\s*$",
+                rf"\n[^\S\r\n]*{re.escape(section)}\s*[:|-]",
             ]
 
             for pattern in patterns:

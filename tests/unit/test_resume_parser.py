@@ -1,11 +1,11 @@
 """Tests for resume_parser.py"""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
+from unittest.mock import Mock, patch
 
-from ingestion.parsers.resume_parser import ResumeParser
+import pytest
+
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.resume_parser import ResumeParser
 
 
 @pytest.mark.unit
@@ -142,6 +142,48 @@ class TestResumeParser:
         assert any("experience" in s for s in sections_lower)
         assert any("education" in s for s in sections_lower)
         assert any("skills" in s for s in sections_lower)
+
+    def test_detect_sections_with_leading_whitespace(self, parser):
+        """Indented section headings should still be detected (issue #147)."""
+        text = "   Experience:\n   Senior Developer\n   Education:\n   BS Computer Science"
+        sections = [s.lower() for s in parser._detect_sections(text)]
+
+        assert any("experience" in s for s in sections)
+        assert any("education" in s for s in sections)
+
+    def test_detect_sections_with_tab_indentation(self, parser):
+        """Tab-indented section headings should still be detected (issue #147)."""
+        text = "\tExperience:\n\tSenior Developer\n\tSkills: Python, JavaScript"
+        sections = [s.lower() for s in parser._detect_sections(text)]
+
+        assert any("experience" in s for s in sections)
+        assert any("skills" in s for s in sections)
+
+    def test_detect_sections_with_unicode_whitespace_indentation(self, parser):
+        """Non-ASCII horizontal whitespace should still be detected (issue #147).
+
+        PDF extractors such as pypdf and pdfplumber emit non-breaking spaces
+        (\\xa0) and Unicode spaces (\\u2002) in place of ASCII indentation, so
+        the heading patterns match any horizontal whitespace rather than only
+        space and tab.
+        """
+        text = "\xa0\xa0Experience:\n\xa0\xa0Senior Developer\n Education:\n BS Computer Science"
+        sections = [s.lower() for s in parser._detect_sections(text)]
+
+        assert any("experience" in s for s in sections)
+        assert any("education" in s for s in sections)
+
+    def test_detect_sections_ignores_midsentence_keyword(self, parser):
+        """Section keywords used mid-sentence must NOT be detected (issue #147).
+
+        Guards the whitespace fix against over-loosening the anchor into a
+        false positive.
+        """
+        text = "My proudest experience: shipping a product. My education: ongoing."
+        sections = [s.lower() for s in parser._detect_sections(text)]
+
+        assert not any("experience" in s for s in sections)
+        assert not any("education" in s for s in sections)
 
     def test_strip_markdown_syntax(self, parser):
         """Test markdown syntax stripping."""
