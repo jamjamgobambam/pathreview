@@ -58,3 +58,34 @@ I updated `tests/unit/test_pii_scrubber.py` to assert that the parenthesized pho
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes (test cases related to the issue all pass, but pre-existing issues remain.)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — no review came in by submission time
+
+**Summary of feedback:**
+No reviewer or maintainer feedback arrived before the deadline.
+
+**How you responded:**
+I did not need to make follow-up changes or post a response because there was no review feedback to address.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was separating the real bug from unrelated noise in the repo. The PII fix itself was small, but validation turned up pre-existing failures in lint, typecheck, and one mixed-content unit test that were unrelated to the phone regex. That made it important to document exactly which failures were baseline issues and which ones were actually caused by my change.
+
+**What did you learn about working in a large codebase?**
+I learned that in a larger codebase, scope control matters as much as the code change itself. Even a targeted regex fix needs context from the surrounding tests, project setup, and contribution workflow, and you have to prove the issue with a focused reproduction before changing anything. I also had to be careful not to “fix” unrelated problems just because they were visible during testing.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for quickly locating the relevant files, summarizing the issue, and drafting the journal/plan structure. They were less useful for judging whether a failure was actually related to my issue, because that required reading the tests, running focused commands, and comparing the output against the specific regex change. I still had to validate the behavior myself instead of trusting the first plausible explanation.
+
+**What would you do differently if you started over?**
+I would spend less time on broad checks early and go straight to the narrow failing test that matched the issue. I’d also record the exact reproduction and validation commands in my notes sooner, because that made it much easier to explain the fix later and to separate issue-related failures from repo-wide baseline issues.
+
+**What are you most proud of from this module?**
+I’m most proud that I kept the fix small, test-backed, and easy to review. The regex change solved the reported bug without widening the scope of the safety layer, and the journal now shows a complete paper trail from issue selection through reproduction, planning, implementation, and reflection.
