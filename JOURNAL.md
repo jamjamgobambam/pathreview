@@ -124,3 +124,36 @@ Added a `WorkflowParser` that discovers `.github/workflows/*.yml` files, extract
 **Draft PR feedback received from:** None yet -- will update.
 
 ---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review comments received on PR #677 as of Week 10 submission. Will update if feedback comes in during the grace period.
+
+**How you responded:**
+N/A — no feedback yet.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the `BaseParser` interface right without an existing parser-specific unit test to copy from. I assumed `resume_parser.py` or `readme_parser.py` would have dedicated unit tests I could model `test_workflow_parser.py` after, but the only ingestion test was `test_batch_processor.py`, which tests embeddings, not parsing logic. That meant I had to reverse-engineer what a parser unit test should look like from the `BaseParser` interface and `skill_extractor.py` call sites alone. The actual YAML parsing was trivial; figuring out how to mock `pathlib.Path.glob` and `yaml.safe_load` so my tests didn't touch disk while still looking like the existing test style took longer than the implementation itself.
+
+**What did you learn about working in a large codebase?**
+Pre-existing test failures are ambient noise you have to learn to ignore without letting them desensitize you. There were 53 failures before I touched anything, and I had to run the full suite repeatedly to confirm my changes didn't add a 54th. That's completely different from my own projects where a red test means *I* broke something. Here, red tests are just the baseline, and the real skill is isolating your delta. I also learned that "follow the existing pattern" is easier said than done when the existing pattern is spread across three files and no one wrote the test you're supposed to copy.
+
+**How did AI tools help — and where did they fall short?**
+AI / Kimi v. 2.6 was indispensable for drafting the unit tests and the `PLAN.md`. Kimi v. 2.6 helped me map the `BaseParser` interface to what `SkillExtractor` actually consumes, and it generated the mock patterns for `pathlib` and `PyYAML` faster than I could have written them from scratch. Where it fell short was anything environment-specific. The chatbot kept suggesting `make test-unit` and `make check` commands that don't exist on Windows PowerShell, and it couldn't tell me whether `PyYAML` was already in `pyproject.toml` without me just... opening the file. LLMs by and large are fantastic for engineering prompts along the lines of  "what should this code look like?" and less so for contextual understanding: "what does this specific machine actually have installed?"
+
+**What would you do differently if you started over?**
+I would read `pyproject.toml` and `requirements.txt` in the first 10 minutes instead of assuming dependencies. I spent far too much time planning a `PyYAML` addition that was already there. I also would run the full test suite *before* writing any code, not after I had already drafted my parser. Knowing the 53 pre-existing failures upfront would have made my Week 8 reproduction cleaner and my Week 9 check-ins less anxious. Finally, I would have checked `__init__.py` in `ingestion/parsers/` immediately: finding out it was empty and that parsers are manually wired in `pipeline.py` changed my design, and I discovered that later than expected.
+
+**What are you most proud of from this module?**
+The integration smoke test. Getting `WorkflowParser` + `SkillExtractor` to correctly detect GitHub Actions (0.90), Docker (0.95), pytest (0.85), and deployment (0.85) from a synthetic `.github/workflows/ci.yml` on the first try after all the unit tests passed was the moment I knew the feature actually worked end-to-end. The PR is clean, the tests are thorough, and I did it all on Windows PowerShell without `make`. That counts for something.
+
+---
