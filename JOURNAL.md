@@ -1,0 +1,89 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/24
+
+**Issue title:** Hybrid retriever over-weights keyword results when query contains technology names
+
+**Tier:** [ ] Tier 1  [X] Tier 2  [ ] Tier 3
+
+**Problem summary:**
+The issue is that the keywords are being matched incorrectly and the model will return irrelevant chunks from the wrong document because of similar wordings. What is currently broken is the RAG retrieval system in `rag/retriever/hybrid.py` and a successful fix would be that the correct chunks are being returned for the model to use.
+
+**Branch name:** fix/24-hybrid-retriver
+
+**Setup confirmation:** [X] App runs locally at localhost:5173
+
+**Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/scnoder/pathreview/commit/0c6168bc2fd051bd759f4422745c6aa4924a5a7b
+
+**Reproduction summary:**
+I reproduced the issue by uploading my own resume. There didn't seem to be much errors however, there were some slight variability for the same resume across different accounts.
+
+**PLAN.md link:** https://github.com/scnoder/pathreview/blob/fix/24-hybrid-retriever/PLAN.md
+
+**Blockers or open questions:**
+I am still uncertain about where the error exactly is and what type of logic error it is.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I have looked through `hybrid.py` and I have deduced what the error might be. I have located possible locations to fix this error as well.
+
+**Next steps:**
+I am working on narrowing down the location and fixing the error. I plan to have this done by the end of the week.
+
+**Blockers:**
+Since this is a logic error, there are many places where the error could reside.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/732
+
+**Branch:** `fix/24-hybrid-reviewer`
+
+**What you built:**
+My fix reevaluates the BM25 retriever only so that when the chunks are scored, there is much better evaluation. This made the keyword signals more meaningful.
+
+**Tests added or updated:**
+I touched `hybrid.py` and `keyword_search.py` because the focus on the BM25 scoring which is what the model uses to run.
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+
+**Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [X] Yes  [] No — still awaiting review
+
+**Summary of feedback:**
+My reviewer told me to talk more about what files were changed and have better commit messages.
+
+**How you responded:**
+I responded by updating the PR to have more files and details about those files. I will work on having more detailed commit messages in the future.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Something that was harder was learning how to properly run the code and connect it. I was having trouble with Docker and getting the code to run. In the end, I finally got it to work.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's database is more structured. When developing my own personal projects, it is more flexible to update code and push changes. Additionally, there isn't an issue where I need to keep the current branch updated with main.
+
+**How did AI tools help — and where did they fall short?**
+I used AI assistance when brainstorming how to fix the issue. I needed to go beyond when I researched what BM25 was and other information about the modules in the code. It feel short in explaining some of the modules because it was more focused on the solution rather than explaning some of the code.
+**What would you do differently if you started over?**
+I would start earlier. I think that if I had started earlier I would have done really good progress and have made a more effective fix.  
+
+**What are you most proud of from this module?**
+I am proud of picking a issue that wasn't too difficult and not too easy. It was a goldilocks issue that was a good step in my learning.
