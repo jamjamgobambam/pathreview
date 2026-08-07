@@ -93,3 +93,81 @@ Pre-existing failures observed (not introduced by this change):
   failure in test_readme_scorer.py (now 23/23 pass).
 
 **Draft PR feedback received from:** [to be updated]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was received on PR #472 by the end of the module.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the local environment running was harder than I expected. PathReview
+is a multi-service application that depends on PostgreSQL, Redis, and
+ChromaDB all running via Docker Compose, plus a Python backend and a React
+frontend. Just getting `docker compose up -d`, `make setup`, and `make run`
+to work correctly and seeing the app at localhost:5173 took real effort —
+understanding which services needed to be up first, what the `.env` file
+needed, and how the Makefile targets chained together. Once the app was
+running, understanding the relationship between the scorer implementation in
+`agent/tools/readme_scorer.py` and its test file also took careful reading.
+The bug was a mismatch between the test fixture and the scorer's actual
+word-count thresholds, and figuring out which side was "wrong" (the test, not
+the scorer) required tracing through the logic rather than just looking at
+the failing assertion.
+
+**What did you learn about working in a large codebase?**
+The biggest lesson was that you cannot just look at the file you are changing
+in isolation. I had to understand how `ReadmeScorer` defined its word-count
+categories (minimal < 100, adequate 100–500, comprehensive ≥ 500) before I
+could decide whether to fix the test or change the scorer. In my own
+projects I would have just adjusted whatever was convenient, but in someone
+else's production codebase the scorer's thresholds are intentional product
+decisions — changing them would alter actual behavior for users. I also
+learned the importance of verifying that your change does not introduce new
+failures. There were 52 pre-existing test failures across the codebase, and
+I had to carefully confirm that every single one existed before my change so
+I was not accidentally breaking something else.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for understanding the project structure quickly —
+navigating the multi-service architecture, understanding what each subsystem
+(api, ingestion, rag, agent, safety, frontend) does, and figuring out the
+correct commands to run the app locally. It also helped me prepare speaking
+notes for my PR presentation by pulling together the issue context, my
+approach, and the challenges into a structured format that matched the cohort
+rubric. Where AI fell short was in the actual debugging judgment: deciding
+whether to fix the test fixture or lower the scorer threshold required
+understanding the *intent* behind the code, not just the code itself. AI
+could show me both options, but the reasoning about which was the right call
+for a production codebase was something I had to work through myself.
+
+**What would you do differently if you started over?**
+I would spend more time upfront reading the full test file and the scorer
+implementation together before writing my plan. I initially thought the fix
+might involve changing the scorer's threshold, and it was only after mapping
+the code more carefully that I realized the test was the problem, not the
+implementation. Starting with a clearer understanding of the scorer's
+category boundaries would have saved me from considering the wrong approach.
+I would also add a comment in the test explaining why the fixture needs to be
+500+ words, so the next contributor does not trim it down and re-introduce
+the same bug.
+
+**What are you most proud of from this module?**
+I am most proud of keeping the fix scoped correctly. It would have been
+easier and faster to just lower the scorer's word-count threshold from 500 to
+50 and call it done, but that would have changed the product's actual
+behavior. Recognizing that the bug was in the test — not the code under test
+— and fixing only the test file while preserving all 23 existing test
+assertions felt like the right engineering decision. It is a small change in
+terms of lines of code, but making that judgment call correctly is what
+contributing to a real codebase is about.
