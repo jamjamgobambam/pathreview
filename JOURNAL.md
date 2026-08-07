@@ -202,3 +202,66 @@ Baselines recorded in my PR description: unit tests went 53 failed / 375 passed 
 unchanged.)
 
 **Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review arrived
+
+**How you responded:**
+No changes were required, so the branch stands as submitted in Week 9.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Picking the issue. I wanted something small enough that I could actually finish it, but two
+other students had already claimed #159 before me, so I had to decide whether to go ahead
+anyway. The part I really didn't see coming was the baseline. This fork ships with around 130
+intentional bugs, so 53 unit tests were already failing before I touched anything. That meant a
+green test suite was never going to be my finish line. I had to define success as 53 failures
+going down to 52, and then prove that the one that flipped was mine.
+
+**What did you learn about working in a large codebase?**
+The biggest thing is that the fix already existed. `core/logging.py:43` already sets up the exact
+structlog to stdlib bridge I needed. Nothing in the test suite ever calls it though. The only
+caller in the whole repo is a database seed script. In my own projects, when something doesn't
+work it's usually because I haven't written it yet. Here it was code that was written correctly
+and just never got reached, which is a very different thing to go looking for. I also had to get
+used to working in a suite that's red on purpose, and check failing tests by name instead of
+trusting the counts.
+
+**How did AI tools help and where did they fall short?**
+Claude Code was most useful for speed of understanding. It explained how structlog's processor
+chain and logger factory fit together in plain language, which would have taken me a lot longer
+to piece together from the docs. Where it fell short was anything specific to this repo. The
+standard structlog setup you find everywhere includes `filter_by_level`, and if I had just pasted
+that in, INFO logs would still have been dropped and `caplog` would still have come back empty.
+Same bug, new cause. I had to work that out myself and leave it out on purpose. It was the same
+with the root cause. I only really believed it after running
+`python -c "import structlog; print(structlog.get_config()['logger_factory'])"` and seeing
+`PrintLoggerFactory` with my own eyes.
+
+**What would you do differently if you started over?**
+Read the code before writing my problem summary. In Week 7 I repeated the issue title's claim
+that log assertions fail suite wide, and I wrote that the output goes to stderr. When I actually
+checked in Week 8, it turned out exactly one test in the entire repo uses `caplog`, and the
+output goes to stdout. Both of those were about twenty minutes of reading away and I wrote them
+down as facts instead. I'd also record the regression baseline in the first week instead of the
+second, because every claim I made later depended on it.
+
+**What are you most proud of from this module?**
+Not the PR itself. It's the before and after table in my PR description, where I compared the
+failing test names before and after my change instead of just the counts, so a reviewer can
+confirm that nothing quietly swapped places. A close second is writing down why I didn't reuse
+the app's own `configure_logging()`. It calls `basicConfig`, caches loggers, and reads the log
+level from settings, so a maintainer can disagree with that decision instead of guessing at my
+reasoning. And I'm glad I put my two Week 7 mistakes in the journal instead of quietly editing
+them out.
