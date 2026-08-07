@@ -18,7 +18,7 @@ None. Pre-existing `make check` and `make test-unit` failures exist in the codeb
 
 ### Check-in 2 (end of week)
 
-**PR link:** <!-- TODO: replace with actual PR URL after opening on GitHub -->
+**PR link:** https://github.com/ascherj/pathreview/pull/271
 
 **Branch:** `fix/106-restore-basic-profile-fixture`
 
