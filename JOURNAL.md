@@ -189,4 +189,4 @@ every level — empty input skips the LLM entirely, one failed chunk falls back 
 hybrid score instead of nuking the batch, and a fully unavailable LLM just returns the
 original hybrid order. A retrieval quality feature should never be able to break the
 core pipeline, and by the end it genuinely can't. I'm also proud that I handled the peer
-review professionally — agreed on the real bugs, fixed them properly with tests.
+review professionally — agreed on the real bugs and fixed them properly with tests.
