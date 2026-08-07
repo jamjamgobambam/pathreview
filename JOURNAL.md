@@ -141,3 +141,76 @@ The four pre-existing phone tests in the same file now pass.
 
 **Draft PR feedback received from:** none yet — draft PR opened for peer review in
 Slack; will address feedback and mark ready before the deadline.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback arrived on PR #997 by the end of the week (0
+review comments, 0 reviews as of submission). Per the Summer 2026 note, reviewer
+feedback isn't a feature this term, so this is expected rather than a sign that
+anything was wrong. The 30 comments on issue #146 itself are other cohort members
+claiming the same "good first issue," not review of my change.
+
+**How you responded:**
+No feedback to respond to. If a maintainer comments after the deadline I'll reply
+professionally and push follow-up commits, but there's nothing to address right now.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment, not the code. The actual fix was a one-line regex change, but
+getting to the point where I could *trust* it took much longer. `make setup`
+assumes Docker + Postgres/Redis/Chroma and heavy deps like `tiktoken`, none of
+which I had, so I couldn't run the full `make check` / `make test-unit`. I had to
+build a minimal venv (`pytest` + `structlog`) just to exercise
+`tests/unit/test_pii_scrubber.py`. The other genuinely hard part was
+*disambiguating failures*: when I first ran the file, **five** tests failed, but
+only four were mine — the fifth (`test_mixed_pii_and_text`) turned out to be an
+unrelated `street_address` regex over-matching `"Pl"` inside "app**pl**ications"
+and eating "Python". Proving that was pre-existing (and not something I broke)
+mattered more than writing the fix.
+
+**What did you learn about working in a large codebase?**
+Restraint. In my own projects I'd have "cleaned up" the pre-existing `ruff`/`black`
+findings and the buggy `street_address` regex while I was in the file. Here the
+right move was the opposite: keep the diff to the single `phone_us` line + its
+tests, and *document* everything else as out-of-scope. I also learned to let the
+existing tests define "done" — the four failing tests were effectively the spec —
+and to match the repo's conventions (Conventional Commit scopes like
+`fix(safety):`, the `<type>/<issue#>-<desc>` branch name, Google-style docstrings)
+instead of my own habits. Contributing to someone else's production code is
+graded on "don't make it worse," not "leave your mark."
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for *tracing and reasoning*: pinpointing why the regex failed
+(the missing space separator after `)`), reasoning through the `\b` vs
+`(?<!\w)…(?!\w)` anchor trade-off so the leading `(` gets redacted, and drafting
+PLAN.md and the regression tests quickly. Where it fell short: it couldn't install
+Docker or run the full suite for me, so "does the whole thing actually pass in CI"
+is still something I can't verify locally — I had to reason about pre-existing vs
+new failures myself. It also can't make the judgment calls: whether checking the
+"make check passes" box is honest given I couldn't literally run it, or whether the
+`street_address` bug was worth scoping in. Those were mine to decide.
+
+**What would you do differently if you started over?**
+I'd verify the environment *before* committing to an issue — specifically confirm I
+can run `make test-unit` end to end (Docker installed) so my "passes" claims are
+literal, not "no new failures." I got lucky that #146 was verifiable with a tiny
+venv; a different issue might have been unreproducible for me locally. I'd also
+open the draft PR a day or two earlier to leave real room for peer feedback instead
+of opening it close to the deadline.
+
+**What are you most proud of from this module?**
+The paper trail, more than the one-line fix. I have a clean four-week arc — issue
+selection → a documented reproduction commit that pinpoints the exact regex → a
+PLAN.md that predicted the real risks (over-broadening, `\s` spanning line breaks,
+the `+1` format question) → a minimal, tested fix → an honest PR that documents
+pre-existing failures instead of hiding them or over-reaching to "fix" the repo.
+Being able to say exactly what I changed, what I deliberately didn't, and why, is
+the part I'd want a real maintainer to see.
