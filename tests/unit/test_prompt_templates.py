@@ -1,7 +1,8 @@
 """Tests for prompt_templates.py - Snapshot tests"""
 
-import pytest
 import hashlib
+
+import pytest
 
 from rag.generator.prompt_templates import PROMPT_TEMPLATES, get_template
 
@@ -52,7 +53,9 @@ class TestPromptTemplates:
         """Test each template contains {context} placeholder."""
         for template_name, versions in PROMPT_TEMPLATES.items():
             for version, template_text in versions.items():
-                assert "{context}" in template_text, f"{template_name} v{version} missing {{context}}"
+                assert (
+                    "{context}" in template_text
+                ), f"{template_name} v{version} missing {{context}}"
 
     def test_each_template_contains_github_username_placeholder(self):
         """Test each template contains {github_username} placeholder."""
@@ -151,19 +154,32 @@ class TestPromptTemplates:
         """Test gaps_feedback template mentions missing/gap concepts."""
         template = PROMPT_TEMPLATES["gaps_feedback"]["v1"]
 
-        assert "gap" in template.lower() or "missing" in template.lower() or "demand" in template.lower()
+        assert (
+            "gap" in template.lower()
+            or "missing" in template.lower()
+            or "demand" in template.lower()
+        )
 
     def test_presentation_feedback_mentions_readme(self):
         """Test presentation_feedback template mentions README or presentation."""
         template = PROMPT_TEMPLATES["presentation_feedback"]["v1"]
 
-        assert "readme" in template.lower() or "presentation" in template.lower() or "organization" in template.lower()
+        assert (
+            "readme" in template.lower()
+            or "presentation" in template.lower()
+            or "organization" in template.lower()
+        )
 
     def test_first_impression_is_concise(self):
         """Test first_impression template instructs concise output."""
         template = PROMPT_TEMPLATES["first_impression"]["v1"]
 
-        assert "2" in template or "3" in template or "sentence" in template.lower() or "summary" in template.lower()
+        assert (
+            "2" in template
+            or "3" in template
+            or "sentence" in template.lower()
+            or "summary" in template.lower()
+        )
 
     def test_get_template_default_version(self):
         """Test get_template() defaults to v1 when version not specified."""
@@ -171,21 +187,6 @@ class TestPromptTemplates:
         template_v1 = get_template("skills_feedback", "v1")
 
         assert template_default == template_v1
-
-    def test_template_snapshot_content_hash(self):
-        """Snapshot test: verify template content hash."""
-        # Create hash of all template content
-        template_content = ""
-        for name in sorted(PROMPT_TEMPLATES.keys()):
-            for version in sorted(PROMPT_TEMPLATES[name].keys()):
-                template_content += PROMPT_TEMPLATES[name][version]
-
-        content_hash = hashlib.md5(template_content.encode()).hexdigest()
-
-        # Expected hash - update if templates intentionally change
-        # This helps detect unintended changes to templates
-        assert isinstance(content_hash, str)
-        assert len(content_hash) == 32  # MD5 hash length
 
     def test_skills_feedback_requests_json_format(self):
         """Test skills_feedback requests JSON output."""
@@ -216,7 +217,11 @@ class TestPromptTemplates:
         template = PROMPT_TEMPLATES["first_impression"]["v1"]
 
         # Should specify format (JSON or plain text)
-        assert "json" in template.lower() or "text" in template.lower() or "summary" in template.lower()
+        assert (
+            "json" in template.lower()
+            or "text" in template.lower()
+            or "summary" in template.lower()
+        )
 
     def test_templates_have_portfolio_context(self):
         """Test templates mention portfolio or context."""
@@ -230,7 +235,8 @@ class TestPromptTemplates:
         # Import logger to verify it's used
         with pytest.MonkeyPatch.context() as mp:
             from unittest.mock import patch
-            with patch('rag.generator.prompt_templates.logger') as mock_logger:
+
+            with patch("rag.generator.prompt_templates.logger") as mock_logger:
                 get_template("skills_feedback")
                 # Should log template retrieval
 
@@ -267,7 +273,87 @@ class TestPromptTemplates:
             for version, template_text in versions.items():
                 # All placeholders should use {name} syntax
                 import re
-                placeholders = re.findall(r'\{(\w+)\}', template_text)
+
+                placeholders = re.findall(r"\{(\w+)\}", template_text)
                 assert "context" in placeholders
                 assert "github_username" in placeholders
                 assert "project_count" in placeholders
+
+    # ------------------------------------------------------------------
+    # Snapshot tests
+    #
+    # These tests fail if a template's content changes without a version
+    # bump. If you intentionally change a template, you must:
+    #   1. Add a NEW version in prompt_templates.py (e.g. "v2")
+    #   2. Add its hash to EXPECTED_TEMPLATE_SNAPSHOTS below
+    #   3. Leave the old version's snapshot intact so historical
+    #      behavior stays pinned
+    # ------------------------------------------------------------------
+
+    EXPECTED_TEMPLATE_SNAPSHOTS = {
+        ("first_impression", "v1"): (
+            "9e7697ff3efd892c82c63ffcc8365690685fb1c29f79d45d84e057b2d0672dd0"
+        ),
+        ("gaps_feedback", "v1"): (
+            "b2673a1a1f018f2f2fdf37b2dfb6b30634404ba7bb2c241cc01b6240b9097950"
+        ),
+        ("presentation_feedback", "v1"): (
+            "87230b7045d66a1fae7d06e2509c6fae31046e0c4e8d30a3c3d6fe9ad2a7a3d7"
+        ),
+        ("projects_feedback", "v1"): (
+            "7e53575582f45389e4a3e4f93c7c137da629d3a14809e16f746732b9a06740d1"
+        ),
+        ("skills_feedback", "v1"): (
+            "a24d6d717d4f365c28a686f28b3e77f47204c325ce892fc32d68eb82259f6816"
+        ),
+    }
+
+    @staticmethod
+    def _hash_template(content: str) -> str:
+        """Return the sha256 hex digest of a template's content."""
+        return hashlib.sha256(content.encode()).hexdigest()
+
+    def test_template_content_matches_snapshot(self) -> None:
+        """Fail if a template's content changed without a version bump.
+
+        If this test fails, do NOT simply update the expected hash.
+        Instead, add a new version (e.g. v2) alongside the existing one
+        so historical prompt behavior stays pinned and reviewable.
+        """
+        for (name, version), expected_hash in self.EXPECTED_TEMPLATE_SNAPSHOTS.items():
+            assert name in PROMPT_TEMPLATES, (
+                f"Template '{name}' is missing but has a snapshot. "
+                f"If it was intentionally removed, also remove its entry "
+                f"from EXPECTED_TEMPLATE_SNAPSHOTS."
+            )
+            assert version in PROMPT_TEMPLATES[name], (
+                f"Version '{version}' is missing for template '{name}'. "
+                f"If it was intentionally removed, also remove its entry "
+                f"from EXPECTED_TEMPLATE_SNAPSHOTS."
+            )
+
+            actual_hash = self._hash_template(PROMPT_TEMPLATES[name][version])
+            assert actual_hash == expected_hash, (
+                f"Template '{name}' {version} content changed without a "
+                f"version bump.\n"
+                f"If this change is intentional, add a NEW version (e.g. "
+                f"v2) in prompt_templates.py and register its hash in "
+                f"EXPECTED_TEMPLATE_SNAPSHOTS, keeping the old snapshot "
+                f"intact.\n"
+                f"Expected hash: {expected_hash}\n"
+                f"Actual hash:   {actual_hash}"
+            )
+
+    def test_every_template_version_has_a_snapshot(self) -> None:
+        """Fail if a template version exists without a corresponding snapshot.
+
+        This catches the reverse mistake: adding a new template or version
+        in prompt_templates.py without registering a snapshot for it.
+        """
+        for name, versions in PROMPT_TEMPLATES.items():
+            for version in versions:
+                assert (name, version) in self.EXPECTED_TEMPLATE_SNAPSHOTS, (
+                    f"Template '{name}' {version} has no snapshot registered. "
+                    f"Add its hash to EXPECTED_TEMPLATE_SNAPSHOTS in this "
+                    f"test file."
+                )
