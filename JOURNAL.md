@@ -101,3 +101,45 @@ No test needed to be updated. Test referenced in `tech_detector_test.py`. Previo
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** slack handle: ssangela cui
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+No comments but a approval.
+
+**How you responded:**
+Just thanks them.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The first few weeks of the course was harder than I expected. Specifically the part where
+had to train a RAG model to be production ready. I had to figure out what parameters to tune
+and learn the hard way that accuracy doesn't mean the model is good. I thought it would be more 
+straightforward when I first started the lab for the RAG model project, but I spent multiple hours
+trying to understand everything that was going on.
+
+**What did you learn about working in a large codebase?**
+
+Contributing to someone elses production code means you have to read their community guidelines. 
+Its working with more than one person so you have to be more careful. For example some repos may have contribution guidelines that state your PR titles and or commit must follow a specific format e.g. 
+"feat: .... abc" or "BUG-676767: fix .... abc "
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools help with understanding and generating code they may fall short in learning the entire context of the code that is where the user must step in to provide context and ensure the AI is outputting something useful and not buggy. In the lab rag project I had to find human feedback in order to determine that the model was being fine tuned incorrectly and that accuracy + other measurements combines is the better benchmark for performance.
+
+**What would you do differently if you started over?**
+
+If I were to start over I would start by reading the problem / issue more clearly and doing my own trace before asking the AI for help. I kinda just one shotted the issue by asking claude where I was suspicious about and it fixed it for me.
+
+**What are you most proud of from this module?**
+
+I am most proud of sticking to the class despite having a busier schedule. Excited to see AI 301!!!!
