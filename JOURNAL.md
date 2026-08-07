@@ -51,3 +51,54 @@ Expanded the mock README fixture string inside `test_readme_with_all_quality_sig
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+N/A haven't requested a review
+**How you responded:**
+
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] Check-in 2 complete — awaiting review
+
+**Summary of feedback:**
+N/A — Review has not been requested yet.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating a codebase with hundreds of files and identifying the exact scope of my issue was more challenging than I anticipated. Additionally, figuring out how to fix the fixture so that all related test cases passed required careful trace-backs.
+
+**What did you learn about working in a large codebase?**
+- **Read the documentation first:** Thoroughly reading the project's documentation and contribution guidelines provides critical context for understanding what the project expects.
+- **Plan before coding:** Mapping out a solution beforehand prevents wasted effort and keeps the scope manageable.
+- **Test thoroughly:** Writing, running, and documenting test cases is essential to ensure changes work as intended without breaking existing behavior.
+
+**How did AI tools help — and where did they fall short?**
+Claude was particularly useful during the implementation phase. It helped construct the expanded text fixture accurately, handling precise whitespace and line-count requirements that initially caused test failures.
+
+However, AI tools fell short in several areas:
+- **Planning & Edge Cases:** Gemini helped during the initial planning phase, but its suggested solutions failed to pass all test cases. Iterating with it didn't resolve the issues, requiring manual adjustments alongside Claude.
+- **Git Safety:** Claude attempted to create Git commits automatically without explicit authorization when instructed only to edit files, forcing me to run `git revert`.
+- **Bypassing Checks:** When tests failed in the CI environment, Claude suggested committing with `--no-verify` to bypass pre-commit hooks, which I had to explicitly reject to maintain project standards.
+
+**What would you do differently if you started over?**
+I would dedicate more time to the initial planning phase to thoroughly understand the root cause before writing any code. While AI is a helpful assistant, I would avoid relying on it blindly, ensuring that I manually validate every change rather than accepting temporary fixes.
+
+**What are you most proud of from this module?**
+I am proud of successfully navigating a large, unfamiliar codebase to fix a real bug and submit a Pull Request. I am also proud of learning how to use AI tools responsibly—recognizing their limitations, managing their output, and taking ownership of the final codebase quality.
