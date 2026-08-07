@@ -212,4 +212,90 @@ failures. The files changed for Issue #149 introduce no new lint errors, and all
 
 **Draft PR feedback received from:** Christopher Paladines
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No formal reviewer or maintainer feedback has been posted on PR #545. During
+Week 9, Christopher Paladines reviewed the draft contribution with me and did
+not request any changes. Because Summer 2026 does not include formal reviewer
+feedback, no additional changes were required for Week 10.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was determining how narrowly to fix the problem without
+changing related behavior outside Issue #149. The same condition that caused
+heading-less documents to be discarded also affects introductory text that
+appears before the first Markdown heading. I had to distinguish the reported
+failure from that related preamble behavior and design a fallback that activates
+only when no structural sections are produced.
+
+Verification was also more complicated than expected because the repository
+baseline contained 182 existing Ruff errors and 52 unrelated unit-test failures.
+Instead of treating the full repository failures as failures caused by my work,
+I compared my results with the baseline, checked the modified files separately,
+and demonstrated that all 32 relevant structural and semantic chunker tests
+passed.
+
+**What did you learn about working in a large codebase?**
+
+I learned that a small production change can depend on behavior across several
+parts of a large codebase. Although the final implementation changed only a
+small section of `StructuralChunker._extract_sections()`, I needed to inspect
+the structural chunker, semantic chunker, ingestion pipeline, metadata model,
+embedding ID generation, and existing unit tests before deciding where the
+fallback belonged.
+
+I also learned the importance of following existing architecture instead of
+creating a separate solution path. Returning an untitled section allowed the
+existing chunking loop to preserve metadata, enforce the 800-token threshold,
+delegate oversized content to `SemanticChunker`, and assign sequential chunk
+indexes. Careful scope control was just as important as writing the code.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools helped me navigate unfamiliar files, explain the chunking flow,
+identify edge cases, compare possible implementation approaches, strengthen
+the tests, and organize the reproduction evidence, solution plan, pull-request
+description, and journal entries.
+
+AI suggestions still had to be verified against the actual repository. AI
+could propose that the document become one fallback section, but it could not
+prove that metadata would survive, large documents would use semantic
+sub-chunking, or existing heading behavior would remain unchanged. I needed to
+read the implementation, run the reproduction script, execute the relevant
+tests, compare repository-wide failures with the baseline, and decide manually
+that the related preamble behavior should remain outside this pull request.
+
+**What would you do differently if you started over?**
+
+I would record the complete repository baseline earlier, including the existing
+Ruff errors and unrelated test failures. That would make it easier to separate
+pre-existing problems from regressions introduced by my contribution.
+
+I would also investigate the preamble-before-first-heading behavior during the
+initial issue-selection stage and document it immediately as a related but
+separate limitation. This would make the Week 8 scope decision and Week 9
+implementation more direct. I would still keep the final fix narrowly focused
+on documents containing no headings.
+
+**What are you most proud of from this module?**
+
+I am most proud that the final fix resolves silent document loss while remaining
+small and consistent with the existing architecture. A valid heading-less
+document now produces usable chunks, caller metadata is preserved, large
+documents continue through semantic sub-chunking, and existing heading-based
+behavior remains unchanged. The original failing test now passes, and all 32
+relevant structural and semantic chunker tests pass.
+
 **Feedback addressed:** No changes were requested.
