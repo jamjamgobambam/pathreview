@@ -269,15 +269,10 @@ class TestPIIScrubber:
 
     @given(
         st.one_of(
-            st.from_regex(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", fullmatch=True),
+            st.emails(),
             st.from_regex(r"\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}", fullmatch=True),
             st.from_regex(r"\+[0-9]{1,3}(?:[-.\s]?[0-9]{1,14})+", fullmatch=True),
-            st.builds(
-                lambda area, group, serial: f"{area}-{group}-{serial}",
-                st.integers(min_value=1, max_value=899).map(lambda n: f"{n:03}").filter(lambda s: s != "666"),
-                st.integers(min_value=1, max_value=99).map(lambda n: f"{n:02}"),
-                st.integers(min_value=1, max_value=9999).map(lambda n: f"{n:04}"),
-            ),
+            st.from_regex(r"(?!000|666)[0-9]{3}-(?!00)[0-9]{2}-(?!0000)[0-9]{4}", fullmatch=True),
         )
     )
     def test_scrubber_property_based_redacts_pii(self, pii_text):
