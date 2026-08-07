@@ -1,8 +1,84 @@
 """Tests for pii_scrubber.py"""
 
+# Existing pytest fixtures and test methods in this module intentionally use
+# pytest's untyped function style; keep strict mypy focused on production code.
+# mypy: disable-error-code="no-untyped-def"
+
+from string import ascii_letters, digits
+
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from safety.pii_scrubber import PIIScrubber
+
+
+@st.composite
+def email_values(draw):
+    """Generate email values covered by the scrubber's email pattern."""
+    first = draw(st.sampled_from(ascii_letters + digits))
+    rest = draw(st.text(alphabet=ascii_letters + digits + "._%+-", min_size=0, max_size=12))
+    domain = draw(st.text(alphabet=ascii_letters + digits, min_size=1, max_size=10))
+    tld = draw(st.text(alphabet=ascii_letters, min_size=2, max_size=6))
+    return f"{first}{rest}@{domain}.{tld}"
+
+
+@st.composite
+def us_phone_values(draw):
+    """Generate supported US phone number formats."""
+    area = draw(st.integers(min_value=200, max_value=999))
+    exchange = draw(st.integers(min_value=200, max_value=999))
+    subscriber = draw(st.integers(min_value=0, max_value=9999))
+    style = draw(st.sampled_from(("hyphen", "parenthesized", "dot", "country", "compact")))
+    area_text = f"{area:03d}"
+    exchange_text = f"{exchange:03d}"
+    subscriber_text = f"{subscriber:04d}"
+
+    if style == "parenthesized":
+        return f"({area_text}) {exchange_text}-{subscriber_text}"
+    if style == "dot":
+        return f"{area_text}.{exchange_text}.{subscriber_text}"
+    if style == "country":
+        return f"+1 {area_text} {exchange_text} {subscriber_text}"
+    if style == "compact":
+        return f"{area_text}{exchange_text}{subscriber_text}"
+    return f"{area_text}-{exchange_text}-{subscriber_text}"
+
+
+@st.composite
+def international_phone_values(draw):
+    """Generate international phone values with supported separators."""
+    country = draw(st.integers(min_value=1, max_value=999))
+    groups = [draw(st.text(alphabet=digits, min_size=2, max_size=4)) for _ in range(3)]
+    separator = draw(st.sampled_from((" ", "-", ".")))
+    return f"+{country}{separator}{separator.join(groups)}"
+
+
+@st.composite
+def ssn_values(draw):
+    """Generate valid SSN-shaped values accepted by the scrubber."""
+    area = draw(st.integers(min_value=1, max_value=665))
+    group = draw(st.integers(min_value=1, max_value=99))
+    serial = draw(st.integers(min_value=1, max_value=9999))
+    return f"{area:03d}-{group:02d}-{serial:04d}"
+
+
+@st.composite
+def street_address_values(draw):
+    """Generate simple street addresses covered by the address pattern."""
+    number = draw(st.integers(min_value=1, max_value=9999))
+    street = draw(st.sampled_from(("Main", "Oak", "Elm", "Maple", "Pine")))
+    suffix = draw(st.sampled_from(("Street", "Avenue", "Road", "Drive", "Lane")))
+    return f"{number} {street} {suffix}"
+
+
+pii_values = st.one_of(
+    email_values(),
+    us_phone_values(),
+    international_phone_values(),
+    ssn_values(),
+    street_address_values(),
+)
 
 
 @pytest.mark.unit
@@ -201,7 +277,8 @@ class TestPIIScrubber:
         for addr in addresses:
             text = f"Address: {addr}"
             scrubbed = scrubber.scrub(text)
-            # Should attempt to redact addresses
+            assert addr not in scrubbed
+            assert "[REDACTED]" in scrubbed
 
     def test_empty_text(self, scrubber):
         """Test with empty text."""
@@ -252,3 +329,38 @@ class TestPIIScrubber:
 
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
+        assert detected == []
+
+    @given(pii=pii_values)
+    @settings(max_examples=50, deadline=None)
+    def test_scrub_redacts_generated_pii(self, pii):
+        """Test that generated supported PII is absent after scrubbing."""
+        text = f"Profile record: {pii}"
+
+        scrubbed = PIIScrubber().scrub(text)
+
+        assert pii not in scrubbed
+        assert "[REDACTED]" in scrubbed
+
+    @given(pii=pii_values)
+    @settings(max_examples=50, deadline=None)
+    def test_detect_reports_generated_pii_span(self, pii):
+        """Test that generated PII is detected with an accurate source span."""
+        text = f"Profile record: {pii}"
+
+        detections = PIIScrubber().detect(text)
+        matching_detections = [detection for detection in detections if detection["value"] == pii]
+
+        assert matching_detections
+        for detection in matching_detections:
+            assert text[detection["start"] : detection["end"]] == detection["value"]
+
+    @given(pii=pii_values)
+    @settings(max_examples=50, deadline=None)
+    def test_scrub_generated_pii_is_idempotent(self, pii):
+        """Test that generated PII remains stable after a second scrub."""
+        text = f"Profile record: {pii}"
+        scrubber = PIIScrubber()
+        scrubbed_once = scrubber.scrub(text)
+
+        assert scrubber.scrub(scrubbed_once) == scrubbed_once
