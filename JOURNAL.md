@@ -133,3 +133,81 @@ pre-existing and unrelated to this PR — my two touched files carry the same ru
 findings as baseline and `resume_parser.py` is mypy-clean.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. PR [ascherj#515](https://github.com/ascherj/pathreview/pull/515)
+has been open and marked ready for review since Week 9, but has received no reviews
+or comments (reviewer feedback is not a provided feature in Summer 2026, and #515 is
+one of ~195 open student PRs on the upstream repo). Checked via
+`gh pr view 515 --repo ascherj/pathreview` — 0 reviews, 0 comments.
+
+**How you responded:**
+No feedback to respond to. I left the PR ready for review as-is.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The actual code change was four string literals — inserting `[ \t]*` after each
+line anchor in `_detect_sections()`. What was genuinely hard had nothing to do with
+the fix: it was working inside a codebase that was already broken. Before touching
+anything, `make test-unit` showed 54 failing tests and `make check` reported 182
+ruff / 52 black / 103 mypy issues, none of them mine. The Makefile's `test-unit`
+target even pointed at a `.venv` that didn't exist, so just getting to a runnable
+baseline took real effort. The deliverable said "make check and make test-unit
+pass," but that was literally impossible without fixing hundreds of unrelated
+problems. The hard part was deciding what "passes" honestly means here — I settled
+on establishing a baseline first, then proving my change added *zero* new failures
+by diffing the failure set before and after (54 → 50, and the 4 that flipped were
+exactly the #147 tests). Learning to work confidently against a red baseline,
+rather than assuming red means I broke something, was the real skill.
+
+**What did you learn about working in a large codebase?**
+Restraint. My PLAN scoped the fix to a single method, and I kept discovering
+adjacent things that were *also* broken — most notably `_strip_markdown`, which has
+the exact same leading-whitespace regex bug (`^#+\s+`) and whose tests fail on
+`main` for the same reason. In my own project I'd have just fixed it. Here, fixing
+it would have blurred the diff, contradicted my plan, and made the PR harder to
+review, so I left it documented as out of scope. Contributing to someone else's
+production code means the smallest correct change wins, and that "correct" includes
+proving you didn't touch anything you weren't supposed to. I also learned to read
+before changing: a grep confirmed the only consumer of `detected_sections` was a
+log line, which is what made the empty-list failure a silent bug rather than a
+crash — and told me the blast radius of my change was tiny.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest at the mechanical-but-tedious work: standing up the venv,
+capturing the before/after failure baselines and diffing them, drafting the regex
+and the five edge-case tests (tabs, mixed indent, CRLF, first-line, and the
+negative mid-sentence case), and writing up the PR body. Where it fell short was
+judgment that depends on context it couldn't see. Two concrete examples: it wanted
+to open my PR against my own fork, when the cohort convention — obvious the moment I
+actually looked at the ~195 PRs on the upstream repo — is to PR against
+`ascherj/pathreview`. And it checked the "make check passes" box on a literal
+reading of the rubric when the honest answer needed the cohort's
+pre-existing-failure policy to make sense. AI got me to a defensible draft fast, but
+the "is this actually the right call for *this* course" decisions were mine.
+
+**What would you do differently if you started over?**
+Two things. First, I'd verify the contribution *mechanics* — where PRs go, what the
+grader actually opens — at the very start of Week 7, not Week 9. I burned time
+opening a PR on my fork and then re-opening it upstream because I never checked the
+convention up front. Second, I'd sanity-check whether an issue was already being
+worked: PR #478 is another student fixing the identical issue #147, which I only
+noticed after submitting. It didn't cost me anything, but on a real open-source
+project I'd have commented on the issue first to avoid duplicate work.
+
+**What are you most proud of?**
+Not the fix itself — it's four characters of regex. I'm proud of the verification
+discipline: establishing a documented baseline, proving my change strictly reduced
+the failure count with zero regressions, and being honest in the PR and journal
+about exactly what was pre-existing versus mine, rather than quietly checking boxes.
+In a codebase this broken, the trustworthy thing wasn't a green checkmark — it was a
+claim a reviewer could actually verify.
