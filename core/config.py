@@ -8,7 +8,9 @@ class Settings(BaseSettings):
     """Application settings with support for .env file and environment variables."""
 
     # Database
-    database_url: str = Field(default="postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_dev")
+    database_url: str = Field(
+        default="postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_dev"
+    )
     redis_url: str = Field(default="redis://localhost:6379/0")
     vector_db_url: str = Field(default="http://localhost:8001")
 
@@ -18,6 +20,11 @@ class Settings(BaseSettings):
     openrouter_api_key: str = Field(default="")
     openrouter_base_url: str = Field(default="https://openrouter.ai/api/v1")
     openrouter_model: str = Field(default="google/gemma-3-27b-it:free")
+
+    # Re-ranking (issue #34) — opt-in LLM re-ranking of retrieved chunks
+    enable_reranking: bool = Field(default=False)
+    rerank_model: str = Field(default="google/gemma-3-27b-it:free")
+    rerank_candidate_multiplier: int = Field(default=3)
 
     # Application
     app_env: str = Field(default="development")
