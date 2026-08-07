@@ -93,3 +93,34 @@ No new test files added; the existing tests in `tests/unit/test_pii_scrubber.py`
 (Note: `mypy` passes clean; `ruff`/`black` flag pre-existing style issues on unmodified lines, documented in PR description. No new failures introduced by this change; one pre-existing unrelated failure, `test_mixed_pii_and_text`, documented in PR description.)
 
 **Draft PR feedback received from:** none — requested in Slack, no response received by submission deadline
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in during the module. (Per the Su26 course note, reviewer feedback isn't a feature this term, so this is expected rather than a sign the PR was overlooked.)
+
+**How you responded:**
+N/A — no changes were needed since no feedback arrived.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting my local environment working was the biggest obstacle, not the actual bug fix. Working in Git Bash on Windows without `make` or Docker meant I had to manually replicate what the project's tooling would normally automate, running `ruff`, `black`, and `mypy` by hand instead of a single command. The regex fix itself for parenthesized US phone numbers was the easy part once I'd reproduced the bug with pytest.
+
+**What did you learn about working in a large codebase?**
+Reproducing the bug first, before touching any code, made the actual fix almost trivial by comparison. Writing PLAN.md before implementing forced me to think through edge cases (like parenthesized area codes) that I might have missed if I'd jumped straight to editing the regex. I also learned how much of "contributing" is process — journaling, planning, documenting — rather than just writing code.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for explaining unfamiliar regex patterns and helping me think through test cases for the PII scrubber. It fell short when it came to environment-specific issues, like Windows file save quirks in my editor; I ended up relying on heredoc/`printf` commands in the terminal since AI suggestions assumed a Mac/Linux setup with tools I didn't have.
+
+**What would you do differently if you started over?**
+I'd set up my environment checks (confirming `make`, Docker, and other tooling availability) before selecting an issue, so I could plan around those constraints from the start instead of discovering them mid-task.
+
+**What are you most proud of from this module?**
+Getting the full PR — regex fix, reproduction notes, PLAN.md, and journal entries — submitted and passing lint/format/typecheck manually, without any of the automation the project assumes you have.
