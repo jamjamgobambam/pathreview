@@ -252,3 +252,14 @@ class TestPIIScrubber:
 
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
+
+    def test_parenthesized_phone_with_space_separator(self, scrubber):
+        """Regression test for #146: (555) 123-4567 with a space after the
+        area code was not redacted because the separator class excluded
+        whitespace."""
+        text = "Call me at (555) 123-4567 tomorrow"
+        scrubbed = scrubber.scrub(text)
+
+        # Full-string assertion: guards against partial redaction that
+        # leaves the leading "(" behind (e.g. "([REDACTED]").
+        assert scrubbed == "Call me at [REDACTED] tomorrow"

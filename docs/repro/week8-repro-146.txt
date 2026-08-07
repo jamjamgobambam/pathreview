@@ -1,0 +1,134 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0 -- /Users/gowthamrevanur/pathreview/.venv/bin/python3.11
+cachedir: .pytest_cache
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+hypothesis profile 'default'
+rootdir: /Users/gowthamrevanur/pathreview
+configfile: pyproject.toml
+plugins: benchmark-5.2.3, cov-7.1.0, asyncio-1.4.0, anyio-4.14.2, pytest_httpserver-1.1.5, hypothesis-6.156.6
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 25 items
+
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_email_redaction PASSED [  4%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_multiple_emails_redacted PASSED [  8%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_us_phone_number_redaction FAILED [ 12%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_us_phone_formats FAILED [ 16%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_international_phone_redaction PASSED [ 20%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_ssn_redaction PASSED [ 24%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_ssn_variations PASSED [ 28%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_street_address_redaction PASSED [ 32%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_text_with_no_pii PASSED [ 36%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_returns_list_of_pii PASSED [ 40%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_email_pii PASSED [ 44%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_phone_pii FAILED [ 48%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_ssn_pii PASSED [ 52%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_positions_accurate PASSED [ 56%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_multiple_pii_items PASSED [ 60%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_case_insensitive_email_matching PASSED [ 64%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_complex_email_addresses PASSED [ 68%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_phone_at_start_of_text FAILED [ 72%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_phone_at_end_of_text PASSED [ 76%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_address_variations PASSED [ 80%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_empty_text PASSED [ 84%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_whitespace_only PASSED [ 88%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_mixed_pii_and_text FAILED [ 92%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_scrub_idempotent PASSED [ 96%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_no_false_positives PASSED [100%]
+
+=================================== FAILURES ===================================
+________________ TestPIIScrubber.test_us_phone_number_redaction ________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x1095c3ad0>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x1095ea750>
+
+    def test_us_phone_number_redaction(self, scrubber):
+        """Test US phone number is redacted."""
+        text = "Call me at (555) 123-4567"
+        scrubbed = scrubber.scrub(text)
+    
+>       assert "[REDACTED]" in scrubbed
+E       AssertionError: assert '[REDACTED]' in 'Call me at (555) 123-4567'
+
+tests/unit/test_pii_scrubber.py:39: AssertionError
+____________________ TestPIIScrubber.test_us_phone_formats _____________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x1095d0290>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x1095df9d0>
+
+    def test_us_phone_formats(self, scrubber):
+        """Test various US phone number formats."""
+        formats = [
+            "555-123-4567",
+            "(555) 123-4567",
+            "555.123.4567",
+            "+1 555 123 4567",
+        ]
+    
+        for phone in formats:
+            text = f"Contact: {phone}"
+            scrubbed = scrubber.scrub(text)
+>           assert "[REDACTED]" in scrubbed
+E           AssertionError: assert '[REDACTED]' in 'Contact: (555) 123-4567'
+
+tests/unit/test_pii_scrubber.py:54: AssertionError
+____________________ TestPIIScrubber.test_detect_phone_pii _____________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x1095d2b90>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x109650950>
+
+    def test_detect_phone_pii(self, scrubber):
+        """Test detect() finds phone number PII."""
+        text = "Phone: (555) 123-4567"
+        detected = scrubber.detect(text)
+    
+        phone_detections = [d for d in detected if "phone" in d["type"]]
+>       assert len(phone_detections) > 0
+E       assert 0 > 0
+E        +  where 0 = len([])
+
+tests/unit/test_pii_scrubber.py:128: AssertionError
+----------------------------- Captured stdout call -----------------------------
+2026-07-24 06:03:03 [info     ] pii_detected                   count=0 types=0
+_________________ TestPIIScrubber.test_phone_at_start_of_text __________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x1095dd790>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x1095f3250>
+
+    def test_phone_at_start_of_text(self, scrubber):
+        """Test phone number at start of text."""
+        text = "(555) 123-4567 is my phone number."
+        scrubbed = scrubber.scrub(text)
+    
+>       assert "[REDACTED]" in scrubbed
+E       AssertionError: assert '[REDACTED]' in '(555) 123-4567 is my phone number.'
+
+tests/unit/test_pii_scrubber.py:184: AssertionError
+___________________ TestPIIScrubber.test_mixed_pii_and_text ____________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x1095d25d0>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x1096348d0>
+
+    def test_mixed_pii_and_text(self, scrubber):
+        """Test text with mix of PII and regular content."""
+        text = """
+        Professional Background:
+        I worked at TechCorp for 5 years developing Python applications.
+        Email: john.smith@company.com
+        Phone: 555-123-4567
+        SSN: 123-45-6789
+        I'm skilled in AWS and Kubernetes deployment.
+        """
+        scrubbed = scrubber.scrub(text)
+    
+        assert "TechCorp" in scrubbed  # Regular text preserved
+>       assert "Python" in scrubbed
+E       assert 'Python' in "\n        Professional Background:\n        I worked at TechCorp for [REDACTED]ications.\n        Email: [REDACTED]\n        Phone: [REDACTED]\n        SSN: [REDACTED]\n        I'm skilled in AWS and Kubernetes deployment.\n        "
+
+tests/unit/test_pii_scrubber.py:234: AssertionError
+=========================== short test summary info ============================
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_us_phone_number_redaction
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_us_phone_formats
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_phone_pii
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_phone_at_start_of_text
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_mixed_pii_and_text
+========================= 5 failed, 20 passed in 0.13s =========================
