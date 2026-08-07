@@ -88,3 +88,57 @@ clause rather than a raw string. Fails before the fix, passes after.
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Writing the test was harder than I expected. I had to think about edge cases and
+other conditions that could raise different kinds of errors. I also had to
+isolate my issue from unrelated ones — for example, the redis check (a separate
+issue) kept failing, so my test had to focus only on the Postgres probe and
+ignore the rest.
+
+**What did you learn about working in a large codebase?**
+In my own project, everything is mine, so I understand every part. Here I only
+touched a tiny piece (one health-check file) of a much larger multi-service app,
+and I learned I don't need to understand the whole thing to fix one bug — I just
+need to trace the specific path that matters. I also learned to deal with
+pre-existing problems: the repo already had 53 failing tests and many lint
+errors that had nothing to do with my issue. So a big part of the work was
+separating "what was already broken" from "what I changed," and keeping my change
+small and in scope instead of trying to fix everything.
+
+**How did AI tools help — and where did they fall short?**
+AI helped me write the test code quickly and understand unfamiliar parts of the
+codebase. But even when the generated code runs, it doesn't mean it tests the
+right thing — I still had to check that the test actually verifies my fix (that
+the probe is called with `text()`), not just that it passes. AI is fast, but
+judging whether it's correct is still my job.
+
+**What would you do differently if you started over?**
+I would choose a more challenging issue. I picked the one that looked easiest
+because I wasn't familiar with writing and reviewing pull requests yet. Now that
+I've been through the full workflow once, I feel ready to take on something with
+more scope next time.
+
+**What are you most proud of from this module?**
+I'm proud that I went through a real contribution workflow end to end — finding
+an issue, reproducing it, planning, fixing, testing, and submitting a proper PR
+with a clear description. It felt like actual professional work, not just a
+classroom exercise.
