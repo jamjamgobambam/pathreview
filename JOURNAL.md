@@ -75,3 +75,37 @@ Issue #111 concerns the test coverage of PathReview's PII scrubber in the safety
 **Self-review confirmation:** [ ] `make check` passes (blocked by pre-existing full-repository Ruff/type errors) [ ] `make test-unit` passes (blocked by 48 pre-existing failures outside `safety/pii_scrubber.py`)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — reviewer feedback is not provided for Summer 2026.
+
+**Summary of feedback:** PR #750 is open and currently has no reviewer comments or review submissions. The Week 10 course page also notes that reviewer feedback is not a Summer 2026 feature.
+
+**How you responded:** No reviewer response or follow-up code change was needed. I kept the PR open and documented the current state instead of implying that the PR had been reviewed or merged.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+At first, Issue #111 looked like a small testing task: add property-based tests for the PII scrubber. The harder part was discovering that some existing phone and street-address examples already exposed matching problems. I had to decide which small implementation fixes were necessary for the issue and where to stop so that I did not turn a Tier 2 test task into a broad rewrite. It was also harder than expected to separate failures caused by the existing repository from failures caused by my changes.
+
+**What did you learn about working in a large codebase?**
+
+I learned that the issue description is only the starting point. I needed to read the existing tests, the implementation, the project configuration, the contribution guide, and the course requirements before choosing a change. In someone else's codebase, a small diff with focused evidence is usually safer than fixing every problem that appears during a full-repository run. The existing failures, unavailable Docker/PostgreSQL environment, and strict pre-commit checks all made that boundary visible.
+
+**How did AI tools help — and where did they fall short?**
+
+I mainly used AI tools to look up the relevant project materials and milestone requirements, locate the right files and test seams, and help explore possible Hypothesis strategies. They also helped me organize the testing and submission checklist. They could not decide whether the scrubber's regex behavior matched the project's actual contract, whether an unrelated full-suite failure was in scope, or whether a timed-out browser action had succeeded. I had to inspect the failing examples, review the diff, run the tests, and verify the final GitHub and course-portal state myself.
+
+**What would you do differently if you started over?**
+
+I would run the baseline focused tests, the full unit command, and the repository checks earlier, before writing the property tests. I would also write down the supported phone and address formats and their boundary cases before changing the regexes. Finally, I would open the PR earlier and keep a shorter running record of decisions, so the final journal entry would require less reconstruction.
+
+**What are you most proud of from this module?**
+
+I am most proud that the property tests did more than increase a coverage number: they exposed real phone and address matching issues and helped turn the scrubber behavior into clearer, repeatable checks. I kept the change focused, documented the unrelated repository failures honestly, created a ready-for-review PR, and completed the branch submission without claiming that the PR had been merged or reviewed.
