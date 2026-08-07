@@ -53,6 +53,17 @@ class TestPIIScrubber:
             scrubbed = scrubber.scrub(text)
             assert "[REDACTED]" in scrubbed
 
+    def test_parenthesized_phone_with_space_separator(self, scrubber):
+        """Regression test for issue #146: phone numbers formatted as
+        '(555) 123-4567' (space after the closing parenthesis) are not
+        redacted because the phone_us regex only allows '-' or '.' as
+        the separator, not a space."""
+        text = "Call me at (555) 123-4567 tomorrow."
+        scrubbed = scrubber.scrub(text)
+
+        assert "[REDACTED]" in scrubbed
+        assert "(555) 123-4567" not in scrubbed
+
     def test_international_phone_redaction(self, scrubber):
         """Test international phone number is redacted."""
         text = "Reach me at +44 20 7946 0958"
