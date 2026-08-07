@@ -107,3 +107,72 @@ passing (+20 of mine, all green), ruff is 182 (down 1), and mypy is unchanged.
 My two files pass ruff/black/mypy individually. -->
 
 **Draft PR feedback received from:** none — no code-review feedback this term; self-reviewed against the definition-of-done
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No code review came in. Per the course format this term, PRs don't receive
+reviewer feedback — self-review against the definition-of-done stands in for it.
+So there were no comments to act on; instead I re-ran my own self-review
+(`make check` / `make test-unit` against the recorded baseline) before submitting.
+
+**How you responded:**
+No external changes were requested. My "response" was the self-review itself:
+confirming my two files pass ruff/black/mypy individually and that I introduced
+zero new failures against the documented baseline.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting to a clean starting point was harder than writing the feature. Before I
+touched any code, the environment fought back — Docker wasn't installed, the
+ChromaDB container crashed on a NumPy 2.0 incompatibility, and the seed script
+choked on Windows' cp1252 console encoding. Then when I finally ran the test
+suite, 53 unit tests were already failing and there were 183 lint errors on a
+clean checkout, none of it mine. The real difficulty was the mental shift: my
+job wasn't to fix the codebase, it was to prove I didn't make it worse. Measuring
+"no new failures" against an already-broken, moving baseline was more nerve-racking
+than building the tool.
+
+**What did you learn about working in a large codebase?**
+On my own projects, "done" means it works. Here, "done" meant it works *and*
+matches conventions I didn't write — the `BaseTool` interface, conventional-commit
+messages, Google-style docstrings, and strict mypy annotations enforced by a
+pre-commit hook. I spent nearly as long reading an existing tool
+(`tech_detector.py`) to copy its shape as I did writing new code. I also learned
+to scope ruthlessly: I built the tool but deliberately did *not* wire it into the
+orchestrator, because that code path isn't instantiated anywhere yet and touching
+it would have dragged in unrelated type errors. On my own project I'd have "just
+fixed everything"; in someone else's, that restraint is part of the job.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest at exploration and pattern-matching: mapping the `agent/tools`
+layout quickly, drafting the manifest parsers, and scaffolding 20 tests in the
+repo's existing style. Where it fell short was judgment. It couldn't decide for me
+whether "more than one major behind" should mean two-or-more or one-or-more — that
+is a product decision that really belongs to the maintainer. It also couldn't tell
+me whether deferring the orchestrator wiring was acceptable, or reliably know the
+current state of the repo without me checking. AI got me a working, well-structured
+tool fast, but the calls about scope, about being transparent in the PR, and about
+what "good enough" means were mine to make.
+
+**What would you do differently if you started over?**
+Two things. First, I'd start with a Tier 1 issue — I jumped to a Tier 2 as my first
+contribution to an unfamiliar codebase, and a large share of my time went to
+orientation rather than the feature. Second, I'd settle the orchestrator-registration
+question on day one instead of building the branch, hitting the type-error wall, and
+backing it out. I'd also ask the maintainer to confirm the "outdated" threshold
+before coding, rather than picking a default and carrying it as an open question.
+
+**What are you most proud of from this module?**
+Not the tool itself — the discipline around it. I documented the pre-existing
+failures honestly in the PR instead of pretending the suite was green, and I designed
+the tool to run offline by default so its tests are deterministic and don't depend on
+a live network. Choosing to be transparent about what I *didn't* do, and why, felt
+more like real engineering than the code did.
