@@ -59,6 +59,35 @@ A plan-execute orchestrator that coordinates multiple analysis tools. Each tool 
 ### RAG System (`rag/`)
 Hybrid retrieval (vector similarity + BM25 keyword) fetches relevant context from the user's ingested documents. The generator uses prompt templates to produce structured, evidence-based feedback. The evaluator scores retrieval relevance and generation faithfulness.
 
+#### Hybrid Retrieval Scoring
+
+`HybridRetriever.retrieve()` (in `rag/retriever/hybrid.py`) blends two independent signals into a single ranking score for each candidate chunk:
+
+```text
+   blended_score = (vector_weight * normalized_vector_score) + (keyword_weight * normalized_keyword_score)
+```
+
+
+
+**Default weights** are `vector_weight=0.7` and `keyword_weight=0.3`. These are constructor parameters on `HybridRetriever`, not hardcoded constants, so they can be tuned per-instance if a different balance between semantic and lexical matching is desired.
+
+**Normalization** happens per result set, not globally: each vector score is divided by the maximum vector score within that query's vector results, and each keyword (BM25) score is divided by the maximum keyword score within that query's keyword results. This means the same raw score can normalize very differently between queries, since it's always relative to what else was retrieved for that specific query, not a fixed 0-1 scale.
+
+**Result set union:** a chunk only needs to appear in one of the two result sets (vector or keyword) to receive a blended score. If a chunk is missing from one side, that side's contribution is treated as 0 rather than excluding the chunk entirely.
+
+**Worked example** (default weights):
+
+| Chunk | Vector score (raw) | Keyword/BM25 (raw) | Normalized vector | Normalized keyword | Blended (0.7v + 0.3k) |
+|-------|--------------------|--------------------|--------------------|--------------------|------------------------|
+| A | 0.9 | - | 1.000 | 0 | 0.700 |
+| B | 0.6 | 5.0 | 0.667 | 1.000 | 0.767 |
+| C | 0.3 | 2.0 | 0.333 | 0.400 | 0.353 |
+| D | - | 1.0 | 0 | 0.200 | 0.060 |
+
+With a min_score threshold of 0.3, chunk D is filtered out. The final ranking is B, A, C - note that B outranks A here even though A had the higher raw vector score, because B's strong keyword match pushes its blended score above A's.
+
+This example is verified by the test suite in `tests/unit/test_hybrid_retriever.py`, which asserts these exact blended values.
+
 ### Safety Layer (`safety/`)
 Middleware wrapping the generation pipeline. Components run in sequence: prompt injection defense → content filter → bias detector → PII scrubber. All safety events are logged with structured metadata for monitoring.
 
