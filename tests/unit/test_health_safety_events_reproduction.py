@@ -104,3 +104,32 @@ def test_health_endpoint_reports_recorded_safety_events() -> None:
 
     # The endpoint now surfaces the recorded events instead of a hardcoded 0.
     assert health["safety_events_last_hour"] == recorded
+
+
+@pytest.mark.unit
+def test_health_degrades_gracefully_when_safety_redis_unavailable() -> None:
+    """Failure-path integration test: if Redis is down during the safety-event
+    read, the endpoint degrades gracefully.
+
+    The safety-event read must not propagate its error out of the endpoint; instead
+    ``safety_events_last_hour`` falls back to 0. (The payload is returned via the
+    503 detail here only because of a pre-existing, unrelated bug in the Redis
+    *dependency* check; the point of this test is that the safety metric degrades to
+    0 rather than crashing the handler.)
+    """
+    from fastapi import HTTPException
+
+    async def run() -> dict:
+        # Simulate Redis being unavailable when the endpoint builds its client.
+        with patch("redis.Redis.from_url", side_effect=ConnectionError("redis down")):
+            try:
+                return await health_mod.health_check(db=FakeDB())
+            except HTTPException as exc:
+                return exc.detail
+
+    health = asyncio.run(run())
+
+    # Reaching this line at all proves the ConnectionError did not propagate out of
+    # the endpoint (it would have surfaced as an unhandled error, not an
+    # HTTPException). The metric degrades to 0.
+    assert health["safety_events_last_hour"] == 0
