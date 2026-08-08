@@ -15,16 +15,16 @@ The structural chunker assumes that every Markdown document contains one or more
 
 Files and components likely involved:
 
-* Structural chunker implementation (where Markdown headings are parsed into chunks)
-* Chunk generation logic
-* Ingestion pipeline that consumes generated chunks
-* Existing tests for the structural chunker
+- Structural chunker implementation (where Markdown headings are parsed into chunks)
+- Chunk generation logic
+- Ingestion pipeline that consumes generated chunks
+- Existing tests for the structural chunker
 
 Files I expect to modify:
 
-* The structural chunker source file
-* The structural chunker test file
-* Possibly the ingestion pipeline if additional handling is needed
+- The structural chunker source file: pathreview/ingestion/chunking/structural_chunker.py
+- The structural chunker test file: pathreview/tests/unit/test_structural_chunker.py
+- Possibly the ingestion pipeline if additional handling is needed
 
 ## Plan
 
@@ -38,26 +38,26 @@ Files I expect to modify:
 
 **Input**
 
-* Markdown document with one or more headings.
-* Markdown document with no headings.
+- Markdown document with one or more headings.
+- Markdown document with no headings.
 
 **Output**
 
-* Documents with headings continue producing structural chunks.
-* Documents without headings produce one fallback chunk containing the document contents instead of an empty list.
-* The ingestion pipeline indexes both document types successfully.
+- Documents with headings continue producing structural chunks.
+- Documents without headings produce one fallback chunk containing the document contents instead of an empty list.
+- The ingestion pipeline indexes both document types successfully.
 
 ## Risks & unknowns
 
-* The parser may intentionally return no sections for reasons other than missing headings, so the fallback should only apply to truly heading-less documents.
-* The ingestion pipeline may have assumptions about chunk metadata that the fallback chunk must satisfy.
-* Existing tests may need updates if they currently expect an empty result.
+- The parser may intentionally return no sections for reasons other than missing headings, so the fallback should only apply to truly heading-less documents.
+- The ingestion pipeline may have assumptions about chunk metadata that the fallback chunk must satisfy.
+- Existing tests may need updates if they currently expect an empty result.
 
 ## Edge cases
 
-* Empty document.
-* Document containing only whitespace.
-* Document with front matter but no headings.
-* Document containing lists, paragraphs, or code blocks but no Markdown headings.
-* Document with malformed or incorrectly formatted headings.
-* Very large documents without headings that should still be handled safely.
+- Empty document.
+- Document containing only whitespace.
+- Document with front matter but no headings.
+- Document containing lists, paragraphs, or code blocks but no Markdown headings.
+- Document with malformed or incorrectly formatted headings.
+- Very large documents without headings that should still be handled safely.
