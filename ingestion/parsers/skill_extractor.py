@@ -1,15 +1,6 @@
 import re
-from dataclasses import dataclass
-from typing import Optional
 
-
-@dataclass
-class SkillDetection:
-    """Result of detecting a skill."""
-    name: str
-    category: str
-    confidence: float
-    evidence: list[str]
+from .base import SkillDetection
 
 
 class SkillExtractor:
@@ -105,9 +96,13 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
-        """
-        Extract skills from source code or documentation text.
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
+        """Extract skills from source code or documentation text.
+
+        GitHub Actions workflow files (``.github/workflows/*.yml``) are
+        delegated to :class:`~ingestion.parsers.workflow_parser.WorkflowParser`
+        so that CI/CD skills (GitHub Actions, Docker, pytest, etc.) are
+        correctly detected from workflow YAML content.
 
         Args:
             text: The source text to analyze
@@ -116,7 +111,16 @@ class SkillExtractor:
         Returns:
             List of detected skills with confidence scores
         """
-        detected_skills = {}
+        # Delegate GitHub Actions workflow files to the dedicated parser.
+        # The import is deferred here to avoid a module-level circular dependency
+        # between skill_extractor and workflow_parser (both share SkillDetection
+        # from base.py, but workflow_parser must not import from skill_extractor).
+        if self._is_workflow_file(filename):
+            from .workflow_parser import WorkflowParser  # noqa: PLC0415
+
+            return WorkflowParser().parse(text, filename=filename)
+
+        detected_skills: dict[str, SkillDetection] = {}
 
         # Detect languages first
         self._detect_languages(text, filename, detected_skills)
@@ -140,10 +144,18 @@ class SkillExtractor:
             reverse=True,
         )
 
+    @staticmethod
+    def _is_workflow_file(filename: str | None) -> bool:
+        """Return True when *filename* is a GitHub Actions workflow path."""
+        if filename is None:
+            return False
+        normalized = filename.replace("\\", "/").lower()
+        return ".github/workflows/" in normalized and normalized.endswith((".yml", ".yaml"))
+
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
