@@ -67,9 +67,10 @@ arguments, return values, and applicable exceptions without changing application
 behavior. Minimal type annotations were also added for clarity.
 
 **Tests added or updated:**
-None. This PR updates documentation and type annotations without changing
-application behavior, so no test files were added or modified. The applicable
-validation commands and their results are documented in the PR description.
+Added `tests/unit/test_service_docstrings.py` with parameterized tests verifying
+that all eight targeted public service functions have nonempty docstrings and
+contain the required `Args:` and `Returns:` sections. The tests also verify the
+`Raises:` section where applicable.
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
