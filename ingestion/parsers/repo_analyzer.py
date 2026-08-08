@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from .base import BaseParser, ParseResult
 
 
@@ -38,11 +36,13 @@ class RepoAnalyzer(BaseParser):
         """
         if isinstance(content, bytes):
             import json
+
             repo_data = json.loads(content.decode("utf-8"))
         elif isinstance(content, dict):
             repo_data = content
         elif isinstance(content, str):
             import json
+
             repo_data = json.loads(content)
         else:
             raise ValueError("Content must be a dict, JSON string, or JSON bytes")
@@ -120,6 +120,8 @@ class RepoAnalyzer(BaseParser):
 
     def _detect_tests(self, repo_data: dict) -> bool:
         """Check if repository has test files or directories."""
+        # issue #50: nothing upstream ever sets repo_data["file_structure"],
+        # so this always evaluates against "" and has_tests is always False.
         file_structure = str(repo_data.get("file_structure", "")).lower()
         test_indicators = [
             "tests/" in file_structure or "test/" in file_structure,
