@@ -8,6 +8,7 @@ dist/
 build/
 .eggs/
 .venv/
+.venv-old/
 venv/
 *.egg
 
@@ -44,3 +45,4 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+.rocketride/
