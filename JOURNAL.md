@@ -82,3 +82,36 @@ Fixed `/health`'s Redis probe to use `settings.redis_url` (which exists) instead
 *(Both pass in the sense the assignment defines for a codebase with documented pre-existing failures: `make test-unit` shows the identical 53 pre-existing failures before and after my change — zero new failures, 4 new passing tests. `make check`'s `ruff`/`black`/`mypy` all pass on every file this PR touches, confirmed via the actual pre-commit hook; the full-repo `mypy` target still fails on an unrelated, pre-existing `numpy` version incompatibility in `rag/`/`agent/` that I verified predates and is unaffected by this PR. Both are documented in the PR description.)*
 
 **Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+I checked [PR #754](https://github.com/ascherj/pathreview/pull/754) at the start of Week 10 (`gh pr view 754 --repo ascherj/pathreview --json comments,reviews`) — zero comments, zero reviews. Per the Su26 note, reviewer feedback isn't a feature this term, so this is expected rather than a sign the PR is being ignored. It's still open, not merged, not closed.
+
+**How you responded:**
+N/A — nothing to respond to. I didn't make any further code changes this week since there was no feedback to act on.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The bug itself was genuinely a one-line fix (`redis_host`/`redis_port` → `redis_url`). What I didn't expect was how much of the actual work was *environment* work, not code work: Docker services already occupying ports another local project had claimed, a numpy release that shipped Python 3.12-only type stubs breaking `mypy` on `rag/`/`agent/` for reasons that had nothing to do with my change, and — most surprising — discovering that `mypy` follows imports transitively, so "fix one file" turned into "the whole reachable import graph now needs type annotations" once I actually tried to get a clean typecheck. I also didn't expect the issue's own description to be slightly wrong: it said the endpoint "raises an AttributeError" as if that crashes the request, but when I actually reproduced it, the error was already being swallowed by an existing `except Exception` block. The real bug was subtler — a silent false negative, not a crash — and I only caught that by actually running the app and reading the response body, not by reading the code.
+
+**What did you learn about working in a large codebase?**
+That "fix the bug" and "land a fix cleanly" are different jobs. The bug fix was three lines. Getting it to pass the project's own gates (`ruff`, `black`, `mypy`, the pre-commit hook) meant touching six other files I had no intention of touching, because someone else's untyped function three imports away becomes my problem the moment `mypy` walks the graph. I also learned that a big codebase always has pre-existing rot — 53 already-failing unit tests, a `mypy` target that's been broken on `rag/`/`agent/` independent of anything I did — and the professional move isn't to fix all of it, it's to measure the baseline, prove your change doesn't add to it, and say so plainly in the PR. I made a deliberate call not to fix the sibling Postgres `text()` bug sitting in the same function I was editing, even though it would've been easy to "just fix while I'm in there" — staying scoped to the one issue I claimed felt more important than it would have on a personal project.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest at the mechanical, high-volume parts: orienting in an unfamiliar codebase fast (finding `get_db`, understanding the FastAPI dependency-injection pattern, matching existing test conventions in `tests/unit/test_resume_parser.py`), and systematically working through a list of ~50 `mypy` errors across multiple files without losing track of which were mine to fix. It fell short on anything that required actually *running* the system rather than reasoning about it — the Gatekeeper scan delays, the port conflicts with an unrelated project, the numpy stub crash — those needed real trial-and-error with logs and process inspection, not pattern-matching against training data. It also couldn't make scope-judgment calls unilaterally and shouldn't have: whether to fix the pre-existing `mypy` debt at all, whether to skip a broken pre-commit hook, whether to pin a dependency version — those got surfaced as explicit questions rather than decided silently, which is the right way to use AI assistance on someone else's production codebase.
+
+**What would you do differently if you started over?**
+I'd build the test file against a minimal app (just the one router I'm testing) from the start, instead of importing the full `api.main` app first and only narrowing it down after `mypy` surfaced ~50 unrelated errors. I'd also check `docker ps`/port availability before following the setup guide literally, since this machine already had an unrelated project's dev servers sitting on the exact ports SETUP.md assumes are free. Neither changes the actual fix, but both would've saved real time.
+
+**What are you most proud of from this module?**
+Catching that the issue's description didn't quite match reality. It would've been easy to read "raises an AttributeError," write a fix, and move on. Actually reproducing it — standing up Docker, running migrations, hitting the endpoint, reading the real log line and response body — showed the bug was a masked false negative, not a crash. That distinction changed how I explained the fix in `PLAN.md` and the PR description, and it's the part of this module that felt the most like real engineering rather than following a checklist.
