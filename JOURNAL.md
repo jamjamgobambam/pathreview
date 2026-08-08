@@ -63,3 +63,34 @@ Added `tests/unit/test_health.py` with three tests against `health_check()`: one
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Deciding what not to fix took longer than the fix itself. While reproducing #154 I noticed `/health` also flags redis as unhealthy, but for an unrelated reason: `core/config.py` only defines `redis_url`, while `health.py` reads `settings.redis_host` and `settings.redis_port`, neither of which exists. I went back and forth on patching that too before landing on leaving it alone and just flagging it in PLAN.md.
+
+**What did you learn about working in a large codebase?**
+Reading the code was the easy part. The harder part was figuring out why `db.execute("SELECT 1")` was written as a bare string in the first place, since I couldn't just ask the person who wrote it. On my own projects I already know every design decision because I made them; here I had to reconstruct the reasoning from a traceback and confirm it by actually running the health check instead of guessing.
+
+**How did AI tools help — and where did they fall short?**
+AI was genuinely fast at turning the SQLAlchemy traceback into a plain-English explanation of why `text()` is required in 2.x, and it sped up drafting the three cases in `tests/unit/test_health.py`. Where it fell short was the redis scope question above — no model can tell you what belongs in someone else's issue, so that call stayed mine.
+
+**What would you do differently if you started over?**
+I'd try to break my own fix before opening the PR instead of trusting the two tests I already had. They cover the happy path and a hard connection failure, but not something like postgres being up yet slow, which is a real failure mode a health check should probably catch.
+
+**What are you most proud of from this module?**
+PR #338 has a fix I can actually prove works instead of one I just hope compiles. One of the tests asserts that `db.execute()` gets called with a `TextClause`, so if a future SQLAlchemy bump quietly changes that behavior again, the test fails loudly instead of the health check silently lying about being healthy.
