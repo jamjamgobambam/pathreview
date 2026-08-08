@@ -181,3 +181,34 @@ Created `tests/unit/test_review_routes.py` with six tests covering the new valid
 **Self-Review Confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR Feedback Received From:** None
+
+## Week 10 - Iteration & Reflection
+
+### Reviewer Feedback
+
+**Feedback received:** [x] Yes  [] No — still awaiting review
+
+**Summary of feedback:**
+The reviewer praised my fix as a well done, genuine bug catch. They highlighted my correct usage of 404 vs 422, using `.strip()` for handling empty strings, and incorporating ownership checking. They also called out the `curl` demo as a nice concrete illustration of the behavior change. Overall, they said my PR was solid, had good habits, and introduced no regressions.
+
+**How you responded:**
+The feedback was overwhelmingly positive with no change requests, so I did not make any changes to my PR. The reviewer's comments validated my approach and did not leave any suggestions or improvements for future work. 
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+To be honest, I didn't find any part of the process, codebase, or workflow to be harder than I had initially expected. The only thing that I found a bit surprising was the amount of planning and outlining that we had to do before implementing the fix. For example, we had to first write up an outline of the issue (what the problem was, what files it involved, etc.) before even attempting to reproduce it. Then, we had to write a detailed report on how to reproduce the bug and outline a thorough plan for the fix before implementing the solution. I found this surprising because the issue itself is quite simple, but the preparation before directly tackling the issue was a lot more than I had expected.
+
+**What did you learn about working in a large codebase?**
+I learned a lot about working in a larger codebase compared to my own project. For example, there's a specific workflow and standard that needs to be followed when contributing to someone else's production code that doesn't exist when I'm just building my own project. I learned how to navigate this process and also what typical contribution standards look like for an open source project. I also learned the importance of good project structure/organization. In large codebases, without proper file structure, things can get really messy and hard to find fast, especially since you didn't write every part of the codebase.
+
+**How did AI tools help — and where did they fall short?**
+I thought AI tools helped the most during the initial part of this module. I utilized AI a lot for codebase navigation, explaining files, and outlining workflows and processes in the project. I'd say that a majority of my AI usage was during this initial part. I found that I needed to go a bit beyond what AI gave me during the planning and implementation stages. For example, in the planning phase AI had suggested mocking `db.execute()` chains. However during the implementation, I found that testing through the HTTP interface using `TestClient` works a lot better and also ensured that the route was working end-to-end.
+
+**What would you do differently if you started over?**
+If I started over, I'd personally want to go for a more difficult issue. Since this was my first open source contribution, I was a bit intimidated. I closely followed the tier guide, which told me to stick to Tier 1 issues. Thus, I chose an issue with both `Tier 1` and `good first issue` labels. I enjoyed working through this issue, but I felt that it did not challenge me enough. I felt that the fix was pretty simple and quick, which I didn't find to be as fulfilling or rewarding. Even if picking a higher tier issue meant a much harder difficulty, I would want to use this as a chance to tackle the issue, try my best, and learn, even if I failed to fix it. 
+
+**What are you most proud of from this module?**
+The thing I'm most proud of from this module is learning the process and workflow for contributing to an open source project. Although this was just a simulated open source project, I think what I learned is very valuable. I hope to use what I learned to contribute to open source projects in the future. 
