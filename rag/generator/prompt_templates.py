@@ -26,7 +26,39 @@ Format your response as JSON with these fields:
 - language_proficiency: dict mapping languages to proficiency level
 - framework_expertise: list of mastered frameworks
 - tool_proficiency: list of tools used effectively
-"""
+""",
+        "v2": """Analyze the skills demonstrated in the provided portfolio context.
+
+The portfolio contains {project_count} project(s):
+{project_inventory}
+
+The context below is grouped by project. Each project's evidence appears
+under its own '=== Project: <id> ===' header.
+
+Portfolio Context:
+{context}
+
+GitHub Username: {github_username}
+
+Based on the portfolio evidence above, provide structured feedback on:
+1. Demonstrated technical skills (with specific examples from projects)
+2. Depth of expertise in key areas
+3. Programming language proficiency
+4. Framework and tool mastery
+
+IMPORTANT — consolidate observations across projects: when the same skill is
+demonstrated in more than one project, emit exactly ONE key_skills entry for
+that skill and list every project that demonstrates it in that entry's
+"projects" field. Do not repeat a near-identical observation once per project.
+
+Format your response as JSON with these fields:
+- key_skills: list of objects, each with fields "skill" (short skill name),
+  "evidence" (specific example from the portfolio), and "projects" (list of
+  ids of every project demonstrating this skill)
+- language_proficiency: dict mapping languages to proficiency level
+- framework_expertise: list of mastered frameworks
+- tool_proficiency: list of tools used effectively
+""",
     },
     "projects_feedback": {
         "v1": """Evaluate the quality and presentation of projects in the portfolio.
@@ -110,8 +142,26 @@ Write a concise, professional summary capturing:
 
 Provide only the summary text, no JSON formatting needed.
 """
-    }
+    },
 }
+
+
+# Preferred version per template; templates not listed here use v1.
+CURRENT_TEMPLATE_VERSIONS = {
+    "skills_feedback": "v2",
+}
+
+
+def get_current_version(name: str) -> str:
+    """Return the preferred version for a template.
+
+    Args:
+        name: Template name (skills_feedback, projects_feedback, etc.)
+
+    Returns:
+        Version string to use for this template (defaults to v1)
+    """
+    return CURRENT_TEMPLATE_VERSIONS.get(name, "v1")
 
 
 def get_template(name: str, version: str = "v1") -> str:
