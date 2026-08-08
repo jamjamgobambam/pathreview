@@ -31,6 +31,13 @@ class IngestedSource(Base):
     source_type: Mapped[str] = mapped_column(
         String(50), nullable=False
     )  # "resume", "readme", "repo", "web"
+
+    source_id: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        unique=True,
+        index=True,
+    )
     source_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
     content_hash: Mapped[str | None] = mapped_column(
