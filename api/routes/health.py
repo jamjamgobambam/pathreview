@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from datetime import datetime
+
 import structlog
-from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import text
 
 from core.database import get_db
 
@@ -28,7 +30,9 @@ async def health_check(db=Depends(get_db)):
 
     try:
         # Check PostgreSQL
-        await db.execute("SELECT 1")
+        # SQLAlchemy 2.x requires textual SQL to be wrapped in text();
+        # a raw string raises ArgumentError. See issue #154.
+        await db.execute(text("SELECT 1"))
         health_status["dependencies"]["postgres"] = "healthy"
         log.debug("postgres_health_check_passed")
     except Exception as exc:
@@ -39,6 +43,7 @@ async def health_check(db=Depends(get_db)):
     try:
         # Check Redis (if available)
         import redis
+
         from core.config import settings
 
         r = redis.Redis(
