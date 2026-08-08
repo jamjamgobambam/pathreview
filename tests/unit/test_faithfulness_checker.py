@@ -215,8 +215,9 @@ class TestFaithfulnessChecker:
 
         supported = checker._is_supported(claim, context)
 
-        # Despite word overlap, should look for meaningful overlap (not stop words)
-        # This depends on implementation
+        # Support comes from meaningful overlap ("project", "documented"), not
+        # from shared stop words like "the"/"is" — so this is still supported.
+        assert supported is True
 
     def test_minimum_overlap_required(self, checker):
         """Test that minimum meaningful overlap is required for support."""
@@ -263,6 +264,27 @@ class TestFaithfulnessChecker:
         score2 = checker.check(feedback, context_chunks)
 
         assert score1 == score2
+
+    def test_short_single_token_claims_are_supported_issue_152(self, checker):
+        """Reproduction for issue #152.
+
+        Short factual claims that share exactly one meaningful (non-stopword)
+        token with a fully supporting context are currently scored as
+        unsupported, because ``_is_supported`` requires >= 2 overlapping
+        meaningful tokens. This test encodes the *expected* behavior from the
+        issue: both claims are fully supported, so the score should be 1.0.
+
+        Currently fails (observed 0.0); should pass once #152 is fixed.
+        The exact target score depends on the scoring model chosen in the fix
+        (see PLAN.md), so this reproduction only asserts the defining property
+        of the bug: a fully supported short claim must not score 0.0.
+        """
+        score = checker.check(
+            "Knows Python. Knows SQL.",
+            [{"text": "python expert"}, {"text": "sql expert"}],
+        )
+
+        assert score > 0.0
 
     def test_specialized_technical_terms(self, checker):
         """Test support check with specialized technical terms."""
