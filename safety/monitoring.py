@@ -2,7 +2,6 @@
 
 import redis
 import structlog
-from datetime import datetime, timedelta
 
 logger = structlog.get_logger()
 
@@ -16,7 +15,7 @@ class SafetyMonitor:
         "injection_attempt",
         "content_filtered",
         "bias_detected",
-        "rate_limited"
+        "rate_limited",
     }
 
     def __init__(self, redis_client: redis.Redis):
@@ -37,8 +36,6 @@ class SafetyMonitor:
         if event_type not in self.VALID_EVENT_TYPES:
             logger.warning("unknown_event_type", event_type=event_type)
             return
-
-        timestamp = datetime.utcnow().isoformat()
 
         try:
             # Log to structlog
@@ -72,3 +69,21 @@ class SafetyMonitor:
         except Exception as e:
             logger.error("event_count_error", event_type=event_type, error=str(e))
             return 0
+
+    def get_total_event_count(self, window_hours: int = 1) -> int:
+        """Get total count of safety events across all valid event types.
+
+        Args:
+            window_hours: Time window in hours (not enforced here; see
+                `get_event_count` -- counters use a flat 24-hour TTL, not
+                hourly buckets).
+
+        Returns:
+            Sum of event counts across `VALID_EVENT_TYPES`. Individual
+            per-type Redis errors are swallowed by `get_event_count`, so a
+            partial Redis outage degrades to a partial (not raised) total.
+        """
+        return sum(
+            self.get_event_count(event_type, window_hours=window_hours)
+            for event_type in self.VALID_EVENT_TYPES
+        )
