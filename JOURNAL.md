@@ -75,3 +75,59 @@ contain the required `Args:` and `Returns:` sections. The tests also verify the
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes      [x] No — still awaiting review
+
+**Summary of feedback:**
+No maintainer or project reviewer feedback was received during the contribution
+period. I reviewed the PR myself and also used the course grader's feedback to
+improve the documentation consistency and test coverage.
+
+**How you responded:**
+Although no maintainer review was received, I fixed the missing blank line in the
+`list_reviews` docstring and added targeted tests for the eight public service
+function docstrings.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Understanding the difference between failures caused by my branch and failures
+already present in the repository was harder than expected. For example,
+`make test-unit` reported asynchronous mock errors involving `first()` and `all()`,
+so I had to reproduce them on `upstream/main` before concluding that my changes
+did not introduce them.
+
+**What did you learn about working in a large codebase?**
+I learned that contributing to an existing codebase requires respecting the
+issue's scope while still understanding the repository's conventions. Even
+though my issue focused on docstrings, I needed to inspect function behavior,
+type annotations, existing test patterns, and validation commands to ensure the
+documentation was accurate and consistent with the project.
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped me draft Google-style docstrings, identify possible type
+annotations, interpret validation errors, and compare my work with the rubric.
+However, the initial recommendation that tests might be unnecessary for a
+documentation-only PR did not match the grader's expectations. I needed to use
+the rubric and grader feedback to decide that lightweight tests checking
+`__doc__`, `Args:`, and `Returns:` were appropriate.
+
+**What would you do differently if you started over?**
+I would study the grading rubric more closely before beginning implementation
+and translate every scoring category into a checklist. I would also add the
+docstring tests earlier, run targeted validation alongside the repository-wide
+commands, and perform a final side-by-side formatting review of all eight
+docstrings before submitting the PR.
+
+**What are you most proud of from this module?**
+I am most proud that I learned how to distinguish problems introduced by my
+changes from pre-existing repository failures. Reproducing the asynchronous
+mock failures on `upstream/main` allowed me to document the results honestly
+without expanding a focused documentation PR into unrelated production or test
+repairs.
