@@ -29,7 +29,7 @@ class TestStructuralChunker:
         """Test document with no headings returns single chunk."""
         text = "This is plain text without any markdown headings. " * 20
         result = chunker.chunk(text, {"source": "test"})
-
+        #This returns the empty string i.e len(result) is not greater than or equal to 1 causing the error.
         assert len(result) >= 1
         assert isinstance(result[0], Chunk)
         assert all(isinstance(c, Chunk) for c in result)

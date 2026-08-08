@@ -108,11 +108,10 @@ class StructuralChunker(BaseChunker):
 
             else:
                 # Regular content line
-                if heading_stack or current_section_lines:  # Only collect if we have a heading
-                    current_section_lines.append(line)
+                current_section_lines.append(line)
 
         # Save final section
-        if current_section_lines and heading_stack:
+        if current_section_lines:
             sections.append({
                 "content": "\n".join(current_section_lines).strip(),
                 "path": [h[1] for h in heading_stack],
