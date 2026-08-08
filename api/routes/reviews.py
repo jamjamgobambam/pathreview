@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
 from core.database import get_db
+from core.models.user import User
+from core.services.profile_service import get_profile
 from core.services.review_service import (
     create_review,
     get_review,
@@ -32,6 +33,26 @@ async def create_review_endpoint(
     Returns review with status="pending" immediately.
     """
     try:
+        profile = await get_profile(db=db, profile_id=data.profile_id, user_id=current_user.id)
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found",
+            )
+
+        has_content = any(
+            [
+                (profile.github_username or "").strip(),
+                (profile.resume_text or "").strip(),
+                (profile.portfolio_url or "").strip(),
+            ]
+        )
+        if not has_content:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Profile has no ingested content to review",
+            )
+
         # Create review with status="pending"
         review = await create_review(
             db=db,
