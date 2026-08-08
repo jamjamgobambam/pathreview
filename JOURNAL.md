@@ -3,6 +3,9 @@
 ## Week 7
 
 - Issue selected: #111 — Add property-based tests for the PII scrubber
+- Issue link: https://github.com/amulya-asu/pathreview/issues/111
+- Tier: Tier 1
+- Reason for selection: this issue is a small, focused privacy/test improvement that fits the repo scope and enables a concrete code/test fix without broad refactoring.
 - Summary: I worked on improving the PII scrubber by tightening its phone and address detection logic and adding Hypothesis-based property tests to cover valid PII redaction behavior.
 - Branch: `issue-111-pii-scrubber-tests`
 - Validation: Ran `C:/Python313/python.exe -m pytest tests/unit/test_pii_scrubber.py -q` and got `27 passed`.
@@ -14,6 +17,8 @@
 - Reproduction commit: https://github.com/amulya-asu/pathreview/commit/01501ab
 - Branch URL: https://github.com/amulya-asu/pathreview/tree/issue-111-pii-scrubber-tests
 - Reproduction: verified PII scrubber behavior with `pytest tests/unit/test_pii_scrubber.py -q` and identified regex weaknesses for US phone formats and street address detection.
+- Problem summary: the current scrubber missed some sensitive phone/address patterns, risking PII exposure in generated text. The fix tightens regex detection and adds property-based tests to ensure PII is redacted while non-sensitive content is preserved.
+- Scope-fit reasoning: this change is a scoped issue fix that affects one sanitizer module and one test module, making it appropriate for a course submission and easy to review.
 - Plan document: added `PLAN.md` with issue summary, root cause, proposed fix, and test plan.
 - Walkthrough video: https://www.loom.com/share/f8fd846991ae41f8a55242c415eb5397
 - Next steps: implement any remaining cleanup, run `make check && make test-unit`, and record a ≤2 minute Loom walkthrough showing the issue, fix, and validation.
