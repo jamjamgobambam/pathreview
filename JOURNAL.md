@@ -1,0 +1,96 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/154
+
+**Issue title:** Health check DB probe passes a raw SQL string, which fails under SQLAlchemy 2.x
+
+**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
+
+**Problem summary:**
+SQLAlchemy 2.x won't execute raw SQL without wrapping it in `text()`, but the health check endpoint in `api/routes/health.py` doesn't do that. It just passes "SELECT 1" directly, which breaks the `/health` endpoint even when the database is fine. That defeats the whole point of a health check—you can't verify database connectivity. Wrapping the SQL string in `text()` restores that functionality so the endpoint actually confirms the database is up.
+
+**Why this one:** My first open source contribution, so I wanted something contained to one file rather than a sprawling change.
+
+**Branch name:** fix/154-health-check-sql
+
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** [3f418ab](https://github.com/ascherj/pathreview/commit/3f418ab6d454fee61e026823386260a869039505)
+
+**Reproduction summary:**
+Postgres and Redis were already running via `docker-compose`, so I just started the API with `make run` in one terminal window and ran `curl -i localhost:8000/health` in another terminal window. It came back `503`, postgres marked `unhealthy`. Server logs showed error: `Textual SQL expression 'SELECT 1' should be explicitly declared as text('SELECT 1')`, pointing straight at `api/routes/health.py:31`, where `db.execute("SELECT 1")` passes a bare string to an `AsyncSession`. SQLAlchemy 2.x won't coerce that automatically anymore — it needs `text("SELECT 1")` — so the check fails even though the database is perfectly healthy. Confirmed error was consistently reproducible.
+
+Side note, not part of this issue: the same `/health` call also reported redis as unhealthy, but for an unrelated reason — `core/config.py` only defines `redis_url`, and `health.py` reads `settings.redis_host`/`settings.redis_port`, which don't exist. Leaving that alone since the issue I picked is scoped to the postgres/`text()` fix.
+
+**PLAN\.md link:** [PLAN\.md](PLAN.md)
+
+**Walkthrough video (recommended):** [link to your Loom video, ≤2 min — recommended, not graded]
+
+**Blockers or open questions:**
+Should the `redis_host`/`redis_port` mismatch get filed as its own issue? It's a real bug but outside what I scoped for #154.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Wrapped the postgres query in `text()` per the plan and confirmed `/health` returns 200 for postgres locally. Added `tests/unit/test_health.py` with three unit tests covering the wrapped query, the healthy path, and a simulated connection failure — all passing, and `make check`/`make test-unit` show no new failures against the pre-existing baseline.
+
+**Next steps:**
+Open the PR against `main` and address PR review comments if any.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/338
+
+**Branch:** fix/154-health-check-sql
+
+**What you built:**
+Wrapped the raw `"SELECT 1"` string in `text()` at `api/routes/health.py:31` so the postgres probe runs under SQLAlchemy 2.x instead of throwing on a bare string. `/health` now reports `dependencies.postgres: "healthy"` when the database is actually up, instead of a false 503.
+
+**Tests added or updated:**
+Added `tests/unit/test_health.py` with three tests against `health_check()`: one asserts `db.execute()` is called with a `TextClause` (not a raw string, so this can't silently regress on a future SQLAlchemy bump), one checks postgres reports `"healthy"` when the query succeeds, and one checks a real connection error still reports `"unhealthy"` with a 503.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Deciding what not to fix took longer than the fix itself. While reproducing #154 I noticed `/health` also flags redis as unhealthy, but for an unrelated reason: `core/config.py` only defines `redis_url`, while `health.py` reads `settings.redis_host` and `settings.redis_port`, neither of which exists. I went back and forth on patching that too before landing on leaving it alone and just flagging it in PLAN.md.
+
+**What did you learn about working in a large codebase?**
+Reading the code was the easy part. The harder part was figuring out why `db.execute("SELECT 1")` was written as a bare string in the first place, since I couldn't just ask the person who wrote it. On my own projects I already know every design decision because I made them; here I had to reconstruct the reasoning from a traceback and confirm it by actually running the health check instead of guessing.
+
+**How did AI tools help — and where did they fall short?**
+AI was genuinely fast at turning the SQLAlchemy traceback into a plain-English explanation of why `text()` is required in 2.x, and it sped up drafting the three cases in `tests/unit/test_health.py`. Where it fell short was the redis scope question above — no model can tell you what belongs in someone else's issue, so that call stayed mine.
+
+**What would you do differently if you started over?**
+I'd try to break my own fix before opening the PR instead of trusting the two tests I already had. They cover the happy path and a hard connection failure, but not something like postgres being up yet slow, which is a real failure mode a health check should probably catch.
+
+**What are you most proud of from this module?**
+PR #338 has a fix I can actually prove works instead of one I just hope compiles. One of the tests asserts that `db.execute()` gets called with a `TextClause`, so if a future SQLAlchemy bump quietly changes that behavior again, the test fails loudly instead of the health check silently lying about being healthy.
