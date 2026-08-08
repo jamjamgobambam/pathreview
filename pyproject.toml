@@ -68,6 +68,20 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TCH"]
 "scripts/*.py" = ["E501"]
 "alembic/versions/*.py" = ["E501"]
 
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency-injection pattern requires calling Depends()/Query()/etc.
+# in argument defaults; these are not the mutable-default footgun B008 warns about.
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+    "fastapi.Header",
+    "fastapi.Cookie",
+    "fastapi.Form",
+    "fastapi.File",
+]
+
 [tool.black]
 target-version = ["py311"]
 line-length = 100
