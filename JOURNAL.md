@@ -173,3 +173,34 @@ Updated `tests/unit/test_github_tool.py` to include test cases for:
 
 **Draft PR feedback received from:**  
 none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No 
+
+**Summary of feedback:**
+No formal reviewer feedback was received before submission. I monitored the pull request but did not receive comments or requested changes.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+One of the hardest parts was identifying whether test failures were caused by my changes or were already present in the repository. When running `make test-unit`, several tests failed, and I initially assumed my implementation in `agent/tools/github_tool.py` was incorrect. After investigating, I realized these were pre-existing failures unrelated to my `has_tests` feature, which required extra time to verify and isolate my changes.
+
+**What did you learn about working in a large codebase?**
+I learned that working in a large codebase requires following existing patterns rather than creating new structures. For example, I modeled `_has_tests()` after the existing `_has_readme()` method to ensure consistency in error handling and API usage. I also realized that even small changes, like adding a field in `_fetch_repo_metadata()`, require understanding how different parts of the system interact.
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped me structure my implementation, especially in designing helper methods like `_get_repo_tree()` and improving my PR documentation and journal entries. However, AI could not determine whether failing tests were pre-existing or caused by my changes. I had to manually run targeted tests (`pytest tests/unit/test_github_tool.py`) and validate outputs to confirm my implementation was correct.
+
+**What would you do differently if you started over?**
+If I started over, I would run `make check` and `make test-unit` at the very beginning before writing any code. This would help me identify pre-existing issues early and avoid confusion later when debugging failures. I would also spend more time initially exploring the test files and understanding how the GitHubTool is used across the project.
+
+**What are you most proud of from this module?**
+I am most proud of successfully adding the `has_tests` feature to an existing codebase while maintaining code quality and consistency. Specifically, I implemented `_get_repo_tree()` to efficiently fetch repository data and ensured my solution minimized API calls. I also clearly documented my work in the PR, including manual verification steps and handling of pre-existing issues, which reflects a professional development workflow.
