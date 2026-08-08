@@ -125,3 +125,43 @@ tests pass separately via `npm test` (7 of 7).
 
 **Draft PR feedback received from:** none
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+No feedback to respond to yet. I will address any comments if a review comes in after the deadline.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+- The issue sounded like it would just be a "copy link" button on the frontend, so I expected a small change.
+- It turned out to be a full stack feature. The copied link pointed at a protected route, so I had to build a secure public API endpoint that anyone could open without logging in, and that meant creating a new `share_links` table to store the token and its expiry.
+- The trickiest part was the security boundary. The public endpoint could not reuse the normal review response or it would leak the owner's data, so I had to build a separate response that only exposes the safe fields.
+
+**What did you learn about working in a large codebase?**
+- Follow the existing conventions and styling instead of making up my own. I read the existing models, services, and routes first and matched their patterns before writing anything new.
+- Changes go through a PR and review process rather than straight to main.
+- I cannot assume how the project is set up. My plan said the repo had no migrations, but it actually used Alembic, so I had to check the real tooling before touching the database.
+- The codebase already had failing tests and lint errors that were not mine. I learned I do not have to fix the whole codebase, I just have to make sure my change adds no new failures and document the pre-existing ones.
+
+**How did AI tools help — and where did they fall short?**
+- AI helped me understand an unfamiliar codebase quickly and find where my changes needed to go.
+- It explained concepts I did not know, like how Alembic migrations work, which let me write and apply my own `share_links` migration.
+- Where it fell short: it sometimes started from wrong assumptions, like claiming the repo had no Alembic, so I had to verify its output against the actual code instead of trusting it.
+- It could generate code, but I still had to run the migrations and tests myself, confirm things actually worked, and make the judgment calls, like choosing to reuse an existing link instead of minting a new token every time.
+
+**What would you do differently if you started over?**
+- Open the draft PR earlier in the week. Mine went up late, so no peer review came in before the deadline.
+- Scope the issue more carefully up front. If I had seen it was a full stack change with a new table from the start, my Week 8 plan would have been more accurate instead of assuming there was no Alembic.
+
+**What are you most proud of from this module?**
+- Shipping a working full stack feature end to end even though I did not have much Python backend experience going in, and backing it with tests and verification against the real database rather than just assuming it worked.
+
