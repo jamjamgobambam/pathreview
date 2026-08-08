@@ -105,34 +105,29 @@ None - not required by instructor.
 
 ### Reviewer feedback
 
-**Feedback received:** [ ] Yes  [ ] No — still awaiting review
+**Feedback received:** [] Yes  [x] No — still awaiting review
 
 **Summary of feedback:**
-[What did reviewers comment on? Or note that no review came in.]
+No feedback received.
 
 **How you responded:**
-[What changes did you make, or what did you reply? If no feedback,
-leave blank.]
+No feedback received.
 
 ---
 
 ### Reflection
 
 **What was harder than you expected?**
-[Be specific — what part of the process, codebase, or workflow
-surprised you?]
+The hardest part was navigating the codebase for the first time. I had never seen a repo of this size, let alone sifted through it on my own. I was proud of picking up on the unfamiliar, yet intuitive, structure, resisting the urge to read everything line-by-line, and identify the specific location of my issue.
 
 **What did you learn about working in a large codebase?**
-[What's different about contributing to someone else's production code
-vs. building your own project?]
+I learned to approach it in a DFS manner: instead of opening every file and reading it line-by-line, which is what I tend to do for small repos, going through a full pipeline in short glaces is better. Then, after creating that mental map, perhaps read chunk-by-chunk to gain a better understanding.
 
 **How did AI tools help — and where did they fall short?**
-[Where was AI assistance most useful this module? Where did you need
-to go beyond what AI could give you?]
+AI assistance was useful in asking quick questions about syntax, semantics, and conventions. However, due to their current limitations, they aren't the most useful when fed an entire codebase, often overwhelming the model and leading to larger chances of hallucination.
 
 **What would you do differently if you started over?**
-[Issue selection, planning, implementation, or process — anything
-you'd change?]
+I would probably complete the issue I chose faster and practice a tier-2 issue to gain experience. I could skip out on reading the whole codebase line-by-line since that's not feasible in much larger projects.
 
 **What are you most proud of from this module?**
-[One thing — it doesn't have to be the PR itself.]
+I'm most proud of navigating a large codebase created by someone else and creating my own PR following the required format. While this was a simulated open-source project, it gave me a very useful glimpse into real open-source - in more ways than just codebase size and PR submission guidelines.
