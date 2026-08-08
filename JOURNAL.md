@@ -60,3 +60,36 @@ Created `tests/unit/test_orchestrator.py` and `tests/unit/test_error_handling.py
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review comments yet. 
+
+**How you responded:**
+No changes were made. 
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Writing the comprehensive unit tests was more challenging than expected. 
+
+**What did you learn about working in a large codebase?**
+I learned that a simple one-line code change often requires a lot more code in testing just to make sure it works. In a larger project, making sure errors are logged properly is just as important as the feature itself so others can debug issues later.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were great for generating the boilerplate structure for the 44 new tests and pointing out all the places that needed the logging update. But they struggled with the specific mock setup our test suite needed, so I had to go in and manually fix the assertions for the logger calls.
+
+**What would you do differently if you started over?**
+I would spend more time looking at how the existing tests mock dependencies before writing my own. I jumped straight into writing the tests and had to backtrack to fix the mocking setup, which cost me some time.
+
+**What are you most proud of from this module?**
+I'm proud that I was able to figure out the potential problem just by reading the code in the selected files, and it turned out to be completely correct.
