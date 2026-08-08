@@ -131,3 +131,73 @@ guidance. Verified with LLM_PROVIDER=mock:
 
 **Draft PR feedback received from:** none <!-- replace with peer/mentor name or Slack handle if you get review -->
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments came in on the PR this week. (Per the Summer
+2026 note, structured reviewer feedback isn't part of the workflow this term.)
+
+**How you responded:**
+No changes were required in response to review. I re-read my own diff against the
+pre-submission checklist one more time and confirmed the PR still applies cleanly
+and the faithfulness tests still pass.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The issue read like a one-line change — drop the `>= 2` overlap threshold — but
+reproducing it showed that wasn't enough. `test_partial_support_returns_middle_score`
+expects a *middle* score for a **single** claim, which a binary supported/
+unsupported model can never produce, so the fix actually required moving to a
+graded per-claim score. Two more contributing factors were hiding in the same
+file: tokenizing with `str.split()` meant `"Python,"` never matched `"python"`,
+and the `_extract_claims` length filter silently dropped short claims like
+"Knows SQL". Working out a scoring curve (`overlap / (overlap + 2)`) that
+satisfied several tests with *conflicting* numeric expectations at once — one
+claim wanting > 0.5, another single claim wanting 0.2–0.8 — took real
+pen-and-paper analysis before I wrote any code.
+
+**What did you learn about working in a large codebase?**
+The tests, not my intuition, defined "correct" — so most of the work was reading
+the existing test file closely to reverse-engineer the intended behavior. I also
+learned to respect boundaries I didn't create: `_is_supported` is called directly
+by several tests and `check()` is consumed by `eval_suite.py`, so I kept those
+signatures stable instead of refactoring freely. The biggest difference from my
+own projects was the pre-existing mess: `main` already had 53 failing unit tests
+and repo-wide lint failures. On my own code I'd just fix everything; here the
+right move was to prove my change introduced *zero* new failures (I diffed the
+failing-test sets between a clean `main` worktree and my branch) and document the
+pre-existing state honestly in the PR, rather than expanding scope.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for navigation and mechanical rigor: locating the relevant
+files, setting up an isolated venv, running the suite, and diffing the
+main-vs-branch failure sets to back up my "no new regressions" claim. Where it
+fell short was the actual design judgment — choosing the smoothing constant and
+confirming the scoring curve cleared every test's numeric band was something I
+had to reason through and verify by running the tests, not something to take on
+faith from generated code. Every AI-suggested change still had to be checked
+against the project's conventions (conventional commits, black/ruff/mypy) before
+I trusted it.
+
+**What would you do differently if you started over?**
+I'd run the full test suite as part of *reproduction* in Week 8, not Week 9.
+Discovering the single-claim-middle-score requirement earlier would have shaped
+my PLAN.md scoring approach from the start instead of forcing a mid-week rethink.
+I'd also have surfaced the design decision (which scoring curve) as an explicit
+question earlier, since it's the kind of thing a maintainer might have an opinion
+on before I committed to it.
+
+**What are you most proud of from this module?**
+Not the fix itself, but the discipline around it: in a codebase that was already
+partly broken, I proved with a reproducible baseline diff that my change fixed
+exactly the 4 intended tests and broke nothing, and I kept the diff tight and
+honest instead of quietly reformatting unrelated code to make the checks look
+greener than they were.
+
