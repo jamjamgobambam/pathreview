@@ -62,3 +62,36 @@ I added a "Hybrid retrieval scoring" subsection to the RAG System section of `do
 None — this is a documentation-only change, so no source behavior was modified and no test file was touched. I considered adding a regression test for `HybridRetriever` to pin the documented formula (there isn't one today), but decided that belongs in a separate code-change PR rather than bundled into a docs fix.
 
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review came in
+
+**How you responded:**
+No review came in 
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+I assumed a docs-only issue would mostly be writing, but there are parts in the code that are difficult to understand such as normalization is per result set, the two sets are unioned so a missing signal contributes `0`, and an empty set's max is treated as `1.0`. Order mattered too — normalize, weight and sum, then apply `min_score = 0.3` and `max_chunks = 10`. 
+
+**What did you learn about working in a large codebase?**
+I couldn't change anything to make my task easier. In my own projects I'd refactor what confuses me; here the code was the fixed reference and my job was to describe it faithfully. Much of the work was navigation — finding the file that actually implements the behavior, and confirming `vector_weight = 0.7` / `keyword_weight = 0.3` were the real defaults. 
+
+**How did AI tools help — and where did they fall short?**
+It was most useful for orientation such as finding `hybrid.py` fast, checking my reading of the normalization step, and matching the tone of the rest of `docs/ARCHITECTURE.md`. It fell short on anything specific to this repo such as asking about the blending got me plausible generic answers that aren't what the code does. The union behavior and the `1.0` empty-set guard I only found by reading the function myself. AI got me to the right file; the verification that made the doc correct was mine.
+
+**What would you do differently if you started over?**
+I'd write the worked example first and derive the prose from it, since that's what forced real understanding. And I'd open the PR earlier instead of polishing locally, so review had time to land. I'd keep the Tier 1 choice — right size for a first contribution, and it made me read production code carefully.
+
+**What are you most proud of from this module?**
+I didn't take the shortcut such as paraphrasing the issue text. Instead I traced `HybridRetriever.retrieve` until I could compute a chunk's rank by hand, which is how I found the undocumented edge cases. The worked example is the concrete result, and it's what a future contributor can check against.
+
