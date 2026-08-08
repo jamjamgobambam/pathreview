@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from sqlalchemy import and_, select
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
 from core.database import get_db
+from core.models.profile import Profile
+from core.models.user import User
 from core.services.review_service import (
     create_review,
     get_review,
@@ -32,6 +34,32 @@ async def create_review_endpoint(
     Returns review with status="pending" immediately.
     """
     try:
+        # Verify profile exists and belongs to current user
+        result = await db.execute(
+            select(Profile).where(
+                and_(Profile.id == str(data.profile_id), Profile.user_id == str(current_user.id))
+            )
+        )
+        profile = result.scalars().first()
+
+        if profile is None:
+            raise HTTPException(status_code=404, detail="Profile not found")
+
+        if not any(
+            [
+                profile.github_username and profile.github_username.strip(),
+                profile.resume_text and profile.resume_text.strip(),
+                profile.portfolio_url and profile.portfolio_url.strip(),
+            ]
+        ):
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    "Profile has no documents to review. Add a GitHub username, resume,"
+                    " or portfolio URL before requesting a review."
+                ),
+            )
+
         # Create review with status="pending"
         review = await create_review(
             db=db,
