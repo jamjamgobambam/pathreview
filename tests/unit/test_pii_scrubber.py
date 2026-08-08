@@ -39,6 +39,16 @@ class TestPIIScrubber:
         assert "[REDACTED]" in scrubbed
         assert "555" not in scrubbed or "1234567" not in scrubbed
 
+    def test_parenthesized_phone_preserves_trailing_punctuation(
+        self, scrubber: PIIScrubber
+    ) -> None:
+        """Test parenthesized phone redaction preserves surrounding punctuation."""
+        text = "Call me at (555) 123-4567."
+
+        scrubbed = scrubber.scrub(text)
+
+        assert scrubbed == "Call me at [REDACTED]."
+
     def test_us_phone_formats(self, scrubber):
         """Test various US phone number formats."""
         formats = [
