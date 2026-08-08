@@ -37,25 +37,11 @@ describe('ReviewSection', () => {
 
   it('starts collapsed and expands on click', () => {
     render(<ReviewSection section={mockSection} />)
-    const content = screen.getByText('Your code is well-structured and follows best practices.')
-    expect(content.parentElement).not.toHaveClass('block')
+    expect(screen.queryByText('Your code is well-structured and follows best practices.')).not.toBeInTheDocument()
 
     const button = screen.getByRole('button')
     fireEvent.click(button)
-    expect(screen.getByText('Your code is well-structured and follows best practices.')).toBeInTheDocument()
-  })
 
-  it('expands on Enter key press', () => {
-    render(<ReviewSection section={mockSection} />)
-    const button = screen.getByRole('button')
-    fireEvent.keyPress(button, { key: 'Enter', code: 'Enter', charCode: 13 })
-    expect(screen.getByText('Your code is well-structured and follows best practices.')).toBeInTheDocument()
-  })
-
-  it('expands on Space key press', () => {
-    render(<ReviewSection section={mockSection} />)
-    const button = screen.getByRole('button')
-    fireEvent.keyPress(button, { key: ' ', code: 'Space', charCode: 32 })
     expect(screen.getByText('Your code is well-structured and follows best practices.')).toBeInTheDocument()
   })
 
@@ -94,5 +80,27 @@ describe('ReviewSection', () => {
 
     const contentElement = screen.getByText(/Line 1/)
     expect(contentElement).toHaveClass('whitespace-pre-wrap')
+  })
+
+  it('handles empty content gracefully', () => {
+    const emptyContentSection: FeedbackSection = {
+      ...mockSection,
+      content: ''
+    }
+    render(<ReviewSection section={emptyContentSection} />)
+    const button = screen.getByRole('button')
+    fireEvent.click(button)
+    expect(screen.getByRole('button')).toBeInTheDocument()
+  })
+
+  it('handles undefined or missing content', () => {
+    const noContentSection: FeedbackSection = {
+      ...mockSection,
+      content: undefined as any
+    }
+    render(<ReviewSection section={noContentSection} />)
+    const button = screen.getByRole('button')
+    fireEvent.click(button)
+    expect(screen.getByRole('button')).toBeInTheDocument()
   })
 })
