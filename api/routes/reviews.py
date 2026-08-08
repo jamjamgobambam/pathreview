@@ -1,17 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from typing import cast
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
 from core.database import get_db
+from core.models.user import User
+from core.services.profile_service import get_profile
 from core.services.review_service import (
     create_review,
     get_review,
     list_reviews,
     process_review,
+    profile_has_ingestable_content,
 )
 
 log = structlog.get_logger()
@@ -24,14 +28,52 @@ async def create_review_endpoint(
     data: ReviewCreate,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    db: AsyncSession = Depends(get_db),
+) -> ReviewResponse:
     """
     Create a new review for a profile.
     Triggers ingestion pipeline and agent orchestration asynchronously.
     Returns review with status="pending" immediately.
+
+    Raises:
+        404: the profile does not exist or does not belong to current_user.
+        400: the profile has no ingestable content (no GitHub username,
+            portfolio URL, or resume text). Without this check, a review
+            would still be created and would silently "complete" with
+            fabricated placeholder feedback -- see issue #88.
     """
     try:
+        profile = await get_profile(
+            db=db,
+            profile_id=data.profile_id,
+            user_id=current_user.id,
+        )
+
+        if not profile:
+            log.warning(
+                "profile_not_found_for_review",
+                profile_id=str(data.profile_id),
+                user_id=str(current_user.id),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found",
+            )
+
+        if not profile_has_ingestable_content(profile):
+            log.warning(
+                "profile_has_no_ingestable_content",
+                profile_id=str(data.profile_id),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "Profile has no ingestable content. Add a GitHub "
+                    "username, portfolio URL, or resume before requesting "
+                    "a review."
+                ),
+            )
+
         # Create review with status="pending"
         review = await create_review(
             db=db,
@@ -49,7 +91,7 @@ async def create_review_endpoint(
             user_id=str(current_user.id),
         )
 
-        return ReviewResponse.model_validate(review)
+        return cast(ReviewResponse, ReviewResponse.model_validate(review))
 
     except HTTPException:
         raise
@@ -66,8 +108,8 @@ async def create_review_endpoint(
 async def get_review_endpoint(
     review_id: UUID,
     current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    db: AsyncSession = Depends(get_db),
+) -> ReviewResponse:
     """
     Get a review by ID.
     Returns 404 if not found or not owned by current user.
@@ -86,7 +128,7 @@ async def get_review_endpoint(
                 detail="Review not found",
             )
 
-        return ReviewResponse.model_validate(review)
+        return cast(ReviewResponse, ReviewResponse.model_validate(review))
 
     except HTTPException:
         raise
@@ -103,8 +145,8 @@ async def list_reviews_endpoint(
     page: int = 1,
     page_size: int = 20,
     current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    db: AsyncSession = Depends(get_db),
+) -> ReviewListResponse:
     """
     List reviews for current user with pagination.
     """
@@ -140,8 +182,8 @@ async def list_reviews_endpoint(
 async def get_review_status(
     review_id: UUID,
     current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str | int]:
     """
     Get review status and progress.
     Returns {review_id, status, progress_pct}
