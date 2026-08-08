@@ -98,7 +98,7 @@ failures unrelated to this issue; confirming my change adds none.
 
 ### Check-in 2 (end of week)
 
-**PR link:** <!-- PASTE your PR URL here after opening it, e.g. https://github.com/ascherj/pathreview/pull/NN -->
+**PR link:** https://github.com/ascherj/pathreview/pull/1007
 
 **Branch:** `fix/152-faithfulness-short-claims`
 
