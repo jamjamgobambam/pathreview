@@ -118,3 +118,35 @@ Added a `WebPageParser` that fetches a portfolio URL via `httpx` and extracts te
 <!-- Note: both are "passes" in the course's documented-pre-existing-failures sense, not a literal zero-error run — make test-unit has 53 pre-existing failures on main (387 passed, no new failures); make check has pre-existing ruff (162) and mypy (100) errors repo-wide, unrelated to this change and documented in the PR's Notes for Reviewers (PR #506). -->
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review comments have come in on [PR #506](https://github.com/ascherj/pathreview/pull/506) as of this writing. Per the Su26 note, reviewer feedback isn't a live feature this term, so this is expected rather than a gap in outreach.
+
+**How you responded:**
+N/A — nothing to respond to yet.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Distinguishing "my bug" from "already broken" was the hardest part of Week 9. When the pre-commit hook failed on my commit, it dumped 49 mypy errors across 11 files — but I'd only touched `ingestion/pipeline.py` and `api/routes/profiles.py`. It wasn't obvious at first whether those errors were things I'd introduced or debt that was already there. I had to learn that mypy's pre-commit hook follows imports, so touching a file that imports `profile_service.py` or `vector_store.py` re-surfaces every pre-existing untyped function in those files too — even though I never edited them. The only way I found to confirm what was actually mine was `git stash`-ing my changes and re-running the same lint/type/test commands against the unmodified baseline, then diffing the counts. That technique — proving a failure is pre-existing rather than assuming it — was the single most useful workflow habit I picked up this module.
+
+**What did you learn about working in a large codebase?**
+In my own projects, if a field exists on a model, it's usually because I just wired it up — there's no gap between "accepted" and "used." Here, `portfolio_url` had already been validated by Pydantic, persisted by SQLAlchemy, and returned in API responses. Four real seeded profiles even had real URLs saved. Everything *looked* done. But none of that meant the feature actually worked — the ingestion pipeline never touched it. I only found this by directly querying the database (`scripts/check_portfolio_ingestion.py`) and seeing `profiles` had rows with `portfolio_url` set while `ingested_sources` had zero rows with `source_type='web'`. In a large, already-built codebase, a field being present, typed, and validated is not evidence that it's connected to anything — you have to trace the actual data flow end-to-end, because half-finished plumbing looks identical to finished plumbing from the schema alone.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful when I hit environment failures I had no context for — the pre-commit `mypy` hook failing to install `types-redis` because `cryptography`'s Rust build couldn't find OpenSSL, which turned out to be caused by an outdated Homebrew (bundling Ruby 2.6, unable to parse modern formula syntax) and Command Line Tools from 2021. Diagnosing that chain — Rosetta emulation → stale CLT → broken Homebrew Ruby → missing OpenSSL — would have taken me hours of searching; the AI worked through it step by step in the same session.
+It fell short on scope judgment: when I asked it to "fix everything mypy flags" to get past a failing pre-commit hook, it started adding type annotations across seven files completely unrelated to portfolio URL ingestion — `profile_service.py`, `vector_store.py`, `semantic_chunker.py`, etc. Technically it was doing what I asked, but I had to step back, recognize the scope had ballooned past what issue #11 actually needed, and explicitly tell it to revert those changes and use `--no-verify` on the pre-existing debt instead. The lesson: AI will happily go as far as your literal instruction lets it, so scope discipline has to come from me, not from it.
+
+**What would you do differently if you started over?**
+I'd dig into `IngestionPipeline`'s actual callers during Week 7 issue selection, not wait until Week 8's reproduction step to discover it. The "Is This Issue Right for Me?" checklist asks whether you understand what "done" looks like and whether you've read the relevant code — I checked those boxes based on reading `ingestion/pipeline.py` in isolation, without checking whether anything in `api/routes/` actually called it. It turned out none of `ingest_resume`/`ingest_readme`/`ingest_repo_metadata` had a live caller either, and `_check_skip`/`_record_ingested_source` were stubs. That context — that this wasn't just "add one method," it was "add one method into a pipeline nobody invokes, with dedup logic that doesn't work yet" — would have changed my time estimate and Tier assessment from the start, instead of surfacing as a mid-module surprise.
+
+**What are you most proud of from this module?**
+Proving the reproduction with real data instead of just asserting the bug existed. Rather than saying "portfolio_url ingestion doesn't work," I wrote `scripts/check_portfolio_ingestion.py` and pointed to the actual database state: 4 seeded profiles with a real `portfolio_url` set, and 0 `IngestedSource` rows with `source_type='web'`. That's evidence anyone — a reviewer, a mentor, my future self — could re-run and get the same result. It turned "I think this is broken" into "here's the query, here's the output, here's exactly where the gap is," which is the same standard I'd want applied to a bug report I received myself.
