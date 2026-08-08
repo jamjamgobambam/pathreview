@@ -72,3 +72,34 @@ Added `test_large_document_with_no_headings_is_sub_chunked` in `tests/unit/test_
 *(Both commands surface pre-existing, unrelated failures documented in the PR description — 52 pre-existing test failures across unrelated modules and 182 pre-existing lint errors repo-wide, plus a pre-existing mypy/NumPy stub incompatibility. This change introduces no new failures in any of the three.)*
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback arrived. Per the Su26 course note, reviewer feedback is not a feature offered this term, so no review was expected.
+
+**How you responded:**
+N/A — no feedback was received to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+I expected the actual code fix to be the hard part, but it turned out to be the smallest piece of the whole process. Getting my local environment running consumed most of my early effort - make wasn't installed on Windows by default, then Docker wasn't installed at all, and once both were sorted, the ChromaDB container crashed on startup because its own entrypoint script reinstalled chroma-hnswlib and pulled in NumPy 2.x, which broke compatibility with code written for NumPy 1.x (np.float_ had been removed). I had to override the container's entrypoint in docker-compose.yml to pin numpy<2 and a specific chroma-hnswlib version just to get a healthy vector-db container. None of that was mentioned in SETUP.md - I had to read raw container logs and reason about what "Rebuilding hnsw to ensure architecture compatibility" actually meant.
+
+**What did you learn about working in a large codebase?**
+The biggest thing was learning to distinguish my bug from the codebase's pre-existing problems. When I ran make test-unit and make check after implementing my fix, I got back 52 failing tests and 182 lint errors - none of which had anything to do with structural_chunker.py. My first instinct was that I'd broken something, but tracing through the failures (review_service.py's async mocking issues, resume_parser.py's markdown-stripping bugs, a repo-wide mypy failure caused by NumPy's type stubs needing Python 3.12 syntax) showed they were unrelated and pre-existing. Learning to scope my verification narrowly - "did I introduce new failures in files I touched" rather than "is the whole repo green" - was a real shift from how I'd think about a personal project, where I'd just expect everything to pass.
+
+**How did AI tools help - and where did they fall short?**
+Claude was most useful for exactly the kind of pattern-matching debugging I was doing constantly: reading a Docker error and immediately identifying it was a NumPy 2.0 breaking change, or reading a pytest traceback and immediately spotting that _extract_sections()'s guard condition (if heading_stack or current_section_lines:) was checking the wrong state. Where it fell short was anywhere requiring live verification I had to do myself - it couldn't see my actual terminal output, browser DevTools Network tab, or database contents without me pasting them in each time, and at one point it initially suggested a fix with broken Python indentation from a copy-paste artifact that I had to catch by running python -m py_compile before trusting it. It was also confidently wrong about whether an OpenRouter API key was required until I pasted the actual .env.example and it corrected itself against the real file instead of what SETUP.md's prose implied.
+
+**What would you do differently if you started over?**
+I'd read the actual docker-compose.yml and Makefile before touching SETUP.md's prose instructions, since the two didn't fully agree (SETUP.md mentioned an OPENROUTER_API_KEY that doesn't exist anywhere in the real .env.example). I'd also verify my local environment fully (including a real end-to-end UI test, not just unit tests) before considering the issue "done," since I only discovered - after already submitting my PR - that the "Start Review" form in the frontend never actually saves uploaded resume text to resume_text in the database, meaning my chunker fix, while correct and tested, doesn't actually get exercised by that particular UI flow yet. I'd want to know that earlier in the process, even though it turned out to be a separate, unrelated bug outside issue #149's scope.
+
+**What are you most proud of from this module?**
+Diagnosing the actual root cause in _extract_sections() rather than patching around the symptom. The obvious "quick fix" would have been to add a special case like "if not sections: return [Chunk(text=text, metadata=metadata)]" at the end of chunk() - but that would have only covered the exact "zero headings" case named in the issue. Instead, I traced the real problem to the guard condition checking heading state instead of content state, and fixed that condition directly, which turned out to also correctly handle a related edge case (leading blank lines before a document's first heading) that no existing test even covered. That felt like the difference between fixing an issue and understanding a codebase.
