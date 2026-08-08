@@ -46,7 +46,8 @@ class TestRelevanceScorer:
 
     def test_query_with_partial_overlap(self, scorer):
         """Test query with partial overlap returns score between 0 and 1."""
-        query = "Python Django web framework"
+        # partial overlap: "details" in the query but not in the chunk
+        query = "Python Django web framework details"
         chunks = [
             {
                 "text": "Django is a Python web framework for rapid development"
