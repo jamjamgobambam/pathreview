@@ -103,3 +103,62 @@ re-run in a full env.
 
 **Draft PR feedback received from:** none (mock submission)
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback arrived. Per the Su26 note, reviewer feedback isn't a
+feature this cohort, and this submission was a mock PR (never opened against
+`ascherj/pathreview`), so there was no upstream reviewer to respond.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Reading enough of the codebase to write *correct* docs was the real work; the
+`curl` examples themselves were trivial. The old `API.md` looked innocuous,
+but three of the endpoints it described were wrong in ways I only caught by
+opening the route files: `POST /auth/login` uses `OAuth2PasswordRequestForm`
+(form-encoded, `username` holds the email — not JSON), `POST /profiles` is
+multipart with a file upload, and two endpoints (`PUT /profiles/{id}`,
+`GET /reviews/{id}/status`) weren't documented at all. "Docs task" doesn't
+mean "shallow task" when the existing docs aren't trustworthy.
+
+**What did you learn about working in a large codebase?**
+Conventions do more than docs. `CONTRIBUTING.md` pinned the branch name
+format, the commit style, and the PR template — following those made every
+step (naming, committing, opening) a mechanical choice instead of a design
+question. The other lesson: pydantic schemas are the source of truth. When
+you need to know the shape of a request, don't read prose about it, read the
+model. Prose lies (or drifts); the model is what the server actually
+enforces.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest at navigation and boilerplate: locating the right files,
+summarising route/schema pairs, and drafting the PR body, JOURNAL entries,
+and PLAN.md from a rough spec. Where it fell short was judgment — deciding
+whether the three "extras" I found (form-encoding fix, multipart fix, two
+undocumented endpoints) belonged in a #117 PR or a follow-up was a scope
+call that needed me. AI will happily expand scope if you don't push back;
+"the fewest files that solve the ticket" is a discipline you have to bring.
+
+**What would you do differently if you started over?**
+Open the draft PR after the first commit, not after everything is polished.
+The Week 9 instructions push for early drafts precisely because a PR title
+and body force you to articulate the change before the diff is
+irreversible-feeling — I'd get that pressure on day one instead of day five.
+
+**What are you most proud of from this module?**
+The guard test in `tests/unit/test_api_docs.py`. It's ~20 lines of stdlib,
+no fixtures, no imports from the project, and it makes the #117 fix
+self-enforcing: the next contributor who adds an endpoint to `API.md`
+without a `curl` example will see the test fail before their PR merges.
+Small, cheap, and it prevents the exact regression this issue existed for.
+
