@@ -92,3 +92,80 @@ green, two authored edge-case tests added, no previously-passing test broken.
 **What "done" meant here:** not just a green target test, but the fix plus
 authored tests plus a PR a maintainer can review and understand the scope of
 without reading my mind.
+
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments came in during the review window.
+Reviewer feedback on PathReview PRs is not an active feature for the
+Summer 2026 cohort, so PR #686 (Closes #153) remains open without
+maintainer response. Noting it here and moving on per the Week 10
+instructions.
+
+**How you responded:**
+N/A — no feedback to respond to. The PR is submitted and open on my
+working branch.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Trusting that my one-line fix was actually correct, and that the
+failures I was seeing weren't mine. The bug itself came down to a
+subtlety I'd have sworn I already understood: `chunk.get("text", "")`
+only applies the default when the key is *missing*, not when the key
+exists with a value of `None`. So a chunk like `{"text": None}` sailed
+past the default and blew up the `" ".join(...)` with a TypeError. The
+fix was small (`chunk.get("text") or ""`), but getting there meant
+being sure I understood why the obvious-looking default didn't cover
+the case. Then when I ran the full test file, 3 of 24 tests failed, and
+I had to prove to myself those failures were pre-existing on `main`
+(from the `_is_supported` overlap threshold, unrelated to #153) rather
+than something my change caused. Verifying that with `git grep` against
+`origin/main` before I trusted it was slower and more nerve-wracking
+than writing the actual fix.
+
+**What did you learn about working in a large codebase?**
+On my own projects I own every decision, so I can restructure whatever
+I want. In someone else's production code the goal is the opposite:
+make the smallest change that solves the problem and matches the
+conventions already there. I learned to read the existing tests first
+to understand what a function was actually intended to do, and to
+resist "fixing" the 3 unrelated failures I stumbled onto, because scope
+creep in a contribution is a fast way to get a PR rejected. Leaving
+code I could see was imperfect but wasn't mine to touch was a real
+discipline.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for onboarding: dropping an unfamiliar function in
+and asking what it did saved time versus reading cold, and it helped
+scaffold the two edge-case tests once I knew the behavior I wanted to
+pin down. Where it fell short was anything tied to the repo's real
+state. It couldn't tell me whether those 3 failing tests were mine or
+pre-existing; only running the code and grepping `main` could. The
+genuine insight for #153 came from reproducing the crash myself and
+reading why the default didn't fire, not from a model that couldn't see
+the runtime behavior.
+
+**What would you do differently if you started over?**
+I'd run the full test suite on a clean `main` checkout *before* writing
+any code, so I'd have a baseline of what already fails and wouldn't have
+to reverse-engineer later whether a failure was mine. I'd also write the
+edge-case tests earlier, since writing them forced me to understand the
+behavior precisely, and having that up front would've made the fix
+faster.
+
+**What are you most proud of?**
+The edge-case tests (`test_mixed_context_chunks_with_none` and
+`test_all_context_chunks_none`). The fix was one line, but the tests are
+what make it trustworthy to a maintainer who has never met me, and
+writing them meant I understood the failure instead of just patching the
+symptom. Following the full four-week cycle through to a submitted,
+documented PR is what I'm taking with me.
