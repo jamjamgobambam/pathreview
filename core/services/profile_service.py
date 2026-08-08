@@ -1,24 +1,37 @@
+from typing import cast
 from uuid import UUID
+
 import structlog
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.schemas.profile import ProfileCreate, ProfileUpdate
+from core.models.ingested_source import IngestedSource
 from core.models.profile import Profile
 from core.models.review import Review
-from core.models.ingested_source import IngestedSource
-from api.schemas.profile import ProfileCreate, ProfileUpdate
 
 log = structlog.get_logger()
 
 
 async def create_profile(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     data: ProfileCreate,
-    resume_filename: str = None,
-    resume_text: str = None,
+    resume_filename: str | None = None,
+    resume_text: str | None = None,
 ) -> Profile:
     """
     Create a new profile for a user.
+
+    Args:
+        db (AsyncSession): The database session.
+        user_id (UUID): The ID of the user for whom the profile is being created.
+        data (ProfileCreate): The profile information to create.
+        resume_filename (str, optional): The filename of the uploaded resume. Defaults to None.
+        resume_text (str, optional): The text extracted from the uploaded resume. Defaults to None.
+
+    Returns:
+        Profile: The newly created profile instance.
     """
     profile = Profile(
         user_id=user_id,
@@ -34,28 +47,43 @@ async def create_profile(
 
 
 async def get_profile(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Profile | None:
     """
     Get a profile by ID, checking ownership.
+
+    Args:
+        db (AsyncSession): The database session.
+        profile_id (UUID): The ID of the profile to retrieve.
+        user_id (UUID): The ID of the user who owns the profile.
+
+    Returns:
+        Profile | None: The profile instance if found, otherwise None.
     """
-    stmt = select(Profile).where(
-        (Profile.id == profile_id) & (Profile.user_id == user_id)
-    )
+    stmt = select(Profile).where((Profile.id == profile_id) & (Profile.user_id == user_id))
     result = await db.execute(stmt)
-    return result.scalars().first()
+    return cast(Profile | None, result.scalars().first())
 
 
 async def update_profile(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
     data: ProfileUpdate,
 ) -> Profile | None:
     """
     Update a profile, checking ownership.
+
+    Args:
+        db (AsyncSession): The database session.
+        profile_id (UUID): The ID of the profile to update.
+        user_id (UUID): The ID of the user who owns the profile.
+        data (ProfileUpdate): The profile information to update.
+
+    Returns:
+        Profile | None: The updated profile instance if found, otherwise None.
     """
     profile = await get_profile(db, profile_id, user_id)
     if not profile:
@@ -73,13 +101,24 @@ async def update_profile(
 
 
 async def delete_profile(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> bool:
     """
     Delete a profile and cascade delete reviews and ingested sources.
-    Returns True if deleted, False if not found.
+
+    Args:
+        db (AsyncSession): The database session.
+        profile_id (UUID): The ID of the profile to delete.
+        user_id (UUID): The ID of the user who owns the profile.
+
+    Returns:
+        bool: True if deleted, False if not found.
+
+    Raises:
+        Exception: Re-raises any exception encountered during deletion
+            after rolling back the transaction.
     """
     profile = await get_profile(db, profile_id, user_id)
     if not profile:
