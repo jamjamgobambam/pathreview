@@ -158,3 +158,35 @@ Updated tests/unit/test_review_service.py with 12 new caching-focused tests cove
 **Draft PR feedback received from:**
 
 none - no feedback received
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ x ] Yes [ ] No — still awaiting review
+Feedback was provided in a written comment from a tech fellow during class and not shared directly on the PR.
+
+**Summary of feedback:**
+The reviewer acknowledged how 22 tests covering hash calculations, hits/misses, and error handling was thorough. They also noted how it was a good habit in the "Notes for the Reviewers" that I mentioned the number of pre-existing test and linter errors from what I introduced and good that I confirmed zero new regressions.
+
+**How you responded:**
+All feedback was positive providing no mention of items to discuss or change within my PR submission. I simply acknowledged this a go-ahead to submit this PR.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The most surprising part was how the codebase appeared thorough and covered many use cases. However, when I delved deeper, I noticed that certain checks were missing, linter errors existed, and more robust test coverage was needed. For example, the review service had multiple REST API endpoints, complete functionality for service functions, and specific unit tests. At first glance, I didn't think there could be an issue. But the problem wasn't that it wasn't "working"—it was instead lacking a necessary optimization: caching to prevent the time-consuming RAG pipeline from being rerun and to allow leveraging existing reviews to conserve database space.
+
+**What did you learn about working in a large codebase?**
+Working in this codebase taught me how to create a solution that not only works but also follows the conventions outlined in the docs—for example, specific commit message conventions and linter checks for function parameter types. I was able to see how the code is structured across different folders and how E2E functionality is designed. For example, the REST API → service → helper functionality structure, such as the review generator.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was helpful for comparing different implementation plans, finding the appropriate files to edit, selecting the right hashing method, and identifying missing test coverage. However, I had to understand the codebase myself by walking through the folders and deciding whether the recommended implementation was the best solution for this feature.
+
+**What would you do differently if you started over?**
+I would choose a more complex issue to challenge myself to understand different parts of the codepath in depth. This way, I'd focus on seeing how other services are utilized during the planning phase.
+
+**What are you most proud of from this module?**
+I'm proud of the effort I put into the planning stage—analyzing different solutions and identifying where in the code it made sense to make changes. I also appreciate understanding that there are many ways to write a correct solution, but some are more optimal in terms of where the fix should be placed.
