@@ -74,6 +74,7 @@ async def list_reviews(
 ) -> tuple[list[Review], int]:
     """
     List reviews for a user with pagination.
+
     Args:
         db (AsyncSession): The database session.
         user_id (UUID): The ID of the user whose reviews are being listed.
