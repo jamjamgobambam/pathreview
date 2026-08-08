@@ -75,3 +75,31 @@ Wired content-hash deduplication into the ingestion pipeline for issue #13. `_ch
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** @kylipoo
+
+Week 10 — Iteration & reflection
+Reviewer feedback
+
+Feedback received: [ ] Yes [x] No — no maintainer review this term (not a Summer 2026 feature). Peer review received and documented below.
+
+Summary of feedback:
+No maintainer or Copilot review requested changes on PR #305 (Copilot's four automated comments were a lockfile false-positive, an issue link that already resolves correctly, and two defensible design choices, none of which needed action). I did, however, get substantive peer feedback through the cohort. Kyle Li reviewed the PR and caught a real bug I had missed: _record_ingested_source called rollback() on a session that get_db() yields one-per-request, so on a database error it could have discarded a caller's pending writes while the swallowed exception still returned a successful-looking result.
+
+How you responded:
+I agreed and fixed it in commit e1496d7: dropped the rollback, let the SQLAlchemyError propagate so the session's owner decides how to handle a broken transaction, and added test_record_ingested_source_propagates_db_errors to pin the new behavior. On his second point, whether the record function should commit at all, I kept the commit and replied with the reasoning, that it matches how profile_service.py and review_service.py use the injected session, so it isn't surprising in context.
+
+Reflection
+
+What was harder than you expected?
+The codebase fighting its own tooling was the surprise. On a clean checkout of main, make test-unit reports 53 failures, make check fails at ruff with 183 errors, and the pre-commit mypy hook fails with 12 more, none of it mine. The hard part wasn't the fix, it was proving my change was clean against that noise, which meant recording a baseline before I touched anything and framing every "passes" claim as "no new failures against 53" rather than a green run. A subtler version bit me early: make test-unit runs pytest -m unit, so my first test file was silently deselected and reported as passing while never executing, which is a worse failure than a red test because it looks like success.
+
+What did you learn about working in a large codebase?
+That the code is a set of claims to verify, not facts to trust. My Week 7 reviewer told me to check the real database schema rather than what the code assumed about it, and when I did, I found the IngestionPipeline referenced a source_id column that doesn't exist and review_service.py constructed IngestedSource with a raw_data= keyword matching no column on the model. The other lesson was scope discipline: that raw_data bug was tempting to fix, but it lived in a file issue #13 didn't name, so it went in the PR's Notes for Reviewers as an observed adjacent bug rather than widening my diff. Contributing to someone else's production code is as much about what you deliberately leave alone as what you change.
+
+How did AI tools help — and where did they fall short?
+AI was most useful as a reasoning and drafting partner: tracing the call binding through an async pipeline, drafting PLAN.md structure, and comparing a fix against the upstream original when I reviewed other students' PRs. Where it fell short was exactly where it sounded most confident. Reviewing another student's PR, the AI reasoned its way to a @staticmethod bug that would supposedly crash the instance path, and it sounded airtight. I ran the branch in an isolated git worktree and all 13 tests passed, so the bug didn't exist. That happened more than once, and the takeaway is that AI reasoning is a lead to verify by running the actual code, not a finding to repeat. The tool that suggested the bug is the same class of tool that can't tell you whether it's real, only the test run can.
+
+What would you do differently if you started over?
+I'd write my PLAN.md risks with their verification steps attached from the start. My Week 8 reviewer's one piece of forward feedback was to pair each risk with how to confirm it, so instead of "content_hash has no unique constraint" I'd write "confirm with \d+ ingested_sources that no unique index exists." I had actually run that check during the week; I just didn't record the command next to the claim, which is the difference between a risk a reviewer can validate in ten seconds and one they have to re-derive. I'd also reach for a worktree earlier when testing anything unfamiliar, since I wasted time cherry-picking mismatched files into my own checkout before switching to an isolated one.
+
+What are you most proud of from this module?
+The peer review exchange, more than the PR itself. I reviewed eight other students' PRs, and the reviews got sharper as I settled on a method: read the actual diff, verify the fix against the real code, check that tests exercise the real path rather than a mock returning canned values, and match the tone to the news. Catching that one student's docstring PR claimed eight documented functions across two files when one file was untouched from upstream, and that another's test asserted len(reviews) > 0 or len(reviews) == 0 which is always true, felt like the thing the whole module was actually teaching. And the loop with Kyle was genuinely mutual: he caught my rollback bug, I flagged his scope gap, and both of us shipped better work for it.
