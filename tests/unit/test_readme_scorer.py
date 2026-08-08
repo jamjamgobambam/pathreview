@@ -18,28 +18,88 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+        A comprehensive project description that covers
+        all the important aspects of the project.
 
         ## Installation
-        ```bash
         pip install package
-        ```
+
+        To install the package, run the command above.
+        Make sure you have Python 3.9 or higher installed.
+        You can verify your Python version by running
+        python --version in your terminal. If you need to
+        upgrade, visit the official Python website.
+        It is recommended to use a virtual environment
+        to avoid dependency conflicts with other projects.
 
         ## Usage
-        ```python
         import package
         package.run()
-        ```
+
+        The package can be imported and used as shown above.
+        There are several configuration options available
+        that allow you to customize the behavior.
+        You can pass a configuration dictionary to the run
+        function to override the default settings.
+        For example, you can set the output format,
+        the logging level, and the maximum number of retries.
 
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+        - Feature 1: Automatic detection of README quality signals
+        - Feature 2: Scores READMEs based on installation sections
+        - Feature 3: Detects badges and demo links automatically
+        - Feature 4: Returns a normalized score between 0.0 and 1.0
+        - Feature 5: Supports case-insensitive section detection
 
         ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
+        - Python 3.9: Core language for all backend logic
+        - FastAPI: Web framework for the REST API endpoint
+        - PostgreSQL: Database for project metadata and scores
+        - Redis: Used for caching scorer results
+        - Docker: Containerization for local development
+
+        ## Contributing
+        Contributions are welcome! Please read the contributing
+        guide before submitting a pull request.
+        Make sure your code passes all linting requirements.
+        All new features should include unit tests.
+        Follow the existing code style and naming conventions.
+        When writing commit messages, follow conventional commits.
+        Each commit should be focused on a single change.
+        If you are fixing a bug, reference the issue number.
+        For large changes, open a discussion first.
+        Code reviews are required before merging.
+        All pull requests must pass the automated checks.
+
+        ## License
+        This project is licensed under the MIT License.
+        See the LICENSE file for full details.
+        You are free to use, modify, and distribute this software
+        in accordance with the license terms.
+        Attribution is appreciated but not required.
+        If you redistribute a modified version, include a note
+        describing what was changed.
+        The authors are not liable for any damages from its use.
+
+        ## FAQ
+        Q: Does this work with any README format?
+        A: Yes, the scorer supports any markdown README file.
+        Q: What is the minimum score for a good README?
+        A: A score above 0.7 is considered high quality.
+        Q: Can I use this with private repositories?
+        A: Yes, as long as you provide the README content.
+        Q: How is the overall score calculated?
+        A: It combines word count, sections, badges, and links.
+        Q: What happens if my README has no sections?
+        A: It will still score based on word count and badges.
+
+        ## Changelog
+        Version 1.0.0: Initial release with basic scoring.
+        Version 1.1.0: Added badge detection support.
+        Version 1.2.0: Added tech stack section detection.
+        Version 1.3.0: Improved word count categorization.
+        Version 1.4.0: Added demo link detection support.
+        Version 1.5.0: Added case-insensitive section matching.
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
@@ -157,9 +217,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +279,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +295,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
