@@ -3,7 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Share2, Download, ArrowLeft, Loader } from 'lucide-react'
 import { useReviewStatus } from '../hooks/useReviewStatus'
 import { ReviewSection } from '../components/ReviewSection'
+import { ShareModal } from '../components/ShareModal'
 import { apiClient } from '../services/api'
+import { createShareLink } from '../services/shareService'
 import { Review } from '../types'
 
 export const ReviewPage: React.FC = () => {
@@ -29,11 +31,24 @@ export const ReviewPage: React.FC = () => {
 
   const currentReview = fullReview || statusReview
 
-  const handleShare = () => {
-    const url = window.location.href
-    navigator.clipboard.writeText(url).then(() => {
-      alert('Review link copied to clipboard!')
-    })
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [shareLoading, setShareLoading] = useState(false)
+  const [shareError, setShareError] = useState('')
+
+  const handleShare = async () => {
+    setShareModalOpen(true)
+    setShareLoading(true)
+    setShareError('')
+    setShareUrl(null)
+    try {
+      const url = await createShareLink(reviewId || '')
+      setShareUrl(url)
+    } catch (err) {
+      setShareError(err instanceof Error ? err.message : 'Failed to create share link')
+    } finally {
+      setShareLoading(false)
+    }
   }
 
   const handleExport = () => {
@@ -154,6 +169,14 @@ ${section.suggestions.map((s) => `- ${s}`).join('\n')}
           </>
         )}
       </div>
+
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        shareUrl={shareUrl}
+        isLoading={shareLoading}
+        error={shareError}
+      />
     </div>
   )
 }

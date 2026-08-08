@@ -1,4 +1,4 @@
-import { AuthResponse, Profile, Review, ReviewListResponse } from '../types'
+import { ApiError, AuthResponse, Profile, PublicReview, Review, ReviewListResponse, ShareLink } from '../types'
 
 const API_BASE = '/api'
 
@@ -109,6 +109,29 @@ class ApiClient {
 
   async listReviews(page: number = 1, pageSize: number = 10): Promise<ReviewListResponse> {
     return this.request(`/reviews?page=${page}&page_size=${pageSize}`)
+  }
+
+  async createShareLink(reviewId: string): Promise<ShareLink> {
+    return this.request(`/reviews/${reviewId}/share`, { method: 'POST' })
+  }
+
+  async getSharedReview(token: string): Promise<PublicReview> {
+    // Public endpoint: no auth header, and we surface the status code so callers
+    // can distinguish an unknown token (404) from an expired one (410).
+    const response = await fetch(`${API_BASE}/reviews/shared/${token}`, {
+      headers: { 'Content-Type': 'application/json' }
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      const apiError = new Error(
+        error.detail || `Request failed with status ${response.status}`
+      ) as ApiError
+      apiError.status = response.status
+      throw apiError
+    }
+
+    return response.json()
   }
 
   async deleteProfile(id: string): Promise<void> {
