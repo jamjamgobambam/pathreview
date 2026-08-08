@@ -1,6 +1,7 @@
 """Technology stack detector tool."""
 
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -60,10 +61,10 @@ class TechDetector(BaseTool):
         """Detect tech stack from files.
 
         Args:
-            input_data: Must contain 'files' (list of file paths)
+            input_data: Must contain 'files' (list of file paths).
 
         Returns:
-            ToolResult with detected technologies
+            ToolResult with detected technologies.
         """
         files = input_data.get("files", [])
 
@@ -75,90 +76,100 @@ class TechDetector(BaseTool):
                     "primary_language": "Unknown",
                     "all_languages": [],
                     "frameworks": [],
-                }
+                },
             )
 
         try:
             result = self._detect_tech(files)
             return ToolResult(success=True, data=result)
 
-        except Exception as e:
-            logger.error("tech_detector_error", error=str(e))
+        except Exception as error:
+            logger.error("tech_detector_error", error=str(error))
             return ToolResult(
                 success=False,
                 data={},
-                error=str(e)
+                error=str(error),
             )
 
     def _detect_tech(self, files: list[str]) -> dict:
-        """Detect technologies from file list.
+        """Detect technologies from a file list.
 
         Args:
-            files: List of file paths
+            files: List of file paths.
 
         Returns:
-            Dict with detected languages and frameworks
+            Dictionary with detected languages and frameworks.
         """
-        # Filter out vendor/build directories
-        filtered_files = [
-            f for f in files
-            if not self._should_skip_file(f)
-        ]
+        filtered_files = [filepath for filepath in files if not self._should_skip_file(filepath)]
 
         languages = set()
         frameworks = set()
 
-        # Detect by file extension
+        # Detect languages by file extension.
         for filepath in filtered_files:
-            for ext, lang in self.EXT_TO_LANG.items():
-                if filepath.endswith(ext):
-                    languages.add(lang)
+            for extension, language in self.EXT_TO_LANG.items():
+                if filepath.endswith(extension):
+                    languages.add(language)
 
-        # Detect by config files
+        # Detect languages and frameworks by configuration files.
         for filepath in filtered_files:
-            for config_file, (framework, lang) in self.CONFIG_INDICATORS.items():
+            for config_file, (framework, language) in self.CONFIG_INDICATORS.items():
                 if filepath.endswith(config_file):
-                    languages.add(lang)
-                    if framework not in ("Docker", "Infrastructure", "CI/CD", "Build"):
+                    languages.add(language)
+
+                    if framework not in (
+                        "Docker",
+                        "Infrastructure",
+                        "CI/CD",
+                        "Build",
+                    ):
                         frameworks.add(framework)
 
-        # Determine primary language (most common)
-        primary = "Unknown"
+        primary_language = "Unknown"
+
         if languages:
-            lang_list = sorted(languages)
-            primary = lang_list[0]
+            primary_language = sorted(languages)[0]
 
         all_languages = sorted(languages)
         all_frameworks = sorted(frameworks)
 
-        logger.info("tech_detected", primary_lang=primary,
-                   languages_count=len(all_languages), frameworks_count=len(all_frameworks))
+        logger.info(
+            "tech_detected",
+            primary_lang=primary_language,
+            languages_count=len(all_languages),
+            frameworks_count=len(all_frameworks),
+        )
 
         return {
-            "primary_language": primary,
+            "primary_language": primary_language,
             "all_languages": all_languages,
             "frameworks": all_frameworks,
         }
 
     @staticmethod
     def _should_skip_file(filepath: str) -> bool:
-        """Check if file should be skipped.
+        """Check whether a file is inside a vendored or generated directory.
 
         Args:
-            filepath: File path
+            filepath: Repository-relative or absolute file path.
 
         Returns:
-            True if file should be skipped
+            True if the file should be excluded from technology detection.
         """
-        skip_patterns = [
-            "/node_modules/",
-            "/vendor/",
-            "/dist/",
-            "/build/",
-            "/.git/",
-            "/__pycache__/",
-            "/.venv/",
-            "/venv/",
-        ]
+        skip_directories = {
+            "node_modules",
+            "vendor",
+            "dist",
+            "build",
+            ".git",
+            "__pycache__",
+            ".venv",
+            "venv",
+        }
 
-        return any(pattern in filepath for pattern in skip_patterns)
+        normalized_path = filepath.replace("\\", "/")
+        path_parts = [part for part in normalized_path.split("/") if part]
+
+        directory_parts = path_parts[:-1]
+
+        return any(part in skip_directories for part in directory_parts)
