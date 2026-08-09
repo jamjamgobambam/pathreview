@@ -57,7 +57,10 @@ Processes user-submitted documents into vector embeddings. Parsers implement `Ba
 A plan-execute orchestrator that coordinates multiple analysis tools. Each tool implements `BaseTool` with `name`, `description`, and `execute()`. The orchestrator builds a plan based on available profile data, executes tools with retry and timeout policies, and synthesizes results.
 
 ### RAG System (`rag/`)
-Hybrid retrieval (vector similarity + BM25 keyword) fetches relevant context from the user's ingested documents. The generator uses prompt templates to produce structured, evidence-based feedback. The evaluator scores retrieval relevance and generation faithfulness.
+Hybrid retrieval combines vector similarity search with BM25 keyword search to retrieve relevant context from the user's ingested documents. The retriever first performs both searches independently, then normalizes the vector similarity scores and BM25 scores to a common 0–1 scale. A blended retrieval score is calculated using weighted scoring:
+
+
+Results below the minimum score threshold are filtered out, the remaining results are ranked by the blended score, and the highest-scoring chunks are provided to the generator. The generator uses prompt templates to produce structured, evidence-based feedback, while the evaluator measures retrieval relevance and generation faithfulness.
 
 ### Safety Layer (`safety/`)
 Middleware wrapping the generation pipeline. Components run in sequence: prompt injection defense → content filter → bias detector → PII scrubber. All safety events are logged with structured metadata for monitoring.
