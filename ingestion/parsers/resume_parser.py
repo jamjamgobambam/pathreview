@@ -5,7 +5,6 @@ from pypdf import PdfReader
 
 from .base import BaseParser, ParseResult
 
-
 SECTION_HEADERS = {
     "experience",
     "education",
@@ -75,7 +74,7 @@ class ResumeParser(BaseParser):
                 source_type="resume",
             )
         except Exception as e:
-            raise ValueError(f"Failed to parse PDF: {str(e)}")
+            raise ValueError(f"Failed to parse PDF: {str(e)}") from e
 
     def _parse_markdown(self, content: str) -> ParseResult:
         """Extract text from markdown resume, stripping markdown syntax."""
@@ -97,9 +96,13 @@ class ResumeParser(BaseParser):
         )
 
     def _strip_markdown(self, content: str) -> str:
-        """Remove markdown syntax from content."""
-        # Remove markdown headers
-        text = re.sub(r"^#+\s+", "", content, flags=re.MULTILINE)
+        """Remove markdown syntax from content.
+
+        Headers are matched regardless of leading whitespace/indentation,
+        so indented markdown (e.g. from nested lists) is still stripped.
+        """
+        # Remove markdown headers (tolerate leading whitespace/indentation before '#')
+        text = re.sub(r"^[ \t]*#+\s+", "", content, flags=re.MULTILINE)
 
         # Remove markdown links [text](url)
         text = re.sub(r"\[([^\]]+)\]\(([^\)]+)\)", r"\1", text)
@@ -125,17 +128,24 @@ class ResumeParser(BaseParser):
         return text.strip()
 
     def _detect_sections(self, text: str) -> list[str]:
-        """Detect common resume sections from text."""
+        """Detect common resume sections from text.
+
+        Matches section headers regardless of leading whitespace/indentation
+        (e.g. from PDF text extraction or indented markdown), while still
+        requiring the keyword to start the line so an indented sentence that
+        merely mentions a keyword (e.g. "- discussed skills growth") isn't
+        mistaken for a header.
+        """
         detected = []
         text_lower = text.lower()
 
         for section in SECTION_HEADERS:
-            # Look for section header patterns
+            # Look for section header patterns (tolerate leading whitespace/indentation)
             patterns = [
-                rf"^{re.escape(section)}\s*$",
-                rf"^{re.escape(section)}\s*[:|-]",
-                rf"\n{re.escape(section)}\s*$",
-                rf"\n{re.escape(section)}\s*[:|-]",
+                rf"^[ \t]*{re.escape(section)}\s*$",
+                rf"^[ \t]*{re.escape(section)}\s*[:|-]",
+                rf"\n[ \t]*{re.escape(section)}\s*$",
+                rf"\n[ \t]*{re.escape(section)}\s*[:|-]",
             ]
 
             for pattern in patterns:
