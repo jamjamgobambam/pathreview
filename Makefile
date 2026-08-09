@@ -1,4 +1,4 @@
-.PHONY: setup run test-unit test-integration test-all lint format typecheck check migrate seed reset-db eval clean
+.PHONY: setup deps run test-unit test-integration test-all lint format typecheck check migrate seed reset-db eval clean
 
 SHELL := /bin/bash
 
@@ -25,6 +25,9 @@ setup: ## First-time setup: venv, deps, migrations, seed data
 	cd frontend && npm install
 	@echo ""
 	@echo "Setup complete. Run 'make run' to start the application."
+
+deps: ## Resync Python dependencies after a pyproject.toml change (no migrations/seed/npm)
+	$(PIP) install -e ".[dev]"
 
 # ---- Run ----
 
