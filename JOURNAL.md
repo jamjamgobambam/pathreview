@@ -119,3 +119,71 @@ that is red was already red and is unrelated to my fix, and I called that out in
 description as well.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments came in on PR #280 during the window. (Reviewer feedback is not
+an active part of the Summer 2026 cohort, so this is expected.) The PR is open and marked ready for
+review with a complete description that documents the pre-existing failures so a future reviewer
+has the context they need.
+
+**How you responded:**
+No changes were required since no feedback arrived. If a maintainer had asked, the most likely
+requests would have been to trim the fixture README or to move the course-artifact files (JOURNAL,
+PLAN) out of the PR, and I would have addressed those before marking it ready.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The actual fix was tiny; getting a working local environment was the hard part by a wide margin.
+Before I could even reproduce the bug I had to dig out from a full disk, get Docker past a stuck
+login screen, upgrade Node from 18 to 22 because Vite 8 crashed on a missing `styleText` export,
+reinstall the frontend because a native rolldown binding was skipped by an npm optional-dependency
+bug, and get past a peer-dependency conflict. Each error only revealed the next one. The one-line
+idea ("make the fixture longer") took minutes; the plumbing around it took hours.
+
+**What did you learn about working in a large codebase?**
+The biggest shift from my own projects: I could not assume the repo was healthy. It already had 52
+failing unit tests and a lot of formatting and type drift, so "passing" had to be redefined as "my
+change introduces no new failures" (I proved it went from 53 failing to 52). That forced real
+discipline: keep the diff surgical, resist fixing unrelated things, and document the baseline so a
+reviewer can tell my change apart from the existing noise. I also learned to actually trace the
+problem instead of trusting the obvious suspect. The failing test pointed at the scorer, but the
+scorer was correct and the bug was in the test's own fixture data. Reading the real contract (the
+scorer counts words with `str.split()` and only calls a README "comprehensive" at 500+ words)
+mattered more than the code change itself.
+
+**How did AI tools help, and where did they fall short?**
+AI was most useful for moving quickly through an unfamiliar multi-module codebase and for
+diagnosing the cascade of environment failures, where it consistently read the real error and
+pointed at the next step. It also helped me structure PLAN.md and the journal, and explain what the
+scorer's regexes actually required. Where it fell short was anything that needed real verification.
+It could describe the bug, but I had to run the test to get the true numbers (51 words, and the
+fact that code fences and markdown count as words under `str.split()`), and I had to re-run after
+every change because at one point the fixture silently reverted and the image badges got deleted,
+which quietly broke the test. AI also could not make the scope call for me, like deciding not to
+commit the 54 files that `make check` reformatted. Running things and checking the result was the
+part I owned.
+
+**What would you do differently if you started over?**
+First, I would run `make test-unit` and `make check` before writing any code, so I knew exactly
+which failures were pre-existing from the start instead of discovering the baseline halfway
+through. Second, I would never run `make format` / `black .` on a repo with this much drift, since
+it rewrote 50+ files; `--check` shows the same problems without touching anything. Third, I would
+keep the fix in a single clean commit and not let the working tree drift, because the fixture got
+reverted once and cost me time re-applying and re-verifying it. The issue selection itself was
+good: small, self-contained, and genuinely Tier 1.
+
+**What are you most proud of?**
+Landing a clean, honest, minimal PR inside a messy repo. Not the fixture rewrite itself, which is
+modest, but the discipline around it: a one-file diff, a before/after number that proves the change
+fixed one test and broke nothing, and a description that clearly separates my work from the repo's
+pre-existing problems. That "make it easy for a reviewer to trust your change" habit feels like the
+most transferable thing I take out of this module.
