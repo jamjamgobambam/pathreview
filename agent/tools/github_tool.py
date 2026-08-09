@@ -2,6 +2,7 @@
 
 import httpx
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -35,44 +36,30 @@ class GitHubTool(BaseTool):
         repo_name = input_data.get("repo_name")
 
         if not username or not repo_name:
-            return ToolResult(
-                success=False,
-                data={},
-                error="Missing github_username or repo_name"
-            )
+            return ToolResult(success=False, data={}, error="Missing github_username or repo_name")
 
         try:
             repo_data = self._fetch_repo_metadata(username, repo_name)
             return ToolResult(success=True, data=repo_data)
 
         except httpx.HTTPStatusError as e:
-            logger.error("github_request_failed", status=e.response.status_code,
-                        username=username, repo=repo_name)
+            logger.error(
+                "github_request_failed",
+                status=e.response.status_code,
+                username=username,
+                repo=repo_name,
+            )
             if e.response.status_code == 404:
-                return ToolResult(
-                    success=False,
-                    data={},
-                    error="Repository not found"
-                )
+                return ToolResult(success=False, data={}, error="Repository not found")
             elif e.response.status_code == 403:
-                return ToolResult(
-                    success=False,
-                    data={},
-                    error="Rate limited or access denied"
-                )
+                return ToolResult(success=False, data={}, error="Rate limited or access denied")
             return ToolResult(
-                success=False,
-                data={},
-                error=f"GitHub API error: {e.response.status_code}"
+                success=False, data={}, error=f"GitHub API error: {e.response.status_code}"
             )
 
         except Exception as e:
             logger.error("github_tool_error", error=str(e))
-            return ToolResult(
-                success=False,
-                data={},
-                error=str(e)
-            )
+            return ToolResult(success=False, data={}, error=str(e))
 
     def _fetch_repo_metadata(self, username: str, repo_name: str) -> dict:
         """Fetch repository metadata from GitHub API.
@@ -105,12 +92,18 @@ class GitHubTool(BaseTool):
             "open_issues_count": repo_json.get("open_issues_count", 0),
             "last_commit_date": repo_json.get("pushed_at", ""),
             "has_readme": self._has_readme(username, repo_name),
+            "has_tests": self._has_tests(username, repo_name),
             "topics": repo_json.get("topics", []),
             "homepage": repo_json.get("homepage") or "",
         }
 
-        logger.info("github_repo_fetched", username=username, repo=repo_name,
-                   language=metadata["primary_language"], stars=metadata["star_count"])
+        logger.info(
+            "github_repo_fetched",
+            username=username,
+            repo=repo_name,
+            language=metadata["primary_language"],
+            stars=metadata["star_count"],
+        )
 
         return metadata
 
@@ -132,6 +125,51 @@ class GitHubTool(BaseTool):
 
         try:
             response = httpx.head(url, headers=headers, timeout=5.0)
-            return response.status_code == 200
+            return bool(response.status_code == 200)
         except Exception:
             return False
+
+    def _has_tests(self, username: str, repo_name: str) -> bool:
+        """Check if repository contains tests.
+
+        Lists the repository's root contents via the GitHub contents API
+        and looks for common Python test indicators: a ``tests`` or
+        ``test`` directory, a ``pytest.ini`` file, or a root-level file
+        matching ``test_*.py``.
+
+        Args:
+            username: GitHub username
+            repo_name: Repository name
+
+        Returns:
+            True if a test indicator is found, False otherwise
+        """
+        url = f"{self.base_url}/repos/{username}/{repo_name}/contents"
+
+        headers = {}
+        if self.api_token:
+            headers["Authorization"] = f"token {self.api_token}"
+
+        try:
+            response = httpx.get(url, headers=headers, timeout=5.0)
+            if response.status_code != 200:
+                return False
+            entries = response.json()
+        except Exception:
+            return False
+
+        if not isinstance(entries, list):
+            return False
+
+        for entry in entries:
+            name = entry.get("name", "")
+            entry_type = entry.get("type", "")
+            if entry_type == "dir" and name in ("tests", "test"):
+                return True
+            if entry_type == "file":
+                if name == "pytest.ini":
+                    return True
+                if name.startswith("test_") and name.endswith(".py"):
+                    return True
+
+        return False
