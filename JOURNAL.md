@@ -57,7 +57,7 @@ The focused test passes, but the full unit suite still has unrelated failures ca
 
 ### Check-in 2 (end of week)
 
-**PR link:** Submitted from the `test/159-structlog-caplog-capture` branch for issue #159.
+**PR link:** [Fix #159: configure structlog for pytest caplog capture](https://github.com/ascherj/pathreview/pull/390)
 
 **Branch:** `test/159-structlog-caplog-capture`
 
