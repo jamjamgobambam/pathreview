@@ -5,5 +5,6 @@ from core.models.user import User
 from core.models.profile import Profile
 from core.models.ingested_source import IngestedSource
 from core.models.review import Review
+from core.models.webhook import Webhook
 
-__all__ = ["Base", "User", "Profile", "IngestedSource", "Review"]
+__all__ = ["Base", "User", "Profile", "IngestedSource", "Review", "Webhook"]

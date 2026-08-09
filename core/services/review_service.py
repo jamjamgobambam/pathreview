@@ -8,6 +8,7 @@ from core.models.review import Review
 from core.models.profile import Profile
 from core.models.ingested_source import IngestedSource
 from api.schemas.review import FeedbackSection
+from core.services.webhook_service import trigger_review_event
 
 log = structlog.get_logger()
 
@@ -149,8 +150,25 @@ async def process_review(
         if not safety_checks_passed:
             log.warning("safety_checks_failed", review_id=str(review_id))
             review.status = "failed"
+            review.error_message = "Safety checks failed during review processing"
+            review.updated_at = datetime.utcnow()
             db.add(review)
             await db.commit()
+
+            # Trigger review.failed webhook
+            await trigger_review_event(
+                db=db,
+                user_id=profile.user_id,
+                event="review.failed",
+                review_data={
+                    "review_id": str(review.id),
+                    "profile_id": str(profile.id),
+                    "status": "failed",
+                    "error": "Safety checks failed during review processing",
+                    "created_at": review.created_at.isoformat(),
+                    "updated_at": review.updated_at.isoformat(),
+                },
+            )
             return
 
         # Step 6: Set status to complete and store sections
@@ -179,6 +197,22 @@ async def process_review(
             overall_score=review.overall_score,
         )
 
+        # Trigger review.completed webhook
+        await trigger_review_event(
+            db=db,
+            user_id=profile.user_id,
+            event="review.completed",
+            review_data={
+                "review_id": str(review.id),
+                "profile_id": str(profile.id),
+                "status": "complete",
+                "overall_score": review.overall_score,
+                "sections": [s.model_dump() for s in sections],
+                "created_at": review.created_at.isoformat(),
+                "updated_at": review.updated_at.isoformat(),
+            },
+        )
+
     except Exception as exc:
         log.error("review_processing_failed", review_id=str(review_id), error=str(exc))
         try:
@@ -187,9 +221,31 @@ async def process_review(
             review = result.scalars().first()
             if review:
                 review.status = "failed"
+                review.error_message = str(exc)
                 review.updated_at = datetime.utcnow()
                 db.add(review)
                 await db.commit()
+
+                # Get profile to get user_id for webhook
+                stmt = select(Profile).where(Profile.id == profile_id)
+                result = await db.execute(stmt)
+                profile = result.scalars().first()
+
+                if profile:
+                    # Trigger review.failed webhook
+                    await trigger_review_event(
+                        db=db,
+                        user_id=profile.user_id,
+                        event="review.failed",
+                        review_data={
+                            "review_id": str(review.id),
+                            "profile_id": str(profile.id),
+                            "status": "failed",
+                            "error": str(exc),
+                            "created_at": review.created_at.isoformat(),
+                            "updated_at": review.updated_at.isoformat(),
+                        },
+                    )
         except Exception as e:
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 

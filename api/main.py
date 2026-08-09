@@ -5,7 +5,7 @@ from fastapi.openapi.utils import get_openapi
 import structlog
 
 from api.middleware.request_id import RequestIDMiddleware
-from api.routes import auth, profiles, reviews, health
+from api.routes import auth, profiles, reviews, webhooks, health
 from core.database import init_db
 
 log = structlog.get_logger()
@@ -79,6 +79,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 app.include_router(auth.router)
 app.include_router(profiles.router)
 app.include_router(reviews.router)
+app.include_router(webhooks.router)
 app.include_router(health.router)
 
 

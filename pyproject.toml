@@ -82,6 +82,7 @@ exclude = ["alembic/versions/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
 markers = [
     "unit: Unit tests (fast, no external dependencies)",
     "integration: Integration tests (require Docker services)",
