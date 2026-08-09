@@ -42,3 +42,34 @@ The fix will require flipping the expected value of an existing test (`test_mini
 (Both pass for the files this PR touches. `make check`/`make test-unit` fail at the whole-repo level due to pre-existing, unrelated issues — documented in the PR description with a before/after comparison confirming this PR introduces no new failures.)
 
 **Draft PR feedback received from:** none — opened directly as ready for review, no draft review cycle this time.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback has come in on PR #1015 as of this entry. Per the course's Su26 note, reviewer feedback isn't part of this cycle, so there's nothing further to document here.
+
+**How you responded:**
+N/A — no feedback received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The pre-existing state of the repo, not the actual bug. The fix itself — scaling the overlap threshold instead of using a flat cutoff — took less time than expected once I'd pinned down the root cause. What actually slowed me down was that the moment I touched `test_faithfulness_checker.py`, pre-commit hooks surfaced 26+ mypy errors and a ruff unused-variable error that had nothing to do with my change — the whole file had apparently never passed those hooks before. I had to add type annotations across every test function in the file and complete two pre-existing tests that asserted nothing, just to get my own change to commit cleanly. I hadn't anticipated that fixing one bug would mean cleaning up unrelated debt just to get through the door.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was realizing I couldn't trust "my tests pass" in isolation — I had to explicitly diff the full failure list before and after my change (using `git stash` to compare) to prove I hadn't broken anything else, because the suite already had dozens of unrelated pre-existing failures scattered across the codebase. In my own projects I'd just run the tests and call it done; here, "passing" only meant something once I'd separated my change's effect from the codebase's existing rot. I also learned that pre-commit hooks apply to the whole file you touch, not just your diff — so a small, well-scoped fix can pull in unrelated cleanup work whether you plan for it or not.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful early on: reading the actual source for several candidate issues in parallel and reporting back real difficulty (not just what the issue title implied) helped me pick a problem that was genuinely medium difficulty instead of over- or under-shooting it. It was also fast at pinpointing the exact line responsible for the bug and building a concrete before/after repro I could run myself. Where it fell short was on the first attempt at the actual fix — the first scaling formula it proposed looked reasonable on paper but, when we ran the full test suite instead of just the new test, it turned out to make longer claims stricter than before and broke a previously-passing test. That only surfaced because we actually executed the change against the whole file's tests rather than trusting the formula's logic by inspection. It reinforced that AI-generated code needs to be run and verified, not just reasoned about.
+
+**What would you do differently if you started over?**
+I'd pick a different issue. #152 was a reasonable "medium" pick on its own, but it turned out to be entangled with two other known bugs in the same file (#153's `None`-crash and a separate `_extract_claims()` comma-splitting bug), which made it harder to cleanly tell "is this failure mine or pre-existing?" every time I ran the tests. An issue more isolated from other in-flight bugs in the same file would have let me verify my own change faster and with more confidence, instead of having to cross-check against a noisy baseline every time.
+
+**What are you most proud of from this module?**
+Diagnosing the root cause precisely. Rather than stopping at "short claims sometimes fail," I traced it to the exact line (`len(meaningful_overlap) >= 2`) and built a minimal, concrete example — "Good communicator" vs. a paraphrased context — that showed exactly one token short of the threshold. Having that precise a repro made both the fix and the PR description much easier to write, because there was no ambiguity about what "fixed" actually meant.
