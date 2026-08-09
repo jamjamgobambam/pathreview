@@ -154,17 +154,16 @@ No review came in.
 ### Reflection
 
 **What was harder than you expected?**
-I had to use AI to explain and break down the code base to be able to extract the formula and while doing so, found that there was a undocumented bug.
+I had to use AI to explain and break down the codebase to extract the exact blending formula from `HybridRetriever.retrieve` in [hybrid.py:78-81](rag/retriever/hybrid.py#L78-L81), since the normalization step and the score-fallback behavior for single-source matches weren't obvious from a quick read. While tracing through that logic I also found that `_get_all_chunks` never passes its results into `keyword_searcher.index()`, an undocumented runtime bug outside the scope of my docs-only issue. Deciding how to report that bug without scope-creeping my PR took more thought than the actual documentation work.
 
 **What did you learn about working in a large codebase?**
-Following the contribution guidelines are very important. 
+Following the contribution guidelines closely — branch naming, PR templates, and commit conventions — mattered more than I expected, since a mismatch there could have blocked review before anyone even looked at the content. I also learned to always cross-reference documentation claims against specific line numbers in the source (e.g., citing [hybrid.py:13-14](rag/retriever/hybrid.py#L13-L14) for the default weights) rather than paraphrasing from memory, since that traceability is what lets a reviewer or future contributor trust the docs without re-deriving the formula themselves.
 
 **How did AI tools help — and where did they fall short?**
-AI was very useful in explaining a specific method in a file.
+AI was useful for quickly explaining what `HybridRetriever.retrieve` was doing structurally, but its first explanation of the normalization step was incomplete — it described dividing by the max score without mentioning that a chunk matched by only one search method gets the other side's score treated as 0 rather than excluded, which I only caught by re-reading [hybrid.py:58-59](rag/retriever/hybrid.py#L58-L59) myself. I had to manually verify every number in my worked example by hand-deriving the three blended scores (1.00 / 0.47 / 0.15) rather than trusting AI's arithmetic, since it initially miscalculated the keyword-only row before I corrected it against the formula.
 
 **What would you do differently if you started over?**
-Read the contributing doc and learn the commit message conventions early
+I would read the CONTRIBUTING doc and learn the commit message and rebase conventions before starting, instead of discovering the correct commit-message format midway through and having to rebase to fix earlier commits. I'd also open a separate GitHub issue for the `keyword_searcher.index()` bug as soon as I found it, rather than only noting it in the PR description, so it gets tracked and prioritized independently of my docs fix.
 
 **What are you most proud of from this module?**
-Learning how to proper document my journaling and planning when resolving the issue.
-Learning how to use rebase to change my previous commit messages.
+I'm most proud of documenting my planning and reasoning clearly across JOURNAL.md and PLAN.md — especially cross-referencing every claim in ARCHITECTURE.md back to specific line numbers in hybrid.py, which made the doc verifiable rather than just asserted. I'm also proud of learning to use `git rebase` to clean up my commit history, since that's a skill I hadn't needed before this module and now feel comfortable using.
