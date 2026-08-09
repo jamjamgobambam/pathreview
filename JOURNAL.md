@@ -14,3 +14,6 @@ PathReview's agent system can analyze repository information, but it does not cu
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+**Selection reasoning:**
+I chose this Tier 2 issue because, although the overall PathReview codebase was initially unfamiliar to me, the scope of this issue is bounded enough for me to reason about after tracing the existing agent tool structure. I reviewed `BaseTool`, existing tools such as `ReadmeScorer`, the agent orchestrator, and adjacent unit tests, and I was able to identify a clear implementation path: add one new dependency-audit tool, integrate it with the orchestrator, and test its behavior. I chose it over a simpler Tier 1 issue because it gives me experience working across multiple parts of the agent system while still having a defined feature boundary.
