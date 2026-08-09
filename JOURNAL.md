@@ -154,3 +154,78 @@ case the old code silently dropped. 9 tests, all passing.
 
 **Draft PR feedback received from:** none
 
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review has come in yet. PR [#593](https://github.com/ascherj/pathreview/pull/593)
+is open and marked ready for review, but its CI checks are in
+`action_required` state — GitHub holds workflow runs on pull requests from a
+first-time contributor's fork until an upstream maintainer approves them, so the
+checks have not executed and no maintainer or peer has reviewed the change.
+
+**How you responded:**
+Nothing to change yet. I re-verified the diff is clean (three files, ruff- and
+black-clean, nine passing tests) so the PR is ready the moment a reviewer or CI
+run picks it up. If feedback arrives I'll address it on the branch and the PR
+will update automatically.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment setup was harder than the actual bug fix. `make setup` quietly
+built the virtualenv with Python 3.8 (because `python` wasn't on PATH and it
+fell back to `python3`), which pulled an old setuptools that rejected the
+`license = "MIT"` field in `pyproject.toml` — an error whose message pointed
+nowhere near the real cause. On top of that the pinned ChromaDB image
+crash-looped on NumPy 2.0. Neither had anything to do with issue #28, and
+untangling "is this me or the repo?" for each failure took real discipline.
+
+**What did you learn about working in a large codebase?**
+That reading comes before writing, and assumptions are expensive. The clearest
+example: there are two different `FeedbackSection` types — a `@dataclass` in
+`rag/generator/output_parser.py` that the generator uses, and a separate pydantic
+model in `api/schemas/review.py` that the service layer uses. If I'd assumed they
+were the same, adding a field would have looked far riskier than it was. I also
+learned that in someone else's production code you inherit their debt: the repo
+had 53 failing unit tests and 182 lint errors before I touched anything, so
+"passing" had to mean "I introduced no *new* failures," which I could only prove
+by recording a baseline first and diffing against it. In my own projects I'd
+just fix everything; here, staying in scope was the professional move.
+
+**How did AI tools help — and where did they fall short?**
+AI was fastest at navigation and boilerplate: locating the buggy
+`_consolidate_feedback`, tracing who constructed `FeedbackSection`, drafting the
+`difflib`-based similarity approach, and generating the edge-case tests and the
+PR body. Where it fell short was judgment and external reality. It couldn't tell
+me the right similarity threshold — I had to reason about false merges and guard
+it with a "distinct feedback preserved" test. It couldn't verify "pre-existing
+vs. new failure" for me; that only came from actually running the baseline. And
+it couldn't cross the real-world gates at all: creating the PR, approving fork
+CI, and getting a human review are things no tool could do on my behalf.
+
+**What would you do differently if you started over?**
+I'd weigh *runnability* when selecting the issue. Issue #28 lives in the RAG
+generator, but `_run_rag_retrieval_generation` in the service layer is still a
+placeholder, so there's no live end-to-end path — I could prove the fix with
+unit tests but never demo it in the running app. Next time I'd favor an issue I
+can trigger through the actual UI. I'd also open the draft PR earlier in the
+cycle to leave room for peer review, and capture the CI baseline in Week 8 during
+reproduction rather than at implementation time.
+
+**What are you most proud of from this module?**
+The rigor around "do no harm," not the fix itself. I committed the reproduction
+first as a strict-`xfail` test so it documented the bug and would automatically
+flip to a failure-signal once fixed, recorded a full baseline of the repo's
+pre-existing failures, and proved with a sorted diff of failing test IDs that my
+change added zero new failures while actually reducing lint errors. Turning a
+messy, half-broken codebase into a confident, well-scoped, and *verifiable*
+contribution is the part I'll carry forward.
+
