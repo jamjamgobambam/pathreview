@@ -98,8 +98,8 @@ class ResumeParser(BaseParser):
 
     def _strip_markdown(self, content: str) -> str:
         """Remove markdown syntax from content."""
-        # Remove markdown headers
-        text = re.sub(r"^#+\s+", "", content, flags=re.MULTILINE)
+        # Remove markdown headers (now tolerates leading spaces/tabs)
+        text = re.sub(r"^[ \t]*#+\s+", "", content, flags=re.MULTILINE)
 
         # Remove markdown links [text](url)
         text = re.sub(r"\[([^\]]+)\]\(([^\)]+)\)", r"\1", text)
@@ -130,12 +130,12 @@ class ResumeParser(BaseParser):
         text_lower = text.lower()
 
         for section in SECTION_HEADERS:
-            # Look for section header patterns
+            # Look for section header patterns (now tolerating leading spaces/tabs)
             patterns = [
-                rf"^{re.escape(section)}\s*$",
-                rf"^{re.escape(section)}\s*[:|-]",
-                rf"\n{re.escape(section)}\s*$",
-                rf"\n{re.escape(section)}\s*[:|-]",
+                rf"^[ \t]*{re.escape(section)}\s*$",
+                rf"^[ \t]*{re.escape(section)}\s*[:|-]",
+                rf"\n[ \t]*{re.escape(section)}\s*$",
+                rf"\n[ \t]*{re.escape(section)}\s*[:|-]",
             ]
 
             for pattern in patterns:
