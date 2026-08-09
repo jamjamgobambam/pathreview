@@ -44,7 +44,7 @@ None so far.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [paste your PR link here once opened]
+**PR link:** https://github.com/ascherj/pathreview/pull/1013
 
 **Branch:** feat/69-feedback-tone-check
 
