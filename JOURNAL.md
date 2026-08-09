@@ -1,3 +1,64 @@
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No comments from reviewers or maintainers arrived on
+[PR #789](https://github.com/ascherj/pathreview/pull/789) by the end of the week.
+(Per the Summer 2026 note, reviewer feedback isn't a formal feature this term, so
+this is expected rather than a sign the PR was overlooked.)
+
+**How you responded:**
+Nothing to respond to. The PR remains open and green on my changed lines; I'll
+watch for comments but there's nothing to act on right now.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part wasn't the fix — it was proving the fix was safe. Enlarging the
+fixture took minutes; convincing myself I hadn't broken a sibling assertion took
+much longer. The repo-wide `make check` and `make test-unit` already failed on
+unrelated files, plus a local `black` version mismatch (project pins 24.1.0, my
+venv had 26.5.1), so "the suite is red" was the normal state. I had to learn to
+scope verification down to just my changed lines and the one module instead of
+trusting a global green checkmark.
+
+**What did you learn about working in a large codebase?**
+That the failing test isn't always where the bug is. Here the scorer was correct
+and the *test data* was wrong — the opposite of my instinct to go patch the
+implementation. In my own projects the code and the tests are both mine, so a red
+test usually means fix the code. In someone else's production code, the right
+first move is to figure out which side is actually wrong before touching
+anything, and to change as little as possible (I left `readme_scorer.py`
+completely untouched).
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for orientation and consolidation: tracing the word-count
+thresholds (`< 100 minimal`, `100–499 adequate`, `≥ 500 comprehensive`) to
+realize I needed ≥ 500 words, not just > 100, and for structuring PLAN.md and
+these journal entries. Where it fell short: judgment calls that needed the actual
+repo state — the pre-existing suite failures, the black version pin, and deciding
+"test data is wrong, not the scorer." Those I had to verify myself by running
+things and reading the code.
+
+**What would you do differently if you started over?**
+I'd nail down the *real* threshold (500, not 100) during issue selection instead
+of during planning — I initially read the assertion as "just clear 100." I'd also
+establish the "known-failing baseline" of the suite on day one, so I never had to
+wonder mid-task whether a red test was mine.
+
+**What are you most proud of from this module?**
+The restraint. It would have been easy to "fix" the scorer or loosen the
+assertions to make the test pass. Instead I correctly diagnosed it as a test-data
+defect and made the smallest change that made the test honest — the fixture now
+genuinely earns the `comprehensive` label the assertion always claimed.
+
+---
+
 ## Week 9 — Solution building & PR submission
 
 ### Check-in 1 (mid-week)
