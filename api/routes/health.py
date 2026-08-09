@@ -41,12 +41,11 @@ async def health_check(db=Depends(get_db)):
         import redis
         from core.config import settings
 
-        r = redis.Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            db=0,
-            decode_responses=True,
-        )
+        # Build the client from the configured redis_url (the single source of
+        # truth on Settings). Previously this read settings.redis_host /
+        # settings.redis_port, which do not exist on Settings and raised
+        # AttributeError, so the probe always reported Redis unhealthy (#155).
+        r = redis.Redis.from_url(settings.redis_url, decode_responses=True)
         r.ping()
         health_status["dependencies"]["redis"] = "healthy"
         log.debug("redis_health_check_passed")
