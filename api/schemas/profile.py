@@ -1,25 +1,25 @@
-from pydantic import BaseModel, Field
 from datetime import datetime
 from uuid import UUID
-from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class ProfileCreate(BaseModel):
-    github_username: Optional[str] = Field(default=None, max_length=255)
-    portfolio_url: Optional[str] = Field(default=None, max_length=500)
+    github_username: str | None = Field(default=None, max_length=255)
+    portfolio_url: str | None = Field(default=None, max_length=500)
 
 
 class ProfileUpdate(BaseModel):
-    github_username: Optional[str] = Field(default=None, max_length=255)
-    portfolio_url: Optional[str] = Field(default=None, max_length=500)
+    github_username: str | None = Field(default=None, max_length=255)
+    portfolio_url: str | None = Field(default=None, max_length=500)
 
 
 class ProfileResponse(BaseModel):
     id: UUID
     user_id: UUID
-    github_username: Optional[str]
-    portfolio_url: Optional[str]
+    github_username: str | None
+    portfolio_url: str | None
     created_at: datetime
-    resume_filename: Optional[str]
+    resume_filename: str | None
 
     model_config = {"from_attributes": True}

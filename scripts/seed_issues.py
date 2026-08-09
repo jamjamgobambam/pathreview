@@ -19,20 +19,26 @@ def create_issue(repo: str, issue: dict) -> None:
     labels = ",".join(issue["labels"])
     files_section = "\n".join(f"- `{f}`" for f in issue["files"])
 
-    body = f"""{issue['body']}
+    body = f"""{issue["body"]}
 
 **Relevant files:**
 {files_section}
 
-**Estimated effort:** {issue['effort']}
+**Estimated effort:** {issue["effort"]}
 """
 
     cmd = [
-        "gh", "issue", "create",
-        "--repo", repo,
-        "--title", issue["title"],
-        "--body", body,
-        "--label", labels,
+        "gh",
+        "issue",
+        "create",
+        "--repo",
+        repo,
+        "--title",
+        issue["title"],
+        "--body",
+        body,
+        "--label",
+        labels,
     ]
 
     result = subprocess.run(cmd, capture_output=True, text=True)

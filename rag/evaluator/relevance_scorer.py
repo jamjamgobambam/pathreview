@@ -44,8 +44,12 @@ class RelevanceScorer:
         # Return average relevance
         avg_relevance = sum(relevances) / len(relevances)
 
-        logger.info("relevance_scored", query_len=len(query_tokens),
-                   chunks_count=len(chunks), avg_score=avg_relevance)
+        logger.info(
+            "relevance_scored",
+            query_len=len(query_tokens),
+            chunks_count=len(chunks),
+            avg_score=avg_relevance,
+        )
 
         return min(avg_relevance, 1.0)
 

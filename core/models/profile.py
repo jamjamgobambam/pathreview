@@ -16,6 +16,8 @@ if TYPE_CHECKING:
     from core.models.user import User
 
 
+# here cascade is set to all, delete-orphan for ingested sources and
+# reviews, so they should be deleted if their associated profile is deleted
 class Profile(Base):
     """Profile model for storing user portfolio information."""
 

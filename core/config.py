@@ -8,7 +8,9 @@ class Settings(BaseSettings):
     """Application settings with support for .env file and environment variables."""
 
     # Database
-    database_url: str = Field(default="postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_dev")
+    database_url: str = Field(
+        default="postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_dev"
+    )
     redis_url: str = Field(default="redis://localhost:6379/0")
     vector_db_url: str = Field(default="http://localhost:8001")
 
