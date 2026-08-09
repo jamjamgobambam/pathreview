@@ -61,3 +61,34 @@ Updated `tests/unit/test_readme_scorer.py` (`TestReadmeScorer.test_readme_with_a
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating the pre-commit tooling rules and strict static analysis during git commits was significantly trickier than expected. What initially seemed like a simple task of adding text to a string fixture in `tests/unit/test_readme_scorer.py` triggered strict `ruff` line-length limits (100 character maximum) and `mypy` type annotation requirements (`[no-untyped-def]`). Managing pre-commit hook stashes while reformatting string lines and adding explicit function return type annotations across the entire test class required far more precision than just writing test text.
+
+**What did you learn about working in a large codebase?**
+I learned that contributing to an existing codebase requires strictly respecting hidden contracts and category thresholds defined elsewhere in the system. When modifying the test fixture for `TestReadmeScorer.test_readme_with_all_quality_signals`, I couldn't just insert arbitrary words; I had to ensure the text satisfied the `comprehensive` threshold (>500 words) defined in `agent/tools/readme_scorer.py` while preserving specific regex quality signals like `#` headers, code snippets (`pip install`), badge URLs (`![Status]`), and demo links. Working in production code means changing test inputs without breaking downstream system assumptions.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were incredibly effective for rapidly generating realistic Markdown project content (architecture overviews, tech stacks, setup instructions) and quickly adding missing `mypy` type annotations. However, AI fell short when calibrating text length against domain logic assertions. The initial AI-generated fixture contained ~140 words—which passed the basic `word_count > 100` assertion but failed `assert word_count_category == "comprehensive"`. I had to manually trace the failure through `readme_scorer.py` logic to determine that the `comprehensive` tier required >500 words, and then prompt the AI with those specific domain boundaries.
+
+**What would you do differently if you started over?**
+If I started over, I would inspect the underlying tool implementation (`agent/tools/readme_scorer.py`) much more thoroughly during the Week 8 planning phase before writing my `PLAN.md` sub-tasks. Rather than assuming 120 words would satisfy all quality checks, identifying the exact word count category cutoffs (`minimal` <100, `adequate` 100–500, `comprehensive` >500) upfront would have saved an extra testing iteration. Additionally, I would add separate, dedicated test cases to verify boundary conditions at exactly 101 and 501 words.
+
+**What are you most proud of from this module?**
+I am most proud of successfully navigating the complete open-source lifecycle—from diagnosing issue #156 in an unfamiliar repository to opening a clean, fully-typed Pull Request (#780) that passes all unit tests and linting checks. Seeing all 23 unit tests in `test_readme_scorer.py` pass cleanly alongside passing `ruff`, `black`, and `mypy` hooks gave me genuine confidence in my ability to contribute production-quality code to real-world software projects.
