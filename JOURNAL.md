@@ -71,3 +71,34 @@ Re-ingesting an edited README now replaces the previous version's chunks instead
 (In this codebase "passes" = no new failures: unit 54→53 with only the #27 repro fixed; ruff 182→182, mypy 5→5, black 52→52 — zero new issues.)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+Reviewer feedback is not a feature in Summer 2026, and no comments came in on PR #510 ([ascherj/pathreview#510](https://github.com/ascherj/pathreview/pull/510)) by the end of the week.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Finding the *real* root cause. My first instinct from the plan — "call `delete_by_source_id` before adding the new chunks" — turned out to be wrong: the `source_id` embedded the content hash, so it changed on every edit and a delete keyed on it would have matched nothing. I only saw this by tracing the full ingest flow line by line. Two more surprises: the repo had two disconnected "worlds" (`IngestionPipeline` writing to a raw ChromaDB collection vs. an unused `VectorStore` wrapper), and the running app didn't even wire ingestion into the vector store, so I couldn't reproduce the bug in the app — I had to reproduce it at the unit level instead. Locating where the bug actually lived, versus where the issue text pointed, was the hard part.
+
+**What did you learn about working in a large codebase?**
+Navigating this RAG project end-to-end (ingestion → chunking → embedding → vector-store retrieval, plus the agent/tool-call and safety/guardrail layers) taught me how a production RAG system actually fits together — very different from a toy project. On contributing to someone else's code specifically: scope discipline matters more than cleverness. I deliberately fixed only the README path and left the resume/repo paths alone, matched the existing test style and formatting conventions instead of imposing my own, and — crucially — learned to work in a codebase that's already failing its own checks. Rather than "fix everything," I captured a baseline (54 failing unit tests, 182 ruff, 5 mypy) before touching anything and proved my change added zero new failures. Minimal, reviewable diffs and reading before writing were the recurring themes.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest at fast codebase navigation — tracing how metadata flows through the pipeline, mapping which files mattered, and drafting the reproduction test, regression cases, and PR description. Where it fell short: its first reproduction test had a real bug (a ChromaDB in-memory client name collision) that only surfaced when I ran it and watched it fail — a reminder to verify AI output by executing it, not trusting it. More importantly, the judgment calls were mine: choosing SCD Type 1 (overwrite) over Type 2 (keep history), accepting the delete-before-add atomicity tradeoff, and keeping scope to README-only. AI also can't verify behavior in the real running app, and would have happily committed straight through the pre-existing failures if I hadn't decided to baseline first. I chose to write the test myself so I actually understood the reproduction instead of pasting generated code.
+
+**What would you do differently if you started over?**
+I'd verify the runtime wiring earlier — I initially assumed `IngestionPipeline` was live in the app and lost a little time before discovering it wasn't. I'd also lock down the open design decisions (where the content hash lives, how to handle atomicity) before writing code instead of resolving them mid-implementation. Issue selection I'd keep the same — picking a stale-data problem that mirrors the SCD Type 2 work I already knew from analytics engineering was a good fit.
+
+**What are you most proud of?**
+The rigor of the process, not just the fix: a failing test that proved the bug was real, a documented before/after baseline showing zero new failures, and an honest PR description that left the "tests pass" boxes unchecked and openly documented both the pre-existing failures and the atomicity limitation. It would have been easier to overclaim — I'm proud that the contribution is trustworthy.
