@@ -96,3 +96,35 @@ Changed the lookup to `chunk.get("text") or ""`, which normalizes both cases to 
 baseline numbers are in the PR description.)*
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The bug itself was a one-line fix, but understanding *why* the existing code didn't already handle it took real digging: `chunk.get("text", "")` only substitutes its default when the `"text"` key is *missing*, not when it's present with value `None` — a subtlety that isn't obvious from reading the call site. The harder surprise came later, while adding a test for the mixed-None-and-valid-chunks edge case from my own PLAN.md: staging `tests/unit/test_faithfulness_checker.py` triggered 25 mypy errors from test methods I never touched. It turned out the Makefile's `typecheck` target excludes `tests/`, but the pre-commit mypy hook (driven by `disallow_untyped_defs = true` in `pyproject.toml`) checks every staged file regardless. I had to `git stash` my change, rerun `mypy`/`ruff` against the unmodified file, and compare counts before I could be confident those 25 errors were pre-existing and not something I'd caused.
+
+**What did you learn about working in a large codebase?**
+To identify what are the files related to the bug needed to be solved is really important. Also we need to make sure the code change won't affect other parts.
+
+**How did AI tools help — and where did they fall short?**
+Claude Code was most useful for explain what each file and method doing which makes it easier to identify the problems. It fell short on drafting the documentation. I rewrote several AI-drafted sections myself because the first drafts were longer or more hedged than I wanted, and I wanted the phrasing to be mine.
+
+**What would you do differently if you started over?**
+I'd write `test_mixed_none_and_valid_text_chunks` back in Week 8 when I was already deep in `faithfulness_checker.py` for reproduction, instead of adding it in Week 9 after the fix was already committed — the edge case was sitting in my own PLAN.md the whole time and I just didn't act on it until later. I'd also budget real time to request peer review mid-week instead of skipping it, since that's the one part of the intended process I didn't get to exercise this module.
+
+**What are you most proud of from this module?**
+Catching and clearly documenting the Makefile/pyproject.toml mypy scope mismatch. It had nothing to do with the assigned bug, would have been easy to paper over with a silent `--no-verify`, and nobody had apparently hit it before (git history showed the test file hadn't been touched since the original scaffold commit). Instead I traced it to its actual root cause and left a clear explanation in both the commit message and this journal — that felt like the real skill this module was testing, more than the one-line fix itself.
