@@ -1,5 +1,10 @@
 """Tests for readme_scorer.py"""
 
+# Reproduced 2026-07-28 (issue #156): fixture README has all quality signals
+# (headers, code blocks, badges, links) but only 51 words of prose, so
+# word_count=51 and category="minimal"
+# failing the test's own assertions of word_count > 100 and category == "comprehensive". See issue #156.
+
 import pytest
 
 from agent.tools.readme_scorer import ReadmeScorer
@@ -18,34 +23,87 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+        Project Name is a comprehensive developer tool designed to streamline the way teams
+        build, test, and ship software. It began as an internal utility for automating
+        repetitive review tasks and has since grown into a full platform that developers rely
+        on every day. The project focuses on three core principles: reliability, speed, and
+        clarity. Reliability means the tool behaves predictably across environments, from a
+        developer's laptop to a large continuous integration cluster. Speed means the tool adds
+        as little overhead as possible to an already busy workflow, so contributors can get
+        fast feedback on their changes. Clarity means the output the tool produces is easy to
+        read, easy to act on, and free of unnecessary jargon.
+
+        Under the hood, the project is organized around a small set of composable modules that
+        each handle one part of the pipeline: parsing input, running analysis, scoring the
+        result, and formatting a human readable report. Because each module has a narrow
+        responsibility, it is straightforward to test in isolation and straightforward to
+        extend when new requirements come up. Contributors are encouraged to read through the
+        module boundaries before making changes so that new functionality lands in the right
+        place rather than being bolted onto whichever file happens to be open.
 
         ## Installation
+        Getting started only takes a couple of minutes. First, make sure you have a recent
+        version of Python installed, since the project relies on modern language features for
+        performance and readability. Then install the package and its dependencies with a
+        single command:
+
         ```bash
         pip install package
         ```
 
+        If you plan to contribute to the project rather than just use it, you should also
+        install the development dependencies, which include the test runner, the linter, and
+        the type checker. Those extra tools make sure that any change you submit matches the
+        existing conventions before it is ever reviewed by a person.
+
+        ```bash
+        pip install package[dev]
+        ```
+
         ## Usage
+        Once installed, using the tool is meant to feel natural. The most common workflow is to
+        point it at a directory or a repository and let it analyze the contents, producing a
+        report that summarizes what it found. A typical invocation looks like this:
+
         ```python
         import package
         package.run()
         ```
 
+        Under the hood, `run()` walks through the configured checks, collects the results, and
+        returns a structured object that downstream code can inspect or render. Because the
+        return value is structured rather than just printed text, it is easy to plug the tool
+        into a larger automation pipeline, a dashboard, or a continuous integration job without
+        having to scrape console output.
+
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+        - Feature 1: Automated analysis of project structure and documentation quality, giving
+          contributors immediate feedback on what is missing before a reviewer ever looks at it
+        - Feature 2: Configurable scoring rules so teams can adjust thresholds to match their
+          own standards rather than being locked into a single opinionated default
+        - Feature 3: Clear, actionable reports that explain not just what failed but why it
+          failed and what a reasonable fix would look like, so the feedback loop stays short
 
         ## Tech Stack
         - Python 3.9
         - FastAPI
         - PostgreSQL
 
+        The backend is built on FastAPI because it offers strong typing support and automatic
+        documentation generation, both of which reduce the amount of boilerplate the team has
+        to maintain by hand. PostgreSQL was chosen for storage because the project's data model
+        benefits from relational integrity guarantees, and the team was already comfortable
+        operating it in production.
+
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
 
         ## Live Demo
         [Try it here](https://demo.example.com)
+
+        Feel free to explore the live demo to see the tool in action before installing it
+        locally. The demo environment mirrors production closely enough that whatever you see
+        there is representative of what you would get by running the tool yourself.
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -157,9 +215,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +277,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +293,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
