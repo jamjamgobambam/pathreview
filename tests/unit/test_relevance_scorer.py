@@ -4,23 +4,24 @@ import pytest
 
 from rag.evaluator.relevance_scorer import RelevanceScorer
 
+# Define a Chunk type for test annotations
+Chunk = dict[str, str]
+
 
 @pytest.mark.unit
 class TestRelevanceScorer:
     """Test suite for RelevanceScorer."""
 
     @pytest.fixture
-    def scorer(self):
+    def scorer(self) -> RelevanceScorer:
         """Create a RelevanceScorer instance."""
         return RelevanceScorer()
 
-    def test_query_with_perfect_keyword_match(self, scorer):
+    def test_query_with_perfect_keyword_match(self, scorer: RelevanceScorer) -> None:
         """Test query with perfect keyword match in chunks returns score close to 1.0."""
         query = "Python development framework"
         chunks = [
-            {
-                "text": "Python is a great development language for building frameworks"
-            },
+            {"text": "Python is a great development language for building frameworks"},
         ]
 
         score = scorer.score(query, chunks)
@@ -30,13 +31,11 @@ class TestRelevanceScorer:
         # Should be high score due to keyword overlap
         assert score > 0.5
 
-    def test_query_with_zero_keyword_overlap(self, scorer):
+    def test_query_with_zero_keyword_overlap(self, scorer: RelevanceScorer) -> None:
         """Test query with zero keyword overlap returns score close to 0.0."""
         query = "Rust Kubernetes microservices"
         chunks = [
-            {
-                "text": "Python is dynamically typed and interpreted language"
-            },
+            {"text": "Python is dynamically typed and interpreted language"},
         ]
 
         score = scorer.score(query, chunks)
@@ -44,13 +43,17 @@ class TestRelevanceScorer:
         assert isinstance(score, float)
         assert score < 0.5  # Should be low score
 
-    def test_query_with_partial_overlap(self, scorer):
+    # REPRODUCED (see JOURNAL.md): this test's fixture uses a chunk containing
+    # ALL FOUR query terms from "Python Django web framework", so it's actually
+    # a full-overlap case, not a partial-overlap one. The scorer correctly
+    # returns 1.0 for full keyword coverage, so `assert score < 0.9` fails
+    # against correct scorer behavior. Root cause is in the fixture, not the
+    # scorer. Fix: adjust the chunk so overlap is genuinely partial.
+    def test_query_with_partial_overlap(self, scorer: RelevanceScorer) -> None:
         """Test query with partial overlap returns score between 0 and 1."""
-        query = "Python Django web framework"
-        chunks = [
-            {
-                "text": "Django is a Python web framework for rapid development"
-            },
+        query = "Django REST authentication"
+        chunks: list[Chunk] = [
+            {"text": "Django is a Python web framework for rapid development"},
         ]
 
         score = scorer.score(query, chunks)
@@ -59,27 +62,25 @@ class TestRelevanceScorer:
         assert 0.0 <= score <= 1.0
         assert 0.3 < score < 0.9  # Partial overlap should be in middle range
 
-    def test_empty_chunks_list_returns_zero(self, scorer):
+    def test_empty_chunks_list_returns_zero(self, scorer: RelevanceScorer) -> None:
         """Test empty chunks list returns 0.0."""
         query = "Some query"
-        chunks = []
+        chunks: list[Chunk] = []
 
         score = scorer.score(query, chunks)
 
         assert score == 0.0
 
-    def test_empty_query_returns_zero(self, scorer):
+    def test_empty_query_returns_zero(self, scorer: RelevanceScorer) -> None:
         """Test empty query returns 0.0."""
         query = ""
-        chunks = [
-            {"text": "Some content"}
-        ]
+        chunks = [{"text": "Some content"}]
 
         score = scorer.score(query, chunks)
 
         assert score == 0.0
 
-    def test_multiple_chunks_aggregated(self, scorer):
+    def test_multiple_chunks_aggregated(self, scorer: RelevanceScorer) -> None:
         """Test that score aggregates multiple chunks."""
         query = "Python programming"
         chunks = [
@@ -93,19 +94,17 @@ class TestRelevanceScorer:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
-    def test_case_insensitive_matching(self, scorer):
+    def test_case_insensitive_matching(self, scorer: RelevanceScorer) -> None:
         """Test that keyword matching is case insensitive."""
         query = "PYTHON PROGRAMMING"
-        chunks = [
-            {"text": "python programming is fun"}
-        ]
+        chunks = [{"text": "python programming is fun"}]
 
         score = scorer.score(query, chunks)
 
         # Should match despite different cases
         assert score > 0.5
 
-    def test_tokenization(self, scorer):
+    def test_tokenization(self, scorer: RelevanceScorer) -> None:
         """Test that tokenization works correctly."""
         tokens = scorer._tokenize("Python web development framework")
 
@@ -114,82 +113,67 @@ class TestRelevanceScorer:
         assert all(isinstance(t, str) for t in tokens)
         assert "python" in tokens  # Should be lowercase
 
-    def test_empty_text_in_chunk(self, scorer):
+    def test_empty_text_in_chunk(self, scorer: RelevanceScorer) -> None:
         """Test handling of empty text in chunk."""
         query = "Python"
-        chunks = [
-            {"text": ""},
-            {"text": "Python programming"}
-        ]
+        chunks = [{"text": ""}, {"text": "Python programming"}]
 
         score = scorer.score(query, chunks)
 
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
-    def test_very_long_query(self, scorer):
+    def test_very_long_query(self, scorer: RelevanceScorer) -> None:
         """Test handling of very long query."""
         query = "Python " * 100
-        chunks = [
-            {"text": "Python is a programming language"}
-        ]
+        chunks = [{"text": "Python is a programming language"}]
 
         score = scorer.score(query, chunks)
 
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
-    def test_very_long_chunk(self, scorer):
+    def test_very_long_chunk(self, scorer: RelevanceScorer) -> None:
         """Test handling of very long chunk."""
         query = "Python"
-        chunks = [
-            {"text": "Python " * 1000 + "is a great language"}
-        ]
+        chunks = [{"text": "Python " * 1000 + "is a great language"}]
 
         score = scorer.score(query, chunks)
 
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
-    def test_special_characters_ignored(self, scorer):
+    def test_special_characters_ignored(self, scorer: RelevanceScorer) -> None:
         """Test that special characters are handled."""
         query = "Python c++ golang"
-        chunks = [
-            {"text": "c++ is a systems programming language"}
-        ]
+        chunks = [{"text": "c++ is a systems programming language"}]
 
         score = scorer.score(query, chunks)
 
         # Should handle special characters in tokenization
         assert isinstance(score, float)
 
-    def test_multiple_keyword_matches(self, scorer):
+    def test_multiple_keyword_matches(self, scorer: RelevanceScorer) -> None:
         """Test scoring improves with multiple keyword matches."""
         query = "Python framework development tools"
-        chunks = [
-            {"text": "Python django flask development framework tools"}
-        ]
+        chunks = [{"text": "Python django flask development framework tools"}]
 
         score = scorer.score(query, chunks)
 
         # Multiple matches should yield higher score
         assert score > 0.6
 
-    def test_single_word_chunks(self, scorer):
+    def test_single_word_chunks(self, scorer: RelevanceScorer) -> None:
         """Test handling of single-word chunks."""
         query = "Python development"
-        chunks = [
-            {"text": "Python"},
-            {"text": "development"},
-            {"text": "framework"}
-        ]
+        chunks = [{"text": "Python"}, {"text": "development"}, {"text": "framework"}]
 
         score = scorer.score(query, chunks)
 
         assert isinstance(score, float)
         assert score > 0.0  # Should find matches
 
-    def test_score_ranges_from_zero_to_one(self, scorer):
+    def test_score_ranges_from_zero_to_one(self, scorer: RelevanceScorer) -> None:
         """Test that score is always between 0 and 1."""
         test_cases = [
             ("Python", [{"text": "Java"}]),  # No match
@@ -201,24 +185,20 @@ class TestRelevanceScorer:
             score = scorer.score(query, chunks)
             assert 0.0 <= score <= 1.0
 
-    def test_common_words_not_preventing_scoring(self, scorer):
+    def test_common_words_not_preventing_scoring(self, scorer: RelevanceScorer) -> None:
         """Test that common words don't prevent scoring."""
         query = "the best Python framework"
-        chunks = [
-            {"text": "Django is the best Python web framework"}
-        ]
+        chunks = [{"text": "Django is the best Python web framework"}]
 
         score = scorer.score(query, chunks)
 
         # Despite common words, should still score relevantly
         assert score > 0.3
 
-    def test_chunk_without_text_key(self, scorer):
+    def test_chunk_without_text_key(self, scorer: RelevanceScorer) -> None:
         """Test handling of chunk missing 'text' key."""
         query = "Python"
-        chunks = [
-            {"content": "Python programming"}  # Wrong key
-        ]
+        chunks = [{"content": "Python programming"}]  # Wrong key
 
         score = scorer.score(query, chunks)
 
@@ -226,25 +206,22 @@ class TestRelevanceScorer:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
-    def test_whitespace_only_in_chunks(self, scorer):
+    def test_whitespace_only_in_chunks(self, scorer: RelevanceScorer) -> None:
         """Test chunks with only whitespace."""
         query = "Python"
-        chunks = [
-            {"text": "   "},
-            {"text": "\n\t"}
-        ]
+        chunks = [{"text": "   "}, {"text": "\n\t"}]
 
         score = scorer.score(query, chunks)
 
         assert score == 0.0
 
-    def test_average_relevance_calculation(self, scorer):
+    def test_average_relevance_calculation(self, scorer: RelevanceScorer) -> None:
         """Test that multiple chunks' scores are averaged."""
         query = "Python"
         chunks = [
             {"text": "Python is great"},
             {"text": "Python programming"},
-            {"text": "Java is different"}
+            {"text": "Java is different"},
         ]
 
         score = scorer.score(query, chunks)
