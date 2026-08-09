@@ -55,3 +55,34 @@ Only `tests/unit/test_review_service.py` — no new tests needed, since the exis
 (Both fail at the full-repo level on pre-existing, unrelated issues — 174 ruff errors, 103 mypy errors, and 41 failing unit tests elsewhere in the repo, none introduced by this PR. Scoped to the files this PR touches, lint/typecheck are clean and `test_review_service.py` is 18/19.)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review came in for the PR so far.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The firat part was understanding the unit tests framework in Python as someone who has up until now mostly worked with Ts/Js codebases. Afterwards was understanding the different Mock classes and why choosing the wrong one caused so many tests to fail.
+
+**What did you learn about working in a large codebase?**
+Working in a large codebase means you're held to a pre-existing standard when contributing to it; styling conventions, test coverage expectations, and infrastructure constraints (like pre-commit hooks) shape your work in ways that don't exist in personal projects.
+
+**How did AI tools help — and where did they fall short?**
+AI Assistance was most helpful when understanding new frameworks or understanding how some services functionned, but I oftentimes found myself searching online for more details about some specific classes.
+
+**What would you do differently if you started over?**
+I think if I had more time this summer, I would have liked to choose a Tier 2 issue that would challenge me a bit further. I believe it would have been more beneficial for me if I had the chance to explore the codebase with more details, especially using AI.
+
+**What are you most proud of from this module?**
+I feel like this module gave me the confidence and knowledge to kick-off a first real open-source contribution, and I'm excited to see myself grow more and more adaptable as I navigate new codebases and hope to have a PR merged into a real project.
