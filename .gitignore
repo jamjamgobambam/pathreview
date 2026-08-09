@@ -44,3 +44,4 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+repro_issue28.py
