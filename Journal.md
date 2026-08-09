@@ -97,3 +97,35 @@ test_pii_scrubber.py. Added tests to check that phone numbers of the type (555) 
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** [none]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review came in because I had to get an extension. 
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+I think the pre-commit hooks kind of annoyed me. Also, just understanding regex is pretty tough. And I guess recently having the mental bandwidth for this stuff on top of everything else was difficult. 
+
+**What did you learn about working in a large codebase?**
+It's messy and it can be hard to know what is going on. It takes research and time to understand. 
+
+**How did AI tools help — and where did they fall short?**
+I had to go read about regex to understand it. And I guess they didn't check what the linting would, so I fixed that. 
+
+**What would you do differently if you started over?**
+Spend more time on the implementation. I rushed a bit just because I had other things to tend to. 
+
+**What are you most proud of from this module?**
+I am mainly proud of fixing the git mistakes that I made. I know it is useful to know these tidbits of git. 
