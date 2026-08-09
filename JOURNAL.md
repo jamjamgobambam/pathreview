@@ -66,3 +66,42 @@ frontend/src/utils/__tests__/diffFormatter.test.ts — covers section diffing an
 **Self-review confirmation:** [✓] make check passes  [✓] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [✓] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+
+No reviewer feedback was received/given.
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+Section matching uses exact section_name string match, so if wording drifts between review runs, sections show as fully added/removed instead of diffed — a known limitation, not fuzzy matching.
+
+**What did you learn about working in a large codebase?**
+
+I had to actually trace how reviews get stored and associated with a user before touching anything, instead of just building the UI first. In my own projects I'd usually wing it, but here breaking review history for existing users would've been bad. Also learned to lean on existing patterns (like how ReviewHistoryPage already fetched data) instead of reinventing my own fetch logic.
+
+**How did AI tools help — and where did they fall short?**
+
+AI was great for scaffolding — generating the ComparisonView.tsx skeleton, boilerplate for diffFormatter.ts, and test cases for straightforward scenarios. Fell short on the score-delta edge cases (mismatched sections, identical reviews) — those needed me to actually reason through the data shape myself and adjust the AI's first pass.
+
+**What would you do differently if you started over?**
+
+I'd plan for section-name drift up front instead of assuming exact string matches would hold. Right now diffSections keys sections by exact section_name, so if the agent phrases a section title even slightly differently between two review runs, it shows up as one section removed and a new one added instead of an actual diff. I'd rather have designed some fuzzy/normalized matching (lowercase, trim, maybe similarity threshold) from the start instead of realizing after the fact that exact-match was too brittle.
+
+**What are you most proud of from this module?**
+
+It was satisfying to see the whole thing come together end to end — from picking checkboxes on ReviewHistoryPage, through the diffing logic in diffFormatter.ts, all the way to a rendered comparison on ComparisonView.tsx. It's a small feature, but tracing it through every layer (data fetch, diff computation, UI) and having it actually work with real seeded review data felt like a solid full-stack win, especially since most of my day job is platform-side infra, not frontend feature work.
