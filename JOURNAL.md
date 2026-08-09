@@ -56,3 +56,33 @@ Added a `contribution_streak` field to `GitHubTool` that fetches commit history 
 Updated `tests/unit/test_github_tool.py` with 8 tests covering: `contribution_streak` present in output, streak calculation for consecutive/non-consecutive/single-day/empty inputs, same-day deduplication, empty commit history returning 0, and API error fallback returning 0 while keeping other metadata.
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review has come in yet.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part of the whole process to me was understanding the codebase. The implementation and tests were not as hard as once you understand the entire system, you can effectively prompt any AI for implementation. However, the most important part, and also hardest, was fully understanding how each part of the system worked in terms of structure and how the tests were run so I could write my own.
+
+**What did you learn about working in a large codebase?**
+One thing I learned about working in a large codebase was the conventions used. There were strict rules about spacing and types for each of the files which needed to be followed, and I always ran into problems with the linter due to my spacing habits. Even the commits needed a structured message, which I thought was interesting as in my own projects I didn't really follow a convention.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for helping with implementation once I figured out exactly how the system worked. However, it fell short when trying to understand the codebase as it is, since there are so many files and different parts of issues that the context window would fill up quickly. I had to run through the different systems myself and understand my issue in its entirety before relying too much on AI.
+
+**What would you do differently if you started over?**
+If I had to start over, I would keep most things the same except to read over the contribution rules more carefully, as well as following the conventions better. Most times I ran into issues, it was due to having small spacing errors which were caught before being pushed and not including types or other return values in the documentation of a function. Overall, I would try to fully understand these conventions before starting if I had to start over.
+
+**What are you most proud of from this module?**
+One thing I'm most proud of throughout this module was my ability to sort out issues as they came. For example, if I ran into a linter issue, I would be able to solve it on my own after getting used to the conventions and not need to heavily rely on AI tools. The same went for understanding how the different parts of the codebase worked for my issue specifically, as I got more practice with reading tests or the files I didn't need as heavy reliance on AI.
