@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -105,7 +105,7 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -116,7 +116,7 @@ class SkillExtractor:
         Returns:
             List of detected skills with confidence scores
         """
-        detected_skills = {}
+        detected_skills: dict[str, SkillDetection] = {}
 
         # Detect languages first
         self._detect_languages(text, filename, detected_skills)
@@ -143,7 +143,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -176,14 +176,36 @@ class SkillExtractor:
             js_evidence.append("JavaScript file extension (.js)")
         if ".ts" in str(filename or "").lower():
             js_evidence.append("TypeScript file extension (.ts)")
-        if re.search(r"\b(import|require)\s+", text):
+        if re.search(r"\bimport\s+|\brequire\s*\(", text):
             js_evidence.append("CommonJS or ES6 imports")
+        if re.search(r"\b[\w.-]+\.js\b", text_lower):
+            js_evidence.append("JavaScript filename in text (.js)")
+        if re.search(r"\b(const|let)\b", text):
+            js_evidence.append("JavaScript variable declarations")
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
+        typescript_filename_in_text = bool(re.search(r"\b[\w.-]+\.tsx?\b", text_lower))
+        if typescript_filename_in_text:
+            js_evidence.append("TypeScript filename in text (.ts or .tsx)")
+        typescript_literal_in_text = "typescript" in text_lower
+        if typescript_literal_in_text:
+            js_evidence.append("TypeScript mentioned in text")
+        typescript_syntax_in_text = bool(
+            re.search(r"\b(interface|enum)\s+\w+|\btype\s+\w+\s*=", text_lower)
+        )
+        if typescript_syntax_in_text:
+            js_evidence.append("TypeScript declaration syntax")
 
         if js_evidence:
             confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
+            lang = (
+                "TypeScript"
+                if ".ts" in str(filename or "").lower()
+                or typescript_filename_in_text
+                or typescript_literal_in_text
+                or typescript_syntax_in_text
+                else "JavaScript"
+            )
             skills_dict[lang] = SkillDetection(
                 name=lang,
                 category="Language",

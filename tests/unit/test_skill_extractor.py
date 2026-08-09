@@ -2,7 +2,7 @@
 
 import pytest
 
-from ingestion.parsers.skill_extractor import SkillExtractor, SkillDetection
+from ingestion.parsers.skill_extractor import SkillDetection, SkillExtractor
 
 
 @pytest.mark.unit
@@ -60,6 +60,16 @@ class TestSkillExtractor:
         skill_names = [s.name for s in result]
         # Should detect TypeScript
         assert any("typescript" in s.lower() for s in skill_names)
+
+    def test_typescript_detection_from_language_name_in_text(self, extractor):
+        """Test TypeScript detection from the language name in text."""
+        text = """
+        Built the application using TypeScript.
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert "TypeScript" in skill_names
 
     def test_jupyter_ipynb_detection(self, extractor):
         """Test Python/Jupyter detection from .ipynb reference."""
@@ -135,7 +145,7 @@ class TestSkillExtractor:
         """
         result = extractor.extract_skills(text)
 
-        skill_names = [s.name for s in skill_names]
+        skill_names = [s.name for s in result]
         # Should detect PostgreSQL
         assert any("postgres" in s.lower() or "sql" in s.lower() for s in skill_names)
 
@@ -181,6 +191,36 @@ class TestSkillExtractor:
 
         skill_names = [s.name for s in result]
         assert any("javascript" in s.lower() or "js" in s.lower() for s in skill_names)
+
+    def test_javascript_detection_from_filename_in_text(self, extractor):
+        """Test JavaScript detection of .js filename in text."""
+        text = """
+        See implementation in index.js.
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert "JavaScript" in skill_names
+
+    def test_typescript_detection_from_ts_filename_in_text(self, extractor):
+        """Test TypeScript detection of .ts filename in text."""
+        text = """
+        Defined shared types in types.ts.
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert "TypeScript" in skill_names
+
+    def test_typescript_detection_from_tsx_filename_in_text(self, extractor):
+        """Test TypeScript detection from a .tsx filename in text."""
+        text = """
+        Built the main interface in app.tsx.
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert "TypeScript" in skill_names
 
     def test_docker_compose_detection(self, extractor):
         """Test Docker and Docker Compose detection."""
@@ -232,10 +272,7 @@ class TestSkillExtractor:
     def test_skill_detection_dataclass(self):
         """Test SkillDetection dataclass structure."""
         skill = SkillDetection(
-            name="Python",
-            category="Language",
-            confidence=0.95,
-            evidence=["import statement"]
+            name="Python", category="Language", confidence=0.95, evidence=["import statement"]
         )
 
         assert skill.name == "Python"
