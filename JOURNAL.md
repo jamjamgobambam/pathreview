@@ -67,3 +67,35 @@ Updated `tests/unit/test_tech_detector.py` with one focused reproduction test an
 * `make test-unit` improved from 53 failed and 375 passed to 51 failed and 383 passed. The two issue #150 failures now pass; the remaining failures are pre-existing.
 
 **Draft PR feedback received from:** none
+
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback was received. Reviewer feedback is not enabled for the Summer 2026 PathReview module, so I proceeded with documenting my work and reflecting on the contribution process.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was identifying the exact cause of the bug without changing unrelated behavior. At first, the ignored-directory logic appeared straightforward, but I discovered that `_should_skip_file()` depended on slash-prefixed substring patterns. This meant paths such as `node_modules/file.js` and `build/file.js` were not ignored when those directories appeared at the root of a repository. I also had to ensure the fix handled nested, absolute, and Windows-style paths without incorrectly excluding similarly named directories such as `build_tools`.
+
+**What did you learn about working in a large codebase?**
+I learned that contributing to an existing codebase requires understanding the surrounding behavior before making even a small change. Unlike building my own project, I could not simply choose a new implementation without considering existing conventions, tests, supported operating systems, and possible side effects. I also learned the importance of reproducing a reported bug first, making a focused change, and using regression tests to prove both that the bug was fixed and that valid files were still processed.
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped me trace the path-filtering logic, reason about possible edge cases, and organize test cases for root-level, nested, absolute, and Windows-style paths. AI was also useful for explaining unfamiliar parts of the repository and reviewing my implementation plan. However, AI could not independently determine whether a suggestion matched the project’s exact behavior or distinguish failures caused by my work from failures already present in the repository. I still needed to inspect the code, run the tests, compare the results with the baseline, and verify the final behavior myself.
+
+**What would you do differently if you started over?**
+I would record the complete baseline test and lint results immediately after setting up the project. During this contribution, the broader test suite and `make check` contained pre-existing failures, including existing Ruff errors. Having a clearly documented baseline from the beginning would have made it faster to separate repository-wide problems from anything introduced by my change. I would also study the relevant helper function and its existing tests before writing the implementation plan so that I could identify cross-platform path handling earlier.
+
+**What are you most proud of from this module?**
+I am most proud that I followed the complete open-source contribution process instead of stopping after finding the bug. I reproduced Issue #150, identified its root cause, planned a focused solution, updated the path-handling logic, and added regression coverage for several path formats and false-positive cases. The targeted tech-detector test suite passed all 33 tests, and I submitted the work through a pull request with a documented contribution history.
