@@ -18,18 +18,43 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+        This application is designed to provide developers with a complete workflow
+        for improving software projects through automated analysis. The system
+        evaluates documentation, project structure, technical decisions, and overall
+        quality signals. It helps users understand where improvements can be made and
+        provides actionable recommendations based on detected patterns.
+
+        The platform supports multiple workflows including project review, portfolio
+        evaluation, documentation assessment, and quality measurement. Developers can
+        use the generated feedback to improve their repositories and communicate their
+        technical experience more effectively.
+
+        The goal of this project is to simplify the process of reviewing software
+        projects by combining automation with intelligent analysis. The application
+        focuses on usability, reliability, maintainability, and clear communication.
+        Each component is designed to provide meaningful results while keeping the
+        user experience simple and efficient.
+
+        Additional capabilities include automated scoring, detailed reports,
+        configurable analysis rules, and integration with modern development tools.
+        The project architecture allows future expansion with additional features,
+        integrations, and improvements.
 
         ## Installation
         ```bash
         pip install package
         ```
+        To install this package, configure your environment and install all required
+        dependencies before running the application locally.
 
         ## Usage
         ```python
         import package
         package.run()
         ```
+
+        Users can run the application after installation and provide their project
+        information to receive automated insights and recommendations.
 
         ## Features
         - Feature 1
@@ -45,6 +70,37 @@ class TestReadmeScorer:
         ![Coverage](https://example.com/coverage.svg)
 
         ## Live Demo
+        This project includes detailed documentation explaining setup, usage, features,
+        architecture, and development practices. The documentation helps contributors
+        understand the system design and provides guidance for extending the project.
+        Clear documentation improves collaboration, reduces onboarding time, and makes
+        the software easier to maintain. The project encourages contributors to follow
+        best practices, write quality code, and provide useful feedback. The application
+        continues to evolve through testing, improvements, and community contributions.
+        
+        This project includes detailed documentation explaining setup, usage, features,
+        architecture, and development practices. The documentation helps contributors
+        understand the system design and provides guidance for extending the project.
+        Clear documentation improves collaboration, reduces onboarding time, and makes
+        the software easier to maintain. The project encourages contributors to follow
+        best practices, write quality code, and provide useful feedback. The application
+        continues to evolve through testing, improvements, and community contributions.
+        This software project demonstrates the importance of maintaining high quality
+        engineering practices throughout the development lifecycle. Good documentation,
+        clear examples, and reliable testing allow teams to collaborate effectively.
+        The application provides a structured approach for analyzing project health
+        and identifying opportunities for improvement.
+
+        Developers can use this platform to review their work, understand potential
+        weaknesses, and make informed decisions about future enhancements. By combining
+        automated evaluation with useful feedback, the system creates a repeatable
+        process for improving technical projects. The design emphasizes scalability,
+        maintainability, and practical usability for both individual developers and
+        larger engineering teams.
+        The project also supports continuous improvement by encouraging contributors
+        to document changes, validate functionality, and follow established software
+        engineering standards. Future versions may introduce additional analysis tools,
+        improved reporting features, and deeper integrations with development workflows.
         [Try it here](https://demo.example.com)
         """
 
