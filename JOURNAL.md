@@ -71,3 +71,34 @@ The repository currently contains pre-existing lint and unit test failures unrel
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
 None.
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+No review came in, no feedback was provided for this term
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was getting familar with PathReview codebase and figuring out how different parts of the projects connected with each other. While working on Issue #68, I had to understand how the /health endpoint in api/routes/health.py interacted with the safety monitoring code in safety/monitoring.py. Additionally setting up and debugging the development enviornemnt was horrendous espically with getting some of the docker servies to report healthy 
+
+**What did you learn about working in a large codebase?**
+Something I learned while working in this large codebase is it takes much more effort into reading and understanding the code before making changes. Unlike working with my personal projects it was difficult to change any code because it needed to follow the projects patterns while making sure it didn't break any other componets that I did not code. I also learned the importance of making focused changes and adding tests, such as the health endpoint test I added in tests/unit/test_health.py.
+
+**How did AI tools help — and where did they fall short?**
+Ai tools helped me understand unfamilar parts of the codebase, troubleshoot an errors, and work through docker, and testing commands when I was stuck. They were especially helpful when I encountered environment issues, such as unhealthy services and problems getting the project running locally. However, Ai could not compeletely understand the state of my local enviroment on its own, so i still had to verify any changes.
+
+**What would you do differently if you started over?**
+If I could start over I would spend more time just reading and understanding the structure of the code base. I would also test the Docker services and health endpoints earlier so that the enviroment problems would not interfer with implemenations later. Having a clearer understanding of api/routes/health.py, safety/monitoring.py, and the existing tests from the beginning would have made the process more efficient
+
+**What are you most proud of from this module?**
+I am most proud that I was able to work through a real open-source codebase and take Issue #68 from understanding the problem to implementing and testing a solution. I was also able to add a unit test for the health endpoint and worked through several enviorment and debugging problems instead of stopping/giving up when things got difficult. This module helped me gain experience with a workflow that felt much more closer to contributing to a real software project than simply compeleting an isolated coding assignment.
