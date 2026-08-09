@@ -1,12 +1,13 @@
 """Base tool interface."""
 
-from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 
 @dataclass
 class ToolResult:
     """Result from tool execution."""
+
     success: bool
     data: dict
     error: str | None = None

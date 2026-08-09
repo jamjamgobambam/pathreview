@@ -1,6 +1,7 @@
 """Bias detection in generated feedback."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -11,17 +12,18 @@ class BiasDetector:
 
     # Genuinely dismissive phrases about educational background
     DISMISSIVE_PATTERNS = [
-        r"(?:bootcamp|self-taught|online\s+course)\s+(?:education|training)\s+is\s+(?:insufficient|inadequate|lacks)",
-        r"(?:bootcamp|self-taught)\s+(?:graduates?|developers?)\s+(?:lack|missing)\s+(?:rigor|fundamentals|proper\s+training)",
+        r"(?:bootcamp|self-taught|online\s+course)\s+(?:education|training)\s+(?:is\s+)?(?:insufficient|inadequate|lacks)",
+        r"(?:bootcamp|self-taught)\s+(?:graduates?|developers?|programmers?)\s+(?:lack|missing|can't|cannot)\s+(?:rigor|fundamentals|proper\s+training|write|handle)",
         r"(?:bootcamp|coding\s+bootcamp)\s+(?:doesn't|does\s+not)\s+prepare\s+(?:you|developers?)",
-        r"(?:self-taught|bootcamp)\s+is\s+(?:not|never)\s+(?:equal|comparable)\s+to\s+(?:university|traditional|formal)",
+        r"(?:self-taught|bootcamp)(?:\s+(?:developers?|graduates?|programmers?))?\s+(?:is|are)\s+(?:not|never)\s+(?:equal|comparable)\s+to\s+(?:university|traditional|formal)",
+        r"bootcamp\s+attendance\s+(?:means|implies|leads\s+to|results\s+in)\s+(?:inadequate|insufficient)\s+training",
     ]
 
     # Demographic assumptions (about age, background, identity)
     DEMOGRAPHIC_PATTERNS = [
-        r"(?:young|old|aged)\s+(?:person|developer|programmer)\s+(?:can't|cannot|won't|will\s+not)",
-        r"(?:person\s+from|coming\s+from)\s+(?:poor|rich|working[\s-]?class)",
-        r"(?:immigrant|international|foreign)\s+developers?.*(?:can't|cannot|won't|struggle)",
+        r"(?:young|old|aged)\s+(?:person|people|developer|developers|programmer|programmers)\s+(?:can't|cannot|won't|will\s+not|struggle|handle)",
+        r"(?:person|people|developers?|programmers?)\s+(?:from|coming\s+from)\s+(?:poor|rich|working[\s-]?class)",
+        r"(?:immigrant|international|foreign)\s+developers?.*(?:can't|cannot|won't|struggle|lack)",
     ]
 
     @staticmethod

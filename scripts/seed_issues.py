@@ -28,11 +28,17 @@ def create_issue(repo: str, issue: dict) -> None:
 """
 
     cmd = [
-        "gh", "issue", "create",
-        "--repo", repo,
-        "--title", issue["title"],
-        "--body", body,
-        "--label", labels,
+        "gh",
+        "issue",
+        "create",
+        "--repo",
+        repo,
+        "--title",
+        issue["title"],
+        "--body",
+        body,
+        "--label",
+        labels,
     ]
 
     result = subprocess.run(cmd, capture_output=True, text=True)

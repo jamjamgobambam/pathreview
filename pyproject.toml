@@ -88,3 +88,8 @@ markers = [
     "benchmark: Performance benchmarks",
     "security: Security and red-team tests",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.1.1,<10.0.0)"
+]

@@ -1,13 +1,14 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
@@ -21,7 +22,7 @@ async def create_review(
     Create a new review with status="pending".
     """
     review = Review(
-        profile_id=profile_id,
+        profile_id=str(profile_id),
         status="pending",
         sections=None,
         overall_score=None,
@@ -40,8 +41,10 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review)
+        .join(Profile)
+        .where(and_(Review.id == str(review_id), Profile.user_id == str(user_id)))
     )
     result = await db.execute(stmt)
     return result.scalars().first()
@@ -58,9 +61,10 @@ async def list_reviews(
     Returns (reviews, total_count).
     """
     offset = (page - 1) * page_size
+    user_id_str = str(user_id)
 
     # Get total count
-    count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
+    count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id_str)
     count_result = await db.execute(count_stmt)
     total = len(count_result.scalars().all())
 
@@ -68,7 +72,7 @@ async def list_reviews(
     stmt = (
         select(Review)
         .join(Profile)
-        .where(Profile.user_id == user_id)
+        .where(Profile.user_id == user_id_str)
         .order_by(Review.created_at.desc())
         .offset(offset)
         .limit(page_size)
@@ -137,7 +141,7 @@ async def process_review(
         log.info(
             "agent_orchestration_completed",
             review_id=str(review_id),
-            sections_count=len(agent_output.get("sections", [])),
+            sections_count=len(agent_output.get("sections", [])) if agent_output else 0,
         )
 
         # Step 4: Run RAG retrieval + generation
@@ -187,6 +191,7 @@ async def process_review(
             review = result.scalars().first()
             if review:
                 review.status = "failed"
+                review.error_message = str(exc)
                 review.updated_at = datetime.utcnow()
                 db.add(review)
                 await db.commit()
@@ -284,18 +289,68 @@ async def _run_agent_orchestration(profile: Profile, ingestion_results: list[dic
     Run agent orchestration to analyze ingested data.
     Returns agent output with initial analysis.
     """
-    # Placeholder: actual agent orchestration logic
+    from agent.orchestrator import Orchestrator
+    from agent.tools.github_tool import GitHubTool
+    from agent.tools.market_analyzer import MarketAnalyzer
+    from agent.tools.readme_scorer import ReadmeScorer
+    from agent.tools.skill_extractor import SkillExtractor
+    from agent.tools.tech_detector import TechDetector
+
+    tools = {
+        "github_tool": GitHubTool(),
+        "tech_detector": TechDetector(),
+        "readme_scorer": ReadmeScorer(),
+        "skill_extractor": SkillExtractor(),
+        "market_analyzer": MarketAnalyzer(),
+    }
+    orchestrator = Orchestrator(tools=tools)
+
+    # Compile profile_data from profile and ingestion_results
+    profile_data = {
+        "github_username": profile.github_username,
+        "resume_text": profile.resume_text,
+        "portfolio_url": profile.portfolio_url,
+        "projects": [],
+        "files": [],
+        "readme_content": "",
+    }
+
+    # Extract info from ingestion results
+    for ing in ingestion_results:
+        if ing.get("source_type") == "github":
+            # Add project details to trigger github_tool
+            profile_data["projects"].append({"github_repo": "sample-repo"})
+        elif ing.get("source_type") == "resume":
+            profile_data["resume_text"] = ing.get("data", "")
+        elif ing.get("source_type") == "portfolio":
+            profile_data["portfolio_url"] = ing.get("url", "")
+
+    # Execute orchestrator. It will run plan building and validation!
+    # If it fails, it will raise PlanValidationError
+    result = orchestrator.run(str(profile.id), profile_data)
+
+    # Map its results back to the expected output schema
     return {
         "sections": [
             {
                 "section_name": "Technical Skills",
-                "content": "Analysis of technical skills from ingested sources",
+                "content": "Analysis of technical skills from ingested sources: "
+                + str(
+                    result.get("tool_results", {})
+                    .get("skill_extractor", {})
+                    .get("extracted_skills", "No skills extracted")
+                ),
                 "confidence": 0.8,
                 "suggestions": ["Add more detail on AI/ML experience"],
             },
             {
                 "section_name": "Project Experience",
-                "content": "Analysis of project experience",
+                "content": "Analysis of project experience: "
+                + str(
+                    result.get("tool_results", {})
+                    .get("tech_detector", {})
+                    .get("primary_language", "No primary language detected")
+                ),
                 "confidence": 0.75,
                 "suggestions": ["Include measurable impact metrics"],
             },

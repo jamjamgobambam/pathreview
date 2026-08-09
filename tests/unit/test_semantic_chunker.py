@@ -2,8 +2,8 @@
 
 import pytest
 
-from ingestion.chunking.semantic_chunker import SemanticChunker
 from ingestion.chunking.base import Chunk
+from ingestion.chunking.semantic_chunker import SemanticChunker
 
 
 @pytest.mark.unit

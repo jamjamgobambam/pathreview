@@ -2,8 +2,8 @@
 
 import pytest
 
-from ingestion.chunking.structural_chunker import StructuralChunker
 from ingestion.chunking.base import Chunk
+from ingestion.chunking.structural_chunker import StructuralChunker
 
 
 @pytest.mark.unit

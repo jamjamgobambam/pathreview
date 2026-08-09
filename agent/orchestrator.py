@@ -1,12 +1,13 @@
 """Plan-execute orchestrator for agent tools."""
 
 import time
-import structlog
-from typing import Optional
 
-from .memory.session_store import SessionStore
-from .memory.context_manager import ContextManager
+import structlog
+
 from .error_handling import retry_with_backoff
+from .memory.context_manager import ContextManager
+from .memory.session_store import SessionStore
+from .tools.tool_dependencies import PlanValidationError, PlanValidator
 
 logger = structlog.get_logger()
 
@@ -14,7 +15,7 @@ logger = structlog.get_logger()
 class Orchestrator:
     """Orchestrate tool execution with planning and memoization."""
 
-    def __init__(self, tools: dict, session_store: Optional[SessionStore] = None,
+    def __init__(self, tools: dict, session_store: SessionStore | None = None,
                  tool_timeout: float = 30.0):
         """Initialize orchestrator.
 
@@ -42,6 +43,22 @@ class Orchestrator:
 
         # Build execution plan
         plan = self._build_plan(profile_data)
+
+        # Validate and automatically correct out-of-order schedules if possible
+        validator = PlanValidator()
+        try:
+            validator.validate_plan(plan, self.context_manager.get_all_results())
+        except PlanValidationError as e:
+            logger.warning("plan_validation_failed_attempting_correction", error=str(e))
+            try:
+                # Attempt to topologically sort/re-order the plan to satisfy prerequisites
+                corrected_plan = validator.topological_sort(plan)
+                validator.validate_plan(corrected_plan, self.context_manager.get_all_results())
+                plan = corrected_plan
+                logger.info("plan_corrected_and_validated_successfully", sorted_plan=plan)
+            except Exception as correction_exc:
+                logger.error("plan_correction_failed", error=str(correction_exc))
+                raise e from None
 
         # Load previous session state if available
         session_state = {}
@@ -172,7 +189,7 @@ class Orchestrator:
             logger.error("tool_execution_error", tool=tool_name, error=str(e))
             raise
 
-    def _execute_with_timeout(self, tool, tool_input: dict, timeout: Optional[float] = None):
+    def _execute_with_timeout(self, tool, tool_input: dict, timeout: float | None = None):
         """Execute tool with timeout.
 
         Args:

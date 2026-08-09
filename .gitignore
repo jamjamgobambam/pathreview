@@ -44,3 +44,7 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+
+# Local databases
+*.db
+pathreview_dev.db

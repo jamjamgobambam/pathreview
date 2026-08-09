@@ -3,7 +3,6 @@ import structlog
 from ..chunking.base import Chunk
 from .provider import EmbeddingProvider
 
-
 logger = structlog.get_logger()
 
 
