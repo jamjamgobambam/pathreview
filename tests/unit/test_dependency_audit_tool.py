@@ -241,3 +241,52 @@ class TestDependencyAuditTool:
         assert DependencyAuditTool._extract_major_version("^18.2.0") == 18
         assert DependencyAuditTool._extract_major_version("~4.1.0") == 4
         assert DependencyAuditTool._extract_major_version("workspace:*") is None
+
+    def test_fetches_manifest_from_github_repository(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Fetch and audit a dependency manifest through the GitHub API path."""
+        import base64
+
+        class FakeResponse:
+            def __init__(self, status_code: int, payload: dict | None = None) -> None:
+                self.status_code = status_code
+                self._payload = payload or {}
+
+            def raise_for_status(self) -> None:
+                return None
+
+            def json(self) -> dict:
+                return self._payload
+
+        requirements = base64.b64encode(b"Django==2.2.0\n").decode("utf-8")
+
+        def fake_get(url: str, **kwargs: object) -> FakeResponse:
+            if url.endswith("/contents/requirements.txt"):
+                return FakeResponse(
+                    200,
+                    {
+                        "content": requirements,
+                        "encoding": "base64",
+                    },
+                )
+
+            return FakeResponse(404)
+
+        monkeypatch.setattr(
+            "agent.tools.dependency_audit_tool.httpx.get",
+            fake_get,
+        )
+
+        tool = DependencyAuditTool(version_resolver=lambda name, ecosystem: "5.1.0")
+
+        result = tool.execute(
+            {
+                "github_username": "example-user",
+                "repo_name": "example-repo",
+            }
+        )
+
+        assert result.success is True
+        assert result.data["manifest_files"] == ["requirements.txt"]
+        assert result.data["checked_count"] == 1
+        assert len(result.data["outdated_dependencies"]) == 1
+        assert result.data["outdated_dependencies"][0]["name"] == "Django"
