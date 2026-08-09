@@ -332,3 +332,41 @@ Getting the test setup itself working took a few rounds of debugging, worth noti
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review has come in yet — the PR is still awaiting review.
+
+**How you responded:**
+N/A — nothing to respond to yet.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+- Deciding where the line was between "concurrent reviews" and "duplicated reviews," and whether deduplication should be in scope for this issue. Ultimately decided deduplication is a separate feature/design decision and descoped it from this issue.
+- Reproducing and actually seeing the concurrency inconsistency happen reliably, under time pressure. Having accurate integration tests for this made a big difference, but even with AI, Claude wasn't able to write a reliable test for this scenario on its own — it kept drifting toward testing duplication instead of isolation. I had to step in with a step-by-step design (what the test should actually assert, how to force real interleaving, how to set up the Postgres/Redis containers it needed) and have Claude implement it from there. Prior experience with concurrency mattered a lot here — I couldn't have just relied on AI for this part. Without a reliable test, I wouldn't have trusted the implementation at all.
+- Working with a Makefile on a Windows machine. Windows lacks a lot of the Linux-native tooling the Makefile assumes (even with WSL), so I ran Claude on Windows for guidance while actually running and testing everything on a separate Ubuntu VM. That split caused its own problems — for example, an edit made on the Windows side (a temporary delay added for a manual demo) silently never reached the VM until I noticed the demo wasn't behaving as expected, since the two machines only sync through git. This setup needed a lot more infra/process overhead than the actual issue did — network and port forwarding, and committing a bunch of "trying things out on the VM" work that then needed a real cleanup pass on the git history at the end to comply with the contribution guide.
+
+**What did you learn about working in a large codebase?**
+- Know the state of the codebase before you start, so you can tell what you broke vs. what was already broken. Before assuming any lint/test/typecheck failure was caused by my change, I diffed the output against `main` line by line — that's how I confirmed the pre-existing unit test failures and lint errors were unrelated to my change, and traced one of them (an `AsyncMock` mocking bug in `get_review`/`list_reviews` tests) to its actual root cause instead of just assuming it was mine to fix. Don't expand your issue's scope just to make the PR harder, but do take ownership of what you touch — especially linter and test checks on the files you actually changed.
+- Understand the code path that directly relates to your issue end to end before starting — you don't need to understand the whole codebase, just the flow that actually uses the functions you're touching. My issue was entirely backend/API, so I never needed to go into the frontend folder (I did look at the UI once just to get a feel for the app). The part I actually needed to fully understand was the `POST /reviews` endpoint and the `process_review` pipeline it kicks off.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for implementing the integration tests once I'd described what they needed to prove — setting up the throwaway Postgres/Redis containers, writing the actual pytest code, and later doing the mechanical work of diffing lint/test/typecheck output between `main` and my branch to isolate what was actually new. It also helped me visualize the concurrency problem itself (diagrams of overlapping vs. serialized timelines), which is what let me pin down an accurate expected behavior for the tests in the first place. Suggesting Redis as the lock provider (instead of the database itself) was also new to me — I wouldn't have known to reach for that on my own for a fix that needs to work across multiple processes/instances.
+
+Where it fell short: when I first asked it to write an integration test reproducing the concurrency issue, it got confused between concurrency and duplication and produced a confusing test that didn't actually isolate the right thing. Writing a reliable concurrency-reproduction test was the one part I couldn't delegate — I had to design it myself and have AI implement it.
+
+**What would you do differently if you started over?**
+- Set up the Ubuntu VM with a GUI and run Claude directly inside it, instead of splitting work between a Windows host and a separate VM. That split cost real time (network/port forwarding, and a git sync gap that caused a confusing demo failure).
+- Maybe pick a Tier 2 issue instead. The issue itself was interesting, but the lack of a clear line between concurrency and duplication cost real time upfront — before I could even hand AI a good spec, I had to fully work out which level of the pipeline needed the lock and what "inconsistency" actually meant here, since I couldn't easily reproduce it by hand to just look at it.
+- Write better commit messages as I go, so I'm not stuck rewriting commit history at the end to comply with the contribution guide.
+
+**What are you most proud of from this module?**
+Fully understanding a concurrency issue that was genuinely hard to reproduce, in a pipeline that wasn't even fully built out yet — which meant a lot of open questions about where in the pipeline the lock actually needed to live. Being able to work through that and then design (not just accept) a reliable integration test to reproduce the issue saved the whole rest of the project — without it I'd have had no way to trust whether the fix actually worked. And even though AI was doing most of the actual typing, I was the one steering what "correct" meant at each step — that's the part I'm most proud of.
