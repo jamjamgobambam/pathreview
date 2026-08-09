@@ -25,3 +25,20 @@ FaithfulnessChecker._is_supported() (rag/evaluator/faithfulness_checker.py) mark
 
 **Blockers or open questions:**
 The fix will require flipping the expected value of an existing test (`test_minimum_overlap_required`) since it currently documents the same buggy threshold behavior on purpose. Need to make sure that change is explained clearly in the PR so it doesn't look like an accidental regression. No blockers on the environment or reproduction itself.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/1015
+
+**Branch:** fix/152-faithfulness-short-claims-not-supported
+
+**What you built:** `FaithfulnessChecker._is_supported()` (rag/evaluator/faithfulness_checker.py) now lowers the required token overlap to 1 for claims with 2 or fewer meaningful tokens, instead of always requiring 2 regardless of claim length. Longer claims still require the original 2-token floor, so vague or padded claims still need real evidence rather than a single lucky keyword match.
+
+**Tests added or updated:** `tests/unit/test_faithfulness_checker.py` — flipped the reproduction test (`test_short_claim_with_partial_paraphrase_should_be_supported`) to pass, updated `test_minimum_overlap_required`'s expected value with an explanation for why it changed, and added three new edge-case tests: a single-meaningful-token claim that matches, one that doesn't, and a longer claim confirming the original 2-token floor still holds.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both pass for the files this PR touches. `make check`/`make test-unit` fail at the whole-repo level due to pre-existing, unrelated issues — documented in the PR description with a before/after comparison confirming this PR introduces no new failures.)
+
+**Draft PR feedback received from:** none — opened directly as ready for review, no draft review cycle this time.
