@@ -67,3 +67,37 @@ I created a test in test_resume_parser.py that had extra whitespace added in a v
 [x] `make check` passes (Note: Pre-existing failures exist in unrelated modules)
 [x] `make test-unit` passes (Note: Pre-existing failures exist in unrelated modules)
 **Draft PR feedback received from:** none
+
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+N/A
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Dealing with setting up the project in the first place was difficult, as there were a lot of moving parts including figuring out how to install Docker.  Additionally, getting used to the codebase itself was tricky, although the earlier project had helped with that.  
+
+**What did you learn about working in a large codebase?**
+Getting used to someone else's syntax and code organization strategy is difficult at first.  However, using techniques from earlier projects helped to find where I need to enter the codebase and how to go between the files to get the full story.  
+
+**How did AI tools help — and where did they fall short?**
+AI assistance helped me understand specific files that I was unfamiliar with, especially ones involving databases.  It helped me to also talk through my ideas and understand where specifically my knowledge was falling short.  However, I still had to identify what files to pass into the AI, as I could not just shove the entire project into AI to determine that.  
+
+**What would you do differently if you started over?**
+Now that I have a better idea on the whole process, I would choose a different issue that was more difficult.  I would approach it with less AI guidance since I feel more confident with identifying where in the codebase and file the issue may me,  
+
+**What are you most proud of from this module?**
+Being able to go through a difficult codebase and successfully finding a bug, this is something I definitely would have struggled with earlier on.  
