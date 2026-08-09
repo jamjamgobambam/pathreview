@@ -184,4 +184,54 @@ because of pre-existing repo-wide issues outside files this PR touches.
 **Draft PR feedback received from:** none yet — PR was just opened as a
 draft; posting it in Slack for review is my next step.
 
-**Draft PR feedback received from:** _pending_
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback has come in. Per this term's course note, reviewer feedback
+isn't an active feature for Summer 2026 cohorts, so PR #753 remains open as
+a draft with zero comments and zero reviews as of this week.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Finding and working with the bug was harder than expected. The issue title
+made it sound simple, but actually pinning down the root cause, and
+confirming it was specifically the missing leading slash on root-level
+paths in `_should_skip_file`, took real digging into the code rather than
+just trusting the issue description.
+
+**What did you learn about working in a large codebase?**
+Reading and understanding the whole codebase isn't necessary, you just need
+to find the part you actually need. Pathreview has a lot of modules (agent,
+api, core, ingestion, rag, safety, frontend), but my fix only ever touched
+one file and its test file. I learned that the hard way, at first I felt
+like I had to understand everything before touching anything, but that's
+not actually how it works. I'm glad I learned that.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were really helpful for generating ideas, tracking down the bug,
+and thinking through edge cases I wouldn't have considered on my own.
+Honestly, I'm glad I got to experience working this way before doing it in
+a real job. Where it fell short was in occasionally missing mistakes or
+bugs, or not quite doing exactly what I asked for, sometimes skipping over
+part of what I wanted done. Overall it wasn't a huge issue, but it's a
+reminder that I still need to review what AI produces rather than trust it
+blindly.
+
+**What would you do differently if you started over?**
+I would start incorporating AI from the beginning instead of struggling
+through it on my own first. It would've made the whole process a lot
+easier.
+
+**What are you most proud of from this module?**
+I'm proud to be part of CodePath, it's been a genuinely helpful learning
+platform for this kind of hands-on, real-world contribution work.
