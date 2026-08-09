@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -105,7 +105,7 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -116,7 +116,7 @@ class SkillExtractor:
         Returns:
             List of detected skills with confidence scores
         """
-        detected_skills = {}
+        detected_skills: dict[str, SkillDetection] = {}
 
         # Detect languages first
         self._detect_languages(text, filename, detected_skills)
@@ -143,7 +143,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -157,7 +157,7 @@ class SkillExtractor:
             python_evidence.append("Python import statements")
         if re.search(r"\bdef\s+\w+\s*\(", text):
             python_evidence.append("Python function definitions")
-        if re.search(r":\s*(int|str|float|bool|list|dict)", text):
+        if re.search(r":\s*(?:int|str|float|bool|list|dict)\b", text):
             python_evidence.append("Python type annotations")
         if "requirements.txt" in text_lower:
             python_evidence.append("requirements.txt found")
@@ -171,24 +171,52 @@ class SkillExtractor:
             )
 
         # JavaScript/TypeScript detection
+        # JavaScript detection
         js_evidence = []
+
         if ".js" in str(filename or "").lower():
             js_evidence.append("JavaScript file extension (.js)")
-        if ".ts" in str(filename or "").lower():
-            js_evidence.append("TypeScript file extension (.ts)")
-        if re.search(r"\b(import|require)\s+", text):
+        if re.search(r"\b[\w.-]+\.jsx?\b", text_lower):
+            js_evidence.append("JavaScript filename found in content")
+        if re.search(r"\bimport\s+|\brequire\s*\(", text):
             js_evidence.append("CommonJS or ES6 imports")
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
         if js_evidence:
-            confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
-            skills_dict[lang] = SkillDetection(
-                name=lang,
+            skills_dict["JavaScript"] = SkillDetection(
+                name="JavaScript",
                 category="Language",
-                confidence=confidence,
+                confidence=min(0.95, 0.6 + len(js_evidence) * 0.1),
                 evidence=js_evidence,
+            )
+
+        # TypeScript detection
+        typescript_patterns = (
+            r"\binterface\s+\w+",
+            r"\btype\s+\w+\s*=",
+            r"\benum\s+\w+",
+            r"\bPromise\s*<",
+            r":\s*(?:string|number|boolean|unknown|never|any)\b",
+        )
+
+        ts_evidence = [pattern for pattern in typescript_patterns if re.search(pattern, text)]
+
+        if re.search(r"\b[\w.-]+\.tsx?\b", text_lower):
+            ts_evidence.append("TypeScript filename found in content")
+
+        if re.search(r"\btypescript\b", text_lower):
+            ts_evidence.append("TypeScript mentioned in content")
+
+        if ".ts" in str(filename or "").lower():
+            ts_evidence.append("TypeScript file extension (.ts)")
+
+        if ts_evidence:
+            skills_dict["TypeScript"] = SkillDetection(
+                name="TypeScript",
+                category="Language",
+                confidence=min(0.95, 0.6 + len(ts_evidence) * 0.1),
+                evidence=ts_evidence,
             )
 
         # Other languages by extension
@@ -263,6 +291,46 @@ class SkillExtractor:
     def _detect_tools(self, text: str, skills_dict: dict) -> None:
         """Detect tools and DevOps technologies."""
         text_lower = text.lower()
+        docker_evidence = []
+
+        dockerfile_matches = {
+            match.upper()
+            for match in re.findall(
+                r"(?im)^\s*(FROM|RUN|COPY|ADD|EXPOSE|CMD|ENTRYPOINT|WORKDIR)\b",
+                text,
+            )
+        }
+
+        strong_dockerfile_instructions = {
+            "COPY",
+            "ADD",
+            "EXPOSE",
+            "CMD",
+            "ENTRYPOINT",
+            "WORKDIR",
+        }
+
+        if len(dockerfile_matches) >= 2 and dockerfile_matches & strong_dockerfile_instructions:
+            docker_evidence.append(
+                f"Dockerfile instructions: {', '.join(sorted(dockerfile_matches))}"
+            )
+
+        has_services = re.search(r"(?im)^\s*services\s*:", text)
+        compose_markers = re.findall(
+            r"(?im)^\s*(version|build|image|ports|container_name)\s*:",
+            text,
+        )
+
+        if has_services and compose_markers:
+            docker_evidence.append("Docker Compose configuration")
+
+        if docker_evidence:
+            skills_dict["Docker"] = SkillDetection(
+                name="Docker",
+                category="Tool",
+                confidence=0.95,
+                evidence=docker_evidence,
+            )
 
         for tool, confidence in self.TOOLS.items():
             if tool in text_lower:
