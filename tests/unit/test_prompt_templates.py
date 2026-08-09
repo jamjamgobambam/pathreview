@@ -4,6 +4,7 @@ import pytest
 import hashlib
 
 from rag.generator.prompt_templates import PROMPT_TEMPLATES, get_template
+from tests.unit.prompt_template_snapshots import TEMPLATE_SNAPSHOTS
 
 
 @pytest.mark.unit
@@ -172,21 +173,6 @@ class TestPromptTemplates:
 
         assert template_default == template_v1
 
-    def test_template_snapshot_content_hash(self):
-        """Snapshot test: verify template content hash."""
-        # Create hash of all template content
-        template_content = ""
-        for name in sorted(PROMPT_TEMPLATES.keys()):
-            for version in sorted(PROMPT_TEMPLATES[name].keys()):
-                template_content += PROMPT_TEMPLATES[name][version]
-
-        content_hash = hashlib.md5(template_content.encode()).hexdigest()
-
-        # Expected hash - update if templates intentionally change
-        # This helps detect unintended changes to templates
-        assert isinstance(content_hash, str)
-        assert len(content_hash) == 32  # MD5 hash length
-
     def test_skills_feedback_requests_json_format(self):
         """Test skills_feedback requests JSON output."""
         template = PROMPT_TEMPLATES["skills_feedback"]["v1"]
@@ -271,3 +257,65 @@ class TestPromptTemplates:
                 assert "context" in placeholders
                 assert "github_username" in placeholders
                 assert "project_count" in placeholders
+
+
+@pytest.mark.unit
+class TestPromptTemplateSnapshots:
+    """
+    Guards against silent edits to template content.
+
+    Prompt templates directly shape review output. If this test class
+    fails, a template's text changed without its version key changing.
+
+    - Intentional prompt change -> add a new version key (e.g. "v2")
+      alongside the existing one in PROMPT_TEMPLATES, then regenerate:
+      python -m tests.unit.generate_prompt_snapshots
+    - Accidental change -> revert it.
+    """
+
+    @staticmethod
+    def _hash(text: str) -> str:
+        return hashlib.sha256(text.encode()).hexdigest()
+
+    def test_no_untracked_template_versions(self):
+        """Every template/version in PROMPT_TEMPLATES must have a recorded snapshot."""
+        for name, versions in PROMPT_TEMPLATES.items():
+            for version in versions:
+                assert version in TEMPLATE_SNAPSHOTS.get(name, {}), (
+                    f"No snapshot recorded for {name} {version}. "
+                    f"Run: python -m tests.unit.generate_prompt_snapshots"
+                )
+
+    def test_no_orphaned_snapshots(self):
+        """Every recorded snapshot must map to a real template/version (catches stale entries)."""
+        for name, versions in TEMPLATE_SNAPSHOTS.items():
+            for version in versions:
+                assert name in PROMPT_TEMPLATES and version in PROMPT_TEMPLATES[name], (
+                    f"Snapshot exists for {name} {version} but that "
+                    f"template/version no longer exists in PROMPT_TEMPLATES."
+                )
+
+    @pytest.mark.parametrize(
+        "template_name,version",
+        [
+            (name, version)
+            for name, versions in PROMPT_TEMPLATES.items()
+            for version in versions
+        ],
+    )
+    def test_template_content_matches_snapshot(self, template_name, version):
+        """Fails if template content changed without a version bump."""
+        actual_hash = self._hash(PROMPT_TEMPLATES[template_name][version])
+        expected_hash = TEMPLATE_SNAPSHOTS.get(template_name, {}).get(version)
+
+        assert expected_hash is not None, (
+            f"No baseline snapshot for {template_name} {version}. "
+            f"Run: python -m tests.unit.generate_prompt_snapshots"
+        )
+        assert actual_hash == expected_hash, (
+            f"Content of {template_name} {version} changed since the last "
+            f"snapshot. If this is an intentional prompt change, add a new "
+            f"version key instead of editing {version} in place (e.g. copy "
+            f"it to v{int(version[1:]) + 1} with your changes), then "
+            f"regenerate snapshots."
+        )
