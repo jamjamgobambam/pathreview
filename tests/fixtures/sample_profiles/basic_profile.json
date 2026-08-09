@@ -1,0 +1,24 @@
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "user_id": "22222222-2222-2222-2222-222222222222",
+  "github_username": "janedoe",
+  "resume_filename": "jane_doe_resume.pdf",
+  "resume_text": "Jane Doe\nSoftware Engineer\njane.doe@example.com | github.com/janedoe\n\nExperience:\n- Software Engineer at TechCorp (2022-2024)\n  Built REST APIs using Python and FastAPI.\n  Reduced API latency by 40% through query optimization.\n\nEducation:\n- B.S. Computer Science, State University (2022)\n\nSkills: Python, JavaScript, React, PostgreSQL, Docker, FastAPI",
+  "portfolio_url": "https://janedoe.dev",
+  "repos": [
+    {
+      "name": "weather-app",
+      "url": "https://github.com/janedoe/weather-app",
+      "description": "A weather forecasting app built with React and the OpenWeatherMap API",
+      "language": "TypeScript",
+      "stars": 12
+    },
+    {
+      "name": "fastapi-todo",
+      "url": "https://github.com/janedoe/fastapi-todo",
+      "description": "A RESTful TODO API built with FastAPI and PostgreSQL",
+      "language": "Python",
+      "stars": 8
+    }
+  ]
+}
