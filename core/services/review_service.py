@@ -12,6 +12,21 @@ from api.schemas.review import FeedbackSection
 log = structlog.get_logger()
 
 
+async def check_has_ingested_sources(db, profile_id: UUID) -> bool:
+    """Check whether a profile has at least one IngestedSource row.
+
+    Args:
+        db: Active database session.
+        profile_id: ID of the profile to check.
+
+    Returns:
+        True if the profile has at least one IngestedSource row, False otherwise.
+    """
+    stmt = select(IngestedSource.id).where(IngestedSource.profile_id == profile_id).limit(1)
+    result = await db.execute(stmt)
+    return result.scalars().first() is not None
+
+
 async def create_review(
     db,
     profile_id: UUID,

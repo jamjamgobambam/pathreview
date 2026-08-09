@@ -8,6 +8,7 @@ from core.models.user import User
 from core.models.review import Review
 from core.database import get_db
 from core.services.review_service import (
+    check_has_ingested_sources,
     create_review,
     get_review,
     list_reviews,
@@ -32,6 +33,12 @@ async def create_review_endpoint(
     Returns review with status="pending" immediately.
     """
     try:
+        if not await check_has_ingested_sources(db, data.profile_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Profile has no ingested content",
+            )
+
         # Create review with status="pending"
         review = await create_review(
             db=db,
