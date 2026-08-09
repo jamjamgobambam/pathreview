@@ -97,3 +97,60 @@ Added `tests/unit/test_rate_limit_middleware.py` with eight tests covering allow
 Pre-existing failures were recorded before implementation and compared afterward. Ruff reported 182 findings before and 181 afterward; Black reported 52 files needing formatting before and 51 afterward; the new middleware passes targeted Ruff, Black, and mypy checks. The full unit suite had 53 failures and 375 passes before the change; after adding all eight focused tests, the same 53 unrelated tests fail and the pass count increases to 383.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback arrived by the end of the week. Per the Su26 course note, reviewer
+feedback is not a feature this term, so no review was expected.
+
+**How you responded:**
+N/A — no feedback was received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Reproducing the actual bug in Week 8 was harder than expected. The RateLimiter
+class already existed, was unit-tested, and looked correct in isolation — the
+real challenge was proving that it was never invoked in the request path, which
+took constructing a targeted TestClient script that fired enough requests to
+show the limit was never enforced and the headers were simply absent, rather
+than debugging faulty limiter logic.
+
+**What did you learn about working in a large codebase?**
+Existing conventions matter more than they seem to at first glance. Rather than
+designing a new middleware pattern, the working solution was to follow the
+existing `RequestIDMiddleware` pattern already in `api/`, which kept the change
+consistent with how the rest of the request pipeline is structured. It was also
+a reminder that "large codebase gaps" aren't always missing code — sometimes,
+as with the RateLimiter here, the logic is fully built and tested but simply
+never wired in, and finding that requires tracing the actual request path
+rather than trusting that tested code is active code.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for planning — drafting PLAN.md, breaking the fix
+into concrete sub-tasks, and scaffolding the middleware and test structure
+quickly. They fell short on edge cases: things like Redis fail-open semantics,
+preserving CORS and X-Request-ID headers on 429 responses, and making sure the
+synchronous Redis call didn't block the async request loop needed manual
+reasoning and testing to get right rather than something AI surfaced
+proactively.
+
+**What would you do differently if you started over?**
+Spend more time on reproduction upfront. Since confirming the actual gap (an
+unenforced, unwired limiter) took longer than expected, investing more time in
+Week 8 to nail down a clean, minimal reproduction before writing PLAN.md would
+have made the implementation phase more confident and left less to discover
+mid-build.
+
+**What are you most proud of from this module?**
+The clean middleware integration — threading the synchronous Redis-backed
+limiter call into a worker thread so it doesn't block the async request loop,
+while still preserving request ID and CORS headers on both allowed and
+rejected (429) responses.
