@@ -87,6 +87,40 @@ make check and make test-unit report pre-existing repository issues unrelated to
 The project contains pre-existing linting and typing issues unrelated to this change. My modification did not introduce any additional failures.
 make test-unit reports existing failures unrelated to issue #154. This PR only changes the PostgreSQL health probe and does not introduce additional test failures.
 
-**Draft PR feedback received from:**
+# Week 10 — Iteration & reflection
 
-None
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+
+No reviewer feedback has been received yet.
+
+**How you responded:**
+
+No changes were required because I have not received reviewer feedback yet. The pull request remains available for review.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was reproducing the bug and confirming its root cause. The actual code change was small, but before making the change I needed to understand how the `/health` endpoint worked, verify that PostgreSQL was running correctly, inspect the application logs, and distinguish the PostgreSQL failure from the separate Redis issue. This taught me that debugging often requires more time to understand and reproduce a problem than to write the final fix.
+
+**What did you learn about working in a large codebase?**
+
+I learned how important it is to understand the scope of an issue before modifying code in a large collaborative project. I also gained experience working with GitHub branches, commits, upstream and origin repositories, pull requests, and contribution requirements. Most importantly, I learned that a good fix should be focused on the reported problem instead of trying to fix every unrelated issue discovered while debugging.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools helped me understand unfamiliar parts of the codebase, interpret error messages, reproduce the bug, and reason about the SQLAlchemy 2.x error. AI was also useful for reviewing my debugging steps and documentation. However, AI suggestions still required verification. At one point, possible changes to the function signature and other code were considered even though they were outside the scope of issue #154. I compared those suggestions with the issue requirements and the existing code before deciding to keep the implementation focused on wrapping `"SELECT 1"` with `sqlalchemy.text()`.
+
+**What would you do differently if you started over?**
+
+If I started over, I would organize my work around the contribution process from the beginning. I would create and maintain `PLAN.md` and `JOURNAL.md` as I worked instead of updating some documentation afterward. I would also open the draft pull request earlier so there would be more time to request and receive reviewer feedback.
+
+**What are you most proud of from this module?**
+
+I am most proud of learning how to reproduce and debug a real issue in an unfamiliar codebase instead of immediately changing code. I traced the problem to the PostgreSQL health probe, reproduced the SQLAlchemy error, implemented a focused fix, and verified that PostgreSQL changed from `"unhealthy"` to `"healthy"`. I also completed the GitHub contribution workflow by documenting my work and submitting a pull request for review.
