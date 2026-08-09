@@ -18,34 +18,97 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
-
-        ## Installation
-        ```bash
-        pip install package
-        ```
-
-        ## Usage
-        ```python
-        import package
-        package.run()
-        ```
-
-        ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
-
-        ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
+        ![License](https://example.com/license.svg)
+
+        Project Name is a comprehensive, production-ready toolkit for building
+        and shipping modern web applications quickly. It bundles a sensible
+        set of defaults, an extensible plugin system, and a friendly command
+        line interface so that teams can focus on product work instead of
+        wiring together boilerplate. The project has been battle tested across
+        several production deployments and is actively maintained by a small
+        but dedicated group of contributors who care deeply about developer
+        experience, reliability, and clear documentation.
+
+        ## Installation
+
+        Getting started is straightforward. The package is published on PyPI
+        and can be installed with a single command. We strongly recommend
+        installing into a dedicated virtual environment so that dependencies
+        remain isolated from the rest of your system and reproducible across
+        different machines and continuous integration pipelines.
+
+        ```bash
+        python -m venv .venv
+        source .venv/bin/activate
+        pip install package
+        ```
+
+        If you prefer to work from source, clone the repository and install the
+        development dependencies. This is the recommended path for anyone who
+        intends to contribute changes, run the test suite locally, or build the
+        documentation on their own machine before opening a pull request.
+
+        ## Usage
+
+        Once installed, importing the package and calling the top level entry
+        point is enough to get a working application running on your machine.
+        The library exposes a small, focused public interface that is designed
+        to be discoverable and hard to misuse, while still allowing advanced
+        users to reach into lower level primitives when they need finer control
+        over behavior, performance, or integration with existing systems.
+
+        ```python
+        import package
+
+        app = package.create_app()
+        app.run(host="0.0.0.0", port=8000)
+        ```
+
+        For more detailed walkthroughs, the documentation includes a full set
+        of tutorials covering authentication, background jobs, caching, and
+        deployment strategies. Each guide is accompanied by runnable example
+        code so that you can copy, paste, and adapt the snippets to your own
+        needs without guesswork or reverse engineering undocumented behavior.
+
+        ## Features
+
+        - Batteries included configuration with safe, opinionated defaults
+        - A pluggable architecture that keeps the core small and predictable
+        - First class support for asynchronous request handling at scale
+        - Comprehensive structured logging and observability hooks built in
+        - Thorough automated test coverage across unit and integration layers
+        - Clear, versioned documentation that stays in sync with each release
+
+        ## Tech Stack
+
+        The project is built with a modern, well supported set of technologies
+        chosen for their maturity, performance, and strong community support.
+        Each dependency was selected deliberately to keep the overall footprint
+        small while still covering the needs of demanding production workloads.
+
+        - Python 3.11 for the application runtime and tooling
+        - FastAPI for the high performance asynchronous web layer
+        - PostgreSQL for durable, relational data storage
+        - Redis for caching, rate limiting, and lightweight message queues
+        - Docker and Docker Compose for reproducible local environments
 
         ## Live Demo
-        [Try it here](https://demo.example.com)
+
+        Want to see it in action before installing anything? A fully hosted
+        sandbox is available so you can explore every feature directly in your
+        browser without any local setup at all. [Try it here](https://demo.example.com)
+        and poke around the example dashboard, then come back and build your own.
+
+        ## Contributing
+
+        Contributions of every size are welcome and genuinely appreciated,
+        whether that means fixing a typo, filing a detailed bug report, or
+        proposing a substantial new feature. Please read the contributing guide
+        for details on our branching model, coding conventions, and the review
+        process before you open your first pull request against the repository.
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -157,9 +220,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +282,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +298,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
