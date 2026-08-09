@@ -73,3 +73,34 @@ Added a guard to POST /reviews that returns a 400 Bad Request when the target pr
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Honestly, the biggest thing that surprised me was just how big the codebase was. Even though this was a "small" guard-clause change, I couldn't just look at one file and make the change. I had to trace through the request lifecycle, including ingestion, review creation, and the guards connecting everything, to make sure the change was actually safe. Building that mental map of how everything connected ended up taking longer than actually writing the fix.
+
+**What did you learn about working in a large codebase?**
+I learned that clear communication is just as important as the code itself. When you're working on your own project, you can usually keep the context in your head and figure things out as you go. But in someone else's codebase, no one else has that context, so a vague PR description, commit message, or comment forces a reviewer to reconstruct your reasoning from scratch. I didn't get reviewer feedback this module to confirm that firsthand, but writing PLAN.md and my PR description made me notice how much I was tempted to skip explaining a decision because it was obvious to me — even though it wouldn't be obvious to someone reading the code for the first time. That's more a lesson I anticipated than one I had proven back to me, but it changed how carefully I wrote those docs.
+
+**How did AI tools help — and where did they fall short?**
+AI was helpful for getting through some of the longer files, especially things in the ingestion folder like pipeline.py and the chunking strategies. It helped me get a general idea of what a module was doing without having to read every single line first, which saved me some time. I also used it to dig deeper once I had narrowed down the part of the code I actually needed to understand. Where it fell short was knowing whether a change was truly safe. I still had to trace through the code myself and understand how everything connected instead of just relying on an AI-generated summary.
+
+**What would you do differently if you started over?**
+I think I would change how I picked the issue. I chose a Tier 1 issue, and while it did require me to trace through the ingestion and review-creation flow to make sure I implemented it correctly, it wasn't actually as difficult as I expected once I understood the codebase. Knowing that now, I probably would have been more willing to pick a higher-tier issue from the beginning. I think I had more room to challenge myself than I gave myself credit for.
+
+**What are you most proud of from this module?**
+I'm most proud of actually learning how to contribute to an open-source project — the whole workflow of reproducing an issue, planning a fix, and getting it into a PR against someone else's codebase, not just writing code. Before this module I'd only ever worked in projects I built myself, so I never had to reason about someone else's existing architecture or write for a reviewer instead of just for myself. Going through that process end to end on a real repo is the skill I'm most proud of picking up.
