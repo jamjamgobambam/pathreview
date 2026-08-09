@@ -1,8 +1,9 @@
 """Parse LLM output into structured feedback."""
 
-from dataclasses import dataclass
 import json
 import re
+from dataclasses import dataclass
+
 import structlog
 
 logger = structlog.get_logger()
@@ -11,6 +12,7 @@ logger = structlog.get_logger()
 @dataclass
 class FeedbackSection:
     """Structured feedback section."""
+
     section_name: str
     content: str
     confidence: float
@@ -26,8 +28,6 @@ def parse_review_output(raw: str) -> list[FeedbackSection]:
     Returns:
         List of FeedbackSection objects
     """
-    sections = []
-
     # Try JSON in code fence first
     json_match = re.search(r"```(?:json)?\s*\n(.*?)\n```", raw, re.DOTALL)
     if json_match:
@@ -58,7 +58,7 @@ def _parse_json_output(data: dict) -> list[FeedbackSection]:
     Returns:
         List of FeedbackSection objects
     """
-    sections = []
+    sections: list[FeedbackSection] = []
 
     # Handle both single-level and nested structures
     for key, value in data.items():
@@ -67,15 +67,15 @@ def _parse_json_output(data: dict) -> list[FeedbackSection]:
                 section_name=key,
                 content=json.dumps(value),
                 confidence=0.9,
-                suggestions=value.get("suggestions", [])
-                    if isinstance(value.get("suggestions"), list) else []
+                suggestions=(
+                    value.get("suggestions", [])
+                    if isinstance(value.get("suggestions"), list)
+                    else []
+                ),
             )
         else:
             section = FeedbackSection(
-                section_name=key,
-                content=str(value),
-                confidence=0.85,
-                suggestions=[]
+                section_name=key, content=str(value), confidence=0.85, suggestions=[]
             )
         sections.append(section)
 
@@ -94,10 +94,7 @@ def _parse_plaintext_output(raw: str) -> list[FeedbackSection]:
     """
     # Treat entire text as a single feedback section
     section = FeedbackSection(
-        section_name="general_feedback",
-        content=raw,
-        confidence=0.7,
-        suggestions=[]
+        section_name="general_feedback", content=raw, confidence=0.7, suggestions=[]
     )
 
     logger.info("plaintext_output_parsed", content_length=len(raw))

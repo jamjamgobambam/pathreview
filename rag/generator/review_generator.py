@@ -1,12 +1,14 @@
 """LLM-based review generation."""
 
 from dataclasses import dataclass
-from typing import Optional
+
 import openai
 import structlog
 
+from safety.tone_checker import ToneChecker
+
+from .output_parser import FeedbackSection, parse_review_output
 from .prompt_templates import get_template
-from .output_parser import parse_review_output, FeedbackSection
 
 logger = structlog.get_logger()
 
@@ -14,6 +16,7 @@ logger = structlog.get_logger()
 @dataclass
 class ReviewConfig:
     """Configuration for review generation."""
+
     api_key: str
     base_url: str
     model: str
@@ -31,13 +34,12 @@ class ReviewGenerator:
             config: ReviewConfig with API settings
         """
         self.config = config
-        self.client = openai.OpenAI(
-            api_key=config.api_key,
-            base_url=config.base_url
-        )
+        self.client = openai.OpenAI(api_key=config.api_key, base_url=config.base_url)
+        self.tone_checker = ToneChecker(llm_client=self.client)
 
-    def generate_section(self, section_name: str, context_chunks: list[dict],
-                        profile_data: dict) -> FeedbackSection:
+    def generate_section(
+        self, section_name: str, context_chunks: list[dict], profile_data: dict
+    ) -> FeedbackSection:
         """Generate feedback for a specific section.
 
         Args:
@@ -57,9 +59,7 @@ class ReviewGenerator:
         project_count = len(profile_data.get("projects", []))
 
         prompt = template.format(
-            context=context_text,
-            github_username=github_username,
-            project_count=project_count
+            context=context_text, github_username=github_username, project_count=project_count
         )
 
         # Call LLM
@@ -67,31 +67,61 @@ class ReviewGenerator:
             model=self.config.model,
             messages=[
                 {"role": "system", "content": "You are an expert portfolio reviewer."},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             temperature=self.config.temperature,
-            max_tokens=self.config.max_tokens
+            max_tokens=self.config.max_tokens,
         )
 
-        content = response.choices[0].message.content
+        content = response.choices[0].message.content or ""
 
         # Parse output
         sections = parse_review_output(content)
 
         # Return first section or create default
         if sections:
-            return sections[0]
+            section = sections[0]
+        else:
+            logger.warning("no_sections_parsed", section_name=section_name)
+            section = FeedbackSection(
+                section_name=section_name, content=content, confidence=0.6, suggestions=[]
+            )
 
-        logger.warning("no_sections_parsed", section_name=section_name)
-        return FeedbackSection(
-            section_name=section_name,
-            content=content,
-            confidence=0.6,
-            suggestions=[]
-        )
+        # Tone check — retry once if feedback is not constructive
+        tone_result = self.tone_checker.check(section_name, section.content)
+        if not tone_result.is_constructive:
+            logger.warning(
+                "tone_check_failed_regenerating",
+                section=section_name,
+                reason=tone_result.reason,
+            )
+            retry_response = self.client.chat.completions.create(
+                model=self.config.model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are an expert portfolio reviewer. "
+                            "Always write specific, actionable, and encouraging feedback."
+                        ),
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=self.config.temperature,
+                max_tokens=self.config.max_tokens,
+            )
+            retry_content = retry_response.choices[0].message.content or ""
+            retry_sections = parse_review_output(retry_content)
+            if retry_sections:
+                section = retry_sections[0]
+            else:
+                section.content = retry_content
 
-    def generate_full_review(self, profile_data: dict,
-                            retrieved_chunks: list[dict]) -> list[FeedbackSection]:
+        return section
+
+    def generate_full_review(
+        self, profile_data: dict, retrieved_chunks: list[dict]
+    ) -> list[FeedbackSection]:
         """Generate complete review across all sections.
 
         Args:
@@ -106,16 +136,14 @@ class ReviewGenerator:
             "projects_feedback",
             "presentation_feedback",
             "gaps_feedback",
-            "first_impression"
+            "first_impression",
         ]
 
         all_sections = []
 
         for section_name in section_names:
             try:
-                section = self.generate_section(
-                    section_name, retrieved_chunks, profile_data
-                )
+                section = self.generate_section(section_name, retrieved_chunks, profile_data)
 
                 # Add source citations if available
                 section = self._add_citations(section, retrieved_chunks)
@@ -124,15 +152,16 @@ class ReviewGenerator:
                 logger.info("section_generated", section=section_name)
 
             except Exception as e:
-                logger.error("section_generation_failed", section=section_name,
-                           error=str(e))
+                logger.error("section_generation_failed", section=section_name, error=str(e))
                 # Continue with remaining sections
-                all_sections.append(FeedbackSection(
-                    section_name=section_name,
-                    content=f"Error generating {section_name}",
-                    confidence=0.0,
-                    suggestions=[]
-                ))
+                all_sections.append(
+                    FeedbackSection(
+                        section_name=section_name,
+                        content=f"Error generating {section_name}",
+                        confidence=0.0,
+                        suggestions=[],
+                    )
+                )
 
         # Consolidate duplicates across similar projects
         all_sections = self._consolidate_feedback(all_sections)
@@ -160,8 +189,7 @@ class ReviewGenerator:
         return "\n\n".join(parts)
 
     @staticmethod
-    def _add_citations(section: FeedbackSection,
-                       retrieved_chunks: list[dict]) -> FeedbackSection:
+    def _add_citations(section: FeedbackSection, retrieved_chunks: list[dict]) -> FeedbackSection:
         """Add source citations to feedback section.
 
         Args:
