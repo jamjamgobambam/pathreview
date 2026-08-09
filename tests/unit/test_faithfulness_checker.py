@@ -206,14 +206,53 @@ class TestFaithfulnessChecker:
         assert supported is True
 
     def test_minimum_overlap_required(self, checker: FaithfulnessChecker) -> None:
-        """Test that minimum meaningful overlap is required for support."""
+        """Test overlap requirement for a short (<=2 meaningful token) claim.
+
+        "Python expertise" has only 2 meaningful tokens, so per the fix for
+        #152 it only needs 1 of them to overlap with the context — not the
+        flat 2 previously required, which made claims this short impossible
+        to ever mark as supported.
+        """
         claim = "Python expertise"
         context = "Python"  # Only one word match
 
         supported = checker._is_supported(claim, context)
 
         assert isinstance(supported, bool)
-        # Need at least 2 meaningful tokens for support
+        assert supported is True
+
+    def test_long_claim_with_single_overlap_stays_unsupported(
+        self, checker: FaithfulnessChecker
+    ) -> None:
+        """Test that longer claims still require the original 2-token floor.
+
+        Unlike short claims, a claim with more than 2 meaningful tokens
+        should still need 2 overlapping tokens, not just 1 — otherwise a
+        single lucky keyword match would be enough for any vague claim.
+        """
+        claim = "Extensive leadership and mentorship experience across teams"
+        context = "Worked on a small team"  # Only "team"/"teams" overlaps, and not exactly
+
+        supported = checker._is_supported(claim, context)
+
+        assert supported is False
+
+    def test_single_meaningful_token_claim_matches(self, checker: FaithfulnessChecker) -> None:
+        """Test that a single-token claim is supported when that token matches."""
+        claim = "Python"
+        context = "Strong Python background"
+
+        supported = checker._is_supported(claim, context)
+
+        assert supported is True
+
+    def test_single_meaningful_token_claim_no_match(self, checker: FaithfulnessChecker) -> None:
+        """Test that a single-token claim is unsupported when it doesn't match."""
+        claim = "Rust"
+        context = "Strong Python background"
+
+        supported = checker._is_supported(claim, context)
+
         assert supported is False
 
     def test_none_context_chunk_text(self, checker: FaithfulnessChecker) -> None:
@@ -255,15 +294,16 @@ class TestFaithfulnessChecker:
 
         "Good communicator" only has two meaningful tokens ("good", "communicator").
         The context paraphrases "good" as "excellent", so only one token overlaps —
-        one short of the hardcoded `>= 2` threshold — even though the claim is
-        clearly supported by the context.
+        one short of the previously-hardcoded `>= 2` threshold — even though the
+        claim is clearly supported by the context. Fixed by lowering the
+        required overlap to 1 for claims with 2 or fewer meaningful tokens.
         """
         claim = "Good communicator"
         context = "Excellent communicator with clients and stakeholders"
 
         supported = checker._is_supported(claim, context)
 
-        assert supported is True  # currently fails: overlap is only 1 ("communicator")
+        assert supported is True
 
     def test_specialized_technical_terms(self, checker: FaithfulnessChecker) -> None:
         """Test support check with specialized technical terms."""
