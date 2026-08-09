@@ -67,3 +67,33 @@ Added `tests/unit/test_reranker.py`, covering `LLMReranker` candidate scoring, s
 
 **Draft PR feedback received from:** none
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review feedback came in prior to the deadline (Summer 2026 track).
+
+**How you responded:**
+N/A (No feedback received).
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Balancing 2-stage retrieval trade-offs between candidate pool size (over-fetching vs. under-fetching) and LLM call latency/cost. Designing a robust JSON score parser in `LLMReranker._parse_scores` that reliably handles markdown-wrapped JSON code fences (` ```json ... ``` `) and malformed outputs without causing unhandled runtime exceptions during retrieval was also more subtle than anticipated.
+
+**What did you learn about working in a large codebase?**
+Navigating an existing modular RAG pipeline requires strictly preserving established API contracts and error-handling patterns. Adding a new 2nd-stage reranker component in `rag/retriever/reranker.py` required non-breaking integration into `HybridRetriever` (`reranker: LLMReranker | None = None`) with graceful fallback to candidate hybrid scores when LLM API keys are unconfigured, ensuring legacy code, existing tests, and upstream generator modules continue to run without disruption.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were exceptionally effective at generating initial unit test mocks (`MagicMock` for OpenAI API completions and vector store dependencies) and drafting structured scoring prompts. However, they fell short when analyzing workspace-wide test suites with pre-existing failures in unrelated modules, and when designing fail-safe fallback logic that guarantees high retrieval availability when LLM API endpoints time out or fail.
+
+**What would you do differently if you started over?**
+I would start by implementing an automated benchmarking script early in Week 8 to quantitatively evaluate retrieval recall and precision differences with and without LLM re-ranking on sample portfolio queries, rather than relying primarily on manual chunk inspection and qualitative spot-checks.
+
+**What are you most proud of from this module?**
+Designing a clean, resilient 2-stage retrieval system where `LLMReranker` gracefully degrades to base vector/BM25 hybrid scoring on API failure or missing keys, allowing the retrieval engine to remain 100% operational while delivering measurably higher chunk relevance when enabled.
