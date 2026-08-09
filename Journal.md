@@ -84,16 +84,16 @@ Check formatting and make all necessary commits/journals.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** [link to submitted pull request\](https://github.com/ascherj/pathreview/pull/1017)
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** fix/146-pii-scrubber-phone-number
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
+I fixed the regex, so that a space counts as a separator and the matching doesn't break after the ). Also put \b before the first digit group so that the position there is a boundary between a word character and a non-word character. Fixes the regex of the redactor to catch phone number formats of the type (555) 774-3242
 
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+test_pii_scrubber.py. Added tests to check that phone numbers of the type (555) 123-4567 are redacted. Tested (555)-123-4567, a similar type. Added test to check that similar pattern not meeting phone number length was not matched. Tested detect() to make sure that it was catching the full phone number. 
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** [none]
