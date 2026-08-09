@@ -1,0 +1,59 @@
+Issue #148 reproduction and verification
+
+Before fix: origin/main
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+______________ TestSkillExtractor.test_text_with_typescript_files ______________
+
+self = <tests.unit.test_skill_extractor.TestSkillExtractor object at 0x1097a1ba0>
+extractor = <ingestion.parsers.skill_extractor.SkillExtractor object at 0x1097f5be0>
+
+    def test_text_with_typescript_files(self, extractor):
+        """Test TypeScript detection."""
+        text = """
+        export interface User {
+            id: string;
+            name: string;
+        }
+
+        export class UserService {
+            async getUser(id: string): Promise<User> {}
+        }
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        # Should detect TypeScript
+>       assert any("typescript" in s.lower() for s in skill_names)
+E       assert False
+E        +  where False = any(<generator object TestSkillExtractor.test_text_with_typescript_files.<locals>.<genexpr> at 0x10981e420>)
+
+tests/unit/test_skill_extractor.py:62: AssertionError
+_________________ TestSkillExtractor.test_javascript_detection _________________
+
+self = <tests.unit.test_skill_extractor.TestSkillExtractor object at 0x10983c4b0>
+extractor = <ingestion.parsers.skill_extractor.SkillExtractor object at 0x1097bdbd0>
+
+    def test_javascript_detection(self, extractor):
+        """Test JavaScript detection."""
+        text = """
+        const fs = require('fs');
+        const data = fs.readFileSync('file.txt');
+        console.log(data);
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+>       assert any("javascript" in s.lower() or "js" in s.lower() for s in skill_names)
+E       assert False
+E        +  where False = any(<generator object TestSkillExtractor.test_javascript_detection.<locals>.<genexpr> at 0x10981e7a0>)
+
+tests/unit/test_skill_extractor.py:183: AssertionError
+=========================== short test summary info ============================
+FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_text_with_typescript_files
+FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_javascript_detection
+2 failed, 16 deselected in 0.17s
+
+After fix: feature branch
+..                                                                       [100%]
+2 passed, 16 deselected in 0.12s
