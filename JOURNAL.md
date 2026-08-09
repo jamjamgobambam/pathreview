@@ -164,3 +164,82 @@ old one) and ran the full suite on both branches:_
   in existing files, none of them from my changes._
 
 **Draft PR feedback received from:** Shanhe
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No maintainer review has landed on the upstream PR (#807) yet. The only feedback
+so far came earlier in the cycle: Shanhe reviewed the draft PR and confirmed the
+scoring explanation read clearly and matched the code — no substantive changes
+requested.
+
+**How you responded:**
+Nothing to respond to from a maintainer yet. From Shanhe's draft pass I tightened
+a couple of phrasings but made no structural changes. If a maintainer requests
+changes after this entry, I'll follow up on the PR thread; the most likely point
+of discussion is the "min-max vs. max-normalization" wording I flagged in the doc
+(see Week 8), so I've kept that section deliberately explicit to pre-empt it.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part wasn't writing the documentation — it was trusting my own reading
+of the code over the issue text. The issue confidently said the scores are
+"min-max normalized," but when I actually traced `rag/retriever/hybrid.py`, the
+code divides each score by the max of its own result set with no `min` subtracted
+— that's max-normalization, a different operation. Deciding to document what the
+code *does* rather than what the issue *says*, and flagging the discrepancy
+explicitly, felt uncomfortable for a first contribution. A close second was the
+environment: a system Python upgrade (3.12 → 3.14) had quietly broken my `.venv`,
+so `make test-unit` and the pre-commit hook wouldn't run at all. Rebuilding the
+venv and then untangling *my* results from the 53 pre-existing test failures on
+`main` took longer than writing the actual change.
+
+**What did you learn about working in a large codebase?**
+That "a docs-only change" is never really docs-only — to write one honest
+paragraph about the scoring formula I had to read three files (`hybrid.py`,
+`vector_store.py`, `keyword_search.py`) and hold the whole retrieval pipeline in
+my head. Contributing to someone else's production code is mostly comprehension,
+not typing. The other big difference from my own projects: I don't get to define
+what "passing" means. The suite already had 53 failures I didn't cause, so I had
+to establish a baseline on `main`, re-run on my branch, and prove I added *zero
+new failures* rather than assuming a green run. In my own repo I'd have just
+fixed everything until it was green; here, respecting the existing state of the
+codebase — and the pre-existing-failure guidance — was the correct move.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful as an accelerant for navigation and verification: quickly
+locating the weight defaults and the normalize-and-blend block, drafting the
+stubbed vector/keyword backends for the test suite, and sanity-checking the
+worked-example arithmetic (A=0.700, B=0.765, C=0.300). Where it fell short was
+exactly the part that mattered most — noticing that the issue's "min-max"
+description didn't match the code. That required deliberately reading the actual
+normalization line and *disbelieving* the confident prose around it, which is a
+judgment call, not a lookup. AI happily echoes whatever framing you feed it; the
+independent verification of the blend numbers against a hand-written
+reimplementation, and the decision to document real behavior over stated
+behavior, were mine.
+
+**What would you do differently if you started over?**
+I'd verify my toolchain in Week 7 instead of discovering the broken `.venv` at
+PR time in Week 9 — a five-minute `make test-unit` up front would have saved a
+scramble later. I'd also raise the min-max vs. max-normalization discrepancy with
+the maintainer the moment I found it in Week 8, as a comment on the issue, rather
+than carrying it as an open question into the implementation week. Getting that
+answer early would have let me write the doc with full confidence rather than
+hedging. On issue selection I have no regrets — a well-scoped Tier 1 docs issue
+was the right foothold for a first contribution to this codebase.
+
+**What are you most proud of from this module?**
+That I didn't treat "just a docs issue" as a license to be shallow. I added a
+6-test unit suite for behavior nobody asked me to test, verified the numbers
+independently, and caught a real inaccuracy in the issue's own description of the
+code. The deliverable was a paragraph of documentation, but the work behind it
+was genuine engineering — reading the system carefully enough to explain it
+truthfully, and being willing to say "the code actually does something else."
