@@ -14,7 +14,7 @@ Thank you for contributing to PathReview! This guide explains our development wo
 Create a branch from `main` using this format:
 
 ```
-<type>/<issue-number>-<short-description>
+-`fix/153-faithfulness-checker-crashes-error`
 ```
 
 Where `<issue-number>` is the GitHub issue number (the number shown under the issue title in the tracker — e.g., `#124`).
