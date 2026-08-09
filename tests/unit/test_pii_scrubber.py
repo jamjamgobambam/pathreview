@@ -53,6 +53,41 @@ class TestPIIScrubber:
             scrubbed = scrubber.scrub(text)
             assert "[REDACTED]" in scrubbed
 
+    def test_parenthesized_phone_with_space_redacted(self, scrubber):
+        """Test parenthesized phone number followed by a space is fully redacted."""
+        text = "Call me at (555) 123-4567 or 555-123-4567"
+        scrubbed = scrubber.scrub(text)
+
+        assert "[REDACTED]" in scrubbed
+        assert "(" not in scrubbed
+        assert "555" not in scrubbed
+
+    def test_parenthesized_phone_with_dash_after_paren(self, scrubber):
+        """Test parenthesized phone number with a dash right after the closing paren."""
+        text = "Call me at (555)-123-4567"
+        scrubbed = scrubber.scrub(text)
+
+        assert "[REDACTED]" in scrubbed
+        assert "(" not in scrubbed
+        assert "555" not in scrubbed
+
+    def test_detect_parenthesized_phone_with_space(self, scrubber):
+        """Test detect() finds the full parenthesized phone number, including the paren."""
+        text = "Call me at (555) 123-4567"
+        detected = scrubber.detect(text)
+
+        phone_detections = [d for d in detected if d["type"] == "phone_us"]
+        assert len(phone_detections) == 1
+        assert phone_detections[0]["value"] == "(555) 123-4567"
+
+    def test_short_parenthesized_number_not_flagged_as_phone(self, scrubber):
+        """Test a short parenthesized number that isn't a full phone number isn't flagged."""
+        text = "Room (777) 345"
+        detected = scrubber.detect(text)
+
+        phone_detections = [d for d in detected if d["type"] == "phone_us"]
+        assert len(phone_detections) == 0
+
     def test_international_phone_redaction(self, scrubber):
         """Test international phone number is redacted."""
         text = "Reach me at +44 20 7946 0958"
