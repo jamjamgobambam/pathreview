@@ -62,3 +62,33 @@ I expanded `tests/unit/test_github_tool.py` to 17 focused cases covering every s
 The repository-wide commands retain documented pre-existing failures unrelated to this contribution: `make check` reports existing lint and environment type-stub errors, while `make test-unit` reports failures in other modules and network-dependent tokenizer setup. The changed files pass Ruff, Black, and mypy, and all changed-module unit tests pass; this contribution introduces no new failures.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No
+
+**Summary of feedback:**
+No reviewer feedback came in before this final journal entry. The draft PR remains open and ready for review, with the implementation, focused test results, and unrelated repository-wide failures documented for maintainers.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was not writing the boolean itself, but deciding what `False` could honestly mean. The issue sounded small, but GitHub can return a truncated recursive tree, and treating that incomplete response as `has_tests: False` would produce misleading analysis. I had to trace the actual repository-analysis path, notice that the file named in the issue did not exist, and implement the change in `GitHubTool` without inventing a new module. I also had to separate failures caused by my work from the repository's existing lint, type-stub, unit-test, and network-dependent tokenizer failures. That made validation more involved than I expected for a Tier 1 issue.
+
+**What did you learn about working in a large codebase?**
+I learned that an issue description is a starting point, not a complete map of the current codebase. In my own projects, I usually know where data is created and consumed, but here I had to follow the flow from the orchestrator into `GitHubTool` and confirm that the returned metadata already passed through unchanged. I also learned to preserve existing contracts instead of only making the happy path work. The new signal needed exact matching, URL-safe default branch names, authenticated requests, and explicit behavior for malformed or incomplete API responses. Contributing to production code requires understanding the surrounding assumptions and proving that a focused change does not quietly change unrelated behavior.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for navigating unfamiliar files, turning the issue requirements into a test matrix, and checking edge cases I might have missed, such as `contest/` being a near match or `release/next` needing URL encoding. They also helped me organize the reproduction-first workflow and interpret noisy repository-wide test output. AI could not decide the correct product meaning of incomplete GitHub data or verify that a proposed file path still existed in the repository. I still needed to inspect the real call chain, compare suggestions against the issue, run the tests, and make the judgment that an unavailable or truncated tree should return an analysis error instead of a confident `False`.
+
+**What would you do differently if you started over?**
+I would identify the incomplete-tree behavior as the main design question sooner and document it in the reproduction plan before implementation. The issue selection was still a good fit, but starting with the data contract and failure semantics would have made the implementation and self-review more direct.
+
+**What are you most proud of from this module?**
+I am most proud that I did not reduce the task to adding one field that only works in the simplest case. I built a focused set of 17 tests covering every requested indicator, negative near matches, nested paths, branch names containing `/`, and incomplete GitHub responses. That test matrix reflects a shift in how I approach contributions: I am thinking not only about whether my code works, but also about what evidence a maintainer needs to trust it.
