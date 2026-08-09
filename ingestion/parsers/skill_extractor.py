@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -39,6 +39,57 @@ class SkillExtractor:
         "await",
         "class",
     }
+
+    # Signals distinctive enough to identify JavaScript on their own. Python never
+    # writes require(), module.exports, arrow functions, or `import x from "y"`.
+    JS_STRONG_PATTERNS = {
+        r"\brequire\s*\(": "CommonJS require() call",
+        r"\bmodule\.exports\b": "module.exports assignment",
+        r"\bconsole\.log\s*\(": "console.log call",
+        r"=>": "arrow functions",
+        r"\bimport\s+.*\bfrom\s+['\"]": "ES6 import ... from",
+        r"\bexport\s+default\b": "export default",
+        r"\.jsx?\b": "JavaScript file reference (.js/.jsx)",
+    }
+
+    # Weaker signals. Any two together identify JavaScript; one alone does not,
+    # because prose ("a constant variety of work") can trip a single pattern.
+    JS_WEAK_PATTERNS = {
+        r"\bconst\s+\w+": "const declarations",
+        r"\blet\s+\w+\s*=": "let declarations",
+        r"\bvar\s+\w+\s*=": "var declarations",
+        r"\bfunction\s*\w*\s*\(": "function keyword",
+        r"\bexport\s+\w+": "export statements",
+    }
+
+    # TypeScript-specific syntax. These are checked against the text body, so
+    # TypeScript is detectable without a .ts filename.
+    TS_PATTERNS = {
+        r"\binterface\s+\w+\s*\{": "TypeScript interface declaration",
+        r"\btype\s+\w+\s*=": "TypeScript type alias",
+        r"\benum\s+\w+\s*\{": "TypeScript enum declaration",
+        r":\s*(string|number|boolean|any|unknown|void)\b": "TypeScript type annotations",
+        r"\bPromise\s*<": "TypeScript generic Promise",
+        r"\btypescript\b": "TypeScript mentioned by name",
+        r"\.tsx?\b": "TypeScript file reference (.ts/.tsx)",
+    }
+
+    # Dockerfile directives. Matched case-sensitively so Python's lowercase
+    # `from x import y` cannot be mistaken for a Dockerfile FROM.
+    DOCKERFILE_DIRECTIVES = (
+        "FROM",
+        "RUN",
+        "EXPOSE",
+        "COPY",
+        "WORKDIR",
+        "CMD",
+        "ENTRYPOINT",
+        "ENV",
+        "ADD",
+    )
+
+    # A compose file needs `services:` plus at least one of these keys.
+    COMPOSE_SUPPORTING_KEYS = ("ports", "build", "image", "volumes", "environment")
 
     REACT_INDICATORS = {
         "import React",
@@ -105,7 +156,7 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -143,7 +194,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -157,7 +208,7 @@ class SkillExtractor:
             python_evidence.append("Python import statements")
         if re.search(r"\bdef\s+\w+\s*\(", text):
             python_evidence.append("Python function definitions")
-        if re.search(r":\s*(int|str|float|bool|list|dict)", text):
+        if re.search(r":\s*(int|str|float|bool|list|dict)\b", text):
             python_evidence.append("Python type annotations")
         if "requirements.txt" in text_lower:
             python_evidence.append("requirements.txt found")
@@ -171,23 +222,48 @@ class SkillExtractor:
             )
 
         # JavaScript/TypeScript detection
-        js_evidence = []
-        if ".js" in str(filename or "").lower():
-            js_evidence.append("JavaScript file extension (.js)")
-        if ".ts" in str(filename or "").lower():
-            js_evidence.append("TypeScript file extension (.ts)")
-        if re.search(r"\b(import|require)\s+", text):
-            js_evidence.append("CommonJS or ES6 imports")
+        js_filename = ".js" in str(filename or "").lower()
+        ts_filename = ".ts" in str(filename or "").lower()
+
+        js_strong = [
+            desc for pattern, desc in self.JS_STRONG_PATTERNS.items() if re.search(pattern, text)
+        ]
+        js_weak = [
+            desc for pattern, desc in self.JS_WEAK_PATTERNS.items() if re.search(pattern, text)
+        ]
+        ts_evidence = [
+            desc
+            for pattern, desc in self.TS_PATTERNS.items()
+            if re.search(pattern, text, re.IGNORECASE)
+        ]
+
+        js_evidence = js_strong + js_weak
+        if js_filename:
+            js_evidence.insert(0, "JavaScript file extension (.js)")
+        if ts_filename:
+            ts_evidence.insert(0, "TypeScript file extension (.ts)")
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
-        if js_evidence:
-            confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
-            skills_dict[lang] = SkillDetection(
-                name=lang,
+        # One strong signal is enough; weak signals need corroboration so that
+        # ordinary prose does not register as code.
+        has_javascript = bool(js_filename or js_strong or len(js_weak) >= 2)
+        has_javascript = has_javascript or "package.json" in text_lower
+
+        # TypeScript is a superset of JavaScript, so TypeScript evidence wins and
+        # a single language is reported rather than both.
+        if ts_evidence:
+            skills_dict["TypeScript"] = SkillDetection(
+                name="TypeScript",
                 category="Language",
-                confidence=confidence,
+                confidence=min(0.95, 0.6 + len(ts_evidence) * 0.1),
+                evidence=ts_evidence,
+            )
+        elif has_javascript:
+            skills_dict["JavaScript"] = SkillDetection(
+                name="JavaScript",
+                category="Language",
+                confidence=min(0.95, 0.6 + len(js_evidence) * 0.1),
                 evidence=js_evidence,
             )
 
@@ -274,3 +350,48 @@ class SkillExtractor:
                         confidence=confidence,
                         evidence=[f"Found '{tool}' reference in content"],
                     )
+
+        # Dockerfiles and compose files describe Docker usage without ever
+        # containing the word "docker", so the loop above misses them.
+        docker_evidence = self._detect_docker_structure(text)
+        if docker_evidence:
+            if "Docker" in skills_dict:
+                skills_dict["Docker"].evidence.extend(docker_evidence)
+            else:
+                skills_dict["Docker"] = SkillDetection(
+                    name="Docker",
+                    category="Tool",
+                    confidence=self.TOOLS["docker"],
+                    evidence=docker_evidence,
+                )
+
+    def _detect_docker_structure(self, text: str) -> list[str]:
+        """Detect Docker from Dockerfile directives or compose file structure.
+
+        Args:
+            text: The source text to analyze
+
+        Returns:
+            List of evidence strings, empty if no Docker structure is found
+        """
+        evidence = []
+
+        directives = [
+            directive
+            for directive in self.DOCKERFILE_DIRECTIVES
+            if re.search(rf"^\s*{directive}\s+", text, re.MULTILINE)
+        ]
+        # Two directives are required because a single RUN or ADD can appear in prose.
+        if len(directives) >= 2:
+            evidence.append(f"Dockerfile directives ({', '.join(directives)})")
+
+        if re.search(r"^\s*services:", text, re.MULTILINE):
+            supporting = [
+                key
+                for key in self.COMPOSE_SUPPORTING_KEYS
+                if re.search(rf"^\s*{key}:", text, re.MULTILINE)
+            ]
+            if supporting:
+                evidence.append(f"docker-compose keys (services, {', '.join(supporting)})")
+
+        return evidence

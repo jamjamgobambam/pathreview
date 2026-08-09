@@ -20,6 +20,8 @@ setup: ## First-time setup: venv, deps, migrations, seed data
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
 	$(PIP) install -e ".[dev]"
 	$(VENV_BIN)/pre-commit install
+	@if [ ! -f .env ]; then cp .env.example .env; fi
+	docker compose up -d --wait db redis
 	$(VENV_BIN)/alembic upgrade head
 	$(PYTHON) scripts/seed_db.py
 	cd frontend && npm install

@@ -2,7 +2,7 @@
 
 import pytest
 
-from ingestion.parsers.skill_extractor import SkillExtractor, SkillDetection
+from ingestion.parsers.skill_extractor import SkillDetection, SkillExtractor
 
 
 @pytest.mark.unit
@@ -229,13 +229,85 @@ class TestSkillExtractor:
             assert isinstance(skill.confidence, float)
             assert 0.0 <= skill.confidence <= 1.0
 
+    def test_typescript_detected_without_filename(self, extractor: SkillExtractor) -> None:
+        """Test that TypeScript is detected from body text alone, with no filename."""
+        text = "Built app.tsx and types.ts with strict TypeScript interfaces"
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("typescript" in s.lower() for s in skill_names), f"Got: {skill_names}"
+
+    def test_typescript_not_reported_as_python(self, extractor: SkillExtractor) -> None:
+        """Test that TypeScript's `: string` annotations do not register as Python."""
+        text = """
+        export interface User {
+            id: string;
+            name: string;
+        }
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert not any("python" in s.lower() for s in skill_names), f"Got: {skill_names}"
+
+    def test_require_without_trailing_space(self, extractor: SkillExtractor) -> None:
+        """Test that require('fs') is detected even with no space after the keyword."""
+        text = "const fs = require('fs');"
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("javascript" in s.lower() for s in skill_names), f"Got: {skill_names}"
+
+    def test_prose_does_not_trigger_javascript(self, extractor: SkillExtractor) -> None:
+        """Test that English words containing JS keywords do not register as code."""
+        text = "I maintain a constant variety of classic work, letting the team vary its output."
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert not any("javascript" in s.lower() for s in skill_names), f"Got: {skill_names}"
+
+    def test_python_imports_do_not_trigger_javascript(self, extractor: SkillExtractor) -> None:
+        """Test that Python import statements are not misread as JavaScript."""
+        text = """
+        import os
+        from typing import List
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert not any("javascript" in s.lower() for s in skill_names), f"Got: {skill_names}"
+
+    def test_dockerfile_directives_detected(self, extractor: SkillExtractor) -> None:
+        """Test Docker detection from Dockerfile directives without the word 'docker'."""
+        text = """
+        FROM python:3.11
+        WORKDIR /app
+        COPY . .
+        CMD ["python", "main.py"]
+        """
+        result = extractor.extract_skills(text)
+
+        skill_names = [s.name for s in result]
+        assert any("docker" in s.lower() for s in skill_names), f"Got: {skill_names}"
+
+    def test_docker_not_duplicated_when_named_and_structural(
+        self, extractor: SkillExtractor
+    ) -> None:
+        """Test that a Dockerfile mentioning Docker yields one entry, not two."""
+        text = """
+        # Docker build file
+        FROM python:3.11
+        RUN pip install -r requirements.txt
+        """
+        result = extractor.extract_skills(text)
+
+        docker_entries = [s for s in result if s.name.lower() == "docker"]
+        assert len(docker_entries) == 1, f"Got: {docker_entries}"
+
     def test_skill_detection_dataclass(self):
         """Test SkillDetection dataclass structure."""
         skill = SkillDetection(
-            name="Python",
-            category="Language",
-            confidence=0.95,
-            evidence=["import statement"]
+            name="Python", category="Language", confidence=0.95, evidence=["import statement"]
         )
 
         assert skill.name == "Python"
