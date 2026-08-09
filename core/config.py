@@ -8,7 +8,9 @@ class Settings(BaseSettings):
     """Application settings with support for .env file and environment variables."""
 
     # Database
-    database_url: str = Field(default="postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_dev")
+    database_url: str = Field(
+        default="postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_dev"
+    )
     redis_url: str = Field(default="redis://localhost:6379/0")
     vector_db_url: str = Field(default="http://localhost:8001")
 
@@ -35,6 +37,11 @@ class Settings(BaseSettings):
     max_repos_per_profile: int = Field(default=5)
     max_chunks_per_query: int = Field(default=10)
     min_relevance_score: float = Field(default=0.3)
+
+    # Re-ranking
+    reranker_enabled: bool = Field(default=False)
+    reranker_model: str = Field(default="google/gemma-3-27b-it:free")
+    rerank_candidates: int = Field(default=25)
 
     # Rate Limiting
     rate_limit_per_minute: int = Field(default=60)
