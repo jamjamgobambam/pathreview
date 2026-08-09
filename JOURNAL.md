@@ -160,20 +160,20 @@ case the old code silently dropped. 9 tests, all passing.
 
 ### Reviewer feedback
 
-**Feedback received:** [ ] Yes  [x] No — still awaiting review
+**Feedback received:** [ ] Yes  [x] No — no reviewer feedback provided this term
 
 **Summary of feedback:**
-No review has come in yet. PR [#593](https://github.com/ascherj/pathreview/pull/593)
-is open and marked ready for review, but its CI checks are in
-`action_required` state — GitHub holds workflow runs on pull requests from a
-first-time contributor's fork until an upstream maintainer approves them, so the
-checks have not executed and no maintainer or peer has reviewed the change.
+No feedback. Per the Summer 2026 cohort guidance, reviewer feedback is not
+provided this term, so none was expected and none came in. For reference, PR
+[#593](https://github.com/ascherj/pathreview/pull/593) is open and marked ready
+for review; its CI is in `action_required` state because GitHub holds workflow
+runs on pull requests from a first-time contributor's fork until an upstream
+maintainer approves them.
 
 **How you responded:**
-Nothing to change yet. I re-verified the diff is clean (three files, ruff- and
-black-clean, nine passing tests) so the PR is ready the moment a reviewer or CI
-run picks it up. If feedback arrives I'll address it on the branch and the PR
-will update automatically.
+No feedback to respond to. I re-verified the PR is in a clean, review-ready state
+(three files, ruff- and black-clean, nine passing tests, baseline diff showing no
+new failures) so it stands on its own.
 
 ---
 
