@@ -60,7 +60,6 @@ class TestTechDetector:
         data = result.data
         assert "Python" in data["all_languages"]
         # Should not include JSON or data-only language
-        detected_lower = [lang.lower() for lang in data["all_languages"]]
         # .ipynb should be treated as Python, not JSON
 
     def test_node_modules_excluded(self, detector):
@@ -89,7 +88,8 @@ class TestTechDetector:
 
         result = detector.execute({"files": files})
 
-        # Python should be primary despite vendor files
+        data = result.data
+        assert data["primary_language"] == "Python"
 
     def test_build_directory_excluded(self, detector):
         """Test build directory is excluded."""
@@ -103,6 +103,28 @@ class TestTechDetector:
 
         data = result.data
         assert data["primary_language"] == "Python"
+
+    def test_should_skip_file_root_level_vendored_dirs(self, detector):
+        """Regression test for #150: skip dirs at the repo root (no leading '/')."""
+        assert TechDetector._should_skip_file("node_modules/lib/index.js") is True
+        assert TechDetector._should_skip_file("build/bundle.js") is True
+        assert TechDetector._should_skip_file("vendor/lib.js") is True
+        assert TechDetector._should_skip_file("dist/app.js") is True
+
+    def test_should_skip_file_nested_vendored_dirs(self, detector):
+        """Nested skip dirs (already correct before #150's fix) still work."""
+        assert TechDetector._should_skip_file("src/node_modules/lib/index.js") is True
+        assert TechDetector._should_skip_file("src/vendor/lib.js") is True
+
+    def test_should_skip_file_name_collision_not_treated_as_directory(self, detector):
+        """A file whose *name* matches a skip dir is not itself a directory."""
+        assert TechDetector._should_skip_file("src/vendor") is False
+        assert TechDetector._should_skip_file("build") is False
+
+    def test_should_skip_file_substring_not_exact_match(self, detector):
+        """A dir name that merely contains "build"/"vendor" isn't a skip dir."""
+        assert TechDetector._should_skip_file("rebuild/notes.py") is False
+        assert TechDetector._should_skip_file("vendor-scripts/setup.py") is False
 
     def test_config_file_detection(self, detector):
         """Test detection from config files."""
@@ -125,7 +147,7 @@ class TestTechDetector:
             "main.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
         # Should detect Python as primary language
 
@@ -136,9 +158,8 @@ class TestTechDetector:
             "main.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
-        data = result.data
         # Should detect both Python and CI/CD
 
     def test_makefile_detection(self, detector):
@@ -148,7 +169,7 @@ class TestTechDetector:
             "src/main.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
         # Should detect Makefile as build tool
 
@@ -253,7 +274,7 @@ class TestTechDetector:
             "main.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
         # Should detect frameworks
 
@@ -280,9 +301,8 @@ class TestTechDetector:
             "Index.JS",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
-        data = result.data
         # Should still detect languages despite case
 
     def test_multiple_extensions_same_file(self, detector):
@@ -359,7 +379,6 @@ class TestTechDetector:
             "header.h",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
-        data = result.data
         # Should detect C++ (from .cpp files)
