@@ -55,3 +55,34 @@ Adds the missing shared profile fixture described in issue #106. The change is s
 
 **Anything you'd do differently next time:**
 I'd check earlier whether the `mock_profile` fixture in `test_review_service.py` was actually used by any test before planning to migrate it — it turned out to be completely unused, so the "migration" was just a deletion.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. The Summer 2026 cohort does not include maintainer feedback as a feature — noted per course instructions.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Understanding the existing test infrastructure took longer than expected. Before writing a single line of fixture code, I had to trace through how `conftest.py` worked, where pytest looked for fixtures, and why the pre-existing failures in `test_review_service.py` were showing up even on a branch that hadn't touched those files. Separating "failures my change caused" from "failures that were already there" required running the suite on the base branch and diffing the results — something I hadn't planned time for.
+
+**What did you learn about working in a large codebase?**
+The surface area of a change is never just the files you edit. Adding a shared fixture in `conftest.py` immediately raised questions about the ORM model (`Profile`), the `IngestedSource` table, UUID column configuration, and what "realistic" test data even looks like for this domain. In my own projects I just make up data on the fly; here, getting the fixture wrong would silently break tests in ways that are hard to trace. Working in someone else's codebase means you have to earn the right to make assumptions, and that takes research time you don't initially budget for.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for navigating unfamiliar code quickly — explaining what `UUID(as_uuid=False)` means in SQLAlchemy context, helping me draft the `conftest.py` docstring, and sanity-checking whether the fixture structure I planned would work with pytest's fixture scoping rules. Where it fell short: the AI couldn't tell me whether pre-existing test failures were intentional (known-broken tests the team was ignoring) or accidental (tests that broke with a recent refactor). That required reading the git history and making a judgment call. AI gives you speed; it doesn't give you project context.
+
+**What would you do differently if you started over?**
+I'd read the open issues list more carefully before selecting one. Issue #106 was well-scoped and achievable, which was the right call for a first open-source contribution, but I spent time in Week 8 worrying about the `repos` field blocker that I could have resolved in 20 minutes with a clearer read of the ORM schema upfront. Better pre-work on the data model would have let me write a cleaner PLAN.md with fewer open questions.
+
+**What are you most proud of from this module?**
+The decision to keep `repos` in the fixture JSON as explicit supplemental data rather than either dropping it or trying to make it map to a DB column. That choice required understanding the difference between "test data" and "DB-backed data," documenting it clearly in the `conftest.py` docstring, and accepting that the fixture wouldn't be a perfect mirror of the ORM model. It was a small architectural judgment call in a small PR, but it felt like thinking like a contributor rather than just following the issue description literally.
