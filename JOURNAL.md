@@ -145,3 +145,125 @@ pass for the changed implementation and test files, and all 15 targeted tests
 pass.*
 
 **Draft PR feedback received from:** Tanaka Mbavarira
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+My reviewer commented on my tests. They looked good and very comprehensive to him. He did mention that I had a 
+piece of information that was not accurate in my `PLAN.md`. It said I did not include a fix that I had apparently 
+included for a test (for `test_database_technology_detection`). I mentioned I did not include it in `test_skill_extractor.py` to keep scope tight, but I apparently still had it according to the file diff. My reviewer said my PR looked good otherwise.
+
+**How you responded:**
+I responded that he was correct to note that my `PLAN.md` was not accurate and needed to be updated. The fix I did 
+not include fixes the `UnboundLocalError` that I was getting when running `test_database_technology_detection`. The test, however, still fails because `psycopg2` is not recognized as PostgreSQL. This is an issue unrelated to the one I worked on, but fails beacause `psycopg2` needs to be associated with PostgresSQL. I also told the reviewer I would update PLAN.md so that the information is accurate.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was not adding the detection. It was making sure the detection
+did not match the wrong thing.
+
+I expected this issue to just need more patterns, like adding `require()` and
+`interface` to the regexes. But when I ran the tests, TypeScript was being
+detected as Python. The Python type annotation regex
+`:\s*(int|str|float|bool|list|dict)` was matching the `str` inside TypeScript's
+`: string`. It was a missing `\b`, and it was giving a confident but wrong
+answer.
+
+Docker had the same problem. `FROM`, `RUN`, and `COPY` are normal English words,
+so matching them on their own would tag regular text as Docker. I ended up
+requiring two different Dockerfile instructions plus one from a stronger set like
+`COPY`, `EXPOSE`, or `WORKDIR`. The tests did not ask for this. The test only
+checks that Docker is detected, not that it is not over-detected. I had to decide
+where to draw that line myself, because the result includes a confidence score.
+
+The other thing that surprised me was how much work went into keeping the scope
+tight. The issue title sounded like one bug, but it was four failing tests with
+four different causes. While reproducing, I also fixed an `UnboundLocalError` in
+an unrelated database test, and that fix exposed a different problem where
+`psycopg2` is not recognized as PostgreSQL. I had to leave that one broken on
+purpose. My reviewer also caught that my `PLAN.md` said I had left the database
+fix out when the diff still had it. Keeping the notes accurate took more
+attention than I expected.
+
+**What did you learn about working in a large codebase?**
+The biggest difference is that I did not get to decide what "correct" meant. The
+four tests I had to fix were already in `tests/unit/test_skill_extractor.py`
+before I started. Someone else wrote them, and they defined what the function was
+supposed to do. In my own projects I usually write the test after I decide how
+something should work. Here it was the other way around, and I had to read the
+tests carefully to figure out what was actually being asked for.
+
+I also had to check who was using the code before I changed it. Changing how
+`extract_skills()` behaves could have broken something else in the repo. I looked
+and found the parser has no production callers, and only the test file imports
+it, so I knew the change was safe. In my own project I would already know that.
+Here I had to go and confirm it.
+
+The project also decided the style, not me. `make check` runs ruff, black, and
+mypy. Ruff has the `UP` rules turned on, so `Optional[str]` had to become
+`str | None`, and mypy has `disallow_untyped_defs`, so I had to annotate
+`detected_skills` as `dict[str, SkillDetection]`. Neither of those had anything
+to do with issue #148. They were just the rules of the repo.
+
+The last thing I learned is that a failing test suite is not always my fault.
+When I first ran the tests there were failures I did not cause, like `psycopg2`
+not being recognized as PostgreSQL. I had to work out which failures were mine
+and which were already there, and then leave the ones that were not mine alone.
+
+**How did AI tools help — and where did they fall short?**
+The AI was good at explaining programming concepts I did not understand. It was
+also good at explaining how portions of code work, especially the tests in
+`test_skill_extractor.py` for the issue I worked on. Regex was the biggest
+example. It helped me see why `\b(import|require)\s+` never matched
+`require('fs')`, because that pattern needs whitespace after the keyword and
+`require('fs')` has a parenthesis instead.
+
+Where AI fell short, I felt, was in isolating what bugs belonged to the issue I
+worked on and which ones did not. I ended up fixing issues that were not related
+to the one I worked on. I added a `DATABASE_ALIASES` entry so `psycopg2` would be
+detected as PostgreSQL, and then had to take it back out in a later commit
+because it had nothing to do with issue #148. The AI could tell me a bug was
+real, but it could not tell me whether the bug was mine to fix. That was a
+judgment call about scope, and I had to make it myself and then explain it to my
+reviewer.
+
+**What would you do differently if you started over?**
+If I were to start over, the main thing I would change is how I picked my issue.
+I would read through every issue in the original repository before deciding on
+one. I chose #148 because it dealt with technologies closest to what I use at
+work every day. I figured that would make it easy enough for me to work on, and
+it was also a Tier 1.
+
+What I did not do was look at the failing tests before I committed to it. The
+title only says JavaScript and TypeScript, but the issue was really four failing
+tests, and two of them were about Docker and Docker Compose. That is not
+something I would have guessed from the title. If I had opened
+`test_skill_extractor.py` first, I would have seen the real size of the issue
+before choosing it.
+
+So if I did everything again, I would have looked at more issues instead of just
+the first 10, and I would have judged them by what the tests actually asked for,
+not just by whether the technology was familiar to me.
+
+**What are you most proud of from this module?**
+I am proud that I got to work on a fork of an open source project, even if it was
+a simulated one. I got to learn the procedure for how to participate in making
+changes and creating PRs that would potentially be merged into an open source
+project.
+
+The part I did not expect to value was having to reproduce the bug and write a
+plan before writing any code. I made a commit that only documented the four
+failing tests and what they actually returned, and I wrote `PLAN.md` before I
+changed `skill_extractor.py`. That felt slow at the time, but it meant that when
+my reviewer looked at the PR, I could explain why each change was there.
+
+This is different from the PR process I experienced at work. Here I was writing
+for someone who had never seen my code and did not know the issue, so the
+reproduction and the plan had to do the explaining for me.
