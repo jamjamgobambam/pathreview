@@ -17,35 +17,98 @@ class TestReadmeScorer:
     def test_readme_with_all_quality_signals(self, scorer):
         """Test README with all quality signals returns high score."""
         readme = """
-        # Project Name
-        A comprehensive project description.
+        # PathReview Analyzer
 
-        ## Installation
-        ```bash
-        pip install package
-        ```
-
-        ## Usage
-        ```python
-        import package
-        package.run()
-        ```
-
-        ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
-
-        ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
+        PathReview Analyzer is a command-line tool and Python library that inspects
+        the quality of open-source project documentation. It scans a repository,
+        reads the README file, and produces a structured quality report covering
+        length, required sections, badges, demo links, and the technology stack.
+        Teams run it in continuous integration to make sure every project ships with
+        clear, complete, and welcoming documentation before it is released to users.
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
+        ![License](https://example.com/license.svg)
+
+        ## Overview
+
+        Good documentation is one of the strongest signals of a healthy project, yet
+        it is easy to overlook when deadlines are tight. PathReview Analyzer removes
+        the guesswork by turning documentation quality into a measurable score that
+        you can track over time. The report highlights exactly what is missing, so
+        contributors know what to improve instead of guessing. Because the tool is
+        fast and deterministic, it fits naturally into pull-request checks and
+        nightly pipelines without slowing your team down or producing noisy output.
+
+        ## Features
+
+        - Word-count analysis that classifies each README as minimal, adequate, or
+          comprehensive so you can see at a glance how much detail it contains.
+        - Section detection for installation, usage, and technology information using
+          flexible, case-insensitive matching that tolerates many common headings.
+        - Badge and demo-link detection that rewards projects for advertising build
+          status, test coverage, and a working live demonstration of the software.
+        - A single overall score between zero and one that aggregates every signal
+          into one number your team can trust and compare across many repositories.
+
+        ## Tech Stack
+
+        - Python 3.9 for the core scoring engine and the command-line interface.
+        - FastAPI for the optional web service that exposes scores over HTTP.
+        - PostgreSQL for storing historical scores and tracking trends over time.
+        - Redis for caching repeated lookups and keeping the service responsive.
+
+        ## Installation
+
+        Install the published package from PyPI using pip. We recommend creating a
+        dedicated virtual environment first, so that dependencies stay isolated from
+        the rest of your system and remain easy to upgrade or remove again later.
+
+        ```bash
+        python -m venv .venv
+        source .venv/bin/activate
+        pip install pathreview-analyzer
+        ```
+
+        ## Usage
+
+        The command-line interface accepts a path to any repository and prints a
+        readable report. You can also import the scorer directly and call it from
+        your own Python code, which is handy when you want to embed these checks
+        inside an existing test suite or a small continuous-integration script.
+
+        ```python
+        from pathreview import ReadmeScorer
+
+        scorer = ReadmeScorer()
+        report = scorer.execute({"readme_content": open("README.md").read()})
+        print(report.data["overall_score"])
+        ```
+
+        ## Configuration
+
+        Every threshold is configurable through a small YAML file. You can raise the
+        word-count boundaries, require specific sections, or disable checks that do
+        not apply to your project. Sensible defaults are provided, so most teams never
+        need to change anything at all to get useful, actionable results right away.
 
         ## Live Demo
-        [Try it here](https://demo.example.com)
+
+        Want to see it in action before installing anything? Try it here in the hosted
+        playground and paste in any README to receive an instant score and breakdown.
+
+        [Try the live demo](https://demo.example.com)
+
+        ## Contributing
+
+        Contributions are welcome and appreciated. Please read the contributing guide,
+        open an issue to discuss any significant changes, and make sure the full test
+        suite passes before you submit a pull request for review by the maintainers.
+
+        ## License
+
+        This project is released under the MIT license. See the license file in the
+        repository root for the full text and the details about permitted use.
         """
 
         result = scorer.execute({"readme_content": readme})
