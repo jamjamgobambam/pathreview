@@ -104,3 +104,37 @@
 - [x] `make test-unit` introduces no new failures. Untouched `upstream/main` reports 53 failed and 375 passed; this branch reports the same 53 failed and 377 passed, including both new regression tests.
 
 **Draft PR feedback received from:** None. The implementation was completed after the scheduled deadline, so no peer review was received before submission.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:** No reviewer or maintainer feedback has arrived on [PR #698](https://github.com/ascherj/pathreview/pull/698). The pull request remains open and ready for review, so there were no requested changes to evaluate or implement during Week 10.
+
+**How you responded:** No response or follow-up commit was needed because no feedback was received. I will respond to any later review by confirming the requested behavior, making focused changes on this branch, and documenting the verification results in the pull request.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was recognizing that `test_template_snapshot_content_hash` looked meaningful without actually protecting the prompts: it calculated an MD5 digest but only checked that the digest was a 32-character string. Reproducing that weakness safely required mutating `skills_feedback/v1` in an isolated process, proving the test still passed, and then separating failures caused by my branch from the 53 unit-test failures and lint findings already present on `upstream/main`.
+
+**What did you learn about working in a large codebase?**
+
+I learned that a focused change still has to be understood in the context of the repository's conventions, existing test health, and review expectations. Instead of changing production prompt text in `rag/generator/prompt_templates.py`, I kept the implementation in `tests/unit/test_prompt_templates.py`, followed the `test/37-prompt-template-snapshots` branch convention, and compared my results with an untouched upstream checkout so I could show that the branch introduced no new failures.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools helped me trace the prompt-template structure, turn issue #37 into a concrete reproduction, design the version-keyed SHA-256 assertions, and check the journal and pull request against the course rubrics. They could not decide whether a future prompt edit is intentional, automatically make the repository's pre-existing failures relevant to my change, or replace my review of the generated hashes and failure messages; I still had to verify the original prompt content, run the focused tests, and interpret the branch-versus-upstream results.
+
+**What would you do differently if you started over?**
+
+I would run both the focused prompt tests and the repository-wide checks immediately after setup, before implementation, so the upstream baseline was documented from the beginning. I would also prepare the reproduction and request feedback earlier, which would leave more time to discuss whether the snapshots should remain inline in the test module or move to dedicated fixture files as the prompt inventory grows.
+
+**What are you most proud of from this module?**
+
+I am most proud that the final tests replace a false sense of safety with a precise, reviewable contract for every `(template name, version)` pair. All 39 focused prompt-template tests pass, and the two new regression cases demonstrate that both an accidental same-version edit and an unreviewed `v2` addition now fail with messages that identify exactly what a contributor needs to address.
