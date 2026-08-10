@@ -81,3 +81,36 @@ Added a per-profile `asyncio.Lock` in `core/services/review_service.py` to seria
 - `make test-unit`: pre-existing test failures in unrelated test modules; my 2 new tests pass and introduce no new failures
 
 **Draft PR feedback received from:** Opening PR for early feedback — check-in 2 update pending review
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer comments have been posted on PR #612 as of Week 10. Per the Summer 2026 module note, reviewer feedback is not a feature this term.
+
+**How you responded:**
+No changes made; PR remains open as submitted.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the local environment running without Docker was the biggest surprise — I had to install and configure PostgreSQL, Redis, and ChromaDB natively, which consumed most of Day 1. After that, understanding the async SQLAlchemy mocking patterns in the existing tests took longer than expected; the test suite uses `AsyncMock` chains that don't match typical Python async patterns, and I had to reverse-engineer the intended behavior from broken tests rather than clear documentation.
+
+**What did you learn about working in a large codebase?**
+The biggest shift from personal projects is that convention and existing patterns are constraints, not suggestions. I initially added an `and_` import in `review_service.py` because it felt cleaner, but it wasn't needed and broke consistency with the rest of the file. Tests are also far more valuable as documentation than READMEs — I learned what the service was supposed to do by reading the failing test patterns, not by reading prose descriptions. Finally, pre-existing failures are normal; the contribution standard is "don't make things worse," not "fix everything."
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for tracing the race condition through the request → background task → service call chain and suggesting the `asyncio.Lock` pattern as a starting point. It also helped draft tests that matched existing style. Where it fell short was on async SQLAlchemy specifics — I had to manually verify that `result.scalars().first()` should be awaited in the service while the tests mock it as a synchronous coroutine chain. AI also initially pushed an in-process lock as sufficient, but I had to independently think through the multi-worker deployment risk that the reviewer later confirmed.
+
+**What would you do differently if you started over?**
+I would start with a Redis-backed lock instead of an in-process `asyncio.Lock`, even though it's more code. The reviewer explicitly flagged this as a production concern, and it would have made the PR stronger from the start. I would also run `make check` before making any changes to understand the baseline, rather than after — that would have helped me keep the diff tighter and avoid unnecessary changes. Finally, I would record the Loom walkthrough even though it's not graded; explaining the fix out loud revealed gaps in my own understanding that I otherwise missed.
+
+**What are you most proud of from this module?**
+Sticking to a well-scoped Tier 1 issue and resisting scope creep. The reviewer suggested bundling adjacent fixes (ingestion dedup, 400 guard, DB session fix), and it would have been easy to expand the PR to look more impressive. But I kept the change minimal — a single lock mechanism with two focused tests — and the PR is cleaner and more reviewable because of it. The reproduction tests are also the part I'm most satisfied with; they don't just assert the lock works, they prove the concurrency behavior that the issue describes.
