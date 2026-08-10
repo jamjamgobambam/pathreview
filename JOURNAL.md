@@ -75,3 +75,34 @@ Fixed Issue #149 where `StructuralChunker` silently dropped documents with no ma
 (Note: 52 pre-existing test failures and 182 pre-existing lint errors exist across the codebase. These were present before this change and are unrelated to Issue #149. My changes introduce zero new failures — all 19 structural chunker tests pass, and no new lint/format/type errors were introduced in the files I touched.)
 
 **Draft PR feedback received from:** [pending]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was received on PR #631. As noted in the Summer 2026 course guidelines, reviewer feedback is not a feature this semester. The PR remains open against `ascherj/pathreview` with no comments or requested changes.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Understanding the implicit assumptions baked into `_extract_sections()` was harder than it looked. The bug wasn't a crash or an obvious error — it was a silent data loss issue where documents simply vanished from the RAG index without any warning. Tracing the root cause required reading through the heading-stack logic line by line to understand that the content-collection guard on line 111 (`if heading_stack or current_section_lines`) was subtly wrong: it prevented the *first* content line from ever being collected in headingless documents, because `heading_stack` was empty and `current_section_lines` was also empty at that point. The fix itself was small (removing one guard condition), but confidently identifying *which* guard to remove — without breaking headed documents — took more careful analysis than I anticipated.
+
+**What did you learn about working in a large codebase?**
+The biggest lesson was that you can't just fix the bug in isolation — you have to understand the contract between components. `StructuralChunker` feeds into `SemanticChunker` for sub-chunking, and its output metadata (`heading_path`, `heading_level`) flows downstream into the RAG retrieval layer. Before committing to `heading_path: ""` for untitled sections, I had to grep through the `rag/` module to verify that an empty string wouldn't break any filters or queries. In my own projects, I'd just pick whatever felt right and move on. In someone else's production code, you have to trace the data flow end-to-end and justify your design choice (which I documented in the PR's "Notes for Reviewers" section). I also learned to carefully distinguish pre-existing test failures (52 failures across the codebase) from anything my changes introduced — something that's never an issue in a greenfield project.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful during the planning and documentation phases — generating the structured `PLAN.md`, drafting the risk/edge-case matrices, and writing the PR description. It was also helpful for quickly scaffolding the four new test cases and ensuring they covered the right edge cases (single-line docs, pre-heading content, large doc sub-chunking). Where AI fell short was in understanding the *semantic intent* of the original code. The AI could see the `heading_stack` guard, but it couldn't tell me whether removing it would subtly break the heading hierarchy for documents that *do* have headings — that required me to manually trace through several test inputs and verify the heading-stack pop logic still worked correctly after my change. I also had to manually verify the downstream impact on the `rag/` module, which required project-specific knowledge that AI tools didn't have.
+
+**What would you do differently if you started over?**
+I would start by writing a more comprehensive reproduction test *before* reading the implementation code. I jumped into reading `_extract_sections()` immediately, but if I'd first written tests for all the edge cases (pre-heading content, single-line docs, whitespace-only docs), I would have had a clearer mental model of what "correct behavior" looks like before trying to understand what the code was actually doing. I'd also spend more time upfront understanding the full ingestion pipeline — I didn't realize until mid-implementation that `SemanticChunker` was already used for sub-chunking large sections, which meant I could reuse it for the fallback instead of writing new chunking logic.
+
+**What are you most proud of from this module?**
+I'm most proud of the defense-in-depth approach in the final implementation. The fix works at two layers: `_extract_sections()` now correctly collects pre-heading content (so headingless documents naturally produce sections), and `chunk()` has a belt-and-suspenders fallback that catches any case where `_extract_sections()` returns empty but the document has content. This means even if someone refactors `_extract_sections()` in the future and reintroduces the bug, the fallback in `chunk()` will still prevent silent data loss. Writing code that's robust against future regressions — not just today's bug — felt like a real step up in engineering maturity.
