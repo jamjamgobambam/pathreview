@@ -59,3 +59,33 @@ None added or modified — `tests/unit/test_bias_detector.py` (32 tests) was alr
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+no review
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the regex broad enough to catch the 9 missing phrasings without drifting into false positives on the neutral/positive test cases was a genuine balancing act, not the mechanical find-replace I expected going in. Every time I widened a subject or verb alternation, I had to re-check it against sentences like "your bootcamp background shows strong fundamentals" that share keywords with the biased phrasings but aren't biased.
+
+**What did you learn about working in a large codebase?**
+I learned to map effects before touching shared code. Before editing the pattern lists I confirmed no other module reaches into `DISMISSIVE_PATTERNS`/`DEMOGRAPHIC_PATTERNS` directly, which meant the change was safely contained to one file and its return signature couldn't be assumed correct without checking.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for cheap experimentation: instead of editing the real file and re-running pytest over and over, I had Claude write a standalone scratch script with all 32 test assertions hardcoded and iterate on the regex patterns there first, catching mismatches before they ever touched `safety/bias_detector.py`. It also caught the "before/after" testing discipline for me — diffing exact failing-test IDs rather than just comparing counts. Where it fell short was anything requiring a judgment call only I could make: it explicitly stopped and asked rather than guessing when the PLAN.md planning framework wasn't actually in my message, and again before pushing/committing to the branch.
+
+**What would you do differently if you started over?**
+I would investigate semantic checking systems. Due to time and novelty, I didn't go into that rabbit hole, but it is something worth considering since Regex has a known ceiling in its effectiveness. 
+
+**What are you most proud of from this module?**
+The validation discipline, not the fix itself — hand-testing the candidate patterns against all 32 assertions before touching the real file, then diffing the exact failing-test IDs before and after the change to back up "no new failures" with evidence instead of a visual skim of pytest output. I was proud to be able to direct Claude and reproduce its work in order to make sure my work did not actually change anything currently not in my issue's scope.
