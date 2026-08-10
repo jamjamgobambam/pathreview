@@ -89,7 +89,7 @@ No blockers at this stage; only the broader repo still has unrelated existing un
 
 ### Check-in 2 (end of week)
 
-**PR link:** [pending local submission]
+**PR link:** [https://github.com/ascherj/pathreview/pull/1026](https://github.com/ascherj/pathreview/pull/1026)
 
 **Branch:** `feat/87-webhook-system`
 
