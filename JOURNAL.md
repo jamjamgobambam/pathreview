@@ -150,3 +150,55 @@ I also added a new unit test, `test_phone_number_partially_formatted_redaction`,
 NOTE: both of these checks pass in relation to my bug fix. There were existing failures for both checks that pre-date my fix. This is documented in my PR.
 
 **Draft PR feedback received from:** @Divergent-Code
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+The reviewer (@Divergent-Code) tested my PII scrubbing branch locally and verified that the core fix successfully catches partially formatted phone numbers like `(555) 123-4567` while passing the four new test cases. However, they highlighted three technical edge cases and two repository housekeeping issues:
+1. **Catastrophic Backtracking:** The inner repeating quantifier in `phone_intl` (`\+[0-9]{1,3}(?:[-.\s]?[0-9]{1,14})+\b`) causes exponential execution time on long numeric strings ending in a letter (e.g., matching took 95.9s on 30 digits). They suggested using `\+[0-9](?:[-.\s]?[0-9]){7,14}\b` to consume one digit per repetition without backtracking.
+2. **Pattern Ordering Regression:** Moving phone patterns above email patterns in `PII_PATTERNS` caused email local parts ending in 10 digits after a separator (e.g., `john.5551234567@example.com`) to have their numbers redacted first, splitting the string and leaking the remaining domain name.
+3. **Line Break Redaction:** Using `\s` allows phone regexes to match across newlines (`555\n123 4567`), which risks over-redaction across lines.
+4. **Housekeeping:** Noted that `media/issue_walkthrough.mkv` (4.6 MB) was unignored and would permanently inflate git history, and recommended updating the PR title from the branch slug to match the commit message format.
+
+**How you responded:**
+I thanked @Divergent-Code for the thorough local testing and actionable feedback. I refactored the `phone_intl` regular expression to the non-backtracking implementation to eliminate performance degradation on malicious or long string inputs. I also restored the pattern execution order in `PII_PATTERNS` so that email addresses are evaluated before phone numbers, preventing partial email redactions. To ensure this ordering behavior remains intact, I added dedicated unit tests specifically covering emails with numeric local parts. 
+
+Regarding the `\s` newline matching, I intentionally chose to retain it after considering the trade-offs, as over-redaction is preferable to leaking sensitive PII in a scrubber context. Finally, I removed the untracked media file from the branch commit history.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The most surprisingly difficult aspect was accounting for regular expression performance and execution order side effects within a PII scrubbing pipeline. I initially assumed that simply crafting a regex to match `(555) 123-4567` was sufficient. I didn't expect that changing the sequence of keys in the `PII_PATTERNS` dictionary would break email scrubbing for addresses like `john.5551234567@example.com`, or that a nested quantifier could trigger catastrophic backtracking on long inputs. Beyond the code itself, navigating advanced git workflows like interactive rebasing to clean up commit messages to meet repository guidelines was far more strict than managing git history on solo projects.
+
+**What did you learn about working in a large codebase?**
+Working in a production codebase highlighted the strict architectural constraints designed to preserve maintainability. Unlike solo projects where it is tempting to consolidate utility functions into single files, this codebase required adhering to modular separation so that individual components and regex matchers could be isolated for unit testing. I also gained a deep appreciation for automated production safety nets—such as pre-commit hooks, linters, and `make check` suites—which enforce stylistic and structural standards across contributors before code ever reaches the main branch.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were really useful for initially drafting regex patterns to match complex phone formatting and for generating test cases covering unusual delimiting edge cases. However, AI completely fell short in predicting  backtracking performance issues under extreme inputs and failed to anticipate how regex execution order in `PII_PATTERNS` would create subtle regression bugs in surrounding email matchers. Human oversight and manual code execution were required to spot the performance bottleneck and structural logic flaws that AI passed over.
+
+**What would you do differently if you started over?**
+If I started over, I would select a more complex issue now that I understand the codebase better. From a process standpoint, I would run performance profiling on new regular expressions from day one and test string interactions against existing patterns prior to opening the PR. I would also establish strict git hygiene earlier in the cycle, ensuring that large media files like `media/issue_walkthrough.mkv` are added to `.gitignore` immediately rather than needing to clean them out of the history during the review phase.
+
+**What are you most proud of from this module?**
+I am most proud of my growth in navigating and contributing to a complex, unfamiliar codebase using professional git workflows. Going from having zero context on the project's internal structure to diagnosing regex edge cases, configuring pre-commit hooks, resolving reviewer feedback with regression tests, and executing interactive rebases gave me genuine confidence in my ability to join an existing engineering team and contribute production-ready code.
+
+**What was harder than you expected?**
+It was harder to find a solution that would not just fix the problem of common US phone numbers not being caught by the PII scubber but also met the efficient/production quality that my reviewer advised for my regular expression update to the PII Scrubber's `PII_PATTERNS` constant. I also interacted with git in a way that I would not have if I was working on a solo project: for instance, I had to rebase to re-name commits to match the naming convention required by the codebase.
+
+**What did you learn about working in a large codebase?**
+The constraints of the architecture of a production codebase- i.e. not putting all funcitonality in one file; codebase being organized into modules so that tests- especially unit tests can be written. The linter and other hooks that are run on a production codebase that would not be in a sloppy/ quickly put together solo project.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful in helping me come up with a regex that would be correct to fix my chosen issue. But human oversight was used to detect that a more efficient solution was needed. AI was also used to help refine and make documentation more cohesive. AI was also helpful with brainstorming for edge cases that needed to be covered for unit cases.
+
+**What would you do differently if you started over?**
+If I could start over, I may have picked a harder issue because I am more familiar with the codebase now. I was happy with planning and implementation but now I also know that checking for more than just fixing the issue is required.
+
+**What are you most proud of from this module?**
+I'm proud that I was able to walkthrough a large, production-quality codebase that I previously had no understanding of. I am proud of what I have learned about hooks, linters, and git workflows. I am proud that I feel that I have more experience with using git.
