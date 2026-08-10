@@ -73,13 +73,6 @@ None currently
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
-
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
-
-rkdown
-### Check-in 2 (end of week)
-
 **PR link:** https://github.com/ascherj/pathreview/pull/806
 
 **Branch:** fix/68-add-safety-count
@@ -108,3 +101,33 @@ as "confirmed zero."
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** None
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] No
+
+**Summary of feedback:**
+No review.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Just getting a reliable local reproduction was more friction than I expected... figuring out that `make run` starts two separate servers (Vite on 5173, the actual API on 8000), and that you need a second terminal/tmux pane to run anything else while it's up, ate more time than the actual code fix did. I also expected the issue to be a straightforward "field doesn't exist yet" task, but when I actually read the code, `safety_events_last_hour` already existed as a hardcoded stub — the real bug was one level deeper (a lifetime Redis counter instead of a real time-windowed query). That gap between what the issue *said* and what the code *actually did* was the biggest surprise, and it meant the fix touched more of `monitoring.py`'s internals than the issue description implied.
+
+**What did you learn about working in a large codebase?**
+Issue descriptions describe the *symptom* as understood from the outside — they're not guaranteed to match the actual root cause once you're in the code. In my own projects I usually know exactly why something's broken because I wrote it; here I had to actually trace `health.py` down into `monitoring.py` before I could tell whether this was a missing feature or a half-implemented one. I also ran into how much of "the fix" isn't the logic itself but everything around it — pre-commit hooks (ruff, black, mypy) enforcing conventions I hadn't planned for, like typed function signatures on every test method, not just the source code. In a solo  project I'd never have hit `no-untyped-def` errors on 29 test functions in one go.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for exactly the plumbing-and-convention parts — writing boilerplate test scaffolding once I described the module's behavior, explaining what a mypy error actually meant instead of me guessing, and drafting the PR description/checklists so I wasn't starting from a blank template. Where it fell short: it couldn't see my actual codebase until I pasted files in, so early guesses (like which port the API ran on, or what `core.config.settings` looked like) were reasonable assumptions rather than facts — I had to keep correcting course with real output (curl responses, pytest tracebacks) before the advice converged on what was actually true for my repo. It's a good accelerant once it has real information, not a substitute for actually reading my own code.
+
+**What would you do differently if you started over?**
+I'd read `monitoring.py` and `health.py` fully *before* writing the reproduction notes and PLAN.md, instead of documenting my assumptions from the curl output alone. I initially planned for two possible branches ("field is missing" vs. "field is a stub") when a five-minute read of the actual source would have told me immediately which one was true, and let me write a much more targeted plan from the start instead of hedging.
+
+**What are you most proud of from this module?**
+Catching that the issue as filed didn't match the code as it actually existed, and not just quietly building whatever the issue said — flagging the discrepancy explicitly in my reproduction notes and PR description so a reviewer isn't surprised by scope that doesn't match the ticket.
