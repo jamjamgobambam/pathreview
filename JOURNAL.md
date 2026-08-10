@@ -73,3 +73,34 @@ I created `tests/test_reviews.py`
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
 None
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review has come in yet on [PR #890](https://github.com/ascherj/pathreview/pull/890) — it's still open with no reviewers assigned and no comments.
+
+**How you responded:**
+N/A — no feedback to respond to yet. Used the wait to re-check my own PR: confirmed `make check` and `make test-unit` still pass and left a note in the PR description that mypy has ~508 pre-existing errors unrelated to this change, so I skipped that hook rather than try to fix repo-wide typing debt in a test-only PR.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Figuring out what to actually mock. `POST /reviews` depends on `get_current_user` and `get_db`, so I had to learn FastAPI's `app.dependency_overrides` pattern and `AsyncMock` to fake an authenticated user and a DB session without standing up real auth or a database. I also assumed going in (per my PLAN.md) that a documentless profile would produce an error response — reading the route implementation showed it actually returns `200` with `status="pending"` and schedules background processing anyway. I had to rewrite my test assertions around the real behavior instead of the behavior I'd guessed at.
+
+**What did you learn about working in a large codebase?**
+There was no existing precedent for testing at the HTTP route level — every prior test in the suite exercised service/module functions directly. Contributing to someone else's production code meant I couldn't just copy a nearby test; I had to read `api/routes/reviews.py`, the auth middleware, and `core.database` to understand the dependency graph before I could isolate the route in a test. On my own projects I'd just write to my own assumptions — here the assumptions had to be verified against the actual implementation first.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for quickly scaffolding the FastAPI `TestClient` + `dependency_overrides` + `AsyncMock` pattern once I knew what I needed to mock — that would have taken a lot longer to find by trial and error. It fell short on telling me what the endpoint actually does: it couldn't substitute for reading `api/routes/reviews.py` myself to confirm the real success-path behavior, since that's specific to this codebase and not something to assume from general FastAPI patterns.
+
+**What would you do differently if you started over?**
+I'd read the route handler and confirm the actual behavior before writing my PLAN.md's expected input/output section. I planned around an assumed error case that didn't exist, which meant redoing my test assertions partway through instead of getting them right the first time.
+
+**What are you most proud of from this module?**
+Landing the first HTTP-route-level test in the codebase (`tests/unit/test_reviews_routes.py`) — it didn't just fill the gap the issue asked for, it also established a reusable pattern (dependency overrides + AsyncMock) that other route tests in this codebase can follow.
