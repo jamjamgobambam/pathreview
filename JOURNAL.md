@@ -1,0 +1,112 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/159
+
+**Issue title:** structlog output is not captured by pytest caplog — log assertions fail suite-wide
+
+**Tier:** [x] Tier 1
+
+**Problem summary:**
+The app logs using structlog, but structlog isn't configured to route its output into Python's standard logging module during tests. Since pytest's caplog fixture only captures logs going through stdlib logging, any test asserting on caplog fails even when the expected log event genuinely fires. For example, test_empty_chunks_list_returns_empty in tests/unit/test_batch_processor.py fails on its caplog assertion even though the warning is visibly printed to stderr. I confirmed this by reading tests/conftest.py, which currently has no logging or structlog setup at all, just two unrelated fixtures. The fix is to configure structlog in conftest.py (likely via structlog.stdlib processors or structlog.testing.capture_logs) so its output propagates into stdlib logging and becomes visible to caplog. This affects the test suite broadly, since any test relying on caplog to check log output is currently unreliable, not just the one in test_batch_processor.py.
+
+**Branch name:** fix/159-structlog-caplog-capture
+
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+**Checklist reasoning:**
+
+- **Understanding the issue:** I can explain this without re-reading it,structlog logs
+aren't wired into stdlib logging during tests, so pytest's `caplog` fixture (which only
+  hooks into stdlib logging) can't see log events that structlog actually emits. I confirmed
+  this by reading `tests/conftest.py`, which has no logging/structlog setup at all, and by
+  reading the failing test (`test_empty_chunks_list_returns_empty` in
+  `tests/unit/test_batch_processor.py`), which asserts on `caplog.text`/`caplog.records`.
+- **Tier fit:** This is my first open source contribution, so Tier 1 is the right level.
+  The fix is scoped to one file (`conftest.py`) and doesn't require understanding the
+  broader system.
+- **Codebase readiness:** I located and read both `conftest.py` and the test file end-to-end
+  before claiming the issue, and I have a rough plan (configure structlog via
+  `structlog.stdlib` processors or `capture_logs` so logs propagate to stdlib logging).
+- **Scope and crowding:** I checked the issue comments. At the time I claimed it, #159 had
+  fewer claims than issues like #154/#155, and no PR was linked yet, so I expect smoother
+  coaching/review. I estimate this is a 3–6 hour Tier 1 fix, achievable well within the
+  Week 8–9 window, with no blockers noted on the issue.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/turanyavarri/pathreview/commit/fedded9
+
+**Reproduction summary:**
+Ran `pytest tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty -v` and confirmed the failure: `caplog.text` was empty even though the captured stdout showed the log line `[warning] Empty chunks list provided to BatchEmbeddingProcessor` was actually emitted. This confirms structlog output isn't propagating into stdlib logging, so caplog can't see it.
+
+**PLAN.md link:** https://github.com/turanyavarri/pathreview/blob/fix/159-structlog-caplog-capture/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded
+
+**Blockers or open questions:**
+Still need to check how structlog is configured in the app's production code (likely somewhere in `core/`) to make sure the test fixture mirrors the real processor chain rather than reinventing it.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Investigated the root cause: structlog was never configured to route through stdlib logging in tests, so it fell back to its own PrintLogger, meaning caplog never saw any log output even though logs genuinely fired. Traced this to `core/logging.py`'s `configure_logging()` never being called during test setup.
+
+**Next steps:**
+Add a fixture in `tests/conftest.py` that wires structlog into stdlib logging for the test session, verify the target test passes, and run the full suite to check for regressions.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/648
+
+**Branch:** `fix/159-structlog-caplog-capture`
+
+**What you built:**
+Added an `autouse` fixture in `tests/conftest.py` that configures structlog with `logger_factory=structlog.stdlib.LoggerFactory()` and `ProcessorFormatter.wrap_for_formatter`, routing structlog output through stdlib logging so pytest's `caplog` fixture can capture it.
+
+**Tests added or updated:**
+No new test files — updated `tests/conftest.py`. Verified `tests/unit/test_batch_processor.py::TestBatchEmbeddingProcessor::test_empty_chunks_list_returns_empty` now passes. Ran full suite before/after: 53 failures → 52, with the only difference being the target test now passing (no new failures introduced).
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. Reviewer feedback isn't a feature this term (Su26), so this is expected rather than a gap in my process.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment setup ate far more time than the actual fix. I hit a stale virtual environment from a completely different project silently shadowing the correct one in my shell — `alembic` was resolving to the wrong `.venv` even though my prompt showed `(.venv)` as active. On top of that, `make` isn't available by default in Git Bash on Windows, so I had to manually run each command from the Makefile instead of relying on `make setup`/`make run`. The actual code fix — adding a fixture to `tests/conftest.py` — took maybe an hour once I understood the root cause. The tooling around it took most of a session.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was realizing I couldn't just fix the symptom — I had to trace the fix back to how the system was *supposed* to work in production. The failing test pointed at `caplog`, but the actual root cause was in `core/logging.py`: `configure_logging()` existed and was correctly written, but nothing ever called it during test setup. In my own projects, I'd probably have just patched around the symptom. Here, I had to search the codebase (`grep -rn "structlog.configure"`) to find the real configuration, understand its processor chain, and make sure my test fixture mirrored it rather than inventing a parallel, possibly inconsistent setup. I also learned to separate "my change's failures" from "pre-existing failures" — running the full suite before and after my fix (53 failures → 52) was the only way to prove I hadn't broken anything else in a codebase with dozens of unrelated pre-existing issues.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for diagnosis — once I pasted the actual error tracebacks and file contents, it could quickly point to the specific line (`logger_factory=structlog.stdlib.LoggerFactory()`) that explained the disconnect between structlog and caplog, and it explained *why* the fix needed `ProcessorFormatter.wrap_for_formatter` specifically, not just that it was needed. It also caught things I'd have missed on my own, like the pre-commit hook checking `tests/` more strictly than `make check` does, which is why my fixture needed a return type annotation.
+
+Where it fell short: it couldn't run commands on my actual machine, so every environment issue (stale venv, missing `.venv` folder, no `make`, no Postgres running) still required me to run things, paste the real output, and iterate — AI could interpret errors, but I was the one debugging my specific Windows/Git Bash setup in real time. There was also a moment where a copy-paste from an AI-suggested edit merged a docstring onto the same line as a function signature, breaking indentation — a reminder that I still need to actually read and verify code before assuming it's correct just because it came from a suggestion.
+
+**What would you do differently if you started over?**
+I'd fully verify my local environment in Week 7 — confirm `.venv` exists, `make` works or I have manual fallback commands ready, and the app actually starts — before claiming an issue, instead of rediscovering venv/PATH problems again in Week 9 under time pressure. I'd also open a draft PR earlier in Week 9 rather than finalizing everything right before the deadline; I never got real feedback partly because I didn't leave time for it, even though the option existed.
+
+**What are you most proud of from this module?**
+Running the full test suite before and after my change and actually diffing the failure lists to prove I introduced zero regressions — not just checking that my one target test passed. That felt like the difference between "it works on my machine" and actually verifying a change is safe in a codebase I don't fully own.
