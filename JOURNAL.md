@@ -122,3 +122,61 @@ and confirmed via git log/git diff main...HEAD that this branch's prior commits 
 ever touched JOURNAL.md/PLAN.md/repro.txt, so none of it could have caused them.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback was received. Per the Su26 course note, reviewer feedback
+is not enabled for this term's PathReview simulation.
+
+**How you responded:**
+N/A — no feedback arrived to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Keeping the fix scoped to only the actual bug was harder than I
+expected. AI coding tools will often overwrite or rewrite more logic
+than necessary if you let them, so I had to actively push back and
+constrain changes to the exact regex issue in `pii_scrubber.py` rather
+than accepting broader edits. Adhering to the project's contribution
+rules (branch naming, commit message format, PR template) also took
+more deliberate attention than I expected, since it's easy to fall
+back on habits from personal projects.
+
+**What did you learn about working in a large codebase?**
+I had to pay much closer attention to existing coding conventions and
+patterns instead of just writing what felt natural to me. I was also
+unfamiliar with some of the technologies already in use, which raised
+the stakes: something that looks wrong or redundant in someone else's
+codebase might be intentional, so changing it carelessly is riskier
+than in a project I own end to end. This made me slower and more
+careful, especially before touching anything outside the direct scope
+of the issue.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for implementation, spotting errors, and
+brainstorming approaches to the fix. Where they fell short was scope
+control: left unchecked, the AI would sometimes change or rewrite more
+of the file than the issue actually required, so I had to review every
+suggested change and explicitly restrict it to the bug at hand rather
+than trusting the first version it produced.
+
+**What would you do differently if you started over?**
+I would read more of the repository's documentation upfront, before
+starting implementation, rather than picking it up as issues came up
+along the way. Understanding the project's conventions and structure
+earlier would have made the scoping and review process faster.
+
+**What are you most proud of from this module?**
+Going through the full cycle for the first time: claiming an issue
+publicly, understanding and reproducing it, writing an actual plan
+before touching code, documenting my process in JOURNAL.md, and
+pushing a real PR that follows a project's contribution standards.
+That end-to-end process was new to me, not just the code fix itself.
