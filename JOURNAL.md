@@ -59,7 +59,11 @@ For pre-commit: the real obstacle is the `mirrors-mypy` hook, which runs on ever
 
 **PR link:** https://github.com/ascherj/pathreview/pull/977
 
+**PR status:** Open and marked ready for review.
+
 **Branch:** `fix/152-faithfulness-short-claims`
+
+**Branch URL:** https://github.com/stardess/pathreview/tree/fix/152-faithfulness-short-claims
 
 **What you built:**
 I updated the faithfulness checker to retain short claims, split mixed sentence/list claims for partial scoring, normalize punctuation and casing, and accept support from one distinctive overlapping term while filtering generic vocabulary. Context chunks containing `None` text are now handled safely.
@@ -73,4 +77,4 @@ Verified results: `tests/unit/test_faithfulness_checker.py` is 28 passed. The fu
 
 **Self-review confirmation:** [x] make check passes for changed files  [x] make test-unit passes for changed files
 
-**Draft PR feedback received from:** none yet — draft PR opened for review
+**Draft PR feedback received from:** none yet — the pull request is open and marked ready for review, and no reviewer comments have been posted so far. Any responses will be documented in the Week 10 reflection.
