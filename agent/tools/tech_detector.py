@@ -1,6 +1,7 @@
 """Technology stack detector tool."""
 
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -75,7 +76,7 @@ class TechDetector(BaseTool):
                     "primary_language": "Unknown",
                     "all_languages": [],
                     "frameworks": [],
-                }
+                },
             )
 
         try:
@@ -84,11 +85,7 @@ class TechDetector(BaseTool):
 
         except Exception as e:
             logger.error("tech_detector_error", error=str(e))
-            return ToolResult(
-                success=False,
-                data={},
-                error=str(e)
-            )
+            return ToolResult(success=False, data={}, error=str(e))
 
     def _detect_tech(self, files: list[str]) -> dict:
         """Detect technologies from file list.
@@ -100,10 +97,7 @@ class TechDetector(BaseTool):
             Dict with detected languages and frameworks
         """
         # Filter out vendor/build directories
-        filtered_files = [
-            f for f in files
-            if not self._should_skip_file(f)
-        ]
+        filtered_files = [f for f in files if not self._should_skip_file(f)]
 
         languages = set()
         frameworks = set()
@@ -131,8 +125,12 @@ class TechDetector(BaseTool):
         all_languages = sorted(languages)
         all_frameworks = sorted(frameworks)
 
-        logger.info("tech_detected", primary_lang=primary,
-                   languages_count=len(all_languages), frameworks_count=len(all_frameworks))
+        logger.info(
+            "tech_detected",
+            primary_lang=primary,
+            languages_count=len(all_languages),
+            frameworks_count=len(all_frameworks),
+        )
 
         return {
             "primary_language": primary,
@@ -140,25 +138,37 @@ class TechDetector(BaseTool):
             "frameworks": all_frameworks,
         }
 
-    @staticmethod
-    def _should_skip_file(filepath: str) -> bool:
-        """Check if file should be skipped.
+    # Directory names whose contents are third-party or generated code and
+    # must be excluded from language detection.
+    SKIP_DIRS = frozenset(
+        {
+            "node_modules",
+            "vendor",
+            "dist",
+            "build",
+            ".git",
+            "__pycache__",
+            ".venv",
+            "venv",
+        }
+    )
+
+    @classmethod
+    def _should_skip_file(cls, filepath: str) -> bool:
+        """Check if a file lives inside a vendored or build-output directory.
+
+        Matches on whole path segments rather than slash-wrapped substrings, so
+        a directory is recognized regardless of its position in the path. This
+        excludes absolute paths (``/repo/node_modules/x.js``), nested paths
+        (``frontend/node_modules/x.js``), and repo-root-relative paths
+        (``node_modules/x.js``) alike, while leaving lookalike filenames such as
+        ``src/rebuild.py`` or ``.github/workflows/test.yml`` untouched.
 
         Args:
-            filepath: File path
+            filepath: File path, using ``/`` or ``\\`` separators.
 
         Returns:
-            True if file should be skipped
+            True if any path segment names a vendored/build directory.
         """
-        skip_patterns = [
-            "/node_modules/",
-            "/vendor/",
-            "/dist/",
-            "/build/",
-            "/.git/",
-            "/__pycache__/",
-            "/.venv/",
-            "/venv/",
-        ]
-
-        return any(pattern in filepath for pattern in skip_patterns)
+        segments = filepath.replace("\\", "/").split("/")
+        return any(segment in cls.SKIP_DIRS for segment in segments)

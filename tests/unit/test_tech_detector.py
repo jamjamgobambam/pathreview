@@ -104,6 +104,64 @@ class TestTechDetector:
         data = result.data
         assert data["primary_language"] == "Python"
 
+    def test_top_level_relative_vendored_excluded(self, detector):
+        """Test repo-root-relative vendored paths (no leading slash) are excluded."""
+        files = [
+            "main.py",
+            "node_modules/package1/index.js",
+            "node_modules/package2/lib.js",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+        assert "JavaScript" not in data["all_languages"]
+
+    def test_absolute_vendored_path_excluded(self, detector):
+        """Test absolute vendored paths remain excluded (no regression)."""
+        files = [
+            "/home/me/repo/app.py",
+            "/home/me/repo/node_modules/x.js",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+        assert "JavaScript" not in data["all_languages"]
+
+    def test_nested_vendored_path_excluded(self, detector):
+        """Test vendored dirs nested under another dir remain excluded."""
+        files = [
+            "app.py",
+            "frontend/node_modules/x.js",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert "JavaScript" not in data["all_languages"]
+
+    def test_lookalike_filenames_not_skipped(self, detector):
+        """Test files that merely contain a skip word as a substring are counted."""
+        # "rebuild" contains "build", "vendored_api" contains "vendor" — both are
+        # the author's own source and must not be skipped.
+        assert TechDetector._should_skip_file("src/rebuild.py") is False
+        assert TechDetector._should_skip_file("api/vendored_api.py") is False
+        assert TechDetector._should_skip_file("dist_report.py") is False
+
+    def test_github_dir_not_skipped_by_git_rule(self, detector):
+        """Test .github/ is not swallowed by the .git skip rule (segment match)."""
+        assert TechDetector._should_skip_file(".github/workflows/test.yml") is False
+
+    def test_should_skip_file_edge_paths(self, detector):
+        """Test empty and separator-only paths do not raise and return False."""
+        assert TechDetector._should_skip_file("") is False
+        assert TechDetector._should_skip_file("main.py") is False
+        # Bare directory name with no file still matches by segment.
+        assert TechDetector._should_skip_file("node_modules") is True
+
     def test_config_file_detection(self, detector):
         """Test detection from config files."""
         files = [
