@@ -59,7 +59,7 @@ async def seed_database() -> None:
 
             if existing_count == len(sample_users):
                 logger.info("Sample users already exist, skipping creation")
-                print("\n✓ Sample users already exist in database")
+                print("\nOK: Sample users already exist in database")
                 print("\nExisting credentials:")
                 for user_data in sample_users:
                     print(f"  Email: {user_data['email']}")
@@ -373,7 +373,7 @@ async def seed_database() -> None:
 
             logger.info("Database seeding completed successfully")
 
-            print("\n✓ Database seeded successfully!")
+            print("\nOK: Database seeded successfully!")
             print("\nSample user credentials:")
             for user_data in sample_users:
                 print(f"  Email: {user_data['email']}")
@@ -383,7 +383,7 @@ async def seed_database() -> None:
         except Exception as e:
             await session.rollback()
             logger.error("Database seeding failed", error=str(e))
-            print(f"\n✗ Database seeding failed: {e}")
+            print(f"\nERROR: Database seeding failed: {e}")
             raise
 
 

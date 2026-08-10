@@ -5,34 +5,45 @@ SHELL := /bin/bash
 # Detect Windows (Git Bash) vs Unix
 ifeq ($(OS),Windows_NT)
   VENV_BIN := .venv/Scripts
+  PYTHON := $(VENV_BIN)/python.exe
+  PIP := $(VENV_BIN)/pip.exe
+  PYTEST := $(VENV_BIN)/pytest.exe
+  PRE_COMMIT := $(VENV_BIN)/pre-commit.exe
+  ALEMBIC := $(VENV_BIN)/alembic.exe
+  NPM := npm.cmd
+  CREATE_ENV := if not exist .env copy .env.example .env
+  CREATE_VENV := if not exist "$(PYTHON)" (where py >nul 2>nul && py -3 -m venv .venv || python -m venv .venv)
 else
   VENV_BIN := .venv/bin
+  PYTHON := $(VENV_BIN)/python
+  PIP := $(VENV_BIN)/pip
+  PYTEST := $(VENV_BIN)/pytest
+  PRE_COMMIT := $(VENV_BIN)/pre-commit
+  ALEMBIC := $(VENV_BIN)/alembic
+  NPM := npm
+  CREATE_ENV := test -f .env || cp .env.example .env
+  CREATE_VENV := test -x "$(PYTHON)" || (python3 -m venv .venv || python -m venv .venv)
 endif
-
-PYTHON := $(VENV_BIN)/python
-PIP := $(VENV_BIN)/pip
-PYTEST := $(VENV_BIN)/pytest
 
 # ---- Setup ----
 
 setup: ## First-time setup: venv, deps, migrations, seed data
-	python -m venv .venv || python3 -m venv .venv
+	$(CREATE_ENV)
+	$(CREATE_VENV)
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
 	$(PIP) install -e ".[dev]"
-	$(VENV_BIN)/pre-commit install
-	$(VENV_BIN)/alembic upgrade head
+	docker compose up -d --wait
+	$(PRE_COMMIT) install
+	$(ALEMBIC) upgrade head
 	$(PYTHON) scripts/seed_db.py
-	cd frontend && npm install
+	cd frontend && $(NPM) install
 	@echo ""
 	@echo "Setup complete. Run 'make run' to start the application."
 
 # ---- Run ----
 
 run: ## Start backend + frontend dev servers
-	@trap 'kill %1 %2 2>/dev/null' EXIT; \
-	source $(VENV_BIN)/activate && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
-	cd frontend && npm run dev & \
-	wait
+	$(PYTHON) scripts/run_dev.py
 
 # ---- Tests ----
 
@@ -58,10 +69,25 @@ typecheck: ## Run mypy type checker
 
 check: lint format typecheck ## Run lint + format + typecheck
 
+# ---- Security ----
+
+# Ignored findings (no fix available upstream, tracked in issue #128):
+#   PYSEC-2026-311 / CVE-2026-45829 (chromadb): RCE via trust_remote_code on model-load;
+#     this project never sets trust_remote_code, so it isn't reachable here.
+#   PYSEC-2026-1325 / CVE-2024-23342 (ecdsa): Minerva timing side-channel; upstream has
+#     stated side-channel attacks are out of scope for python-ecdsa, no fix planned.
+audit-backend: ## Run pip-audit against Python dependencies
+	$(VENV_BIN)/pip-audit --desc \
+		--ignore-vuln PYSEC-2026-311 \
+		--ignore-vuln PYSEC-2026-1325
+
+audit-frontend: ## Run npm audit against frontend dependencies (fails on high/critical)
+	cd frontend && $(NPM) run audit
+
 # ---- Database ----
 
 migrate: ## Run pending database migrations
-	$(VENV_BIN)/alembic upgrade head
+	$(ALEMBIC) upgrade head
 
 seed: ## Re-seed the database with sample data
 	$(PYTHON) scripts/seed_db.py

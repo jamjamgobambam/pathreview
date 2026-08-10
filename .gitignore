@@ -22,6 +22,7 @@ venv/
 *.swp
 *.swo
 *~
+.claude/
 
 # Node
 node_modules/

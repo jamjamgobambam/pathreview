@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:16-alpine
@@ -36,7 +34,7 @@ services:
           memory: 256M
 
   vector-db:
-    image: chromadb/chroma:0.4.22
+    image: chromadb/chroma:1.5.9
     ports:
       - "8001:8000"
     volumes:
@@ -44,7 +42,7 @@ services:
     environment:
       ANONYMIZED_TELEMETRY: "false"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8000'"]
       interval: 10s
       timeout: 5s
       retries: 5
