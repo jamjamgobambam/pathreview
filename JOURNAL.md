@@ -1,0 +1,98 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/146
+
+**Issue title:** PII scrubber fails to redact parenthesized US phone numbers #146
+
+**Tier:** [X] Tier 1  [ ] Tier 2  [ ] Tier 3
+
+**Problem summary:**
+The PII scrubber in the safety layer (`safety/pii_scrubber.py`) is responsible for redacting personal contact info — like phone numbers — from text before it flows through the review pipeline. Its `phone_us` regex only accepts a hyphen or period as the separator after an optional closing parenthesis, so it silently fails to match common formats like `(555) 123-4567` or `+1 555 123 4567` where a space follows the area code. As a result, real phone numbers in those formats pass through unredacted instead of being replaced with `[REDACTED]`, which is a privacy leak in an app that processes resumes and profile text. A successful fix updates the regex to accept flexible spacing after the parenthesized area code without introducing false positives on unrelated parenthesized text, backed by new regression
+tests for these formats.
+
+**Branch name:** fix/146-pii-parenthesized-phone-numbers
+
+**Setup confirmation:** [X] App runs locally at localhost:5173
+
+**Cohort ledger:** [X] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/pablomoreno10/pathreview/commit/1a15bd013ee862097b11fddbdc83fc1e54e0f99a
+
+**Reproduction summary:**
+Reproduced by importing `PIIScrubber` directly and calling `scrub()`/`detect()` on
+`"(555) 123-4567"`: the parenthesized number passed through untouched and `detect()` returned
+an empty list, while an unparenthesized equivalent (`555-123-4567`) was correctly redacted.
+Running `pytest tests/unit/test_pii_scrubber.py -v` confirmed 5 existing tests fail against
+this behavior.
+
+**PLAN.md link:** https://github.com/pablomoreno10/pathreview/blob/fix/146-pii-parenthesized-phone-numbers/PLAN.md
+
+**Blockers or open questions:**
+While reproducing, also found that `test_mixed_pii_and_text` fails for an unrelated reason: the
+`street_address` pattern's `Pl` abbreviation matches the tail of ordinary words like
+"applications" (case-insensitive), corrupting unrelated text. Not in scope for #146, but flagging
+in case it should be filed as a separate issue before Week 9.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Fixed the `phone_us` regex in `safety/pii_scrubber.py` to accept a space as a separator (not just `-`/`.`), plus a related word-boundary fix so parenthesized numbers don't leave a stray `(` behind. Added 2 regression tests. All phone-related test failures from PLAN.md are resolved.
+
+**Next steps:**
+Commit, push, and open the PR.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/575
+
+**Branch:** `fix/146-pii-parenthesized-phone-numbers`
+
+**What you built:**
+Fixed the `phone_us` regex so it correctly redacts parenthesized US phone numbers (e.g. `(555) 123-4567`), which previously passed through unredacted because the separator after the closing parenthesis only allowed `-`/`.`, never a space.
+
+**Tests added or updated:**
+`tests/unit/test_pii_scrubber.py` —> added `test_phone_no_false_positive_on_parenthetical_text` and `test_us_phone_no_stray_parenthesis_after_scrub`; 4 previously-failing tests now pass with no other changes needed.
+
+**Self-review confirmation:**
+
+[X] make check passes (for touched files — repo-wide `make check`/`make test-unit` still show pre-existing, unrelated failures in other files, confirmed identical on `main`)  
+
+[X] make test-unit passes
+
+**Draft PR feedback received from:** none 
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review yet.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating all the initial requirements—such as branching and commit naming conventions—alongside exploring the project structure. Overall, the sheer effort required to adapt to an unfamiliar codebase and align with established community standards was greater than I anticipated.
+
+**What did you learn about working in a large codebase?**
+I learned that strict rules and standards are essential for maintaining code quality at scale. Succeeding in a large repository requires patience, energy, and a high degree of adaptability.
+
+**How did AI tools help — and where did they fall short?**
+AI was instrumental in helping me explore the codebase, unpack the problem statement, and formulate a solution plan. It significantly accelerated my workflow and handled many repetitive tasks, though it fell short whenever nuanced, project-specific context was required.
+
+**What would you do differently if you started over?**
+I would make an effort to explore the codebase more broadly. Because I focused heavily on the components directly tied to my specific issue, I missed out on developing a more holistic understanding of the overall system architecture.
+
+**What are you most proud of from this module?**
+My persistence. Despite the steep learning curve, extensive documentation, and strict guidelines, I stayed resilient and pushed through to the finish line.

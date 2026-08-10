@@ -190,6 +190,17 @@ class TestPIIScrubber:
 
         assert "[REDACTED]" in scrubbed
 
+    def test_phone_no_false_positive_on_parenthetical_text(self, scrubber):
+        """Parenthetical text with no digits should not be flagged as a phone number."""
+        text = "Please see the (attached) résumé for details."
+        assert scrubber.detect(text) == []
+
+    def test_us_phone_no_stray_parenthesis_after_scrub(self, scrubber):
+        """Scrubbing a parenthesized phone number must not leave a dangling '('."""
+        scrubbed = scrubber.scrub("Call me at (555) 123-4567")
+        assert "(" not in scrubbed
+        assert "[REDACTED]" in scrubbed
+
     def test_address_variations(self, scrubber):
         """Test various street address formats."""
         addresses = [
