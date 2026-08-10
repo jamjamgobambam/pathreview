@@ -65,4 +65,34 @@ Fixed the `phone_us` regex so it correctly redacts parenthesized US phone number
 
 [X] make test-unit passes
 
-**Draft PR feedback received from:** none   
+**Draft PR feedback received from:** none 
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review yet.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating all the initial requirements—such as branching and commit naming conventions—alongside exploring the project structure. Overall, the sheer effort required to adapt to an unfamiliar codebase and align with established community standards was greater than I anticipated.
+
+**What did you learn about working in a large codebase?**
+I learned that strict rules and standards are essential for maintaining code quality at scale. Succeeding in a large repository requires patience, energy, and a high degree of adaptability.
+
+**How did AI tools help — and where did they fall short?**
+AI was instrumental in helping me explore the codebase, unpack the problem statement, and formulate a solution plan. It significantly accelerated my workflow and handled many repetitive tasks, though it fell short whenever nuanced, project-specific context was required.
+
+**What would you do differently if you started over?**
+I would make an effort to explore the codebase more broadly. Because I focused heavily on the components directly tied to my specific issue, I missed out on developing a more holistic understanding of the overall system architecture.
+
+**What are you most proud of from this module?**
+My persistence. Despite the steep learning curve, extensive documentation, and strict guidelines, I stayed resilient and pushed through to the finish line.
