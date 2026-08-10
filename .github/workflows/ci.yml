@@ -94,3 +94,33 @@ jobs:
       - run: cd frontend && npm ci
       - name: Frontend lint and tests
         run: cd frontend && npm test -- --run
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- Python dependency vulnerability scan ---
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: pip-audit (Python dependencies)
+        # Advisories with no patched release upstream yet are ignored via an
+        # explicit, reviewed allowlist. Keep in sync with the Makefile
+        # `audit` target (PIP_AUDIT_IGNORE); rationale in docs/reproduction-128.md.
+        run: pip-audit --ignore-vuln PYSEC-2026-311 --ignore-vuln PYSEC-2026-1325
+
+      # --- Frontend dependency vulnerability scan ---
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: cd frontend && npm ci
+      - name: npm audit (production dependencies, fail on high+)
+        run: cd frontend && npm audit --omit=dev --audit-level=high
+      - name: npm audit (dev tooling, informational only)
+        if: always()
+        run: cd frontend && npm audit || true
