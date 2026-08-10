@@ -1,24 +1,35 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
 
 async def create_review(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
-    """
-    Create a new review with status="pending".
+    """Create a new review with status="pending".
+
+    Args:
+        db: Active database session.
+        profile_id: ID of the profile being reviewed.
+        user_id: ID of the user requesting the review (not yet used for
+            authorization at creation time, but kept for symmetry with
+            other review operations).
+
+    Returns:
+        The newly created, persisted Review.
     """
     review = Review(
         profile_id=profile_id,
@@ -33,29 +44,46 @@ async def create_review(
 
 
 async def get_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
+    """Get a review by ID, checking that it belongs to the user's profile.
+
+    Args:
+        db: Active database session.
+        review_id: ID of the review to fetch.
+        user_id: ID of the user who must own the review's profile.
+
+    Returns:
+        The matching Review, or None if it doesn't exist or its profile
+        isn't owned by the given user.
     """
-    Get a review by ID, checking that it belongs to the user's profile.
-    """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    review: Review | None = result.scalars().first()
+    return review
 
 
 async def list_reviews(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     page: int = 1,
     page_size: int = 20,
 ) -> tuple[list[Review], int]:
-    """
-    List reviews for a user with pagination.
-    Returns (reviews, total_count).
+    """List reviews for a user with pagination.
+
+    Args:
+        db: Active database session.
+        user_id: ID of the user whose reviews to list.
+        page: 1-indexed page number to return.
+        page_size: Maximum number of reviews per page.
+
+    Returns:
+        A tuple of (reviews for the requested page, total review count
+        across all pages).
     """
     offset = (page - 1) * page_size
 
@@ -74,26 +102,38 @@ async def list_reviews(
         .limit(page_size)
     )
     result = await db.execute(stmt)
-    reviews = result.scalars().all()
+    reviews: list[Review] = list(result.scalars().all())
 
     return reviews, total
 
 
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
-    """
-    Background task to process a review.
+    """Background task that runs a review through the full processing pipeline.
+
     Steps:
-    1. Set status="processing"
-    2. Run ingestion pipeline on profile's sources
-    3. Run agent orchestration
-    4. Run RAG retrieval + generation
-    5. Run safety checks on output
-    6. Set status="complete", store sections in review.sections
-    7. On exception: set status="failed", log error
+        1. Set status="processing".
+        2. Run the ingestion pipeline on the profile's sources.
+        3. Run agent orchestration.
+        4. Run RAG retrieval + generation.
+        5. Run safety checks on the generated output.
+        6. On success, set status="complete" and store sections/score.
+        7. On any exception, set status="failed" and log the error.
+
+    This function does not raise on failure; errors are caught, logged,
+    and reflected in the review's status instead.
+
+    Args:
+        db: Active database session.
+        review_id: ID of the review to process.
+        profile_id: ID of the profile the review is for.
+
+    Returns:
+        None. Side effects (status, sections, overall_score) are persisted
+        directly on the Review row.
     """
     try:
         # Get the review
@@ -194,10 +234,21 @@ async def process_review(
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
 
-async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
-    """
-    Run ingestion pipeline to extract data from profile sources.
-    Returns list of ingested source data.
+async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[dict]:
+    """Run the ingestion pipeline to extract data from a profile's sources.
+
+    Ingests from each source the profile has configured (GitHub, portfolio
+    URL, resume), persisting each as an IngestedSource row. A failure on
+    one source is logged and skipped; it does not stop ingestion of the
+    others.
+
+    Args:
+        db: Active database session.
+        profile: Profile whose sources should be ingested.
+
+    Returns:
+        List of ingested source data dicts (one per successfully ingested
+        source), each with "source_type" and "data" keys.
     """
     sources = []
 
@@ -280,9 +331,16 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
 
 
 async def _run_agent_orchestration(profile: Profile, ingestion_results: list[dict]) -> dict:
-    """
-    Run agent orchestration to analyze ingested data.
-    Returns agent output with initial analysis.
+    """Run agent orchestration to analyze ingested data.
+
+    Args:
+        profile: Profile being reviewed.
+        ingestion_results: Source data produced by `_run_ingestion_pipeline`.
+
+    Returns:
+        Dict with an initial analysis, containing "sections" (a list of
+        section dicts with section_name, content, confidence, and
+        suggestions) and "overall_score".
     """
     # Placeholder: actual agent orchestration logic
     return {
@@ -309,9 +367,17 @@ async def _run_rag_retrieval_generation(
     ingestion_results: list[dict],
     agent_output: dict,
 ) -> dict:
-    """
-    Run RAG retrieval and generation to create detailed feedback.
-    Returns enhanced review output.
+    """Run RAG retrieval and generation to create detailed feedback.
+
+    Args:
+        profile: Profile being reviewed.
+        ingestion_results: Source data produced by `_run_ingestion_pipeline`.
+        agent_output: Initial analysis produced by `_run_agent_orchestration`.
+
+    Returns:
+        Dict with the enhanced review output, containing "sections" (a
+        list of section dicts with section_name, content, confidence, and
+        suggestions) and "overall_score".
     """
     # Placeholder: actual RAG logic
     # In production, this would:
@@ -355,9 +421,18 @@ async def _run_rag_retrieval_generation(
 
 
 async def _run_safety_checks(output: dict) -> bool:
-    """
-    Run safety checks on the review output.
-    Returns True if all checks pass, False otherwise.
+    """Run safety checks on the review output.
+
+    Validates that each section has a name and content, and that
+    confidence scores fall within [0, 1].
+
+    Args:
+        output: Review output dict (as produced by
+            `_run_rag_retrieval_generation`) containing a "sections" list.
+
+    Returns:
+        True if all checks pass, False if any check fails or an
+        unexpected error occurs during validation.
     """
     # Placeholder: actual safety checks logic
     # In production, this would:
