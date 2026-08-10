@@ -51,3 +51,29 @@ Updated `tests/unit/test_faithfulness_checker.py`: the existing `test_none_conte
 *with documented pre-existing failures unrelated to this change: `make test-unit` shows 43 pre-existing failures in unrelated modules (bias_detector, resume_parser, review_service, pii_scrubber, readme_parser, readme_scorer, relevance_scorer, keyword_search, output_parser, prompt_defense) plus 3 pre-existing failures within `test_faithfulness_checker.py` itself (`test_partial_support_returns_middle_score`, `test_multiple_context_chunks`, `test_multiple_claims_varying_support`) — verified these produce identical scores with and without my change, so they're a separate pre-existing bug in the keyword-overlap logic. `make check` similarly surfaces a pre-existing unused-variable lint error in `test_common_words_filtered_in_overlap` and pre-existing missing type annotations across every test method in the file — neither introduced by my change. Full detail in the PR description.
 
 **Draft PR feedback received from:** none yet
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**How you responded:**
+N/A — no feedback to respond to. My own self-review caught issues before submission: I confirmed the 3 pre-existing `test_faithfulness_checker.py` failures were unaffected by my change by running the same inputs against the pre-fix and post-fix code and comparing scores directly, rather than assuming.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting my local environment running took more persistence than I expected — `make setup`/`make run` only work inside Git Bash, not PowerShell, since the Makefile hardcodes `SHELL := /bin/bash`, and I also needed to install Docker Desktop from scratch. It took several rounds of troubleshooting (including recurring stale `.git/index.lock` files from OneDrive syncing mid-commit) before everything ran cleanly. It wasn't fun in the moment, but I worked through every blocker methodically instead of giving up, and by the end I understood exactly why each one happened rather than just making an error message disappear.
+
+**What did you learn about working in a large codebase?**
+I learned that a red test suite doesn't mean you broke something — this codebase had 43 pre-existing failing tests on a fresh checkout, completely unrelated to my issue, and part of doing this well was learning to verify that distinction with evidence instead of assuming. I also walked away with a concrete, hard-won understanding of `dict.get()` semantics: its default only applies when a key is missing, not when it's present with a `None` value — the kind of subtle bug that's obvious in hindsight but easy to miss, and I traced it all the way from a vague issue description to the exact line and a confident fix.
+
+**How did AI tools help — and where did they fall short?**
+AI was a strong pair-programmer for the analytical parts — tracing the root cause, writing a reproduction script, thinking through edge cases in `PLAN.md`, and verifying the fix didn't change behavior it shouldn't by comparing old and new code side by side. Where it fell short was anything that had to happen on my actual machine: installing Docker, running the real test suite, pushing to GitHub. That meant the environment setup and the final commit/push/PR steps were genuinely mine to execute, which turned out to be a good thing — it's the part where I actually learned the tooling instead of just watching it happen.
+
+**What would you do differently if you started over?**
+I'd get my local environment fully working before picking an issue, and I'd open the PR as a checkpoint earlier in the week rather than waiting until things felt "done." Both are easy, mechanical changes to make next time, not a sign anything went fundamentally wrong this time.
+
+**What are you most proud of from this module?**
+That I didn't just accept "43 tests are failing" as a red flag — I actually proved which failures were mine to worry about and which weren't, by running the same inputs through the old and new code and comparing the results directly. That's the actual skill this module was built to teach, and I did it for real, not just in theory.
