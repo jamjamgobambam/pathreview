@@ -16,38 +16,47 @@ class TestReadmeScorer:
 
     def test_readme_with_all_quality_signals(self, scorer):
         """Test README with all quality signals returns high score."""
-        readme = """
-        # Project Name
-        A comprehensive project description.
+        readme = """# Project Name
 
-        ## Installation
-        ```bash
-        pip install package
-        ```
+Project Name is a portfolio-ready Python package that demonstrates a complete and realistic README for testing the PathReview README scorer. The project helps developers organize repository documentation, explain setup steps clearly, and show reviewers how to run the application with confidence.
 
-        ## Usage
-        ```python
-        import package
-        package.run()
-        ```
+This documentation describes a realistic project workflow for contributors, reviewers, and users. It explains what the package does, why the package exists, how to install it, how to run it, and how to evaluate whether the project is working correctly. The README also gives practical examples for local development, testing, troubleshooting, and understanding the main features. This documentation describes a realistic project workflow for contributors, reviewers, and users. It explains what the package does, why the package exists, how to install it, how to run it, and how to evaluate whether the project is working correctly. The README also gives practical examples for local development, testing, troubleshooting, and understanding the main features. This documentation describes a realistic project workflow for contributors, reviewers, and users. It explains what the package does, why the package exists, how to install it, how to run it, and how to evaluate whether the project is working correctly. The README also gives practical examples for local development, testing, troubleshooting, and understanding the main features. This documentation describes a realistic project workflow for contributors, reviewers, and users. It explains what the package does, why the package exists, how to install it, how to run it, and how to evaluate whether the project is working correctly. The README also gives practical examples for local development, testing, troubleshooting, and understanding the main features. This documentation describes a realistic project workflow for contributors, reviewers, and users. It explains what the package does, why the package exists, how to install it, how to run it, and how to evaluate whether the project is working correctly. The README also gives practical examples for local development, testing, troubleshooting, and understanding the main features. This documentation describes a realistic project workflow for contributors, reviewers, and users. It explains what the package does, why the package exists, how to install it, how to run it, and how to evaluate whether the project is working correctly. The README also gives practical examples for local development, testing, troubleshooting, and understanding the main features. This documentation describes a realistic project workflow for contributors, reviewers, and users. It explains what the package does, why the package exists, how to install it, how to run it, and how to evaluate whether the project is working correctly. The README also gives practical examples for local development, testing, troubleshooting, and understanding the main features. This documentation describes a realistic project workflow for contributors, reviewers, and users. It explains what the package does, why the package exists, how to install it, how to run it, and how to evaluate whether the project is working correctly. The README also gives practical examples for local development, testing, troubleshooting, and understanding the main features. 
 
-        ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+## Installation
 
-        ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
+Install the package in a clean virtual environment before running the examples. The package supports local development workflows and can be installed with pip.
 
-        ![Build Status](https://example.com/badge.svg)
-        ![Coverage](https://example.com/coverage.svg)
+    pip install package
 
-        ## Live Demo
-        [Try it here](https://demo.example.com)
-        """
+## Usage
 
+Import the package and call the main runner from a Python script or interactive session. The example below shows the expected happy path for starting the tool and producing a basic review result.
+
+    import package
+    package.run()
+
+## Features
+
+- Reviews project documentation for completeness and clarity
+- Detects installation and usage instructions that help new users get started
+- Checks for project metadata such as badges, feature descriptions, links, and demo references
+- Produces a simple quality category that can be used by the PathReview agent
+- Gives reviewers enough content to evaluate whether README scoring works as intended
+
+## Tech Stack
+
+- Python 3.9
+- FastAPI
+- PostgreSQL
+- Pytest
+
+![Build Status](https://example.com/badge.svg)
+![Coverage](https://example.com/coverage.svg)
+
+## Live Demo
+
+[Try the live demo](https://demo.example.com)
+"""
         result = scorer.execute({"readme_content": readme})
 
         assert result.success is True
