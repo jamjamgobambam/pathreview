@@ -59,3 +59,48 @@ None.
 **Tests added or updated:** Updated `tests/unit/test_orchestrator.py` to verify that `structlog` captures `exc_info` when a tool crashes.
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 **Draft PR feedback received from:** Asked in Slack, but no feedback was received prior to the submission deadline.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?] The part of the project that was the hardest was finding the actual issue in the file.
+Often times i found myself focused on the wrong function of in the files.
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?] I think the biggest difference from a personal project is that you 
+have to spend a lot of time just reading and understanding the existing files before you can write any code.
+  I also learned that you have to be okay with leaving pre-existing broken tests alone as long as your specific fix works. 
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?] The AI tool helped in understanding the general idea of 
+what a certain file(s) were meant to do, and the purpose of each funtion in them. 
+It fell short in determining the exact way to resolve the issue and where the exact issue was.
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+One thing i would change would be my approach to resolving the issue i chose. I think i went
+to quick into solving the issue before fully understanding the purpose of file(s) that the issue was in the context of the 
+entire project. 
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+I'm most proud of the journey of understanding and resolving the issue. I have not used some of the tools
+used in the project before. Taking the time to grasp their use and actually understanding it is something i am proud of. 
