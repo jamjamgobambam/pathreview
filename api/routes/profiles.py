@@ -200,7 +200,8 @@ async def delete_profile_endpoint(
     db=Depends(get_db),
 ):
     """
-    Delete a profile and cascade delete reviews and ingested sources.
+    Delete a profile and cascade delete reviews, ingested sources, and
+    vector store embeddings.
     Returns 404 if not found or not owned by current user.
     """
     try:

@@ -1,11 +1,13 @@
 from uuid import UUID
+
 import structlog
 from sqlalchemy import select
 
+from api.schemas.profile import ProfileCreate, ProfileUpdate
+from core.models.ingested_source import IngestedSource
 from core.models.profile import Profile
 from core.models.review import Review
-from core.models.ingested_source import IngestedSource
-from api.schemas.profile import ProfileCreate, ProfileUpdate
+from rag.retriever.vector_store import VectorStore
 
 log = structlog.get_logger()
 
@@ -41,9 +43,7 @@ async def get_profile(
     """
     Get a profile by ID, checking ownership.
     """
-    stmt = select(Profile).where(
-        (Profile.id == profile_id) & (Profile.user_id == user_id)
-    )
+    stmt = select(Profile).where((Profile.id == profile_id) & (Profile.user_id == user_id))
     result = await db.execute(stmt)
     return result.scalars().first()
 
@@ -76,9 +76,11 @@ async def delete_profile(
     db,
     profile_id: UUID,
     user_id: UUID,
+    vector_store: VectorStore | None = None,
 ) -> bool:
     """
-    Delete a profile and cascade delete reviews and ingested sources.
+    Delete a profile and cascade delete reviews, ingested sources, and
+    vector store embeddings.
     Returns True if deleted, False if not found.
     """
     profile = await get_profile(db, profile_id, user_id)
@@ -86,6 +88,13 @@ async def delete_profile(
         return False
 
     try:
+        # Delete the profile's vector store embeddings first. If this fails
+        # (e.g. the vector store is unreachable), nothing in Postgres has
+        # been touched yet, so the whole deletion can simply be retried
+        # rather than leaving Postgres and the vector store disagreeing.
+        store = vector_store or VectorStore()
+        store.delete_collection(f"profile_{profile_id}")
+
         # Delete related reviews
         stmt = select(Review).where(Review.profile_id == profile_id)
         result = await db.execute(stmt)
