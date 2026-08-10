@@ -184,3 +184,125 @@ fixing them would balloon the diff.
 
 **Draft PR feedback received from:** none (no peer or mentor feedback received at
 the time of submission)
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. As of the end of Week 10, PR #814 on `ascherj/pathreview`
+(https://github.com/ascherj/pathreview/pull/814) is still open and unmerged with
+zero review comments, zero inline comments, and no requested reviewers. GitHub
+reports its merge state as `blocked`, and no CI checks have run against the head
+commit at all — the workflows in `.github/workflows/ci.yml` appear not to be
+triggered for fork pull requests on this repo, so I don't even have an automated
+signal to react to. Nobody from my cohort picked up my Slack request for a draft
+review either.
+
+**How you responded:**
+No changes were warranted, since there was nothing to respond to. Rather than
+let the PR sit completely idle, I re-verified it against the same baseline I
+recorded in Week 9 (`ruff check .` still 182 errors vs. 182 before my changes,
+`pytest tests/unit -m unit` still 53 failed / 383 passed vs. 53 failed / 375
+passed before), so if a maintainer picks it up the "introduces no new failures"
+claim in the PR description is still true. If feedback arrives after the module
+closes, the two things I'd expect and would act on first are the ones I flagged
+myself in the "Notes for Reviewers" section: whether five coarse milestones are
+acceptable or they want finer per-source progress, and whether one DB commit per
+milestone is acceptable write load or they'd rather cache progress in Redis.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The reproduction breaking my own issue framing was the hardest moment, and it
+happened in Week 8, not during implementation. In Week 7 I wrote in this journal
+that "the backend already emits `progress_pct`, so no API or database changes are
+required — this is primarily wiring an existing value through to the UI." That
+was wrong, and I only found out because I made myself write `tests/repro_issue_97.py`
+instead of trusting my read of the code. The endpoint in `api/routes/reviews.py`
+really did return a field called `progress_pct` — but via
+`getattr(review, "progress_pct", 0)` against a `Review` model that had no such
+column, so the fallback silently resolved to `0` on every single poll. I had
+scanned that line in Week 7 and pattern-matched "the field is there, good" without
+asking where the value came from. If I'd gone straight to implementation I would
+have shipped a progress bar frozen at 0% that snapped to complete, which is
+arguably a worse user experience than the spinner it replaced, and I'd have had no
+idea until someone ran it. The thing that fooled me wasn't complicated code; it
+was a defensive default that made broken code look finished.
+
+**What did you learn about working in a large codebase?**
+That "don't make it worse" is a completely different bar than "make it pass," and
+that you have to measure it deliberately. When I finally ran the checks, this
+repo had 53 failing unit tests, 182 ruff errors, and 5 mypy errors before I
+touched anything — including 13 failures in `tests/unit/test_review_service.py`,
+the exact file I needed to edit, caused by tests building result objects with
+`AsyncMock` so that `result.scalars()` returns a coroutine. On my own projects
+green means good and red means I broke something; here red was the starting
+state, so I had to check out `9e32d4c` (the commit before my work), record every
+number, then re-run the same commands on my branch and diff them. That discipline
+paid off twice: my ruff count went 182 → 183 and my mypy count 20 → 21, and both
+deltas were mine — an `N806` from naming a patched class `MockReview` and a
+`no-untyped-def` from `_set_progress`'s unannotated `db` parameter. Without a
+baseline both would have been invisible in the noise. I also learned to read the
+tooling itself rather than trust its name: `make check` runs `black .`, which
+*rewrites* 53 pre-existing files, so running the documented command as-is would
+have buried my ~180-line fix inside a thousand-line reformatting diff. I ran
+`black --check` instead and left the other files alone. Resisting drive-by
+cleanup was genuinely uncomfortable — those 13 broken tests are three lines from
+working — but they're unrelated to #97 and fixing them would have made my diff
+much harder to review.
+
+**How did AI tools help — and where did they fall short?**
+The biggest win was tracing the data path end to end. I could ask for every place
+`progress_pct` appears across Python, TypeScript, and the Alembic migrations and
+get the full five-layer picture — model, service, endpoint, TS type, component —
+in one pass instead of grepping a repo I'd never seen before. It was also good at
+matching conventions: my migration `003_add_progress_pct_to_reviews.py` follows
+the shape of `002_add_error_message_to_reviews.py` because I asked for the
+existing pattern rather than writing one from scratch, and the same for the
+Google-style docstrings CONTRIBUTING.md requires. Where it fell short was
+judgment about *this specific* repo's state. The generated test code was correct
+and passed, but it introduced that `N806` lint error — plausible, idiomatic
+Python that happened to violate a rule this project enables. Nothing flagged
+that; I only caught it by diffing ruff output against the baseline. It also
+couldn't make the call that mattered most: once the reproduction proved the
+backend was broken, deciding to emit five coarse milestones instead of
+instrumenting `_run_ingestion_pipeline` per source was a scope judgment about how
+much of someone else's pipeline a first-time contributor should touch, and that
+came down to me. The pattern I'd summarize is: AI was excellent at "what does this
+code do and what does this project's convention look like," and useless at "what
+should I not do here."
+
+**What would you do differently if you started over?**
+I'd reproduce before I write the problem summary, not after. My Week 7 entry
+committed me publicly to a frontend-only framing that Week 8 demolished, and I
+spent the first part of Week 9 rewriting my mental model rather than building. A
+thirty-minute check — actually reading where `getattr`'s default came from —
+would have caught it. I'd also set up the environment in Week 7 instead of Week
+9: this checkout had no `.venv`, so I couldn't run a single check until I'd sat
+through the full `pip install -e ".[dev]"`, and `node` still isn't installed on
+this machine, which is the direct reason PR #814 has no screenshot of the
+progress bar actually moving. For a UI issue, "trust me, the JSX is right" is a
+weak thing to hand a reviewer, and that was avoidable with an hour of setup three
+weeks earlier. On issue selection I'd stand by taking a Tier 3 — but I'd stop
+reasoning from labels. I justified it in Week 7 by saying the hard backend part
+was already done; it wasn't, and the tier was accurate while my justification was
+not.
+
+**What are you most proud of from this module?**
+The reproduction script. `tests/repro_issue_97.py` is stdlib-only and statically
+inspects all five files on the progress path, so it runs without Postgres, Redis,
+or npm — which mattered enormously, since I never got the full stack running
+locally. It reported 4/4 FAIL in Week 8 and 4/4 PASS in Week 9, and that flip is
+the single clearest piece of evidence in my PR that the whole path is wired, not
+just the layer I happened to be looking at. I'm prouder of it than of the fix
+because it's what caught my own wrong assumption. Writing a check that could
+prove me wrong, before I'd invested in being right, is the habit I actually want
+to keep from this module — the progress bar itself is maybe 180 lines and I could
+write it again in an afternoon.
