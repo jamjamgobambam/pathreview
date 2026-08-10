@@ -75,3 +75,34 @@ No new test file created; verified the existing test `test_none_context_chunk_te
 (any stray errors are unrelated to this fix, and the fix did not introduce any new errors, only cleared the failing test that was related to the original issue)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No
+
+**Summary of feedback:**
+N/A
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+All the surrounding process behind submitting a pull request, and all the intricacies that needed to be taken into account. This includes following a specific template, having to verify a number of tests, and more generally just the breadth of checks that needed to be done before going ahead with the pull request. Given it was my first time doing something like this with a pull request, the contrast between the simple nature of the change and the process that goes behind it is something that I was surprised by, but ultimately satisfied with once I got it down. I imagine it gets easier as you do it, but for my first time it was quite the surprise just how much actually goes behind a pull request and the CI workflow.
+
+**What did you learn about working in a large codebase?**
+As noted above, I learned a lot about the CI workflow that goes into submitting changes in a large codebase. To be specific, given this project had a myriad of other issues (intentionally for other students to solve), learning to navigate around those, and be ultra careful about my scope of things was something that was new to me, given most of my previous experience was working in a codebase by myself or with a few people at max, where I was hands on with every single issue and had a larger understanding of every issue. It was genuinely new to have to accept not necessarily understanding those other issues, but also moreover understanding where the scope of my specific issue started and ended.
+
+**How did AI tools help — and where did they fall short?**
+They helped in making sure I was tidy with the semantics of submitting a pull request, as well as understanding the potential scope of this issue and where it could potentially manifest elsewhere. However, it wasn't able to really do that exploration too effectively on its own, especially with the multitude of other issues it tripped up on, so that exploration was (and for the better) left up to me.
+
+**What would you do differently if you started over?**
+I would choose a slightly harder module that required a bit more work and a wider scope, as well as trying to get to a point where the workflow for a pull request was streamlined, and where I'm more hung up on the actual issue instead of the pull request, not vice versa as I was here, given it was my first time.
+
+**What are you most proud of from this module?**
+Understanding the process behind a pull request and understanding the usefulness of Git/GitHub as a collaborative tool a lot better than I previously did.
