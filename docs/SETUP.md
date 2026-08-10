@@ -82,11 +82,11 @@ To reset back to a clean seed state at any time: `make reset-db`
 - If ports are in use, stop the conflicting service or change ports in `docker-compose.yml`
 
 **Windows: "password authentication failed" when running migrations:**
-PostgreSQL is mapped to port **5433** on Windows (not 5432) to avoid conflicts with any native PostgreSQL installation. If you see auth errors, make sure your `.env` uses the correct connection string:
+PostgreSQL is mapped to port **5434** on the host (not 5432) to avoid conflicts with any native PostgreSQL installation. If you see auth errors, make sure your `.env` uses the correct connection string:
 ```
-DATABASE_URL=postgresql+asyncpg://pathreview:pathreview@localhost:5433/pathreview_dev
+DATABASE_URL=postgresql+asyncpg://pathreview:pathreview@localhost:5434/pathreview_dev
 ```
-If you have PostgreSQL installed natively on Windows (e.g. from a previous project), it will occupy port 5432 and intercept connections meant for Docker. The `docker-compose.yml` already maps around this — just ensure your `.env` was copied from `.env.example` after cloning.
+If you have PostgreSQL installed natively (e.g. from a previous project), it may occupy ports 5432/5433 and intercept connections meant for Docker. The `docker-compose.yml` already maps around this — just ensure your `.env` was copied from `.env.example` after cloning.
 
 **"Out of memory" during setup:**
 - Close other applications to free RAM
