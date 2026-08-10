@@ -105,6 +105,7 @@ class GitHubTool(BaseTool):
             "open_issues_count": repo_json.get("open_issues_count", 0),
             "last_commit_date": repo_json.get("pushed_at", ""),
             "has_readme": self._has_readme(username, repo_name),
+            "has_tests": self._has_tests(username, repo_name, repo_json.get("default_branch", "")),
             "topics": repo_json.get("topics", []),
             "homepage": repo_json.get("homepage") or "",
         }
@@ -135,3 +136,49 @@ class GitHubTool(BaseTool):
             return response.status_code == 200
         except Exception:
             return False
+
+    def _has_tests(self, username: str, repo_name: str, default_branch: str) -> bool:
+        """Check whether a repository ships automated tests.
+
+        Detects a ``tests/`` or ``test/`` directory, a ``pytest.ini`` file, or any
+        ``test_*.py`` file anywhere in the repository tree. Mirrors ``_has_readme``:
+        on any API error (missing branch, 404, rate limit, network) it returns
+        ``False`` rather than raising, so a detection failure never breaks analysis.
+
+        Args:
+            username: GitHub username.
+            repo_name: Repository name.
+            default_branch: The repository's default branch (tree ref to inspect).
+
+        Returns:
+            True if a recognised test marker is found, otherwise False.
+        """
+        if not default_branch:
+            return False
+
+        url = f"{self.base_url}/repos/{username}/{repo_name}/git/trees/{default_branch}"
+
+        headers = {}
+        if self.api_token:
+            headers["Authorization"] = f"token {self.api_token}"
+
+        try:
+            response = httpx.get(
+                url, headers=headers, params={"recursive": "1"}, timeout=10.0
+            )
+            response.raise_for_status()
+            tree = response.json().get("tree", [])
+        except Exception:
+            return False
+
+        for entry in tree:
+            path = entry.get("path", "")
+            name = path.rsplit("/", 1)[-1]
+            if entry.get("type") == "tree" and name in ("tests", "test"):
+                return True
+            if entry.get("type") == "blob":
+                if name == "pytest.ini":
+                    return True
+                if name.startswith("test_") and name.endswith(".py"):
+                    return True
+        return False
