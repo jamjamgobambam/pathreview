@@ -55,6 +55,15 @@ class ContextManager:
         """
         return dict(self.results)
 
+    def clear(self) -> None:
+        """Clear all cached tool results.
+
+        Used to reset memoization between separate orchestrator runs so a
+        new run cannot be served cached results from a previous run.
+        """
+        self.results.clear()
+        logger.info("context_manager_cleared")
+
     @staticmethod
     def hash_input(input_data: dict) -> str:
         """Hash input data for consistent memoization.

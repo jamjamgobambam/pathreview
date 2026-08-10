@@ -68,6 +68,10 @@ class SessionStore:
     def delete(self, session_id: str) -> None:
         """Delete session data.
 
+        Called by Orchestrator.run() at the start of every run to clear
+        stale state from a prior review before executing fresh analysis
+        (see issue #43).
+
         Args:
             session_id: Session identifier
         """

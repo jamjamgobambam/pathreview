@@ -31,6 +31,11 @@ class Orchestrator:
     def run(self, profile_id: str, profile_data: dict) -> dict:
         """Execute analysis plan for a profile.
 
+        Clears any cached tool results and session state from a previous
+        run for this profile before executing, so each review always
+        reflects fresh analysis instead of stale results from an earlier
+        review (see issue #43).
+
         Args:
             profile_id: Profile identifier
             profile_data: Profile data dict with github_username, projects, etc.
@@ -40,13 +45,14 @@ class Orchestrator:
         """
         logger.info("orchestrator_start", profile_id=profile_id)
 
+        # Reset per-run tool-result cache and any stored session state for
+        # this profile so this run cannot be served results from a prior run.
+        self.context_manager.clear()
+        if self.session_store:
+            self.session_store.delete(profile_id)
+
         # Build execution plan
         plan = self._build_plan(profile_data)
-
-        # Load previous session state if available
-        session_state = {}
-        if self.session_store:
-            session_state = self.session_store.get(profile_id) or {}
 
         # Execute plan
         results = {}
@@ -61,10 +67,9 @@ class Orchestrator:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
                 results[tool_name] = {"error": str(e), "success": False}
 
-        # Persist state
+        # Persist this run's results as the current session state.
         if self.session_store:
-            session_state.update(results)
-            self.session_store.set(profile_id, session_state)
+            self.session_store.set(profile_id, results)
 
         logger.info("orchestrator_complete", profile_id=profile_id,
                    tools_executed=len(results))
@@ -146,7 +151,10 @@ class Orchestrator:
         if tool_name not in self.tools:
             raise ValueError(f"Unknown tool: {tool_name}")
 
-        # Check context cache
+        # Check context cache. This memoizes repeat tool calls with
+        # identical input *within* a single run() call; run() clears the
+        # cache at the start of every run so it never carries over between
+        # separate reviews of the same profile (see issue #43).
         input_hash = ContextManager.hash_input(tool_input)
         cached_result = self.context_manager.get_tool_result(tool_name, input_hash)
 
