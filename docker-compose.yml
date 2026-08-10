@@ -24,7 +24,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6380:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -36,7 +36,7 @@ services:
           memory: 256M
 
   vector-db:
-    image: chromadb/chroma:0.4.22
+    image: chromadb/chroma:0.4.24
     ports:
       - "8001:8000"
     volumes:
@@ -44,7 +44,7 @@ services:
     environment:
       ANONYMIZED_TELEMETRY: "false"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/heartbeat')"]
       interval: 10s
       timeout: 5s
       retries: 5
