@@ -82,6 +82,9 @@ exclude = ["alembic/versions/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 markers = [
     "unit: Unit tests (fast, no external dependencies)",
     "integration: Integration tests (require Docker services)",
