@@ -1,6 +1,7 @@
 """Check if generated feedback is supported by retrieved context."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -20,20 +21,21 @@ class FaithfulnessChecker:
             Faithfulness score 0.0-1.0 (ratio of supported claims)
         """
         if not feedback or not context_chunks:
-            logger.info("faithfulness_empty_input", has_feedback=bool(feedback),
-                       has_chunks=bool(context_chunks))
+            logger.info(
+                "faithfulness_empty_input",
+                has_feedback=bool(feedback),
+                has_chunks=bool(context_chunks),
+            )
             return 0.0
 
-        # Extract key claims from feedback (sentences)
+        # Extract independently scorable claims from feedback
         claims = self._extract_claims(feedback)
         if not claims:
             logger.info("faithfulness_no_claims_extracted")
             return 0.5  # Default to neutral if no extractable claims
 
         # Concatenate context text
-        context_text = " ".join([
-            chunk.get("text", "") for chunk in context_chunks
-        ])
+        context_text = " ".join(chunk.get("text") or "" for chunk in context_chunks)
 
         # Check each claim for support
         supported = 0
@@ -43,24 +45,34 @@ class FaithfulnessChecker:
 
         score = supported / len(claims) if claims else 0.0
 
-        logger.info("faithfulness_checked", claims_count=len(claims),
-                   supported_count=supported, score=score)
+        logger.info(
+            "faithfulness_checked", claims_count=len(claims), supported_count=supported, score=score
+        )
 
         return score
 
     @staticmethod
     def _extract_claims(text: str) -> list[str]:
-        """Extract key claims from feedback text.
+        """Extract independently scorable claims from feedback text.
+
+        Sentence punctuation, commas, and conjunctions separate claims so
+        feedback containing mixed evidence can receive partial credit. Short
+        claims are retained when they contain at least one alphanumeric token.
 
         Args:
             text: Feedback text
 
         Returns:
-            List of claims (sentences)
+            List of claim fragments, limited to the first 10 items.
         """
-        # Split by sentence (simple regex)
-        sentences = re.split(r'[.!?]+', text)
-        claims = [s.strip() for s in sentences if s.strip() and len(s.strip()) > 10]
+        # Treat sentence, conjunction, and list boundaries as separate claims so
+        # mixed feedback can receive partial credit.
+        fragments = re.split(r"[.!?]+|\s*,\s*|\s+and\s+", text, flags=re.IGNORECASE)
+        claims = [
+            fragment.strip()
+            for fragment in fragments
+            if fragment.strip() and re.search(r"[A-Za-z0-9]", fragment)
+        ]
         return claims[:10]  # Limit to 10 claims for scoring
 
     @staticmethod
@@ -74,15 +86,57 @@ class FaithfulnessChecker:
         Returns:
             True if claim is supported
         """
-        # Tokenize and check for keyword overlap
-        claim_tokens = set(claim.lower().split())
-        context_tokens = set(context.lower().split())
+        # Normalize punctuation and casing before checking keyword overlap.
+        # Internal separators are kept so terms such as "node.js" and
+        # "scikit-learn" survive tokenization, and a trailing "+" or "#" is kept
+        # for "c++" and "c#". Sentence punctuation is never absorbed, so
+        # "Django." and "Django" produce the same token.
+        token_pattern = r"[a-z0-9]+(?:[./-][a-z0-9]+)*[+#]*"
+        claim_tokens = set(re.findall(token_pattern, claim.lower()))
+        context_tokens = set(re.findall(token_pattern, context.lower()))
 
-        # Require at least some meaningful overlap
+        # Require at least one distinctive overlapping term.
         overlap = claim_tokens & context_tokens
-        # Filter out common stop words
-        stop_words = {'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been',
-                     'and', 'or', 'but', 'in', 'of', 'to', 'for', 'that'}
-        meaningful_overlap = overlap - stop_words
+        # Generic vocabulary cannot establish support by itself.
+        generic_words = {
+            "a",
+            "an",
+            "the",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "and",
+            "or",
+            "but",
+            "in",
+            "of",
+            "to",
+            "for",
+            "that",
+            "with",
+            "has",
+            "have",
+            "had",
+            "shows",
+            "shown",
+            "demonstrated",
+            "developer",
+            "project",
+            "projects",
+            "portfolio",
+            "experience",
+            "experienced",
+            "expert",
+            "expertise",
+            "skill",
+            "skills",
+            "knowledge",
+            "strong",
+            "documented",
+        }
+        meaningful_overlap = overlap - generic_words
 
-        return len(meaningful_overlap) >= 2
+        return bool(meaningful_overlap)
