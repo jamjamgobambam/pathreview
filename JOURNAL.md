@@ -84,3 +84,38 @@ Added a tone check to the feedback-generation pipeline so discouraging or vague 
 **Self-review confirmation:** [x] make check passes (no new failures vs. baseline — ruff 182→176, black 52→49 files, mypy unchanged at 5 pre-existing errors)  [x] make test-unit passes (no new failures vs. baseline — 54→53 failed, 375→403 passed)
 
 **Draft PR feedback received from:** none (peer review step skipped this week — time constraints)
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review has come in yet.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Harder than expected was not the code. It was finding out that an assumption I made about how the system worked was wrong. I assumed that fixing ContentFilter and ReviewGenerator, the two files the issue named, would actually change what users see. Before writing any code, I traced every caller of both classes across the repo. Neither class is used anywhere outside its own file. The real API path, from POST /reviews through process_review() to _run_safety_checks(), is completely stubbed. The docstring for _run_safety_checks() says it should validate feedback tone and constructiveness, but it only checks that fields are not empty. So a correct, fully tested fix to the two named files would not actually reach a real user, because the live pipeline never calls either class. I had to manage that assumption before I could plan the fix.
+
+**What did you learn about working in a large codebase?**
+Working in a large codebase taught me how important it is to keep scope tight. I had to stick to the issue I was assigned instead of fixing every other problem I found along the way. I found pre-existing bugs and dozens of unrelated test failures across the repo, and I left them alone, because I did not know what effect a fix might have on other parts of the system I was not familiar with. The one exception was a single unused variable that was blocking my own commit, and even then I confirmed it was safe before touching it.
+
+I also learned that you have to understand how a codebase already works before you start building in it. You have to follow the existing design and logic instead of building it the way you would if it were your own project. For example, every existing safety and evaluation class in this codebase used simple pattern matching instead of calling an LLM, even in a case where an LLM would have been the obvious choice. My original plan was to build a tone checker that called an LLM. I changed the plan to match the existing pattern instead. I was working inside someone else's structure, not designing my own.
+
+**How did AI tools help — and where did they fall short?**
+AI helped most with the mechanical work. It moved fast on writing the regex patterns, building 27 tests across three files that matched the existing pytest conventions, and running baseline comparisons through a git worktree to separate pre-existing failures from real regressions. It also caught a documentation problem I would have missed. The CONTRIBUTING.md testing guide claims the repo uses pytest-mock, but that package is not even installed. It matched the actual convention used in the codebase instead.
+
+Where it fell short was anything outside the code itself. It did not know my course deadlines, grace periods, or policies. I had to correct its assumption about when my second check-in was actually due. It also made a mistake in my first PR draft. It reworded the template's testing checkboxes into its own summary instead of keeping the literal checkboxes intact. It caught that mistake itself later, but I would have needed to catch it if I had not been reading closely, since the assignment requires the PR template to be fully filled in as written.
+
+**What would you do differently if you started over?**
+If I started over, I would go slower. I would spend more time understanding the codebase as a whole before picking a solution. I did not know how long the issue would actually take to solve, so I jumped to the first solution instead of taking the time to explore the code more first. Next time I would spend more time learning the features and structure of the codebase before starting. I think that kind of understanding also comes from working on more issues in the same codebase over time.
+
+**What are you most proud of from this module?**
+What I am most proud of is that this assignment was open-ended in a way the other modules were not. It was not as neatly completable. I had to make decisions and justify them myself instead of being told what to do. The clearest example was deciding not to touch the stubbed parts of the API, like _run_rag_retrieval_generation and _run_safety_checks, even though I could see they were incomplete. I chose to isolate my issue instead of expanding the scope to fix them. Finishing the assignment under those conditions, without someone telling me what the right decision was, felt like a realistic and collaborative way to end the course.
