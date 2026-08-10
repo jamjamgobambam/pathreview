@@ -16,7 +16,7 @@ PYTEST := $(VENV_BIN)/pytest
 # ---- Setup ----
 
 setup: ## First-time setup: venv, deps, migrations, seed data
-	python -m venv .venv
+	python -m venv .venv || python3 -m venv .venv
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
 	$(PIP) install -e ".[dev]"
 	$(VENV_BIN)/pre-commit install
@@ -31,7 +31,7 @@ setup: ## First-time setup: venv, deps, migrations, seed data
 run: ## Start backend + frontend dev servers
 	@trap 'kill %1 %2 2>/dev/null' EXIT; \
 	source $(VENV_BIN)/activate && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
-	cd frontend && npm run dev &; \
+	cd frontend && npm run dev & \
 	wait
 
 # ---- Tests ----
@@ -54,7 +54,7 @@ format: ## Run black formatter
 	$(VENV_BIN)/black .
 
 typecheck: ## Run mypy type checker
-	$(VENV_BIN)/mypy pathreview/ api/ core/ ingestion/ rag/ agent/ safety/
+	$(VENV_BIN)/mypy api/ core/ ingestion/ rag/ agent/ safety/
 
 check: lint format typecheck ## Run lint + format + typecheck
 
@@ -67,8 +67,8 @@ seed: ## Re-seed the database with sample data
 	$(PYTHON) scripts/seed_db.py
 
 reset-db: ## Drop and recreate the development database
-	docker compose exec db psql -U pathreview -c "DROP DATABASE IF EXISTS pathreview_dev;"
-	docker compose exec db psql -U pathreview -c "CREATE DATABASE pathreview_dev;"
+	docker compose exec db psql -U pathreview -d postgres -c "DROP DATABASE IF EXISTS pathreview_dev;"
+	docker compose exec db psql -U pathreview -d postgres -c "CREATE DATABASE pathreview_dev;"
 	$(VENV_BIN)/alembic upgrade head
 	$(PYTHON) scripts/seed_db.py
 
