@@ -1,0 +1,13 @@
+MOCK RESUME - MOCK FILE
+This is a mock resume used only as a fixture for the ingestion pipeline
+integration test (issue #18). It has no work experience section, mirroring
+the case already covered in tests/unit/test_resume_parser.py.
+
+John Smith
+Software Developer
+john@example.com
+
+Education:
+- B.S. Computer Science, University (2023)
+
+Skills: Python, JavaScript, React
