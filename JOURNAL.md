@@ -61,3 +61,32 @@ Self-review confirmation: make check passes, make test-unit passes, both confirm
 
 Draft PR feedback received from: none
 
+
+
+Week 10 — Iteration & reflection
+
+Reviewer feedback
+
+Feedback received: No — reviewer feedback isn't a feature this semester (Su26), per the course note. No maintainer comments came in on PR#748.
+
+Summary of feedback: N/A — not applicable per the Su26 course note on reviewer feedback.
+
+How you responded: N/A.
+
+Reflection
+
+What was harder than you expected? 
+Getting the environment running ate far more time than the actual code fix. Between a venv creation that got interrupted mid-ensurepip, Docker Desktop not running, a missing .env file, and Node/npm not being installed at all, I spent longer on make setup than on the one-line fix in faithfulness_checker.py. The actual bug (chunk.get("text", "") returning None instead of a default) took minutes to understand and fix once I could run the code at all. I also didn't expect make format to silently reformat 47 unrelated files across the whole repo, I almost committed a massive, out-of-scope diff without realizing black doesn't scope itself to just the files I'd touched.
+
+What did you learn about working in a large codebase? 
+The most important skill wasn't reading code, it was telling the difference between "my bug" and "pre-existing noise." Before touching anything, I ran make test-unit, make lint, and make typecheck to capture a baseline: 53 failing tests, ~180 lint errors, and 5 mypy errors that had nothing to do with my issue. Without that baseline, I wouldn't have been able to tell a reviewer with confidence that my fix introduced zero new failures, I'd have just been guessing. I also learned that a project's own tooling config can be internally inconsistent: the Makefile's typecheck target deliberately excludes tests/, but the pre-commit mypy hook checks it anyway, which blocked my commit over 26 pre-existing "missing annotation" errors I had nothing to do with. A newcomer can't know that from reading docs, you only find it by hitting the wall.
+
+How did AI tools help, and where did they fall short?
+ AI was fastest at diagnosis: explaining why pytest hung on pytest-benchmark's git call. It fell short anywhere I required more analysis to be done. There was also a moment where AI told me a fix was missing from GitHub when it wasn't, it had hit a stale CDN cache on raw.githubusercontent.com and I had to ask it to double check with local grep before trusting that. That was a good reminder that AI's read of "what's true" is only as good as the data it just fetched, and it can be wrong with full confidence.
+
+What would you do differently if you started over?
+ I'd capture the pre-existing failure baseline at the very start of Week 8, before writing PLAN.md, instead of doing it late in Week 9. Having those numbers earlier would have made my plan's "risks and unknowns" section sharper. I'd also read the actual grading rubric and PR template before drafting anything, instead of writing a generic version first and then rewriting it once I saw what was actually being graded.
+
+What are you most proud of?
+ Not the fix itself, it's one line. I'm most proud of catching that 3 of the 4 failing tests in test_faithfulness_checker.py were unrelated to my bug before I assumed my fix was incomplete. It would have been easy to either panic and try to "fix" tests that weren't mine to fix, or to just ignore the discrepancy. Checking each failing test's actual input (none of the three passed a None value) before drawing a conclusion is the habit I want to keep from this module.
+
