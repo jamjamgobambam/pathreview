@@ -49,7 +49,7 @@ class TestRelevanceScorer:
         query = "Python Django web framework"
         chunks = [
             {
-                "text": "Django is a Python web framework for rapid development"
+                "text": "Django is a web framework for rapid development"
             },
         ]
 
