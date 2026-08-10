@@ -45,6 +45,58 @@ jobs:
         env:
           LLM_PROVIDER: mock
 
+  test-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check whether safety-relevant files changed
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "run_tests=true" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -qE '^(safety/|tests/security/|tests/fixtures/injection_attempts/)'; then
+            echo "run_tests=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run_tests=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Guard against a weakened security test suite
+        if: steps.changes.outputs.run_tests == 'true' && github.event_name == 'pull_request'
+        run: |
+          BASE_REF="origin/${{ github.base_ref }}"
+
+          BASE_FIXTURE_COUNT=$(git ls-tree -r --name-only "$BASE_REF" -- tests/fixtures/injection_attempts 2>/dev/null | wc -l | tr -d ' ')
+          HEAD_FIXTURE_COUNT=$(find tests/fixtures/injection_attempts -type f 2>/dev/null | wc -l | tr -d ' ')
+
+          BASE_TEST_COUNT=$(git show "$BASE_REF:tests/security/test_prompt_injection.py" 2>/dev/null | grep -o '^    def test_' | wc -l | tr -d ' ')
+          HEAD_TEST_COUNT=$(grep -o '^    def test_' tests/security/test_prompt_injection.py 2>/dev/null | wc -l | tr -d ' ')
+
+          echo "Fixture files:    base=$BASE_FIXTURE_COUNT head=$HEAD_FIXTURE_COUNT"
+          echo "Test functions:   base=$BASE_TEST_COUNT head=$HEAD_TEST_COUNT"
+
+          if [ "$HEAD_FIXTURE_COUNT" -lt "$BASE_FIXTURE_COUNT" ]; then
+            echo "::error::Attack payload corpus shrank from $BASE_FIXTURE_COUNT to $HEAD_FIXTURE_COUNT files in tests/fixtures/injection_attempts/. If removing a payload is intentional, explain why in the PR description."
+            exit 1
+          fi
+
+          if [ "$HEAD_TEST_COUNT" -lt "$BASE_TEST_COUNT" ]; then
+            echo "::error::Security test function count dropped from $BASE_TEST_COUNT to $HEAD_TEST_COUNT in tests/security/test_prompt_injection.py."
+            exit 1
+          fi
+      - uses: actions/setup-python@v5
+        if: steps.changes.outputs.run_tests == 'true'
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]"
+        if: steps.changes.outputs.run_tests == 'true'
+      - name: Run red-team prompt injection tests
+        if: steps.changes.outputs.run_tests == 'true'
+        run: pytest tests/security -v --tb=short
+        env:
+          LLM_PROVIDER: mock
+
   test-integration:
     runs-on: ubuntu-latest
     services:
