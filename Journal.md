@@ -86,3 +86,34 @@ Added `tests/unit/test_logging_caplog.py` — a new regression suite (`TestStruc
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
 none
+
+## Week 10 — Iteration & reflection
+
+
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+learning the codebase was harder than expected but with the help of claude it lessen the load. 
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+i learned about following proper protocols and using git effectively.
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+AI helped with getting the summary of the codebase and how it functions. claude helped with most tasks. the only ones it didnt help were the ones regarding submitting PRS
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+
+i would have done more issues and maybe added features next time since that would have been a better learning experience
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+i proud that i learned and used git more effectively than before. it was my first time contributing to a large codebase like this and it was a great experience
