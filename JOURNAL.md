@@ -110,3 +110,43 @@ I added `tests/unit/test_github_tool.py` with 9 focused tests covering positive 
 The full checks still contain documented pre-existing failures, but this contribution introduced no new failures. The focused files pass Ruff, Black, and Mypy.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+
+No reviewer or maintainer feedback has been received on PR #527. The Summer 2026 course notes explain that formal reviewer feedback is not being provided, so I documented the current status and continued with my reflection.
+
+**How you responded:**
+
+No response or code changes were required because no reviewer feedback was received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was understanding how a small feature fit into an unfamiliar codebase. Adding a Boolean sounded simple, but I first had to trace how `GitHubTool` collected repository metadata, determine how to retrieve the repository file tree, and decide where the detection logic belonged. I also had to separate problems caused by my changes from pre-existing repository failures. The full unit suite already had 53 failures, and the lint check had more than 180 errors, so I had to compare before-and-after results instead of assuming every failure was caused by my implementation. I also encountered a local Mypy and NumPy compatibility issue because the project targets Python 3.11 while my environment used Python 3.12.
+
+**What did you learn about working in a large codebase?**
+
+I learned that contributing to someone else's code requires more investigation and discipline than building a project from scratch. I had to read `CONTRIBUTING.md`, follow existing naming and commit conventions, study nearby code, and match the repository's test patterns. I also learned the importance of keeping the scope narrow. Even though I found many unrelated test and lint failures, fixing them would have made the pull request harder to review and moved it away from issue #50. A production contribution is not only about making code work; it is also about making the change understandable, testable, and safe for maintainers to review.
+
+**How did AI tools help — and where did they fall short?**
+
+AI assistance was most useful for helping me navigate the unfamiliar repository, explain Git and GitHub concepts, create a step-by-step implementation plan, draft focused tests, interpret command output, and prepare the pull request description. It also helped me understand why the local Mypy command failed while the project's pre-commit Mypy hook passed.
+
+AI output still required careful review. Some early guidance was incomplete, including an initially incomplete `PLAN.md`, and generated code had to be checked with Ruff, Black, Mypy, unit tests, and a real GitHub smoke test. AI could suggest commands and implementation ideas, but it could not replace reading the contribution guide, examining the actual codebase, checking the real command output, or deciding whether failures were related to my change.
+
+**What would you do differently if you started over?**
+
+I would read `CONTRIBUTING.md`, inspect the relevant production file, and examine existing test patterns before writing the initial plan. I would also record the complete baseline results for `make check` and `make test-unit` immediately, which would make later regression comparisons easier. I would open the draft pull request earlier instead of waiting until most of the implementation was complete. Finally, I would plan edge cases such as an empty repository and both `test/` and `tests/` directories at the beginning rather than adding those tests later in separate steps.
+
+**What are you most proud of from this module?**
+
+I am most proud that I completed a real open-source contribution workflow from issue selection through implementation and pull-request submission. I added repository test detection, wrote nine focused tests, verified the feature against a real GitHub repository, documented unrelated failures honestly, and submitted a mergeable PR with a clear commit history. More importantly, I now understand how to investigate, test, document, and submit a focused change inside a codebase I did not create.
