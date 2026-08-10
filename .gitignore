@@ -44,3 +44,9 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+
+
+# USER
+course-docs/
+.history/
+.agents/
