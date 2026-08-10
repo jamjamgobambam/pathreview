@@ -85,3 +85,21 @@ Replaced the broken prompt template snapshot test (which only checked hash type/
 *(both pass with only pre-existing, unrelated failures — documented in commit message and PR "Notes for Reviewers"; no new failures introduced)*
 
 **Draft PR feedback received from:** none — skipped peer review due to time constraints on submission day
+
+
+### Reflection
+
+**What was harder than you expected?**
+Understanding the actual bug took more care than I expected. The existing "snapshot test" looked legitimate at first glance — it computed a real MD5 hash — so it took reading the assertions carefully to realize it only checked `isinstance()` and `len() == 32`, meaning it could never fail no matter what changed. It wasn't a broken feature so much as a test that gave false confidence, which is a different kind of bug to spot than something that visibly crashes.
+
+**What did you learn about working in a large codebase?**
+I learned that "done" isn't just "the code works" — it has to work inside someone else's conventions. Things like `disallow_untyped_defs = true` in mypy, or CONTRIBUTING.md's exact commit format, aren't optional style preferences; they're gates that block your commit or PR if you don't match them. I also learned to separate pre-existing issues (the 53 failing tests, the 182 lint errors) from problems my own change introduced — reproducing the baseline first made it much easier to prove my change didn't make things worse.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for reading and reasoning through the codebase quickly — finding the exact broken test, confirming the real vs. reported behavior, and drafting things like the PLAN.md and PR description in the project's expected format. Where it fell short was anything requiring me to actually be at my terminal: environment setup (Docker, Rosetta, venv activation), watching real test output, and catching my own mistakes (forgetting to save JOURNAL.md twice, an incomplete revert leaving a third hash value). Those needed me to actually run things and read the real output, not just trust a plan.
+
+**What would you do differently if you started over?**
+I'd save files before running git commands more consistently — I lost time twice from committing an unsaved/empty file. I'd also run `make check` on my target files earlier, before writing the fix, so I knew about the pre-existing mypy issue ahead of time instead of hitting it right as I tried to commit.
+
+**What are you most proud of from this module?**
+Actually proving the bug and the fix with real before/after test output — editing a template, watching the old test wrongly pass, then watching the new test correctly fail with a clear message, then reverting and confirming green again. That felt like real engineering rigor rather than just writing code that looked plausible.
