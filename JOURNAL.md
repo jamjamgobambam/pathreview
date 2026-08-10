@@ -63,3 +63,34 @@ Documented the hybrid retrieval scoring formula (normalize → weighted blend �
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review.
+
+**How you responded:**
+No review.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The fixing and understanding the models is harder than expected, I feel it is hard to add and change Github commits and sometimes, Linter checks need to be done to eventually pass the testcases.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else production code: need a lot of prep, a lot of reading and onboarding work, sometimes I have to ask a lot of others because coding is often collaborative. I have seen some open-sourced projects on GitHub before, have seen sometimes cloning repos locally and have some views of the project itself, but I think I have learn to contribute to the same standards and try to understand patterns.
+
+**How did AI tools help — and where did they fall short?**
+AI tools help me a lot - they do help trying to understand the codebase and help me plan the code. But a lot of setup like `make setup` or `make run` are usually really hard, sometimes my machine lacks these kinds of framework. Sometimes, there are subtle problems like authentication that it needs time to resolve and re-learn again.
+
+**What would you do differently if you started over?**
+- Planning: I think I would look at the code, see unit tests itself and other stuff
+
+**What are you most proud of from this module?**
+Not about the PR, but I think I have learnt a lot from reading large codebases and seeing/experiencing the work of normal software engineers that they have to face some code review stuff and other things.l
