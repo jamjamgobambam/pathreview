@@ -1,0 +1,33 @@
+{
+  "portfolio_id": "bench04",
+  "description": "Data engineering portfolio, queried once outside its domain to keep aggregate scores honest",
+  "profile": {
+    "github_username": "leomartins",
+    "projects": [
+      { "name": "ingest-pipeline", "language": "Python" },
+      { "name": "metrics-warehouse", "language": "SQL" }
+    ]
+  },
+  "documents": [
+    {
+      "source_id": "resume_bench04",
+      "source_type": "resume",
+      "text": "Leo Martins\nData Engineer\n\nExperience:\n- Data Engineer at Meridian Analytics (2022-2025)\n  Built batch pipelines in python that landed vendor extracts into a warehouse on a nightly schedule.\n  Modelled reporting tables in sql and documented every column with its owning team.\n  Added data quality checks that failed loudly instead of publishing partial tables.\n- Analytics Intern at Meridian Analytics (2021)\n  Automated recurring spreadsheet reports into scheduled queries.\n\nEducation:\n- B.S. Statistics, Riverside University (2021)\n\nSkills: python sql airflow warehouse etl pandas data quality testing"
+    },
+    {
+      "source_id": "readme_bench04_ingest",
+      "source_type": "readme",
+      "text": "# Ingest Pipeline\nBatch ingestion for vendor data extracts.\n\n## Overview\nAn airflow managed etl pipeline written in python that loads vendor extracts into a warehouse.\nEach run is idempotent so a replay never duplicates rows in the target tables.\n\n## Data Quality\nEvery table is checked for row counts, null rates and freshness before it is published.\nA failing check stops the pipeline rather than letting partial data reach downstream reports.\n\n## Scheduling\nDags are scheduled nightly with explicit retries and alerting on repeated failure.\nBackfills are run through the same code path as scheduled runs to avoid drift.\n\n## Testing\nTransforms are covered by pytest cases built on small fixture frames rather than production extracts."
+    },
+    {
+      "source_id": "readme_bench04_warehouse",
+      "source_type": "readme",
+      "text": "# Metrics Warehouse\nReporting models for company metrics.\n\n## Overview\nA layered sql warehouse that turns raw ingested tables into reviewed reporting models.\nStaging, intermediate and mart layers are kept separate so lineage stays readable.\n\n## Documentation\nEvery model carries a description, an owning team and a freshness expectation.\nUndocumented columns fail the build, which keeps the catalogue trustworthy.\n\n## Review\nModel changes require a pull request with sample query output attached for review."
+    }
+  ],
+  "queries": [
+    "python airflow etl pipeline warehouse",
+    "data quality checks and testing",
+    "react frontend accessibility and component design"
+  ]
+}

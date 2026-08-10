@@ -1,0 +1,24 @@
+{
+  "portfolio_id": "bench03",
+  "description": "Deliberately sparse portfolio: thin documents and shallow project write-ups",
+  "profile": {
+    "github_username": "samowusu",
+    "projects": [{ "name": "task-tracker", "language": "JavaScript" }]
+  },
+  "documents": [
+    {
+      "source_id": "resume_bench03",
+      "source_type": "resume",
+      "text": "Sam Owusu\nAspiring Software Developer\n\nExperience:\n- Freelance projects (2024-2025)\n  Built small web tools for local clients.\n\nEducation:\n- Certificate in Web Development, Online Academy (2024)\n\nSkills: javascript html css"
+    },
+    {
+      "source_id": "readme_bench03_tasks",
+      "source_type": "readme",
+      "text": "# Task Tracker\nA simple task tracking app.\n\n## Features\nAdd tasks.\nMark tasks done.\n\n## Setup\nClone the repository and open the page.\n\n## Notes\nStill a work in progress.\n\n## Todo\nAdd persistence at some point."
+    }
+  ],
+  "queries": [
+    "deployment infrastructure docker continuous integration",
+    "javascript web application features"
+  ]
+}

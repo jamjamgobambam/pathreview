@@ -41,6 +41,13 @@ class VectorStore:
     def add_chunks(self, chunks_with_embeddings: list[tuple], collection_name: str) -> None:
         """Add chunks with embeddings to vector store.
 
+        Chunk identity is read from ``Chunk.metadata`` because ``Chunk`` is a
+        two-field dataclass (``text``, ``metadata``) and the chunkers put
+        ``source_id`` and ``chunk_index`` inside that metadata. The derived id
+        matches the convention ``BatchEmbeddingProcessor`` already writes
+        (``{source_id}_chunk_{chunk_index}``), so both indexing paths address
+        the same documents instead of diverging.
+
         Args:
             chunks_with_embeddings: List of (Chunk, embedding_vector) tuples
             collection_name: Name of collection to add to
@@ -53,13 +60,17 @@ class VectorStore:
         metadatas = []
 
         for chunk, embedding in chunks_with_embeddings:
-            ids.append(chunk.id)
+            metadata = chunk.metadata or {}
+            source_id = metadata.get("source_id", "unknown")
+            chunk_index = metadata.get("chunk_index", 0)
+
+            ids.append(f"{source_id}_chunk_{chunk_index}")
             embeddings.append(embedding)
             documents.append(chunk.text)
             metadatas.append({
-                "source_id": chunk.source_id,
-                "chunk_index": chunk.chunk_index,
-                "section": chunk.section or "",
+                "source_id": source_id,
+                "chunk_index": chunk_index,
+                "section": metadata.get("section") or "",
             })
 
         if ids:

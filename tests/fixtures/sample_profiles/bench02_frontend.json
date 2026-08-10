@@ -1,0 +1,33 @@
+{
+  "portfolio_id": "bench02",
+  "description": "Frontend portfolio with strong UI work, paired with one query it should score poorly on",
+  "profile": {
+    "github_username": "priyanair",
+    "projects": [
+      { "name": "weather-dashboard", "language": "TypeScript" },
+      { "name": "component-library", "language": "TypeScript" }
+    ]
+  },
+  "documents": [
+    {
+      "source_id": "resume_bench02",
+      "source_type": "resume",
+      "text": "Priya Nair\nFrontend Engineer\n\nExperience:\n- Frontend Engineer at Lantern Interactive (2022-2025)\n  Built accessible react interfaces in typescript for a logistics dashboard used daily by dispatchers.\n  Introduced a shared component library that removed duplicated markup across four product surfaces.\n  Reduced first contentful paint by deferring non critical bundles and trimming vendor javascript.\n- Junior Developer at Harbor Studio (2021-2022)\n  Converted static designs into responsive layouts and wrote vitest coverage for shared hooks.\n\nEducation:\n- B.A. Interaction Design, Coastal College (2021)\n\nSkills: react typescript javascript vitest tailwind accessibility responsive design storybook"
+    },
+    {
+      "source_id": "readme_bench02_dashboard",
+      "source_type": "readme",
+      "text": "# Weather Dashboard\nA forecasting dashboard for planning outdoor logistics.\n\n## Overview\nA react and typescript single page application that renders current conditions and a five day forecast.\nData is fetched once per minute and cached in memory so panels never flicker between refreshes.\n\n## Interface\nThe layout is responsive from narrow phones up to wide desktop displays.\nEvery interactive control is reachable by keyboard and announced correctly by screen readers.\nColour choices were checked against contrast guidance before they were merged.\n\n## Testing\nComponent behaviour is covered with vitest and testing library assertions on rendered output.\nSnapshot tests were deliberately avoided because they obscured real regressions in earlier work.\n\n## Performance\nBundles are split per route so the initial download stays small on slow connections.\nImages are served in modern formats with explicit dimensions to avoid layout shift."
+    },
+    {
+      "source_id": "readme_bench02_components",
+      "source_type": "readme",
+      "text": "# Component Library\nShared react building blocks for internal products.\n\n## Overview\nA typescript component library documented in storybook and published to a private registry.\nEach component ships with prop types, usage notes, and an accessibility checklist.\n\n## Design Tokens\nSpacing, colour and typography are expressed as tokens rather than hard coded values.\nConsumers theme the library by overriding tokens instead of forking components.\n\n## Contributing\nNew components require a storybook story, vitest coverage, and a keyboard interaction note.\nPull requests are reviewed against the same accessibility checklist the library documents."
+    }
+  ],
+  "queries": [
+    "react typescript component library",
+    "accessibility keyboard responsive layout",
+    "python machine learning model training pipeline"
+  ]
+}

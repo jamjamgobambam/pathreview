@@ -44,3 +44,6 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+
+# Eval runner output (regenerate with `make eval`; CI publishes it as a comment)
+eval_results.json
