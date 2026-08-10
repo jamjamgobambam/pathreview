@@ -76,3 +76,34 @@ Updated `tests/unit/test_readme_scorer.py`. The updated test fixture covers a co
 Note: Under the Week 9 pre-existing-failures guidance, the broader commands show unrelated repository failures outside my changed file. `make check` reports lint issues in unrelated files such as `tests/unit/test_tech_detector.py`, and `make test-unit` reports unrelated failures across files such as `tests/unit/test_skill_extractor.py`, `tests/unit/test_structural_chunker.py`, `tests/unit/test_tech_detector.py`, and `tests/unit/test_review_service.py`. My targeted changed file passes independently and does not modify those failing modules.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback had come in by the time I completed the Week 10 reflection. The Week 10 instructions also noted that reviewer feedback is not provided for Summer 2026, so I documented the PR status and moved forward with the reflection.
+
+**How you responded:**
+No code changes or reviewer replies were needed because no review comments were available.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was not the actual code change; it was getting through the full open-source workflow cleanly. Setting up the environment, dealing with GitHub authentication, handling branch pushes, and documenting pre-existing test failures took more time than the fixture fix itself. I also had to be careful not to treat unrelated `make check` and `make test-unit` failures as problems caused by my change.
+
+**What did you learn about working in a large codebase?**
+I learned that in a larger codebase, the safest path is to isolate the exact failing behavior before changing anything. For this issue, the important step was narrowing the problem to `tests/unit/test_readme_scorer.py` and confirming that the README scorer test fixture did not match its own assertions. That felt different from building my own project because I had to preserve the existing project patterns instead of redesigning the solution around what I personally preferred.
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped most with breaking the project into smaller steps, writing the journal and plan structure, and turning the rubric requirements into a checklist I could follow. They were also useful for interpreting test output and deciding how to document pre-existing failures. Where AI fell short was that generated commands still had to be verified carefully; one early attempt did not account for the scorer's actual comprehensive threshold, so I had to rely on the test output and code behavior rather than blindly trusting the first suggestion.
+
+**What would you do differently if you started over?**
+I would verify the local environment, GitHub authentication, and branch state before doing any project work. I would also inspect the exact scorer thresholds earlier instead of assuming that passing the `word_count > 100` assertion would be enough for the comprehensive category. Starting with a cleaner baseline would have made the Week 8 and Week 9 workflow faster and less stressful.
+
+**What are you most proud of from this module?**
+I am most proud that I completed the full contribution cycle instead of only making a small code change. I reproduced the issue, documented the root cause, planned the fix, updated the test fixture, opened a real PR, and recorded the process in `JOURNAL.md`. Even though the final fix was small, the workflow felt like a realistic introduction to contributing to someone else's production-style codebase.
