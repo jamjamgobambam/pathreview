@@ -56,3 +56,20 @@ Files and modules involved:
 1. **Legitimate Work History Headers:** Resumes containing lines like `System Administrator - 2021` or `Assistant Director` must NOT be altered or stripped.
 2. **Whitespace and Case Variations:** Injection payloads with leading/trailing spaces or mixed casing (e.g., `\n  sYsTeM  :`) must be caught and neutralized.
 3. **Consecutive Newlines / Delimiters:** Payloads attempting multiple fake dividers (e.g., `\n---\n---\n`) must have all instances neutralized cleanly.
+
+### 5. Verification Plan
+
+#### Automated Testing
+1. **Prompt Defense Unit Tests:**
+   Execute unit tests for `PromptDefense` to ensure all 30 test cases pass, including newline detection, character stripping, role-switching neutralization, and negative regression tests for legitimate content:
+   ```bash
+   .venv/bin/pytest tests/unit/test_prompt_defense.py -v
+
+*Expected Result:* `30 passed` with 100% success rate across all detection and sanitization test cases.
+
+2. **Ingestion Pipeline Unit Tests:**
+   Execute pipeline integration tests to verify that prompt injection payloads within resumes are neutralized prior to chunking and embedding:
+   ```bash
+   .venv/bin/pytest tests/unit/test_pipeline.py -v
+
+*Expected Result:* All pipeline tests pass, confirming chunked_text does not contain unescaped \nSystem: or \n--- injection boundaries.
