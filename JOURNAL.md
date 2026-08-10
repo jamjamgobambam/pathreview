@@ -104,3 +104,34 @@ Added an authenticated webhook system so completed or failed reviews can notify 
 Note: the webhook-specific tests pass locally, but the broader repository still shows unrelated pre-existing failures in other modules, so I did not mark the full-suite checks as passing.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback had arrived by the end of the module, so I documented that the PR was still awaiting review and moved forward with the final reflection and branch submission.
+
+**How you responded:**
+No direct response was needed. I kept the implementation and journal updated, and I left the branch in a state that was ready for review once feedback began arriving.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was not writing the webhook feature itself, but understanding how the review flow fit together across multiple layers of the app. I had to trace the path from the review API route into the background processing service and then into the new webhook delivery logic, and that required more careful debugging than I expected because the repository already had unrelated test issues that made it harder to tell whether a failure was caused by my changes or by existing noise.
+
+**What did you learn about working in a large codebase?**
+I learned that contributing to someone else’s production code is less about implementing a feature in isolation and more about fitting your change into an existing architecture without breaking assumptions elsewhere. In this project, the webhook work touched the API layer, service layer, database model layer, and tests, and that reinforced how important it is to understand the surrounding patterns before making changes that seem small at first.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were especially helpful for speeding up the initial implementation plan, generating test ideas, and helping me reason through the webhook service structure when I was still mapping the project. They were less useful when it came to the more subtle parts of the work, such as diagnosing why existing unit tests were failing in other modules and making sure the change matched the project’s style and conventions rather than just producing plausible code.
+
+**What would you do differently if you started over?**
+If I started over, I would spend more time earlier on mapping the relevant files and the existing review lifecycle so I could plan the implementation more precisely from the beginning. I would also try to isolate the repo’s pre-existing test failures sooner, because that would have made the validation process less confusing and given me a clearer signal about which issues were truly caused by the webhook work.
+
+**What are you most proud of from this module?**
+I’m most proud of finishing a cross-cutting feature that connected several parts of the system, from the API routes to the persistence layer and the review completion path. Seeing the webhook flow become real in the codebase, even while working around unrelated project issues, felt like a meaningful milestone in my growth as a contributor.
