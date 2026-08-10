@@ -140,4 +140,100 @@ failures.
 
 **Self-review confirmation:** [x] make check passes (no new failures)  [x] make test-unit passes (no new failures)
 
-**Draft PR feedback received from:** _(fill in — Slack handle, or "none")_
+**Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback
+
+**How you responded:**
+(No feedback to respond to.)
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part wasn't writing the tests — it was deciding what "green"
+should even mean. My Week 8 reproduction surfaced a real bypass: every regex
+in `PromptDefense.INJECTION_PATTERNS` was anchored to a leading `\n`, so a
+first-line attack like "Ignore all previous instructions…" or "System: …"
+sailed straight through undetected. That put me at a fork the issue didn't
+answer: do I ship a red-teaming suite that honestly *fails* against today's
+code (proving the gap), or do I harden the detector so the suite is honestly
+green? Sitting in that ambiguity — and realizing "just write the tests" was
+actually a scope decision with a maintainer-intent question behind it — was
+harder than any of the regex work. I planned for it (tracking bypasses as
+`xfail(strict=True)` as a fallback) but ultimately chose to re-anchor the
+patterns to `(?:^|\n)` and keep a benign control set as the false-positive
+guard, so the suite is both green and honest.
+
+The second surprise was environmental: the repo shipped with a broken
+baseline — 53 failing unit tests and ~182 ruff / 52 black issues before I
+touched anything. Distinguishing "did I break this?" from "was this already
+red?" ate more time than I expected and forced me to be disciplined about
+capturing a before/after snapshot.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's production code is far more about *reading and
+inference* than writing. On my own projects I hold the whole design in my
+head; here I had to reverse-engineer the contract — how `PromptDefense`
+exposes detection, what "blocked" looks like as a return value, which pytest
+markers exist (`security` was declared in `pyproject.toml` but guarded zero
+tests), and how CI is wired — before I could write a single line I trusted.
+
+I also learned to respect the blast radius. I deliberately picked an issue
+that lived almost entirely in *new* files (fixtures, a new test module, a CI
+job) so my footprint on core logic was tiny; the one file I did modify
+(`safety/prompt_defense.py`) I changed only after confirming all 32 existing
+`test_prompt_defense.py` tests still passed (and one previously-failing case
+now passes). The biggest mindset shift was accepting the "no new failures"
+bar instead of "everything is green" — on someone else's code you own your
+diff, not the whole repo, and you document the rest rather than trying to fix
+the world in one PR.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for breadth and boilerplate: brainstorming injection
+attack categories (role-switching, instruction-override, template injection,
+code execution, separator attacks) so my Tier 3 corpus was realistic rather
+than a handful of obvious cases, drafting the parametrized pytest structure,
+and getting the `(?:^|\n)` + `re.MULTILINE` anchoring right without a dozen
+trial-and-error runs. It was a strong pair for "I know the shape I want, help
+me fill it in fast."
+
+Where it fell short was exactly the judgment calls that made this a Tier 3
+issue. AI couldn't tell me the *maintainer's* intent on whether hardening was
+in scope, couldn't decide that a pre-existing broken baseline meant I should
+work to "no new failures," and couldn't feel the risk that anchoring "System:"
+to start-of-string might start flagging a résumé line beginning with
+"Override." Those needed me to read the actual repo state, weigh trade-offs,
+and own a decision. AI accelerated the *how*; the *whether* and *why* stayed
+mine.
+
+**What would you do differently if you started over?**
+I'd resolve the scope question earlier and in the open. I discovered the
+newline bypass in Week 8 but carried the "suite only vs. suite + hardening"
+question as an open blocker for too long; I should have posted it to the issue
+thread or Slack the day I found it, so a maintainer could weigh in before I
+committed to hardening. I'd also snapshot the failing baseline formally on day
+one — a saved `make test-unit` / `make check` log — rather than reconstructing
+the before/after later. And I'd open the PR as a draft sooner to give the
+review request more runway; opening late is part of why no feedback landed
+before the deadline.
+
+**What are you most proud of from this module?**
+That I turned a fuzzy assurance ("we think the safety layer works") into
+per-commit evidence *and* found and closed a real security bug along the way.
+The suite doesn't just pass today — it will fail loudly the moment a known
+attack stops being blocked or a benign input starts being blocked, so the
+defense can't silently regress. Finding the first-line bypass wasn't in the
+issue description; it fell out of taking the reproduction step seriously, and
+catching a genuine gap in production security code — not just adding tests
+around existing behavior — is the thing I'm proudest of.
