@@ -9,6 +9,7 @@ from core.services.review_service import (
     create_review,
     get_review,
     list_reviews,
+    _run_ingestion_pipeline,
 )
 
 
@@ -78,7 +79,7 @@ class TestReviewService:
         mock_review.id = review_id
 
         # Setup mock execute to return review
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.first.return_value = mock_review
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -95,7 +96,7 @@ class TestReviewService:
         wrong_user_id = uuid4()
 
         # Setup mock to return None
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.first.return_value = None
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -112,7 +113,7 @@ class TestReviewService:
         mock_reviews = [Mock() for _ in range(5)]
 
         # Setup execute mock to return reviews
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.all.return_value = mock_reviews
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -129,7 +130,7 @@ class TestReviewService:
         page_size = 20
 
         # Setup mock
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -147,7 +148,7 @@ class TestReviewService:
         """Test list_reviews returns (reviews, total) tuple."""
         user_id = uuid4()
 
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -198,7 +199,7 @@ class TestReviewService:
         review_id = uuid4()
         user_id = uuid4()
 
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.first.return_value = None
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -212,7 +213,7 @@ class TestReviewService:
         """Test list_reviews uses default pagination."""
         user_id = uuid4()
 
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -228,7 +229,7 @@ class TestReviewService:
         user_id = uuid4()
         custom_page_size = 50
 
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -258,7 +259,7 @@ class TestReviewService:
         review_id = uuid4()
         user_id = uuid4()
 
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.first.return_value = None
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -273,7 +274,7 @@ class TestReviewService:
         user_id = uuid4()
 
         mock_reviews = [Mock() for _ in range(5)]
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.all.return_value = mock_reviews
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -288,7 +289,7 @@ class TestReviewService:
         user_id = uuid4()
 
         mock_reviews = [Mock(spec=['id', 'status']) for _ in range(3)]
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.all.return_value = mock_reviews
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -316,7 +317,7 @@ class TestReviewService:
         review_id = uuid4()
         user_id = uuid4()
 
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.first.return_value = None
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
@@ -330,11 +331,43 @@ class TestReviewService:
         """Test list_reviews returns results ordered by created_at desc."""
         user_id = uuid4()
 
-        mock_result = AsyncMock()
+        mock_result = Mock()
         mock_result.scalars.return_value.all.return_value = []
         mock_db_session.execute = AsyncMock(return_value=mock_result)
 
         reviews, total = await list_reviews(mock_db_session, user_id)
 
-        # Should order by created_at descending
-        mock_db_session.execute.assert_called_once()
+        # The function should issue a count query and a paginated query.
+        assert mock_db_session.execute.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_run_ingestion_pipeline_parses_portfolio_url(self, mock_db_session):
+        """Test portfolio URLs are fetched and parsed during ingestion."""
+        profile = Mock()
+        profile.id = uuid4()
+        profile.github_username = None
+        profile.portfolio_url = "https://example.com"
+        profile.resume_text = None
+        profile.resume_filename = None
+
+        parsed = Mock()
+        parsed.text = "Jane Doe Backend Engineer"
+        parsed.metadata = {
+            "title": "Jane Doe Portfolio",
+            "content_hash": "abc123",
+        }
+
+        with patch("core.services.review_service.WebParser") as MockWebParser, patch(
+            "core.services.review_service.IngestedSource"
+        ) as MockIngestedSource:
+            MockWebParser.return_value.parse.return_value = parsed
+
+            sources = await _run_ingestion_pipeline(mock_db_session, profile)
+
+        assert len(sources) == 1
+        assert sources[0]["source_type"] == "web"
+        assert sources[0]["url"] == "https://example.com"
+        assert sources[0]["title"] == "Jane Doe Portfolio"
+        assert sources[0]["data"] == "Jane Doe Backend Engineer"
+        MockWebParser.return_value.parse.assert_called_once_with("https://example.com")
+        MockIngestedSource.assert_called_once()

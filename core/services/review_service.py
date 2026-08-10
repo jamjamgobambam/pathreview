@@ -1,6 +1,6 @@
 from uuid import UUID
+import hashlib
 import structlog
-import json
 from datetime import datetime
 from sqlalchemy import select, and_
 
@@ -8,6 +8,7 @@ from core.models.review import Review
 from core.models.profile import Profile
 from core.models.ingested_source import IngestedSource
 from api.schemas.review import FeedbackSection
+from ingestion.parsers.web_parser import WebParser
 
 log = structlog.get_logger()
 
@@ -200,6 +201,7 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
     Returns list of ingested source data.
     """
     sources = []
+    web_parser = WebParser()
 
     # Ingest from GitHub if available
     if profile.github_username:
@@ -215,8 +217,10 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
             # Store in database
             ingested = IngestedSource(
                 profile_id=profile.id,
-                source_type="github",
-                raw_data=json.dumps(github_data),
+                source_type="repo",
+                source_url=f"https://github.com/{profile.github_username}",
+                content_hash=hashlib.sha256(github_data["data"].encode("utf-8")).hexdigest(),
+                chunk_count=0,
             )
             db.add(ingested)
         except Exception as exc:
@@ -229,19 +233,22 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
     # Ingest from portfolio URL if available
     if profile.portfolio_url:
         try:
-            # Placeholder: actual portfolio ingestion logic
+            portfolio_result = web_parser.parse(profile.portfolio_url)
             portfolio_data = {
-                "source_type": "portfolio",
+                "source_type": "web",
                 "url": profile.portfolio_url,
-                "data": f"Portfolio data from {profile.portfolio_url}",
+                "title": portfolio_result.metadata.get("title", ""),
+                "data": portfolio_result.text,
             }
             sources.append(portfolio_data)
 
             # Store in database
             ingested = IngestedSource(
                 profile_id=profile.id,
-                source_type="portfolio",
-                raw_data=json.dumps(portfolio_data),
+                source_type="web",
+                source_url=profile.portfolio_url,
+                content_hash=portfolio_result.metadata.get("content_hash"),
+                chunk_count=0,
             )
             db.add(ingested)
         except Exception as exc:
@@ -254,6 +261,7 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
     # Ingest from resume if available
     if profile.resume_text:
         try:
+            resume_hash = hashlib.sha256(profile.resume_text.encode("utf-8")).hexdigest()
             resume_data = {
                 "source_type": "resume",
                 "filename": profile.resume_filename,
@@ -265,7 +273,9 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
             ingested = IngestedSource(
                 profile_id=profile.id,
                 source_type="resume",
-                raw_data=json.dumps(resume_data),
+                filename=profile.resume_filename,
+                content_hash=resume_hash,
+                chunk_count=0,
             )
             db.add(ingested)
         except Exception as exc:
