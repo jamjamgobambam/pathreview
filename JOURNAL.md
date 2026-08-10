@@ -76,3 +76,51 @@ There are pre-existing issue that are outside the scope of this PR.
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
 "none"
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+No review 
+
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+It was harder then expected to trace the through different files to find where the relevant code to each test was. It took more time than expected and requried a lot of jumping back and forth between files to see how functions connect. 
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+I learned about how important it is to have good commit descriptions and documentation to make it easier for someone else to trace through your code/changes. This differs from your own project where you know all the code quite well.  
+
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+AI tools helped me to identify how functions worked in terms of input/output and the specifics of their implementation. It acted as a veifying source to ensure I understood the code properly. This wasn't always sufficient but worked as a baseline to get a better understanding of the code. 
+
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+If I started over, I would spend more time on issue selection to choose a task that was slightly larger in scope because the issue was simpler than I anticipated. This is not necessarily an issue, just a comment. 
+
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+I am most proud of working with tests because I do not have much experience working with testing suites so fixing bugs in the testing suite and understanding how it works was a valuable experience. 
