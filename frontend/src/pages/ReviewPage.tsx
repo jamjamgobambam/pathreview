@@ -4,6 +4,7 @@ import { Share2, Download, ArrowLeft, Loader } from 'lucide-react'
 import { useReviewStatus } from '../hooks/useReviewStatus'
 import { ReviewSection } from '../components/ReviewSection'
 import { apiClient } from '../services/api'
+import { generateShareLink } from '../services/shareService'
 import { Review } from '../types'
 
 export const ReviewPage: React.FC = () => {
@@ -12,6 +13,8 @@ export const ReviewPage: React.FC = () => {
   const [fullReview, setFullReview] = useState<Review | null>(null)
   const { review: statusReview, isPolling, error } = useReviewStatus(reviewId || '')
   const [fetchError, setFetchError] = useState('')
+  const [shareStatus, setShareStatus] = useState<'idle' | 'loading' | 'copied' | 'error'>('idle')
+  const [shareError, setShareError] = useState('')
 
   useEffect(() => {
     if (!isPolling && statusReview?.status === 'complete') {
@@ -29,11 +32,20 @@ export const ReviewPage: React.FC = () => {
 
   const currentReview = fullReview || statusReview
 
-  const handleShare = () => {
-    const url = window.location.href
-    navigator.clipboard.writeText(url).then(() => {
-      alert('Review link copied to clipboard!')
-    })
+  const handleShare = async () => {
+    if (!reviewId || shareStatus === 'loading') return
+    setShareStatus('loading')
+    setShareError('')
+    try {
+      const url = await generateShareLink(reviewId)
+      await navigator.clipboard.writeText(url)
+      setShareStatus('copied')
+      setTimeout(() => setShareStatus('idle'), 2000)
+    } catch (err) {
+      setShareError(err instanceof Error ? err.message : 'Failed to generate share link')
+      setShareStatus('error')
+      setTimeout(() => setShareStatus('idle'), 3000)
+    }
   }
 
   const handleExport = () => {
@@ -110,13 +122,15 @@ ${section.suggestions.map((s) => `- ${s}`).join('\n')}
           <>
             <div className="mb-8 flex items-center justify-between">
               <h1 className="text-3xl font-bold text-gray-900">Portfolio Review</h1>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center gap-3">
                 <button
                   onClick={handleShare}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors"
+                  disabled={shareStatus === 'loading'}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50"
                 >
                   <Share2 className="w-5 h-5" />
-                  Share
+                  {shareStatus === 'loading' ? 'Generating...' : shareStatus === 'copied' ? 'Copied!' : 'Share'}
                 </button>
                 <button
                   onClick={handleExport}
@@ -125,6 +139,10 @@ ${section.suggestions.map((s) => `- ${s}`).join('\n')}
                   <Download className="w-5 h-5" />
                   Export
                 </button>
+                </div>
+                {shareStatus === 'error' && shareError && (
+                  <p className="text-sm text-red-600">{shareError}</p>
+                )}
               </div>
             </div>
 
