@@ -107,9 +107,109 @@ previously-broken Redis health check.
 **Tests added or updated:**
 `tests/unit/test_health_safety_events.py` — two unit tests covering the health endpoint's
 safety count: one asserting the total of recorded events, one asserting `0` when none exist.
+(`tests/unit/test_monitoring.py` was added in Week 10, after review of the checked-in tests
+surfaced a gap — see Week 10 below.)
 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 (Repo has documented pre-existing failures unrelated to this issue — see the PR description's baseline table. My changed files pass ruff/black/mypy individually, and `make test-unit` introduces no new failures vs. the recorded baseline.)
 
-**Draft PR feedback received from:** ayc325
+**Draft PR feedback received from:** none — I opened the draft PR and requested
+review in the course Slack channel, but no peer or mentor responded before the
+deadline.
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+A mentor reviewed my PR and left one comment: "Week 9 updates in JOURNAL.md
+missing, but otherwise looks good! The tests are great as well!" So the code
+and tests were approved without changes requested, but my Week 9 Check-in 2
+entry was still sitting on template placeholders (`[link to your submitted
+pull request]`, unchecked self-review boxes) instead of the actual PR link and
+a real self-review.
+
+**How you responded:**
+I went back and filled in the PR link, branch name, and self-review checkboxes
+in Week 9 Check-in 2, and added a note clarifying what "passes" means in a
+codebase with a documented pre-existing-failure baseline (my changed files pass
+ruff/black/mypy individually; `make test-unit` introduces no new failures
+against the recorded baseline, even though the repo-wide run isn't clean). I
+also used the review as a prompt to look more critically at my own test
+coverage rather than just the journal gap — I added `tests/unit/test_monitoring.py`
+with five tests that mock the Redis client directly and cover summing across
+all event types, zero events, partial event-type coverage, and a Redis failure
+degrading to `0` instead of crashing, since my original test only proved the
+`/health` endpoint returned the right number end-to-end without isolating the
+summing logic itself.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Figuring out where everything actually lived, and how the pieces connected,
+before I could touch anything safely. The issue looked like a one-line fix
+("populate `safety_events_last_hour` instead of hardcoding `0`"), but that field
+needed `SafetyMonitor`, which needed a Redis client, which `health.py` was
+already trying to build — except from `settings.redis_host` and
+`settings.redis_port`, attributes that don't exist in `Settings` (only
+`redis_url` does). So a "safety count" issue turned into tracing a chain: the
+placeholder field → the monitor class that could fill it → a broken client
+construction blocking it → the actual convention other files used to get a
+client at all (`get_db` in `core/database.py`, `get_current_user` in
+`api/middleware/auth.py`). Each piece I needed to fix was gated behind
+understanding a different piece, and there wasn't a way to shortcut that by
+reading just the file the issue pointed at.
+
+**What did you learn about working in a large codebase?**
+That a fix isn't really "done" when it produces the right output — it's done
+when it fits the codebase's existing shape. I could have hardcoded a Redis
+client inline in `health.py` the same broken way the original code did, and it
+would have looked like a fix. Reading how `get_db` and `get_current_user` were
+already wired as FastAPI dependencies told me that wasn't the right shape, and
+that the next person to add a dependency should be able to follow the same
+pattern I did. I also learned that "does it pass" is not a single yes/no in a
+codebase this size — this repo has hundreds of pre-existing lint/type/test
+failures, so I had to record a before/after baseline and prove I hadn't added
+to it, rather than just running a check and reading pass/fail off the top line.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for moving fast through the "where does this connect"
+problem — grepping for how other route files obtained a Redis or DB client,
+diffing full-repo lint/type/test output before and after my change to get exact
+numbers instead of a vague impression, and, when I peer-reviewed a classmate's
+PR (#391, a phone-regex fix), checking out their branch in an isolated git
+worktree and running their new tests against `main`'s source to confirm the
+tests genuinely failed on `main` and passed on their branch, instead of trusting
+the PR description's claims at face value. Where it fell short: it didn't
+automatically know that the pre-commit hook's mypy scope was broader than
+`make typecheck`'s scope (the Makefile target only checks `api/ core/ ingestion/
+rag/ agent/ safety/`, not `tests/`) — I ran the narrower command, saw it pass,
+and committed anyway, and the hook failed on the same file twice for reasons the
+Makefile target couldn't see. That took noticing the discrepancy and verifying
+against the actual hook, not just re-running the same wrong command more
+carefully.
+
+**What would you do differently if you started over?**
+I'd map the dependency chain (field → class → client → convention) before
+writing any code, instead of discovering each link only when the previous fix
+exposed it — a lot of the "harder than expected" time was serial discovery that
+could have been front-loaded into planning. I'd also write the unit tests for
+any new method in the same commit as the method itself, instead of leaning on
+an end-to-end reproduction test as if it covered the same ground — it took a
+reviewer pointing at the journal gap for me to notice the test gap too.
+
+**What are you most proud of from this module?**
+Actually taking the time to read through the codebase and understand how the
+pieces connect, instead of writing the smallest diff that would make the issue's
+example pass. Tracing `health.py` → `SafetyMonitor` → a Redis client → the
+`Depends()` convention used elsewhere meant the fix ended up removing a second,
+pre-existing bug (the broken `settings.redis_host` construction) as a side
+effect of doing it properly, and it's the reason I trusted my own peer review
+of someone else's PR enough to actually run their code against adversarial
+inputs rather than just reading the diff and approving.
 
