@@ -90,7 +90,7 @@ https://github.com/ascherj/pathreview/pull/951
 
 **What you built:**
 <!-- [1–3 sentences summarizing what your fix does and how it works] -->
- For this project, added a profile-fetch and no-documents check to create_review_endpoint() in `api/routes/reviews.py`. Reusing the existing g`et_profile()` service instead of adding any new fetch logic. Subsequently, the endpoint now can return 404 if the profile doesn't exist or isn't owned by the current user, and 400 if github_username, portfolio_url, and resume_text are all blank or whitespace-only. Both checks run before a review row is created or a background task is queued. There are no "pending" reviews left behind on a rejected request.
+ For this project, added a profile-fetch and no-documents check to create_review_endpoint() in `api/routes/reviews.py`. Reusing the existing `get_profile()` service instead of adding any new fetch logic. Subsequently, the endpoint now can return 404 if the profile doesn't exist or isn't owned by the current user, and 400 if github_username, portfolio_url, and resume_text are all blank or whitespace-only. Both checks run before a review row is created or a background task is queued. There are no "pending" reviews left behind on a rejected request.
 
 **Tests added or updated:**
 <!-- [Which test files did you touch? What do they cover?] -->
@@ -103,7 +103,6 @@ Note: `make check`/`make test-unit` do not pass cleanly on this branch — both 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
 none
 
-
 ## Week 10 — Iteration & reflection
 
 ### Reviewer feedback
@@ -111,33 +110,37 @@ none
 **Feedback received:** [ ] Yes  [x] No — still awaiting review
 
 **Summary of feedback:**
-[What did reviewers comment on? Or note that no review came in.]
-Have not recieved any. 
+<!-- [What did reviewers comment on? Or note that no review came in.] -->
+Have not received any.
+
 **How you responded:**
-[What changes did you make, or what did you reply? If no feedback,
-leave blank.]
+<!-- [What changes did you make, or what did you reply? If no feedback, -->
+<!-- leave blank.] -->
 
 ---
 
 ### Reflection
 
 **What was harder than you expected?**
-[Be specific — what part of the process, codebase, or workflow
-surprised you?]
-Trying to follow an unknown codebase was harder than expected. Also trying commit with errors still within the codebase.
+<!-- [Be specific — what part of the process, codebase, or workflow -->
+<!-- surprised you?] -->
+Trying to follow an unknown codebase was harder than expected. The codebase had many files that coincided with the execution of something as simple as a profile having documents and being able to review output. Also trying commit with errors still within the codebase seemed to be a daunting task. Following the `docs/ARCHITECTURE.md` was harder than expected to pinpoint the issue in question.
 
 **What did you learn about working in a large codebase?**
-[What's different about contributing to someone else's production code
-vs. building your own project?]
-
+<!-- [What's different about contributing to someone else's production code -->
+<!-- vs. building your own project?] -->
+Working in a large codebase requires patience, problem solving, and definitely analytical skills. Just reviewing the README.md alone will not solve any issues by themselves. A user must review all the accompanying docs if any. `/docs/` may contain contributing, architecture, and setup documentation. Contributing to someone's codebase vs your own requires following the codebase's coding conventions. A codebase reviewer should try to stay close that as close as possible. For this particular codebase, `<type>/<issue-number>-<short-description>` was designated as the convention to creating a branch locally.
 
 **How did AI tools help — and where did they fall short?**
-[Where was AI assistance most useful this module? Where did you need
-to go beyond what AI could give you?]
+<!-- [Where was AI assistance most useful this module? Where did you need -->
+<!-- to go beyond what AI could give you?] -->
+Using Claude Code CLI was very useful when pinpointing the hard coded problem for `issue #88`. When pull for assistance to review the codebase, Claude Code pointed out within `_run_agent_orchestration/_run_rag_retrieval_generation` had hardcode sections regardless of input. The output reviews would be fake instead of failing. This particular hard coded problem was the root cause issue and an additional issue that needed to be mended before  `issue #88` of not `POST /reviews endpoint has no test for when the profile has no ingested documents` could be fixed. Claude fall short when responding in the description of a pull request. The decision was made not to use Claude to write a Pull Request and write the request from experience.
 
 **What would you do differently if you started over?**
-[Issue selection, planning, implementation, or process — anything
-you'd change?]
+<!-- [Issue selection, planning, implementation, or process — anything -->
+<!-- you'd change?] -->
+The same issue of `#88` would be most likely selected. The implementation of the built `tests/unit/test_reviews_routes.py` would be planned differently. To ensure that test could be ran at the end, `make check`/`make test-unit` would be ran at the beginning before implementation. By running these prompts in the end, it caused all types of issues for the issue fix.  The test did not pass cleanly due to pre-existing failures. Commits with these test had to be accompanied by `--no-verify`.
 
 **What are you most proud of from this module?**
-[One thing — it doesn't have to be the PR itself.]
+<!-- [One thing — it doesn't have to be the PR itself.] -->
+The most proud accomplishments were several things which include: the PR, reading the codebase, finding the issue and being able to circumvent the commit issue I faced. The Pull Request was impressive because this is my first ever pull request to an unknown codebase. Reading files such as `docs/CONTRIBUTING.md`, `docs/SETUP.md`, and `docs/CONTRIBUTING.md` gave me a great understanding of the codebase. I am proud of failing and understanding what needed to done with `tests/unit/test_reviews_routes.py` to make the Pull Request happen.
