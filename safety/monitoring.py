@@ -3,6 +3,8 @@
 import redis
 import structlog
 from datetime import datetime, timedelta
+import time
+from uuid import uuid4
 
 logger = structlog.get_logger()
 
@@ -43,16 +45,37 @@ class SafetyMonitor:
         try:
             # Log to structlog
             logger.warning("safety_event", event_type=event_type, **details)
-
             # Store count in Redis for monitoring
             key = f"safety:events:{event_type}"
             self.redis.incr(key)
             # Set expiry to 24 hours
             self.redis.expire(key, 86400)
+            # Store timestamped event for rolling-window monitoring
+            recent_events_key = "safety:events:recent"
+            now = time.time()
+            event_id = f"{event_type}:{uuid4()}"
+
+            self.redis.zadd(recent_events_key, {event_id: now})
+            self.redis.expire(recent_events_key, 86400)
 
         except Exception as e:
             logger.error("safety_monitor_error", error=str(e))
+    def get_recent_event_count(self, window_hours: int = 1) -> int:
+        """Get total number of safety events within a rolling time window."""
+        key = "safety:events:recent"
+        now = time.time()
+        window_start = now - (window_hours * 3600)
 
+        try:
+            # Remove events older than 24 hours
+            self.redis.zremrangebyscore(key, 0, now - 86400)
+
+            # Count events within the requested time window
+            return int(self.redis.zcount(key, window_start, now))
+
+        except Exception as e:
+            logger.error("recent_event_count_error", error=str(e))
+            return 0
     def get_event_count(self, event_type: str, window_hours: int = 1) -> int:
         """Get count of safety events.
 
