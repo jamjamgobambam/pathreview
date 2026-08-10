@@ -26,7 +26,7 @@ examples miss.
 
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
-**Cohort ledger:** [ ] Issue added to cohort ledger  *(action item — record #111 in the cohort ledger)*
+**Cohort ledger:** [x] Issue added to cohort ledger
 
 ### "Is this right for me?" — scope reasoning
 
@@ -108,7 +108,8 @@ number), and `re.IGNORECASE` lets the two-letter address abbreviations `St`/`Dr`
    my file to satisfy the hook rather than bypass it; worth raising upstream as
    a config mismatch.
 
-**Still outstanding from Week 7:** record #111 in the cohort ledger.
+**Still outstanding from Week 7:** none — #111 has since been recorded in the
+cohort ledger.
 
 ---
 
