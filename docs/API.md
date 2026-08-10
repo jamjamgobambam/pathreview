@@ -16,6 +16,27 @@ Base URL: `http://localhost:8000`
 ### Profiles
 
 `POST /profiles` — Create a profile with resume and GitHub username.
+**Request:** `multipart/form-data`
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `github_username` | string | optional | max 255 characters |
+| `portfolio_url` | string | optional | max 500 characters |
+| `resume_file` | file | optional | must be `application/pdf`, `text/markdown`, or `text/plain` |
+
+**Example request:**
+```bash
+curl -X POST http://localhost:8000/profiles \
+  -H "Authorization: Bearer <token>" \
+  -F "github_username=octocat" \
+  -F "portfolio_url=https://octocat.dev" \
+  -F "resume_file=@resume.pdf"
+```
+
+**Errors:**
+- `422 Unprocessable Entity` — returned if `resume_file` is provided but is not a PDF, Markdown, or plain text file.
+
+
 `GET /profiles/{profile_id}` — Retrieve a profile.
 `DELETE /profiles/{profile_id}` — Delete a profile and associated data.
 
