@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
 from core.database import get_db
+from core.models.user import User
+from core.services.profile_service import get_profile
 from core.services.review_service import (
     create_review,
     get_review,
@@ -17,6 +18,14 @@ from core.services.review_service import (
 log = structlog.get_logger()
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
+
+
+def _has_ingested_documents(profile) -> bool:
+    """True if at least one of the profile's source fields is non-blank."""
+    return any(
+        (value or "").strip()
+        for value in (profile.github_username, profile.portfolio_url, profile.resume_text)
+    )
 
 
 @router.post("", response_model=ReviewResponse)
@@ -30,8 +39,36 @@ async def create_review_endpoint(
     Create a new review for a profile.
     Triggers ingestion pipeline and agent orchestration asynchronously.
     Returns review with status="pending" immediately.
+
+    Raises 404 if the profile doesn't exist or isn't owned by the current user,
+    and 400 if the profile has no ingested documents (github_username,
+    portfolio_url, and resume_text all blank) to review.
     """
     try:
+        profile = await get_profile(db=db, profile_id=data.profile_id, user_id=current_user.id)
+
+        if not profile:
+            log.warning(
+                "profile_not_found",
+                profile_id=str(data.profile_id),
+                user_id=str(current_user.id),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found",
+            )
+
+        if not _has_ingested_documents(profile):
+            log.warning(
+                "review_creation_blocked_no_documents",
+                profile_id=str(data.profile_id),
+                user_id=str(current_user.id),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Profile has no ingested documents to review",
+            )
+
         # Create review with status="pending"
         review = await create_review(
             db=db,

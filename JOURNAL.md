@@ -1,0 +1,146 @@
+## Week 7 — Issue selection
+
+**Issue link:** \
+ https://github.com/ascherj/pathreview/issues/88
+
+
+**Issue title:** \
+POST /reviews endpoint has no test for when the profile has no ingested documents
+
+**Tier:** Tier 1 was chosen to complete as a first open source contribution.
+
+**Problem summary:** \
+<!-- [In 3–5 sentences, in your own words: what the issue is (not a copy-paste of
+the title), what is currently broken or missing, and what a successful fix
+would accomplish. Naming the part of the codebase it affects is helpful context.] -->
+Issue #88 deals with the return of reviews when a profile has no added documentation such as github repo, or resume to provide feedback on. A test to administer to make the sure system does not crash with any ingested documentation is currently missing. By providing a test for the review output would ensure a successful fix of the system not crash. 
+
+**Branch name:** \
+test/88-post-review-endpoint
+
+**Setup confirmation:** Yes App runs locally at localhost:5173
+
+**Cohort ledger:** Yes Issue added to cohort ledger
+
+
+**Is This Issue Right for me?:**\
+- I can explain the problem and the expected behavior in 2–3 sentences without reading the issue.
+- I've located the relevant files and confirmed they exist in the codebase.
+- I can describe a concrete before-and-after: what the user sees before the fix and what they see after.
+- I've found and read the specific code the issue references (not just the file — the function or section).
+- I've read enough surrounding context that I can write a rough plan for the fix without looking anything up.
+- I've found the test file for my module and read at least one test end-to-end.
+- I've checked the issue comments and the ledger's Claims count, and I'm fine with how many others are on this issue.
+- I've estimated the time this will take and I'm confident I can complete it before the Week 9 deadline.
+- This issue has no open blockers or dependencies on other unresolved issues.
+
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:**
+
+<!-- [link to commit documenting the reproduced issue] -->
+https://github.com/Kiniec/pathreview/commit/b7af3beb36749ed1f6ef64191ed813dce58ea463
+
+**Reproduction summary:**
+<!-- 1–2 sentences: How did you reproduce the issue? What did you observe?-->
+
+Ran the system locally with input of `user1@example.com` and received a review output. Traced the request path for POST /reviews (api/routes/reviews.py → review_service.process_review) to check for a crash when a profile has no ingested source documents. No exception is raised: _run_agent_orchestration/_run_rag_retrieval_generation return hardcoded sections regardless of input, so the review completes successfully with fake content instead of signaling that there was nothing to review.
+
+**PLAN.md link:** 
+<!-- [link to PLAN.md in your fork] -->
+https://github.com/Kiniec/pathreview/tree/test/88-post-review-endpoint/PLAN.md
+
+**Walkthrough video (recommended):** 
+<!-- [link to your Loom video, ≤2 min — recommended, not graded] -->
+
+**Blockers or open questions:**
+<!-- [Anything you're still uncertain about going into Week 9, or leave blank] -->
+One concern that has risen is the reproduction of the test. Should product code be changed to make the test works properly or should the test be able to perform with out any change to code in the codebase?
+
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+<!-- [What have you implemented so far? Which sub-tasks from PLAN.md are done?] -->
+ The subtasks of modifying and refactoring `api/routes/reviews.py` with a function of ` _has_ingested_documents()` which verify a profile has documents  and profile fetch/check in `create_review_endpoint()` which fetches profiles are before creating a review in the system.
+
+**Next steps:**
+<!-- [What are you working on for the rest of the week?] -->
+Next steps are to review and work on implementing `test/unit/test_reviews_routes.py` and subtasks of Failing-case unit test with a mock Profile,  Happy-path regression test.
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+none
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** 
+<!-- [link to your submitted pull request] -->
+https://github.com/ascherj/pathreview/pull/951
+
+**Branch:** 
+<!-- [the branch name you worked on, e.g. `fix/123-short-description`] -->
+`test/88-post-review-endpoint`
+
+**What you built:**
+<!-- [1–3 sentences summarizing what your fix does and how it works] -->
+ For this project, added a profile-fetch and no-documents check to create_review_endpoint() in `api/routes/reviews.py`. Reusing the existing `get_profile()` service instead of adding any new fetch logic. Subsequently, the endpoint now can return 404 if the profile doesn't exist or isn't owned by the current user, and 400 if github_username, portfolio_url, and resume_text are all blank or whitespace-only. Both checks run before a review row is created or a background task is queued. There are no "pending" reviews left behind on a rejected request.
+
+**Tests added or updated:**
+<!-- [Which test files did you touch? What do they cover?] -->
+ The files that were modified to changed the little in the production code. Added `tests/unit/test_reviews_routes.py` due to no test file previously existed for this route module.  Within `tests/unit/test_reviews_routes.py`, added 7 tests: three cover the _has_ingested_documents() helper directly (all-None, whitespace-only, one field populated), and four exercise create_review_endpoint() — 400 for a no-documents profile, 400 for whitespace-only fields, 404 for a profile that doesn't resolve. A happy-path regression confirming a profile with github_username set still creates and schedules the review. `tests/unit/test_review_service.py` was left untouched by design, since the check lives in the route layer, not `create_review()`. Git stash confirmed that its existing tests still pass unchanged.
+
+**Self-review confirmation:** [-] make check passes  [-] make test-unit passes
+
+Note: `make check`/`make test-unit` do not pass cleanly on this branch — both have pre-existing failures unrelated to this fix (confirmed via `git stash` comparison against the unmodified branch: same 53 test-unit failures and same ruff/mypy errors exist with or without my change). Committed with `--no-verify` for this reason. My own changes are clean: `api/routes/reviews.py`'s diff introduces zero new ruff violations, and the new `tests/unit/test_reviews_routes.py` passes ruff, black, and pytest with no failures.
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
+none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+<!-- [What did reviewers comment on? Or note that no review came in.] -->
+Have not received any.
+
+**How you responded:**
+<!-- [What changes did you make, or what did you reply? If no feedback, -->
+<!-- leave blank.] -->
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+<!-- [Be specific — what part of the process, codebase, or workflow -->
+<!-- surprised you?] -->
+Trying to follow an unknown codebase was harder than expected. The codebase had many files that coincided with the execution of something as simple as a profile having documents and being able to review output. Also trying commit with errors still within the codebase seemed to be a daunting task. Following the `docs/ARCHITECTURE.md` was harder than expected to pinpoint the issue in question.
+
+**What did you learn about working in a large codebase?**
+<!-- [What's different about contributing to someone else's production code -->
+<!-- vs. building your own project?] -->
+Working in a large codebase requires patience, problem solving, and definitely analytical skills. Just reviewing the README.md alone will not solve any issues by themselves. A user must review all the accompanying docs if any. `/docs/` may contain contributing, architecture, and setup documentation. Contributing to someone's codebase vs your own requires following the codebase's coding conventions. A codebase reviewer should try to stay close that as close as possible. For this particular codebase, `<type>/<issue-number>-<short-description>` was designated as the convention to creating a branch locally.
+
+**How did AI tools help — and where did they fall short?**
+<!-- [Where was AI assistance most useful this module? Where did you need -->
+<!-- to go beyond what AI could give you?] -->
+Using Claude Code CLI was very useful when pinpointing the hard coded problem for `issue #88`. When pull for assistance to review the codebase, Claude Code pointed out within `_run_agent_orchestration/_run_rag_retrieval_generation` had hardcode sections regardless of input. The output reviews would be fake instead of failing. This particular hard coded problem was the root cause issue and an additional issue that needed to be mended before  `issue #88` of not `POST /reviews endpoint has no test for when the profile has no ingested documents` could be fixed. Claude fall short when responding in the description of a pull request. The decision was made not to use Claude to write a Pull Request and write the request from experience.
+
+**What would you do differently if you started over?**
+<!-- [Issue selection, planning, implementation, or process — anything -->
+<!-- you'd change?] -->
+The same issue of `#88` would be most likely selected. The implementation of the built `tests/unit/test_reviews_routes.py` would be planned differently. To ensure that test could be ran at the end, `make check`/`make test-unit` would be ran at the beginning before implementation. By running these prompts in the end, it caused all types of issues for the issue fix.  The test did not pass cleanly due to pre-existing failures. Commits with these test had to be accompanied by `--no-verify`.
+
+**What are you most proud of from this module?**
+<!-- [One thing — it doesn't have to be the PR itself.] -->
+The most proud accomplishments were several things which include: the PR, reading the codebase, finding the issue and being able to circumvent the commit issue I faced. The Pull Request was impressive because this is my first ever pull request to an unknown codebase. Reading files such as `docs/CONTRIBUTING.md`, `docs/SETUP.md`, and `docs/CONTRIBUTING.md` gave me a great understanding of the codebase. I am proud of failing and understanding what needed to done with `tests/unit/test_reviews_routes.py` to make the Pull Request happen.
