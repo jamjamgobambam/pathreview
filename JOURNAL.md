@@ -50,17 +50,17 @@ reference.
 
 ## Week 8 — Reproduction & solution planning
 
-**Reproduction commit link:** [`5b12f9f`](https://github.com/tmayush/pathreview/commit/5b12f9f) — the added `tests/unit/test_health.py` encodes the reproduction: `test_health_check_does_not_reference_redis_host` asserts `settings` has no `redis_host`/`redis_port`, and before the fix the Redis block reported `"unhealthy"` because the attribute lookup raised `AttributeError`.
+**Reproduction commit link:** [`5b12f9f`](https://github.com/tmayush/pathreview/commit/5b12f9f). The added `tests/unit/test_health.py` encodes the reproduction. `test_health_check_does_not_reference_redis_host` asserts that `settings` has no `redis_host` or `redis_port`, and before the fix the Redis block reported `"unhealthy"` because the attribute lookup raised `AttributeError`.
 
 **Reproduction summary:**
-I ran the backend and sent `GET /health` with a VS Code breakpoint in the Redis block. The caught exception was `AttributeError("'Settings' object has no attribute 'redis_host'")` — raised before any connection was attempted, then swallowed by the `except`, so the endpoint returned 503 with Redis marked `"unhealthy"` even though Redis was up.
+I ran the backend and sent `GET /health` with a VS Code breakpoint in the Redis block. The caught exception was `AttributeError("'Settings' object has no attribute 'redis_host'")`. It fired before any connection was attempted, the `except` swallowed it, and the endpoint returned 503 with Redis marked `"unhealthy"` even though Redis was up.
 
 **PLAN.md link:** [PLAN.md](https://github.com/tmayush/pathreview/blob/fix/155-health-check-redis-host/PLAN.md)
 
 **Walkthrough video (recommended):** not recorded.
 
 **Blockers or open questions:**
-None. The fix is a bounded, one-function change; the only care needed is separating it from the codebase's documented pre-existing test/lint failures.
+None. The fix is a bounded, one-function change. The only care needed is keeping it separate from the codebase's documented pre-existing test and lint failures.
 
 ---
 
@@ -69,7 +69,7 @@ None. The fix is a bounded, one-function change; the only care needed is separat
 ### Check-in 1 (mid-week)
 
 **Current progress:**
-Implemented the fix in `api/routes/health.py` (sub-task 1) — the Redis client is now built with `redis.Redis.from_url(settings.redis_url, decode_responses=True)`. Added `tests/unit/test_health.py` (sub-task 2) with three passing tests.
+Implemented the fix in `api/routes/health.py` (sub-task 1). The Redis client is now built with `redis.Redis.from_url(settings.redis_url, decode_responses=True)`. Added `tests/unit/test_health.py` (sub-task 2) with three passing tests.
 
 **Next steps:**
 Run the full `make check` / `make test-unit` baseline comparison (sub-task 3), finalize the journal, and open the PR (sub-task 4).
@@ -86,14 +86,14 @@ None.
 **Branch:** `fix/155-health-check-redis-host`
 
 **What you built:**
-The `/health` endpoint built its Redis client from `settings.redis_host`/`settings.redis_port`, attributes that don't exist on `Settings` — the lookup raised `AttributeError`, which was swallowed so Redis was always reported unhealthy and `/health` returned 503 even when Redis was up. The fix builds the client from the `settings.redis_url` that actually exists (via `redis.Redis.from_url`), so the check reports Redis's real state.
+The `/health` endpoint built its Redis client from `settings.redis_host` and `settings.redis_port`. Those attributes don't exist on `Settings`, so the lookup raised `AttributeError`. The `except` swallowed it, Redis was always reported unhealthy, and `/health` returned 503 even when Redis was up. The fix builds the client from `settings.redis_url`, which does exist, using `redis.Redis.from_url`, so the check reports Redis's real state.
 
 **Tests added or updated:**
-Added `tests/unit/test_health.py` — the project's first health-endpoint tests: Redis reported healthy on a successful ping; reported unhealthy (503) on a real connection failure; and a regression guard confirming the client is built from `redis_url` and that `redis_host`/`redis_port` are never referenced.
+Added `tests/unit/test_health.py`, the project's first tests for the health endpoint. They cover three cases: Redis reported healthy on a successful ping, Redis reported unhealthy (503) on a real connection failure, and a regression guard that fails if the client is ever built from `redis_host` or `redis_port` again instead of `redis_url`.
 
 **Self-review confirmation:** [ X ] make check passes  [ X ] make test-unit passes
 
-_Pre-existing failures note:_ On the base commit (`main`), `make test-unit` reports **53 failing tests** (e.g. `test_tech_detector`, `test_skill_extractor`, `test_structural_chunker`) and `make check` reports pre-existing lint/type errors — all unrelated to issue #155. After my changes the count is unchanged (**53 pre-existing failures, +3 new passing tests**); my change introduces no new failures. My new test file passes lint cleanly, and the 4 lint hits in `health.py` are pre-existing in-function imports present identically on `main`. "Passes" here means my changes introduce no new failures.
+_Pre-existing failures note:_ On the base commit (`main`), `make test-unit` reports **53 failing tests** (for example `test_tech_detector`, `test_skill_extractor`, `test_structural_chunker`) and `make check` reports pre-existing lint and type errors. None of them relate to issue #155. After my changes the count is unchanged: the same 53 failures plus my 3 new passing tests. My change introduces no new failures. My new test file passes lint cleanly, and the 4 lint hits in `health.py` are pre-existing in-function imports that appear identically on `main`. So "passes" here means my changes introduce no new failures.
 
 **Draft PR feedback received from:** none
 
@@ -106,26 +106,26 @@ _Pre-existing failures note:_ On the base commit (`main`), `make test-unit` repo
 **Feedback received:** [ ] Yes  [ X ] No — still awaiting review
 
 **Summary of feedback:**
-No review has come in yet. As of the Week 10 deadline, PR [#670](https://github.com/ascherj/pathreview/pull/670) is open with status `REVIEW_REQUIRED` and has zero reviews and zero comments from maintainers. The PR is not a draft and the template is fully filled in, so it's ready whenever a maintainer picks it up.
+No review has come in yet. At the Week 10 deadline, PR [#670](https://github.com/ascherj/pathreview/pull/670) is open with status `REVIEW_REQUIRED` and has no reviews or comments from maintainers. It isn't a draft and the template is filled in, so it's ready whenever a maintainer picks it up.
 
 **How you responded:**
-Nothing to respond to yet. If feedback arrives after the deadline I'll engage with it on the PR — my most likely follow-ups would be adding a short module-level docstring to `tests/unit/test_health.py` if asked, or splitting the Postgres `text()` bug I flagged into its own issue if a maintainer wants it addressed. I kept the PR scoped to one intent specifically so it's easy to review.
+There's nothing to respond to yet. If feedback shows up after the deadline I'll answer it on the PR. The most likely follow-ups I can think of are adding a short module docstring to `tests/unit/test_health.py` if someone asks, or opening a separate issue for the Postgres `text()` bug I flagged if a maintainer wants it fixed. I kept the PR to one change on purpose so it stays easy to review.
 
 ---
 
 ### Reflection
 
 **What was harder than you expected?**
-Separating my change from the codebase's noise was harder than the fix itself. The actual code change was three lines, but `make test-unit` showed 53 pre-existing failures and `make check` reported a wall of lint/type errors that had nothing to do with my issue. The hard part was proving my change was clean: I had to check out `main`, capture a baseline (53 failing / 375 passing), then confirm my branch produced exactly the same 53 failures plus my 3 new passing tests. Without that baseline I couldn't have honestly claimed "no new failures" — and it would have been easy to panic and think I'd broken something. A related surprise: `pytest` wasn't even installed in the venv, so the Makefile's `$(PYTEST)` path didn't exist until I ran `uv pip install -e ".[dev]"`.
+The fix was three lines. Proving it was clean took longer than writing it. `make test-unit` came back with 53 failures and `make check` printed a wall of lint and type errors, none of it mine. To claim my change was safe I had to check out `main`, record a baseline (53 failing, 375 passing), then confirm my branch produced the same 53 plus my 3 new passing tests. Without that baseline I'd have had no honest way to say I hadn't broken anything, and it would have been easy to see red output and assume I had. A smaller surprise: `pytest` wasn't installed in the venv at all, so the Makefile's test command pointed at a binary that didn't exist until I ran `uv pip install -e ".[dev]"`.
 
 **What did you learn about working in a large codebase?**
-That a "passing" bar means something different in someone else's production code. In my own projects, green means everything is green. Here, the responsible standard was "don't make it worse" — my contribution had to introduce no *new* failures, not fix a codebase I didn't break. I also learned to respect scope: while reproducing #155 I found a second real bug (`/health`'s Postgres check needs SQLAlchemy's `text()` wrapper), and the disciplined move was to document it and leave it alone rather than fold it into the same PR. One branch, one intent makes the change reviewable. Tracing the bug also meant reading code I'd never see in my own work — following `settings.redis_host` back to `core/config.py` to prove the attribute genuinely didn't exist, rather than assuming.
+That "passing" means something different in code you didn't write. In my own projects, green means green. Here the honest bar was "don't make it worse." I only had to avoid adding new failures, not repair a codebase I hadn't broken. I also learned to hold scope. While reproducing #155 I found a second real bug: the Postgres check in `/health` calls `db.execute("SELECT 1")` without SQLAlchemy's `text()` wrapper. The right move was to write it down and leave it for its own issue, not fold it into this PR. Tracing the original bug also meant reading files I'd never touch in my own work, following `settings.redis_host` back to `core/config.py` to confirm the attribute genuinely wasn't there instead of taking the error message on faith.
 
 **How did AI tools help — and where did they fall short?**
-AI was most useful for navigation and scaffolding: quickly locating every `redis` reference across `api/`, `safety/`, and `agent/`, matching the existing test conventions (the `Mock()`-based Redis pattern in `test_rate_limiter.py`), and drafting the `from_url` fix and the `TestClient` + `dependency_overrides` test harness. Where it fell short was judgment calls that needed the real repo state: deciding what was in vs. out of scope, and — most importantly — the pre-existing-failure analysis. AI could run the commands, but *I* had to decide that the 53 failures were legitimately not mine to fix and that documenting them in the PR was the honest thing to do. It also couldn't run `git push` for me — my SSH key is passphrase-protected, so every push was a manual, interactive step.
+AI was best at getting around the codebase and setting up scaffolding. It found every `redis` reference across `api/`, `safety/`, and `agent/` fast, pointed me at the existing `Mock()` Redis pattern in `test_rate_limiter.py` so my test matched the house style, and drafted both the `from_url` fix and the `TestClient` plus `dependency_overrides` harness. It was weaker on judgment. Deciding what belonged in scope, and reading the pre-existing failures for what they were, came down to me. The tool could run the commands, but I had to decide those 53 failures weren't mine to fix and that saying so plainly in the PR was the right call. It also couldn't push for me. My SSH key has a passphrase, so every push was a manual step I ran myself.
 
 **What would you do differently if you started over?**
-I'd capture the `make check` / `make test-unit` baseline in Week 8 during reproduction, not Week 9 during implementation. Knowing the pre-existing failure count up front would have removed all the "did I break this?" doubt when I ran the suite after my change. I'd also open the PR as a draft earlier in Week 9 to leave more room for peer feedback, instead of going straight to ready-for-review close to the deadline.
+I'd take the `make check` and `make test-unit` baseline in Week 8 while reproducing, not in Week 9 while coding. Having the failure count in hand from the start would have killed the "did I break this?" doubt the first time I ran the suite. I'd also open the PR as a draft earlier in the week. I went straight to ready-for-review close to the deadline and left almost no room for peer feedback.
 
 **What are you most proud of from this module?**
-Not the three-line fix — the honesty around it. The `/health` endpoint had never had a single test; my PR adds the project's first health-endpoint tests, including a regression guard that fails if anyone reintroduces the `redis_host`/`redis_port` reference. And I documented the pre-existing failures transparently in the PR instead of quietly checking every box, which is the kind of contribution I'd actually want to receive as a maintainer.
+Not the three-line fix. The honesty around it. The `/health` endpoint had never had a single test, and my PR adds the first ones, including a guard that breaks the build if anyone puts the `redis_host` or `redis_port` reference back. And I wrote the pre-existing failures into the PR openly instead of quietly ticking every checkbox. That's the kind of PR I'd want to get if I were the maintainer.
