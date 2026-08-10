@@ -111,3 +111,98 @@ on both. Both changed Python files pass Ruff and Black, and the checker passes s
 mypy. Integration collection exits 5 with no tests on both revisions.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — no review arrived
+
+**Summary of feedback:** The Summer 2026 project instructions state that reviewer
+feedback is not provided for this iteration of the course. I also checked PR #211 on
+August 9, 2026; it has no conversation comments, inline review comments, submitted
+reviews, requested changes, or review threads.
+
+**How you responded:** Not applicable — no reviewer feedback was received, so there was
+no response or reviewer-requested change to make. If maintainer feedback arrives later,
+I will document the comment, my decision, the change or explanation I provided, and the
+verification result within the repository's 48-hour response window.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was not reproducing #152; it was defining a fix narrow enough to avoid
+creating false support elsewhere. The obvious rule — let one matching word count — made
+`Knows Python` work, but could also make an ordinary claim such as `Python expert` look
+supported by context that mentioned only Python. I had to preserve the normal two-term
+threshold while recognizing only a specific reporter-led one-fact form in
+`rag/evaluator/faithfulness_checker.py`.
+
+The repository's inherited failures also made verification harder than a normal green
+test run. Instead of relying on totals, I compared the exact failing test node IDs on the
+branch and the same-environment baseline. That proved the four original faithfulness
+failures were repaired without replacing them with different failures elsewhere.
+
+**What did you learn about working in a large codebase?**
+
+I learned that contributing to someone else's codebase means treating existing behavior,
+tests, contribution rules, and module boundaries as contracts. Before changing the
+checker, I had to read `docs/CONTRIBUTING.md`, follow the repository's branch and commit
+conventions, study the existing unit tests, and understand how the checker fits into the
+larger RAG evaluation path.
+
+Scope mattered as much as implementation. The change safely handles `text=None` at the
+`FaithfulnessChecker.check()` boundary, but `RelevanceScorer.score()` can still reject
+that input earlier inside `EvalSuite.run()`. Naming that boundary honestly was better
+than claiming the related issue was fixed everywhere.
+
+**How did AI tools help — and where did they fall short?**
+
+AI coding tools helped me navigate an unfamiliar repository, form debugging hypotheses,
+and generate adversarial tests for punctuation, technical identifiers, malformed context
+chunks, Unicode variants, and the claim limit. They were most useful as a fast source of
+questions to investigate, especially when a small parser rule had effects I did not see
+immediately.
+
+They fell short when suggestions treated the lexical checker like a general language
+understanding system. Several broader ideas involving stop words, negation, or semantic
+rules changed unrelated behavior or created new false positives. I had to reject or
+rework those suggestions and use executable regressions, coverage, style/type checks,
+and an exact branch-versus-baseline comparison as the evidence for each final decision.
+
+**What would you do differently if you started over?**
+
+I would write the acceptance matrix before changing the scorer. It would include the
+positive issue example, unrelated one-word controls, material mismatches, partial
+evidence, malformed inputs, technical identifiers, and the first-ten-claims behavior
+from the beginning. I would also capture the baseline failure IDs immediately instead of
+first relying on pass/fail totals.
+
+I would follow the course's literal six-section PLAN structure and keep the draft PR open
+long enough to request peer or mentor feedback before marking it ready. I would also
+publish the midweek check-in at the actual midpoint instead of adding both entries in the
+final Sunday journal commit. Those process improvements would make the work easier to
+review and the course record stronger, even though the implementation itself would stay
+narrow.
+
+The Week 9 course feedback also called out how the reporting-verb, subject-stripping,
+role-noun, and technical-identifier rules interact. I would respond by splitting those
+concerns into smaller helpers and adding short why-comments around non-obvious branches,
+so a future maintainer would not need to reverse-engineer the intent from all 55 tests.
+
+**What are you most proud of from this module?**
+
+I am most proud that the final PR fixes the exact `Knows Python. Knows SQL.` failure while
+keeping unrelated one-word feedback unscoreable. The submitted checker reaches 100%
+statement and branch coverage, and the full-suite comparison shows the same 49 inherited
+failure identities rather than introducing a new one.
+
+I am also proud that the contribution states its limits clearly. It preserves technical
+identifiers such as `C++`, `.NET`, and `Node.js`, handles malformed sibling chunks, and
+does not pretend lexical overlap can solve negation, contradiction, or entity
+attribution. That combination of a useful fix, reproducible evidence, and honest scope is
+the part of the module I would be most comfortable explaining to a maintainer or
+interviewer.
