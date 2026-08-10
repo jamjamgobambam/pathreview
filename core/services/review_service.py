@@ -1,19 +1,23 @@
-from uuid import UUID
-import structlog
 import json
-from datetime import datetime
-from sqlalchemy import select, and_
+from datetime import UTC, datetime, timedelta
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
+SHARE_LINK_TTL_DAYS = 30
+
 
 async def create_review(
-    db,
+    db: AsyncSession,
     profile_id: UUID,
     user_id: UUID,
 ) -> Review:
@@ -33,22 +37,23 @@ async def create_review(
 
 
 async def get_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     user_id: UUID,
 ) -> Review | None:
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    review: Review | None = result.scalars().first()
+    return review
 
 
 async def list_reviews(
-    db,
+    db: AsyncSession,
     user_id: UUID,
     page: int = 1,
     page_size: int = 20,
@@ -74,13 +79,65 @@ async def list_reviews(
         .limit(page_size)
     )
     result = await db.execute(stmt)
-    reviews = result.scalars().all()
+    reviews = list(result.scalars().all())
 
     return reviews, total
 
 
+async def share_review(
+    db: AsyncSession,
+    review_id: UUID,
+    user_id: UUID,
+) -> Review | None:
+    """
+    Make a review publicly viewable for 30 days, owned-user only.
+    Idempotent: if the review is already public with a share link that
+    hasn't expired yet, that same link is returned unchanged rather than
+    generating a new one.
+    """
+    review = await get_review(db=db, review_id=review_id, user_id=user_id)
+    if not review:
+        return None
+
+    now = datetime.now(UTC)
+    if review.is_public and review.share_expires_at and review.share_expires_at > now:
+        return review
+
+    review.is_public = True
+    review.share_expires_at = now + timedelta(days=SHARE_LINK_TTL_DAYS)
+    db.add(review)
+    await db.commit()
+    await db.refresh(review)
+    return review
+
+
+async def get_shared_review(
+    db: AsyncSession,
+    review_id: UUID,
+) -> Review | None:
+    """
+    Get a review by ID for unauthenticated public access.
+    Returns None if the review doesn't exist, isn't public, or its share
+    link has expired. An expired link also flips is_public back to False.
+    """
+    stmt = select(Review).where(Review.id == review_id)
+    result = await db.execute(stmt)
+    review: Review | None = result.scalars().first()
+
+    if not review or not review.is_public:
+        return None
+
+    if review.share_expires_at and review.share_expires_at <= datetime.now(UTC):
+        review.is_public = False
+        db.add(review)
+        await db.commit()
+        return None
+
+    return review
+
+
 async def process_review(
-    db,
+    db: AsyncSession,
     review_id: UUID,
     profile_id: UUID,
 ) -> None:
@@ -166,7 +223,7 @@ async def process_review(
         ]
 
         review.status = "complete"
-        review.sections = [s.model_dump() for s in sections]
+        review.sections = [s.model_dump() for s in sections]  # type: ignore[assignment]
         review.overall_score = rag_output.get("overall_score", None)
         review.updated_at = datetime.utcnow()
 
@@ -194,12 +251,12 @@ async def process_review(
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
 
-async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
+async def _run_ingestion_pipeline(db: AsyncSession, profile: Profile) -> list[dict]:
     """
     Run ingestion pipeline to extract data from profile sources.
     Returns list of ingested source data.
     """
-    sources = []
+    sources: list[dict] = []
 
     # Ingest from GitHub if available
     if profile.github_username:

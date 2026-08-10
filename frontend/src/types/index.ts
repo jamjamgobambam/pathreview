@@ -26,8 +26,17 @@ export interface Review {
   overall_score?: number
   sections?: FeedbackSection[]
   error_message?: string
+  is_public: boolean
+  share_expires_at?: string | null
   created_at: string
   updated_at: string
+}
+
+export interface ShareLinkResponse {
+  review_id: string
+  is_public: boolean
+  share_url: string
+  expires_at: string
 }
 
 export interface ReviewListResponse {

@@ -8,6 +8,7 @@ import { DashboardPage } from './pages/DashboardPage'
 import { NewProfilePage } from './pages/NewProfilePage'
 import { ReviewPage } from './pages/ReviewPage'
 import { ReviewHistoryPage } from './pages/ReviewHistoryPage'
+import { SharedReviewPage } from './pages/SharedReviewPage'
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth()
@@ -84,6 +85,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/shared/:reviewId" element={<SharedReviewPage />} />
       </Routes>
     </>
   )

@@ -29,11 +29,18 @@ export const ReviewPage: React.FC = () => {
 
   const currentReview = fullReview || statusReview
 
-  const handleShare = () => {
-    const url = window.location.href
-    navigator.clipboard.writeText(url).then(() => {
-      alert('Review link copied to clipboard!')
-    })
+  const handleShare = async () => {
+    if (!reviewId) return
+
+    try {
+      const { share_url, expires_at } = await apiClient.shareReview(reviewId)
+      const url = `${window.location.origin}${share_url}`
+      await navigator.clipboard.writeText(url)
+      const expiresDate = new Date(expires_at).toLocaleDateString()
+      alert(`Review link copied to clipboard! Link expires on ${expiresDate}.`)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to generate share link')
+    }
   }
 
   const handleExport = () => {

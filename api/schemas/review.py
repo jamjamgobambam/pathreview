@@ -22,6 +22,8 @@ class ReviewResponse(BaseModel):
     sections: list[FeedbackSection] | None
     overall_score: float | None
     error_message: str | None = None
+    is_public: bool
+    share_expires_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -33,3 +35,10 @@ class ReviewListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class ShareLinkResponse(BaseModel):
+    review_id: UUID
+    is_public: bool
+    share_url: str
+    expires_at: datetime

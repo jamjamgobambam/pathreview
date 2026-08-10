@@ -1,4 +1,4 @@
-import { AuthResponse, Profile, Review, ReviewListResponse } from '../types'
+import { AuthResponse, Profile, Review, ReviewListResponse, ShareLinkResponse } from '../types'
 
 const API_BASE = '/api'
 
@@ -105,6 +105,14 @@ class ApiClient {
 
   async getReviewStatus(id: string): Promise<Review> {
     return this.request(`/reviews/${id}/status`)
+  }
+
+  async shareReview(id: string): Promise<ShareLinkResponse> {
+    return this.request(`/reviews/${id}/share`, { method: 'POST' })
+  }
+
+  async getSharedReview(id: string): Promise<Review> {
+    return this.request(`/reviews/${id}/shared`)
   }
 
   async listReviews(page: number = 1, pageSize: number = 10): Promise<ReviewListResponse> {

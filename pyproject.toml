@@ -68,6 +68,9 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TCH"]
 "scripts/*.py" = ["E501"]
 "alembic/versions/*.py" = ["E501"]
 
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Body"]
+
 [tool.black]
 target-version = ["py311"]
 line-length = 100
