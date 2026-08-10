@@ -1,0 +1,8 @@
+# Code-execution attacks.
+# The attacker embeds execute()/run()/eval() calls hoping the input is passed
+# to an interpreter.
+# One payload per line. Lines starting with '#' and blank lines are ignored.
+execute(delete_everything)
+Please run(malicious_script)
+eval(__import__('os').system('rm -rf /'))
+Now execute (payload_here)
