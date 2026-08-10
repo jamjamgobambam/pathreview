@@ -127,3 +127,36 @@ the `street_address` pattern, not this change. Details in the PR's "Notes for Re
 
 **Draft PR feedback received from:** none yet — opened ready for review; will request
 feedback in the cohort Slack channel per instructor guidance.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+A classmate (ayc325) left two comments on [PR #1](https://github.com/kneha07/pathreview/pull/1) on 2026-08-04:
+1. The PR is opened against my own fork's `main` branch, not the upstream `ascherj/pathreview:main` — so it never actually reached the project maintainers as a real contribution.
+2. They would have liked to see more, smaller commits mapping to each subtask in PLAN.md, instead of the work landing in a few larger commits.
+
+**How you responded:**
+In standup I walked through the issue and fix, then acknowledged both points directly: the wrong-base-repo mistake is a real process error I need to fix by opening a new PR against `ascherj/pathreview:main`, and the commit-granularity feedback is fair — future work should commit at each PLAN.md subtask boundary rather than batching. I'm tracking the corrected upstream PR as a follow-up action for this module.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The fix itself — extending one character class in the `phone_us` regex — took maybe twenty minutes. What took the rest of the time was everything around it: setting up a working local environment without Docker for the first two weeks, figuring out which of the 49 failing unit tests were pre-existing versus caused by my change, and writing a PR description precise enough that a reviewer wouldn't have to re-derive that distinction themselves. I underestimated how much of "fixing a one-line bug" is actually verification and communication overhead, not code. I also didn't expect a process mistake — opening the PR against my own fork instead of upstream — to be the thing a reviewer flagged first, ahead of anything about the code itself.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was learning to draw a hard boundary around scope. I found a second, unrelated bug (`street_address` matching case-insensitively inside words like "applications") while running the regression suite, and the instinct in a personal project would've been to just fix it too since I was already in the file. Here, touching it would have inflated the diff, mixed two unrelated concerns into one review, and made the PR harder to reason about. Documenting it in PLAN.md's Risks section and moving on was the harder but more professional choice. I also learned to distrust a clean test run — 49 pre-existing failures meant "tests pass" wasn't a meaningful signal on its own; I had to diff behavior against the pre-fix regex specifically to prove causation.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for the mechanical, low-risk parts: drafting the regex alternatives to consider, writing the reproduction script structure, and sanity-checking the PR description for clarity. It fell short on judgment calls that needed project-specific context: whether the `street_address` bug was in-scope (it wasn't — I had to actually read the issue and Tier 1 guidance to decide), and whether my test failures were pre-existing (only running the suite against the actual pre-fix commit settled that, not reasoning from general regex knowledge). AI is good at generating candidate explanations; confirming which one is *true* still required running real commands against the real repo.
+
+**What would you do differently if you started over?**
+I'd try to get Docker Desktop installed and `make run` verified in Week 7 instead of letting it slide for two weeks, even though the fix itself never touched Postgres/Redis — it left me without full end-to-end confidence going into the PR, only unit-test confidence. I'd also start the "which failures are pre-existing" regression check earlier rather than in Week 9, since it's the kind of task that reveals scope questions (like the `street_address` bug) that are better to know about while still planning than while trying to finish. And I'd double-check the PR's base repo before opening it, and commit at each PLAN.md subtask boundary instead of batching — both were avoidable and both were the actual feedback I received.
+
+**What are you most proud of from this module?**
+Catching and correctly triaging the `street_address` false-positive bug without letting it derail the actual issue. It would have been easy to either ignore it (and ship a PR that looks incomplete next to a suite with unexplained failures) or scope-creep into fixing it (and turn a one-line fix into a multi-file PR). Documenting it clearly instead, with evidence that it predates my change, felt like the most "professional open-source contributor" moment of the whole module, more so than the regex fix itself.
