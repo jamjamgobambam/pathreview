@@ -66,3 +66,39 @@ I did not add any test files since this issue only covers updating docstrings fo
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+N/A
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+- The first thing that caused me some troubles was that `mypy` prevented me from making commits when the code base still have incompatible types in variable assignments
+
+- Due to the nature of the codebase, reading and understanding the functions from the `\service` module alone are complicated and required a good amount of time for me to understand their objective and behaviors.
+
+**What did you learn about working in a large codebase?**
+
+- For my own projects, I usually don't build this much tests, nor have any other `.md` files for contributing rules, architecture, and setup instructions. From this project, I learned about the necessity of all of these steps and will apply them to my future projects.
+
+**How did AI tools help — and where did they fall short?**
+- AI helped me reread and evaluate my docstrings after I have read the `\service` module and fill in the docstrings myself. Since this issue is mainly understanding the functions and their behavorial, Claud helps me very well with putting in the correct docstrings and didn't require much context the span multiple parts of the codebase.
+
+
+**What would you do differently if you started over?**
+- If I started over, I'd choose a different issue that may require more codebase reading and more additional tests to find out the bug
+
+**What are you most proud of from this module?**
+- I am most proud of applying what I have learned from this propram. This mean I was able to apply contributing best practice such as naming branch, commits format, and pull request practice for open-source projects. I also was able to leverage AI in helping me reevaluate my code/dosctrings before I'm confident that my solution for the issue is good before making a pull request.
