@@ -54,3 +54,28 @@ Implemented a caching layer for portfolio review queries. Each completed review 
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** [Claude]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Distinguishing issues and failing tests that were in scope for this PR, and what should be left alone.
+
+**What did you learn about working in a large codebase?**
+That there will be different implementations or conventions that you might not agree with, but need to learn how to work around it. When working an issue, focus on implementing what is needed without making the code worse and don't worry about fixing every unrelated thing you might come across. When working on my own projects it makes more sense to handle issues as I see them or soon after, since in the end it's all my code and I might forget about it later. When contributing to someone else's code it's better to stay focused on the slice of the codebase that your changes directly impact.
+
+**How did AI tools help — and where did they fall short?**
+AI assisted greatly in exploring the codebase and mapping the files that we would be needing for the caching layer. It also helped implement the code changes from the written PLAN.md along with the tests. Before opening the PR I also had a second model do a review of the branch. This caught that the unit tests used a mocked session, so they still passed even with the cache's SQL filters deleted. That led to adding integration tests against real Postgres and a fix to return the newest matching review. It fell short because not every finding from that review was accurate, so I had to verify each one against the actual code and reject the ones that didn't hold up instead of applying them wholesale. And the tests with the blind spot were AI-written in the first place — they looked thorough and passed, which was a good reminder that passing AI-generated tests aren't proof by themselves.
+
+**What would you do differently if you started over?**
+I don't think there is much I would do differently except perhaps the planning phase. At the beginning when I had AI review the plan things started to get a bit over-engineered and they spent a lot of time chasing down edge cases and failing tests before I redirected them. The clearest example was a request-coalescing design for concurrent submits that I cut once I checked the issue tracker and found concurrency was already its own separate issue (#82). Next time I'd check the scope boundary against the tracker before the design discussion instead of after.
+
+**What are you most proud of from this module?**
+Successfully implementing a caching layer into a large codebase with unfamiliar code, with a real test-first arc: the six failing tests I committed as the Week 8 reproduction are the exact tests passing in the PR.
