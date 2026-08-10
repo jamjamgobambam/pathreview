@@ -65,3 +65,36 @@ No deviations. The fix matched the plan exactly. The only extra work was patchin
 - [x] Code follows existing patterns in `api/routes/`
 - [x] Conventional commit messages used throughout
 - [x] PR template filled out completely
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+The reviewer praised the fix as clean and well-scoped, and said PLAN.md showed strong diagnostic thinking by tracing the root cause clearly. The journal workflow (reproduce → plan → implement) was called out as a habit worth keeping. The main area to strengthen was test design: the test file wasn't visible in the PR diff (so coverage couldn't be verified), test names should communicate the specific behavior being asserted, and the mocks for Redis/vector DB raised a question about whether the tests catch real bugs in the postgres probe logic or just confirm that the mocks work as expected.
+
+**How you responded:**
+No code changes were needed since the feedback was about test visibility and design philosophy rather than a broken fix. Key takeaways to apply next time: always verify the test file appears in the PR diff before submitting; write test names that describe the expected behavior explicitly (e.g., `test_postgres_reported_healthy_when_db_is_up` rather than generic names); and ask "if someone introduced a new bug in the logic being tested, would my tests catch it?" before finalising a test suite.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment setup took much longer than I expected. I ran `make setup` before Docker was running, which gave a confusing `OSError: Connect call failed ('127.0.0.1', 5432)` error that looked like a Python or database issue when it was really just Docker being off. On top of that, I hadn't copied `.env.example` to `.env`, so the app was also trying to connect on port 5432 instead of the 5433 that Docker actually maps to. Untangling those two separate problems — missing `.env` and Docker not running — when they produce the same surface error was trickier than it looked. I expected setup to be five minutes; it took closer to an hour.
+
+**What did you learn about working in a large codebase?**
+The biggest difference from building my own project is that the conventions aren't yours to set — branch names, commit message format, PR template, import order, docstring style — all of it is already decided, and you have to find and follow the rules rather than make them. I also learned that `make lint` failing project-wide doesn't mean your code is wrong; pre-existing errors across a codebase are normal, and the job is to not make things worse, not to fix everything. Understanding which errors were mine versus pre-existing took more investigation than I expected.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for navigating unfamiliar code quickly — tracing the error from the terminal traceback down to the exact line in `health.py`, understanding what SQLAlchemy 2.x changed and why, and drafting the test structure. Where it fell short was in test patching: the first attempt used `patch("api.routes.health.redis")` which failed because `redis` is imported inline inside the function body, not at the module level. That required reading the actual error carefully and understanding how `unittest.mock.patch` resolves attribute paths, which wasn't something AI got right on the first try — I had to iterate and understand the underlying mechanism myself.
+
+**What would you do differently if you started over?**
+Start Docker and verify `docker compose ps` shows all containers healthy *before* touching `make setup`. Also copy `.env.example` to `.env` as literally the first thing after cloning — the instructions say to do this but it's easy to skip when scanning quickly. On the code side, I would run `ruff check` on just the files I changed earlier, so I could report the lint status accurately on the PR checklist from the start instead of discovering it at the end.
+
+**What are you most proud of from this module?**
+The test suite. The issue itself was a one-line fix, which made it easy to underestimate the work. Instead of writing a single "it doesn't crash" test, I ended up with 6 tests that distinguish between the original bug (ArgumentError → 503), the fix being in place (TextClause not a bare string), a genuinely unreachable database (OperationalError → still 503), and the response shape being correct. Writing tests that separate those cases — and that are honest about what they're testing and why — felt like real engineering rather than just checking a box.
