@@ -72,3 +72,42 @@ I did not modify the test file. I used the existing tests in `tests/unit/test_fa
 [x] `make test-unit` completed with no new failures introduced
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 – Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No – still awaiting review
+
+**Summary of feedback:**
+
+No reviewer feedback was received during the Summer 2026 session. My pull request remained open without maintainer comments.
+
+**How you responded:**
+
+No action was required because no review comments were provided.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was understanding an unfamiliar production codebase instead of writing code from scratch. Before making any changes, I had to understand how the faithfulness checker fit into the overall retrieval-augmented generation pipeline, identify where to implement the fix, and make sure my changes matched the project's coding style. I also spent a significant amount of time dealing with Git, pull requests, pre-commit hooks, formatting, and type-checking issues before I could successfully submit my work.
+
+**What did you learn about working in a large codebase?**
+
+I learned that contributing to a production repository requires much more than writing working code. It is important to read existing code patterns, follow contribution guidelines, write changes that are consistent with the rest of the project, and ensure tests and formatting tools pass. I also learned to make small, focused changes instead of trying to redesign the entire implementation.
+
+**How did AI tools help — and where did they fall short?**
+
+AI was very helpful for understanding unfamiliar code, explaining Git commands, suggesting implementations, debugging errors, and helping me interpret the issue requirements. However, AI could not determine exactly what the project maintainers expected or guarantee that a solution would satisfy the issue. I still had to read the issue carefully, compare my implementation with the existing codebase, run the tests myself, and make decisions about which suggestions were appropriate.
+
+**What would you do differently if you started over?**
+
+I would spend more time reading the repository before writing code and create my pull request earlier so I would have more time to receive feedback. I would also make smaller commits throughout the process instead of waiting until multiple changes had accumulated, making it easier to track my progress and debug problems.
+
+**What are you most proud of from this module?**
+
+I am most proud that I successfully completed my first contribution to a real open-source project. From selecting an issue and reproducing it to creating a feature branch, implementing a solution, working through Git and pre-commit issues, and submitting a pull request, I gained practical experience with a professional software development workflow that I had never completed before.
