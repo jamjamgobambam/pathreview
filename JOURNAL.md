@@ -68,6 +68,43 @@ Updated the `test_query_with_partial_overlap` fixture so that it represents genu
 **Tests added or updated:**
 Updated `tests/unit/test_relevance_scorer.py::TestRelevanceScorer::test_query_with_partial_overlap`. The targeted test passes, and all 19 relevance scorer unit tests pass.
 
-**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+The broader checks still contain pre-existing repository failures. My branch has the same 182 lint errors as `main` and 52 failing unit tests compared with 53 on `main`; the difference is the relevance scorer test fixed by this PR.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was received.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The code change itself was simple. The harder part was confirming that the problem was in the test fixture rather than in the relevance scorer. I had to reproduce the failure, inspect the test and scorer logic, and compare my branch with `main` to confirm that other test failures were pre-existing.
+
+**What did you learn about working in a large codebase?**
+
+I learned that understanding context is important before changing code. I had to locate the relevant files, understand the expected behavior, reproduce the issue, and keep the change limited to the actual problem. I also learned that existing repositories may already have failing tests, so changes should be validated against the baseline.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools helped me understand unfamiliar code, interpret test results, plan debugging steps, and work through the Git and pull request workflow. However, I still had to verify the behavior by reading the code, reproducing the issue, running tests, and confirming that the proposed change was correct.
+
+**What would you do differently if you started over?**
+
+I would check the relevant test, implementation, and baseline test results earlier. This would help identify the root cause faster and separate pre-existing repository issues from problems introduced by my branch.
+
+**What are you most proud of from this module?**
+
+I am most proud of completing the full contribution workflow on an existing codebase: selecting an issue, reproducing it, planning the fix, making a focused change, testing it, documenting the work, and submitting a pull request.
