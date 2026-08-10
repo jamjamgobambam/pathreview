@@ -8,6 +8,7 @@ import { DashboardPage } from './pages/DashboardPage'
 import { NewProfilePage } from './pages/NewProfilePage'
 import { ReviewPage } from './pages/ReviewPage'
 import { ReviewHistoryPage } from './pages/ReviewHistoryPage'
+import { SharedReviewPage } from './pages/SharedReviewPage'
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth()
@@ -52,6 +53,9 @@ function App() {
         />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        {/* Public, unauthenticated read-only share view — must stay OUTSIDE
+            ProtectedRoute so logged-out visitors are not redirected to /login. */}
+        <Route path="/shared/:token" element={<SharedReviewPage />} />
         <Route
           path="/dashboard"
           element={

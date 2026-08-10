@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Share2, Download, ArrowLeft, Loader } from 'lucide-react'
+import { Share2, Download, ArrowLeft, Loader, Link as LinkIcon } from 'lucide-react'
 import { useReviewStatus } from '../hooks/useReviewStatus'
 import { ReviewSection } from '../components/ReviewSection'
 import { apiClient } from '../services/api'
+import { mintShareLink } from '../services/shareService'
 import { Review } from '../types'
 
 export const ReviewPage: React.FC = () => {
@@ -34,6 +35,16 @@ export const ReviewPage: React.FC = () => {
     navigator.clipboard.writeText(url).then(() => {
       alert('Review link copied to clipboard!')
     })
+  }
+
+  const handleCopyLink = async () => {
+    try {
+      const { url } = await mintShareLink(reviewId || '')
+      await navigator.clipboard.writeText(url)
+      alert('Public share link copied to clipboard! It expires in 30 days.')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to create share link')
+    }
   }
 
   const handleExport = () => {
@@ -117,6 +128,13 @@ ${section.suggestions.map((s) => `- ${s}`).join('\n')}
                 >
                   <Share2 className="w-5 h-5" />
                   Share
+                </button>
+                <button
+                  onClick={handleCopyLink}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors"
+                >
+                  <LinkIcon className="w-5 h-5" />
+                  Copy link
                 </button>
                 <button
                   onClick={handleExport}
