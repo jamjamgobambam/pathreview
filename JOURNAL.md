@@ -1,0 +1,105 @@
+# Module 3 Journal
+
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/37
+
+**Issue title:** Add snapshot tests for prompt templates to catch accidental changes
+
+**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
+
+**Problem summary:**
+The RAG prompt generator (`rag/generator/prompt_templates.py`) stores five versioned templates used to generate portfolio feedback. `tests/unit/test_prompt_templates.py` already has a test named `test_template_snapshot_content_hash` that looks like a snapshot test, but it only checks that the computed MD5 hash is a 32-character string — it never compares it to a stored expected value, so it passes regardless of what the templates say. This means a developer can silently edit prompt wording (which directly changes review quality) with no automated signal, and no test enforces the intended practice of bumping the version key when content changes. A successful fix adds real per-template snapshot tests with fixed expected hashes (or literal expected strings) that fail loudly when template text changes, forcing a conscious version bump.
+
+**Branch name:** test/37-prompt-template-snapshot-tests
+
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+
+**"Is this right for me?" checklist reasoning:**
+- Understanding: I can explain the issue without re-reading it — `test_template_snapshot_content_hash` computes a hash but never asserts it against a fixed expected value, so it can't catch template edits. Relevant files confirmed: `rag/generator/prompt_templates.py`, `tests/unit/test_prompt_templates.py`.
+- Done looks like: editing any template's text without bumping its version key causes a test to fail.
+- Tier fit: Tier 1, appropriate as my first contribution to this codebase.
+- Codebase readiness: read `get_template()` and the existing ~30 tests end-to-end; the module is self-contained (a dict + one accessor), so I can predict the blast radius of my change.
+- Scope/time: checked the ledger claims count and issue comments — comfortable with how many others are on this issue. 3–5 hr estimate fits within Weeks 8–9. No blockers or dependencies listed on the issue.
+
+All boxes checked — proceeding with this issue.
+
+
+## Reproduction notes (issue #37)
+
+**Steps to reproduce:**
+1. Ran `python -m pytest tests/unit/test_prompt_templates.py -v` on a clean checkout — all 37 tests pass, including `test_template_snapshot_content_hash`.
+2. Edited the wording of the `skills_feedback` template in `rag/generator/prompt_templates.py` (changed template text under the `v1` key, no version bump).
+3. Re-ran `python -m pytest tests/unit/test_prompt_templates.py::TestPromptTemplates::test_template_snapshot_content_hash -v` — test still **PASSED**.
+
+**Observation:** `test_template_snapshot_content_hash` computes an MD5 hash of template content but only asserts `isinstance(content_hash, str)` and `len(content_hash) == 32` — it never compares against a fixed expected hash. This confirms the bug: template wording can change silently with zero test failures, and no version bump is enforced.
+
+Reverted the temporary edit afterward — no production code changes made on this branch yet.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/ronak-adhikari/pathreview/commit/a778bce
+
+**Reproduction summary:**
+Ran the existing `test_template_snapshot_content_hash` test, then edited the wording of the `skills_feedback` template with no version bump. The test still passed — confirming it never actually validates content, only that the hash is a 32-character string.
+
+**PLAN.md link:** https://github.com/ronak-adhikari/pathreview/blob/test/37-prompt-template-snapshot-tests/PLAN.md
+
+
+**Blockers or open questions:**
+Deciding between one combined snapshot hash vs. per-template hashes — leaning per-template for better diagnostics, will finalize in Week 9.
+
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix for issue #37. Replaced the broken `test_template_snapshot_content_hash` test (which only checked hash type/length) with a parametrized `test_template_snapshot_matches_expected_hash` test that asserts each of the 5 templates' v1 content against a hardcoded expected MD5 hash. Verified the fix works by re-running the Week 8 reproduction: editing `skills_feedback` wording now fails the test with a clear message, while reverting brings it back to green. All 41 tests in the file pass (up from 37 — net +4 from swapping 1 broken test for 5 real ones). Confirmed `make test-unit` shows no new failures (53 pre-existing failures, same as Week 8 baseline; 379 passed, up from 375).
+
+**Next steps:**
+Write the PR description using the strong-PR-description examples as reference, run through the full pre-submission self-review checklist, and open a draft PR for peer/mentor feedback before marking it ready for review.
+
+**Blockers:**
+`make check`'s mypy hook flags `disallow_untyped_defs` on every pre-existing test method in this file (none had `-> None` before my change either) — documented this as pre-existing in my commit message and will note it in the PR's "Notes for Reviewers" section rather than fixing all 37 unrelated methods.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/594
+
+**Branch:** test/37-prompt-template-snapshot-tests
+
+**What you built:**
+Replaced the broken prompt template snapshot test (which only checked hash type/length and could never fail) with a parametrized test that asserts each of the 5 templates' v1 content hash against a hardcoded expected value. Editing a template's wording without bumping its version now fails with a clear, actionable error message.
+
+**Tests added or updated:**
+`tests/unit/test_prompt_templates.py` — replaced `test_template_snapshot_content_hash` with `EXPECTED_TEMPLATE_HASHES` and a parametrized `test_template_snapshot_matches_expected_hash`, covering all 5 templates individually. All 41 tests in the file pass.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+*(both pass with only pre-existing, unrelated failures — documented in commit message and PR "Notes for Reviewers"; no new failures introduced)*
+
+**Draft PR feedback received from:** none — skipped peer review due to time constraints on submission day
+
+
+### Reflection
+
+**What was harder than you expected?**
+Understanding the actual bug took more care than I expected. The existing "snapshot test" looked legitimate at first glance — it computed a real MD5 hash — so it took reading the assertions carefully to realize it only checked `isinstance()` and `len() == 32`, meaning it could never fail no matter what changed. It wasn't a broken feature so much as a test that gave false confidence, which is a different kind of bug to spot than something that visibly crashes.
+
+**What did you learn about working in a large codebase?**
+I learned that "done" isn't just "the code works" — it has to work inside someone else's conventions. Things like `disallow_untyped_defs = true` in mypy, or CONTRIBUTING.md's exact commit format, aren't optional style preferences; they're gates that block your commit or PR if you don't match them. I also learned to separate pre-existing issues (the 53 failing tests, the 182 lint errors) from problems my own change introduced — reproducing the baseline first made it much easier to prove my change didn't make things worse.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for reading and reasoning through the codebase quickly — finding the exact broken test, confirming the real vs. reported behavior, and drafting things like the PLAN.md and PR description in the project's expected format. Where it fell short was anything requiring me to actually be at my terminal: environment setup (Docker, Rosetta, venv activation), watching real test output, and catching my own mistakes (forgetting to save JOURNAL.md twice, an incomplete revert leaving a third hash value). Those needed me to actually run things and read the real output, not just trust a plan.
+
+**What would you do differently if you started over?**
+I'd save files before running git commands more consistently — I lost time twice from committing an unsaved/empty file. I'd also run `make check` on my target files earlier, before writing the fix, so I knew about the pre-existing mypy issue ahead of time instead of hitting it right as I tried to commit.
+
+**What are you most proud of from this module?**
+Actually proving the bug and the fix with real before/after test output — editing a template, watching the old test wrongly pass, then watching the new test correctly fail with a clear message, then reverting and confirming green again. That felt like real engineering rigor rather than just writing code that looked plausible.
