@@ -51,3 +51,35 @@ I updated the `PromptDefense.sanitize()` method to utilize regular expressions. 
 I updated `tests/unit/test_prompt_defense.py` by adding `test_sanitize_removes_newline_injections`, which asserts that malicious sequences are successfully stripped from the final parsed text. 
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Making changes to test the problematic state of the issue and restoring the files to implement the solution without causing issues in other files.]
+
+**What did you learn about working in a large codebase?**
+[I learned that when you contribute to a larger project, make your contributions very specific and understandable for everyone involved. Having a correct solution requires testing, and try to keep it in a remote state to avoid complications with the whole project.]
+
+**How did AI tools help — and where did they fall short?**
+[When making changes and testing, AI helped with navigation, reading over large files, and creating pull request with a professional description.]
+
+**What would you do differently if you started over?**
+[I would better plan out how to test my solutions and implement them in a remote environment before attaching to the whole project.]
+
+**What are you most proud of from this module?**
+[I feel proud on how I navigate between reading files and using AI tools for confidence/double checking errors.]
