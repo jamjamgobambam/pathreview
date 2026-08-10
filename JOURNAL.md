@@ -1,0 +1,109 @@
+# Journal
+
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/34
+
+**Issue title:** Implement a re-ranking step that uses an LLM to score retrieved chunks before generation
+
+**Tier:** [ ] Tier 1  [] Tier 2  [x] Tier 3
+
+**Problem summary:**
+The retriever currently ranks chunks purely by blending vector similarity and BM25 keyword scores, which are both mechanical signals that can rank a topically-close chunk above one that actually has the language the query needs. This issue adds an optional post-retrieval step where a smaller/cheaper LLM reads the query alongside each candidate chunk and assigns it a relevance score, letting semantic judgment re-order the candidates before the top-k are passed to the review generator. Right now there's no reranking at all — `HybridRetriever.retrieve()` returns its blended-score ranking directly with no LLM involved. A successful fix adds a new `LLMReranker` class (in a new `rag/retriever/reranker.py`) that scores and reorders a candidate pool, wires it into `HybridRetriever.retrieve()` as an optional parameter so existing behavior is unchanged when it's not configured, and falls back to the original ranking if the LLM call fails or returns malformed output. It touches `rag/retriever/hybrid.py` and adds the new reranker file alongside it.
+
+**Branch name:** https://github.com/qixuan-code/pathreview/feat/34-llm-reranker-retriever
+
+**Setup confirmation:** [Y] App runs locally at localhost:5173
+
+**Cohort ledger:** [Y] Issue added to cohort ledger
+
+**Selection notes ("Is this right for me?" checklist reasoning):**
+
+*Part 1 — Understanding the issue*
+Paraphrased without re-reading: the retriever's ranking today is entirely score-based math (vector + keyword blend); this issue adds a smarter second pass where an LLM actually judges relevance before the generator sees the chunks. Confirmed the affected code by reading `rag/retriever/hybrid.py` in full (129 lines — vector query, keyword search, score blending, filtering, sort, truncation to `max_chunks`). Definition of done is concrete: before the fix, `retrieve()` always returns chunks ordered by blended vector/keyword score; after the fix, when a reranker is configured, the candidate pool gets re-scored and reordered by the LLM before truncation — and when no reranker is configured, behavior is byte-for-byte unchanged from today.
+
+*Part 2 — Tier fit*
+This one is genuinely borderline. The issue's own file list only touches `rag/retriever/`, which points to Tier 2, but the tier table separately calls out "RAG or agent modification" as Tier 3 typical scope, and this is exactly that. I'm logging it as Tier 2 based on what I actually found investigating it: the change is additive and optional — no existing caller needs to change, since nothing in `api/` or `agent/orchestrator.py` currently calls `HybridRetriever.retrieve()` at all — and there's an existing pattern to mirror rather than invent from scratch (`rag/generator/review_generator.py` for calling an LLM, `rag/generator/output_parser.py` for parsing its structured output). Flagging honestly, though: building a reference version of this myself took real design effort beyond just "add a function" — batching chunks into prompts, deciding fallback behavior on LLM failure, clamping malformed scores — so this sits at the upper edge of Tier 2 for me, not a quick one. Noting that now so it doesn't turn into a Week 9 surprise.
+
+*Part 3 — Codebase readiness*
+Read `rag/retriever/hybrid.py` end-to-end, including exactly where the blended results get filtered, sorted, and truncated — that's the single integration point a reranker needs to hook into. Read `rag/generator/review_generator.py` and `rag/generator/output_parser.py` as the closest existing precedent for "call an LLM, parse its response" in this codebase. Checked for existing tests covering this area and found none: no `tests/unit/test_hybrid.py`, and no test file exercises any LLM-calling component the way this reranker will need to be tested. Part of this issue is establishing that test pattern (mocking the OpenAI client) for the module, not extending an existing suite.
+
+*Part 4 — Scope and time*
+Still need to check the issue's comment thread and the cohort ledger's Claims count live before finalizing. On time: the issue's own estimate is 7–10 hours, and a dry-run reference build I did (reranker class + config + fallback handling + six test cases covering the mock path, reordering, LLM failure, malformed JSON, score clamping, and batching) took a comparable amount of focused effort once batching and failure handling are accounted for — so I'm treating 7–10 hours as realistic, not padded, and planning to spread it across both weeks rather than one sitting. Two things worth flagging as PR-description context, not blockers: (1) `HybridRetriever` isn't called anywhere in the running app yet, so this reranker will be correct and independently testable but won't visibly change what any user sees until something else wires the retriever into the app — a pre-existing gap I'm not taking on here; (2) there are two latent bugs nearby (`VectorStore.add_chunks()` doesn't match the real `Chunk` dataclass's fields, and `HybridRetriever` never calls `keyword_searcher.index()` before searching) that I'm noting but deliberately not fixing as part of this PR to keep scope disciplined. No "blocked by" references found on the issue itself.
+
+
+## Week 8 — Reproduction
+
+**Reproduction commit link:https://github.com/qixuan-code/pathreview/commit/7d64d8d5bf95822ebceec7bd73377b444cb9a981
+**Reproduction summary:**
+Reproduced by adding `tests/unit/test_hybrid.py`, which mocks `VectorStore`/`KeywordSearcher` and calls `HybridRetriever.retrieve()` directly with one chunk that only embeds close to the query and another that contains the exact requested language. Observed that the merely-similar chunk ranks first purely from the vector/keyword blend math.
+
+**PLAN.md link:https://github.com/qixuan-code/pathreview/blob/feat/34-llm-reranker-retriever/plan.md
+
+**Blockers or open questions:**
+
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+The core of the feature is built. I added `rag/retriever/reranker.py` with an `LLMReranker` class and a `RerankerConfig` dataclass (mirroring `review_generator.ReviewConfig` so the same OpenAI-compatible/OpenRouter settings carry over). The reranker scores a candidate pool in batches, clamps malformed scores to `[0, 1]`, ignores ids that aren't in the pool, and falls back to the original ordering on any LLM error or unparseable output — so it can only help ordering, never break it. That covers the main sub-tasks from plan.md: the reranker class, config, batching, and fallback handling are done. I then wired it into `HybridRetriever`: it takes a `reranker` and calls `self.reranker.rerank(query, results)` right before the top-k truncation in `retrieve()`, which is the single integration point I identified back in Week 7.
+
+One deliberate deviation from the plan, flagged here so it's on the record: Week 7 / plan.md described the reranker as an *optional* parameter that defaults off and leaves `retrieve()` byte-for-byte unchanged when unconfigured. I changed it to a *required* constructor argument, so every `HybridRetriever` now reranks. It's simpler and removes the `None`-check branch, but it breaks the "unchanged when not configured" contract I originally committed to, and it forces every caller to pass a reranker. I want to revisit this before the PR goes up rather than silently ship the stricter design.
+
+**Next steps:**
+Finish `tests/unit/test_reranker.py` — the six cases from the plan: mocked scoring path, reordering, LLM-failure fallback, malformed JSON, score clamping, and batching across `batch_size`. Then run `make check` and `make test-unit` to confirm green, and open the draft PR against issue #34. I also want to settle the required-vs-optional question above before submitting.
+
+**Blockers:**
+No hard blockers, but the mid-week time sink was pre-commit friction rather than the feature itself. The moment `hybrid.py` entered the lint set, ruff and mypy surfaced pre-existing debt in the retriever package that had never been checked: an unused `all_chunks` local (F841), two over-length lines (E501), and — because mypy follows imports — missing return annotations in `vector_store.py` (`get_collection`) and `keyword_search.py` (`__init__`), plus a `var-annotated` error on an empty `self.chunks = []`. I fixed all of them (removed the dead variable, added `-> None` / `-> Any` and a `list[dict]` annotation, dropped an unused `Settings` import) to get a clean commit. Two process lessons: pre-commit stashes *unstaged* changes before running, so fixes have to be `git add`-ed or the hooks keep checking the old versions; and black reformats a file the first time it hits the hook, which needs a re-stage. The two latent bugs I called out in Week 7 (`add_chunks` field mismatch, missing `keyword_searcher.index()` call) are still deliberately out of scope.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/819
+
+**Branch:** `feat/34-llm-reranker-retriever`
+
+**What you built:**
+An `LLMReranker` (`rag/retriever/reranker.py`) that takes the retriever's blended candidate pool and asks a cheap LLM to score each chunk's relevance to the query, then reorders by that score before the top-k are truncated. It scores in batches, clamps or discards malformed/out-of-range scores, and falls back to the original blended ordering on any LLM error or unparseable output, so it can only improve ordering and never degrade it. It's wired into `HybridRetriever.retrieve()` at the point right before truncation.
+
+**Tests added or updated:**
+Added `tests/unit/test_reranker.py` — 10 tests driven by a mock OpenAI client so nothing hits the network: reordering by LLM score, empty-pool short-circuit (no LLM call), fallback on LLM error and on malformed/non-JSON output, partial scoring (unscored chunks keep their blended order), unknown-id and non-numeric-score handling, clamping scores to `[0, 1]`, parsing scores wrapped in a ```json code fence, and batching a pool larger than `batch_size` across multiple LLM calls. The reordering case mirrors the exact ranking bug reproduced in `test_hybrid.py` in Week 8.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+**Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Pre-commit hooks and CI kept rejecting my changes for things I hadn't touched: lint rules I didn't know existed, tests in unrelated modules that broke because of an assumption I'd changed, and a couple of flaky failures that sent me chasing a bug that wasn't mine. 
+
+**What did you learn about working in a large codebase?**
+I learned that large-scale development is entirely different from building solo projects where you hold all the complexity in your head. In a large codebase, you have to act like an investigator. I learned to work from evidence—reading the surrounding code, identifying how similar problems were already solved, and strictly adhering to existing design patterns rather than trying to invent my own solutions from scratch.
+
+**How did AI tools help — and where did they fall short?**
+AI helps me to navigate the projects workflow, help me understand the function of each components.
+
+**What would you do differently if you started over?**
+Set up the local environment and get the full test suite passing on a clean checkout before writing a single line. 
+
+**What are you most proud of from this module?**
+I am able to design a new feature and commit it into the large codebase. 
