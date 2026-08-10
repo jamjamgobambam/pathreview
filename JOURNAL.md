@@ -78,3 +78,57 @@ Verified results: `tests/unit/test_faithfulness_checker.py` is 28 passed. The fu
 **Self-review confirmation:** [x] make check passes for changed files  [x] make test-unit passes for changed files
 
 **Draft PR feedback received from:** none yet — the pull request is open and marked ready for review, and no reviewer comments have been posted so far. Any responses will be documented in the Week 10 reflection.
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback came in. PR #977 is open and marked ready for review with zero comments and zero submitted reviews. Issue #152 has 28 comments, but all are other contributors claiming the issue rather than feedback on my work, and at least one other PR (#211) is open against the same bug.
+
+**How you responded:**
+No response was required. In place of external review I ran a structured self-review before marking the PR ready, which found a real defect in my implementation that is documented in the Week 9 check-in and in the PR description. I also left two concrete decisions open for a reviewer rather than an open-ended request for comments: an offer to move the coursework markdown files out of the branch if the maintainer wants a clean diff, and an offer to annotate the test files if they want the stricter pre-commit hook to pass.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+Separating my own breakage from the repository's existing state. I assumed a passing or failing test suite would be a clear signal, but `make test-unit` reports 49 failures on an untouched `main`, across 15 files, alongside 180 Ruff findings and 103 Mypy errors project-wide. On my first full run I could not tell whether I had caused any of it. Building that baseline turned out to be a prerequisite for interpreting any result, and I did not do it until late.
+
+The design decision was harder than the code. Lowering the overlap threshold from two tokens to one fixes the reported bug, but a single shared word between a claim and its context is weak evidence, and accepting it trades false negatives for false positives. For a faithfulness metric that matters: the whole point is to catch feedback the retrieved context does not actually support, so a checker that too eagerly says "supported" is worse than useless. My answer was to require the shared token to be distinctive, filtering roughly two dozen generic words like `developer`, `experience`, `skills`, and `expert` before accepting an overlap. That is a judgment call with no clearly correct answer. The filter is hand-written and will not generalize to vocabulary I did not anticipate, and I flagged the tradeoff in the PR rather than presenting it as settled.
+
+**What did you learn about working in a large codebase?**
+
+The change is small; understanding its blast radius is the work. My final production diff is one regular expression and a comment, but before trusting it I had to establish that only `rag/evaluator/eval_suite.py` imports the module and that it has no unit test of its own, which meant nothing else could be affected. In my own projects I hold that graph in my head. Here I had to go find it, and being wrong would have surfaced in CI rather than locally.
+
+Existing tests function as a specification, often more precisely than the issue text. Splitting claims on conjunctions looks like scope creep against a Tier 1 issue that only mentions the token threshold, but it is required: `test_partial_support_returns_middle_score` asserts `0.2 < score < 0.8` for `The developer shows Python expertise and Kubernetes knowledge.`, and without the split that feedback is one claim that can only score `1.0` or `0.0`. The issue names that test as one to fix. The constraint lived in an assertion, not in prose.
+
+Process conventions are real constraints, not formalities. Branch naming, Conventional Commits with a scope, and the PR template are all specified in `docs/CONTRIBUTING.md`, which is not at the repository root where I first looked. I also learned that a project's tooling can be stricter than its own documentation: the `mirrors-mypy` pre-commit hook checks test files, which are unannotated repo-wide, while `make typecheck` covers only the six source packages and excludes `tests/`. Reconciling that required a decision and a written explanation rather than a fix.
+
+**How did AI tools help — and where did they fall short?**
+
+AI was most useful for orientation and mechanical breadth: building a working map of a multi-service FastAPI and React codebase quickly, locating the contribution standards and CI definition, and doing systematic work I would have done poorly by hand, like bisecting all 20 unit test files to isolate which two stalled during collection.
+
+It fell short in a specific and consistent way: it produced confident output that was wrong in ways that looked right. I recorded in my Week 9 check-in and my PR description that a `structlog` import through `rich.traceback` was hanging pytest and pre-commit. The explanation was fluent, named real libraries, and was false. Importing `structlog` takes 0.17 seconds. The real causes were cold-cache collection, because `core.security` builds a bcrypt `CryptContext` at import time, and two concurrent pytest processes deadlocking. Run alone with a warm cache the suite finishes in about seven seconds. My first tokenizer regex failed the same way: `[a-z0-9]+(?:[+#./-][a-z0-9+#./-]*)?` allowed its optional group to match a separator followed by zero characters, so `django.` did not match `django`, and it passed all 25 existing tests because every fixture placed technical terms mid-sentence.
+
+The gap in both cases was verification, and each check was cheap once I decided to run it: timing the import, watching two processes sit at 0.3 percent CPU, printing the tokenizer's output for one sentence. The useful habit is treating a plausible explanation as a hypothesis rather than a conclusion.
+
+**What would you do differently if you started over?**
+
+Record the baseline before writing anything. A fifteen-minute pass on untouched `main` capturing failing tests, failing files, and lint and type totals would have let me interpret every later result and check my PR's testing boxes honestly the first time.
+
+Require a measurement before writing down a blocker. Everything I described as blocked was not blocked, and publishing that in a PR description is worse than omitting it.
+
+Test against realistic inputs rather than the issue's minimal reproduction. My fixtures used bare fragments like `python expert`, but the system feeds prose chunks that end sentences with periods. One sentence-terminated test would have caught the tokenizer bug immediately.
+
+Consider contention when choosing an issue. Twenty-eight people claimed this Tier 1 bug and another PR was already open. That did not change what I learned, but if a merged contribution is part of the goal, a less crowded issue is the better choice.
+
+**What are you most proud of?**
+
+Continuing to audit the change after the tests were green, and then writing the bug I found into the PR description instead of quietly amending it. The reported issue reproduced correctly and 25 tests passed, so there was no external signal telling me to keep looking. The fix itself is one line; deciding to go look for it, and then documenting the mistake somewhere a reviewer would see it, is the part I want to carry forward.
