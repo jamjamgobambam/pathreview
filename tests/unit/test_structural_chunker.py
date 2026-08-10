@@ -33,6 +33,16 @@ class TestStructuralChunker:
         assert len(result) >= 1
         assert isinstance(result[0], Chunk)
         assert all(isinstance(c, Chunk) for c in result)
+    def test_document_with_text_before_first_heading(self, chunker):
+        """Test document with text before the first heading."""
+        text = """This is some introductory text before any headings.
+# First Heading
+Content under the first heading."""
+        result = chunker.chunk(text, {})
+
+        all_text = " ".join(c.text for c in result)
+        assert "This is some introductory text before any headings." in all_text
+        assert "Content under the first heading." in all_text
 
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
