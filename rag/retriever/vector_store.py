@@ -1,8 +1,9 @@
 """ChromaDB-backed vector store for semantic retrieval."""
 
 import chromadb
-from chromadb.config import Settings
 import structlog
+from chromadb.api.models.Collection import Collection
+from chromadb.errors import NotFoundError
 
 logger = structlog.get_logger()
 
@@ -10,7 +11,7 @@ logger = structlog.get_logger()
 class VectorStore:
     """Wrapper around ChromaDB for vector similarity search."""
 
-    def __init__(self, persist_dir: str = ".chromadb"):
+    def __init__(self, persist_dir: str = ".chromadb") -> None:
         """Initialize ChromaDB client.
 
         Args:
@@ -18,7 +19,7 @@ class VectorStore:
         """
         self.client = chromadb.PersistentClient(path=persist_dir)
 
-    def get_collection(self, name: str):
+    def get_collection(self, name: str) -> Collection:
         """Get or create a collection.
 
         Args:
@@ -31,10 +32,7 @@ class VectorStore:
             collection = self.client.get_collection(name=name)
             logger.info("retrieved_collection", collection_name=name)
         except Exception:
-            collection = self.client.create_collection(
-                name=name,
-                metadata={"hnsw:space": "cosine"}
-            )
+            collection = self.client.create_collection(name=name, metadata={"hnsw:space": "cosine"})
             logger.info("created_collection", collection_name=name)
         return collection
 
@@ -56,23 +54,23 @@ class VectorStore:
             ids.append(chunk.id)
             embeddings.append(embedding)
             documents.append(chunk.text)
-            metadatas.append({
-                "source_id": chunk.source_id,
-                "chunk_index": chunk.chunk_index,
-                "section": chunk.section or "",
-            })
+            metadatas.append(
+                {
+                    "source_id": chunk.source_id,
+                    "chunk_index": chunk.chunk_index,
+                    "section": chunk.section or "",
+                }
+            )
 
         if ids:
             collection.upsert(
-                ids=ids,
-                embeddings=embeddings,
-                documents=documents,
-                metadatas=metadatas
+                ids=ids, embeddings=embeddings, documents=documents, metadatas=metadatas
             )
             logger.info("added_chunks", count=len(ids), collection=collection_name)
 
-    def query(self, query_embedding: list[float], collection_name: str,
-              n_results: int = 10) -> list[dict]:
+    def query(
+        self, query_embedding: list[float], collection_name: str, n_results: int = 10
+    ) -> list[dict]:
         """Search for similar vectors.
 
         Args:
@@ -88,7 +86,7 @@ class VectorStore:
         results = collection.query(
             query_embeddings=[query_embedding],
             n_results=n_results,
-            include=["embeddings", "documents", "metadatas", "distances"]
+            include=["embeddings", "documents", "metadatas", "distances"],
         )
 
         retrieved = []
@@ -97,20 +95,34 @@ class VectorStore:
                 results["documents"][0],
                 results["metadatas"][0],
                 results["distances"][0],
-                results["ids"][0]
+                results["ids"][0],
+                strict=False,
             ):
                 # ChromaDB distances are euclidean by default; convert to similarity score
                 similarity = 1 / (1 + distance)
-                retrieved.append({
-                    "id": chunk_id,
-                    "text": doc,
-                    "metadata": metadata,
-                    "score": similarity
-                })
+                retrieved.append(
+                    {"id": chunk_id, "text": doc, "metadata": metadata, "score": similarity}
+                )
 
-        logger.info("vector_query_complete", collection=collection_name,
-                   results_count=len(retrieved))
+        logger.info(
+            "vector_query_complete", collection=collection_name, results_count=len(retrieved)
+        )
         return retrieved
+
+    def delete_collection(self, collection_name: str) -> None:
+        """Delete an entire collection, e.g. when a profile is deleted.
+
+        No-ops if the collection doesn't exist (e.g. the profile never had
+        any ingested sources).
+
+        Args:
+            collection_name: Collection to delete
+        """
+        try:
+            self.client.delete_collection(name=collection_name)
+            logger.info("deleted_collection", collection_name=collection_name)
+        except NotFoundError:
+            logger.info("delete_collection_not_found", collection_name=collection_name)
 
     def delete_by_source_id(self, source_id: str, collection_name: str) -> None:
         """Delete all chunks from a source (for re-ingestion).
@@ -122,11 +134,13 @@ class VectorStore:
         collection = self.get_collection(collection_name)
 
         # Get all documents and filter by source_id
-        all_docs = collection.get(
-            where={"source_id": {"$eq": source_id}}
-        )
+        all_docs = collection.get(where={"source_id": {"$eq": source_id}})
 
         if all_docs["ids"]:
             collection.delete(ids=all_docs["ids"])
-            logger.info("deleted_by_source", source_id=source_id,
-                       count=len(all_docs["ids"]), collection=collection_name)
+            logger.info(
+                "deleted_by_source",
+                source_id=source_id,
+                count=len(all_docs["ids"]),
+                collection=collection_name,
+            )
