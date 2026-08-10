@@ -4,14 +4,14 @@ SHELL := /bin/bash
 
 # Detect Windows (Git Bash) vs Unix
 ifeq ($(OS),Windows_NT)
-  VENV_BIN := .venv/Scripts
+  VENV_BIN := .venv\Scripts
 else
   VENV_BIN := .venv/bin
 endif
 
-PYTHON := $(VENV_BIN)/python
-PIP := $(VENV_BIN)/pip
-PYTEST := $(VENV_BIN)/pytest
+PYTHON := $(VENV_BIN)\python
+PIP := $(VENV_BIN)\pip
+PYTEST := $(VENV_BIN)\pytest
 
 # ---- Setup ----
 
