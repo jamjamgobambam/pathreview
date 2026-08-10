@@ -44,3 +44,7 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+
+# add-on extensions
+.specstory
+.cursorindexingignore
