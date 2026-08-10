@@ -8,6 +8,7 @@ dist/
 build/
 .eggs/
 .venv/
+.venv-test/
 venv/
 *.egg
 

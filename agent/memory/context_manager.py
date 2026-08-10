@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+
 import structlog
 
 logger = structlog.get_logger()
@@ -14,8 +15,16 @@ class ContextManager:
         """Initialize context manager."""
         self.results = {}
 
-    def store_tool_result(self, tool_name: str, input_hash: str,
-                         result) -> None:
+    def clear(self) -> None:
+        """Drop all memoized results.
+
+        Called at the start of each orchestrator run so a reused Orchestrator
+        instance cannot replay a previous profile's cached tool results.
+        """
+        self.results.clear()
+        logger.info("context_cleared")
+
+    def store_tool_result(self, tool_name: str, input_hash: str, result) -> None:
         """Store tool execution result.
 
         Args:
