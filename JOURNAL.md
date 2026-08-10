@@ -97,3 +97,62 @@ edited files add no new ruff/black/mypy findings. My change introduces no new
 failures._
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review or comments came in on PR #624 during the window. (Reviewer
+feedback is not provided in the Summer 2026 cohort.) The PR is open and
+marked ready for review.
+
+**How you responded:**
+No feedback to respond to. I re-read my own diff and PR description one more
+time to confirm the scope and the pre-existing-failure notes still hold.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the project running locally was harder than the fix itself. On Windows
+I hit a chain of environment problems before I could even reproduce the bug:
+the Docker daemon wasn't running, the ChromaDB container crashed on a NumPy 2.0
+conflict, `make` wasn't available so I had to translate the Makefile targets
+into raw commands, and the seed script threw console-encoding errors. The
+actual code change ended up being a handful of lines; the surrounding workflow
+was the real work.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's production code is much more about restraint and
+context than output. I had to trace how `Orchestrator.run()` used the session
+store, confirm nothing else depended on the old merge behavior, and keep my
+change minimal instead of "improving" unrelated things. The biggest shift from
+my own projects was learning to separate my issue from the repo's pre-existing
+problems — there were already 53 failing unit tests and 100+ lint/type errors,
+so I had to capture a baseline first and prove I introduced no new failures,
+rather than trying to fix everything.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for exploring an unfamiliar codebase fast: locating where
+the stale state lived, explaining existing patterns, and drafting tests that
+matched the project's style with an in-memory fake Redis. Where it fell short
+was judgment: deciding scope, confirming the fix was safe for other consumers,
+diagnosing the Windows-specific Docker/Chroma failures, and interpreting the
+assignment's intent (e.g. that "passes" meant "no new failures" in a repo with
+documented pre-existing ones). Those needed me to read carefully and decide.
+
+**What would you do differently if you started over?**
+I'd stand up and verify the full local environment before touching the issue,
+so reproduction wasn't blocked by tooling later. I'd also open the draft PR
+earlier in the cycle to leave real room for peer feedback instead of finishing
+close to the deadline, and I'd write the reproduction test first thing rather
+than after manual poking.
+
+**What are you most proud of from this module?**
+Turning a vague "session state isn't cleared" report into a clear, reproducible
+regression test and a small, well-scoped fix — and being disciplined about
+proving my change didn't make an already-messy codebase any worse.
