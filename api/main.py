@@ -1,11 +1,12 @@
+import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
-import structlog
+from fastapi.responses import JSONResponse
 
+from api.middleware.rate_limit import RateLimitMiddleware
 from api.middleware.request_id import RequestIDMiddleware
-from api.routes import auth, profiles, reviews, health
+from api.routes import auth, health, profiles, reviews
 from core.database import init_db
 
 log = structlog.get_logger()
@@ -30,9 +31,7 @@ def custom_openapi():
         routes=app.routes,
     )
 
-    openapi_schema["info"]["x-logo"] = {
-        "url": "https://pathreview.example.com/logo.png"
-    }
+    openapi_schema["info"]["x-logo"] = {"url": "https://pathreview.example.com/logo.png"}
 
     app.openapi_schema = openapi_schema
     return app.openapi_schema
@@ -52,6 +51,9 @@ app.add_middleware(
 
 # Add request ID middleware
 app.add_middleware(RequestIDMiddleware)
+
+# Add rate limiting middleware
+app.add_middleware(RateLimitMiddleware)
 
 
 # Exception handler for unhandled exceptions
