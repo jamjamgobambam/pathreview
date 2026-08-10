@@ -6,9 +6,16 @@ from unittest.mock import AsyncMock, Mock, patch
 import asyncio
 
 from core.services.review_service import (
+    PROGRESS_AGENT_COMPLETE,
+    PROGRESS_COMPLETE,
+    PROGRESS_INGESTION_COMPLETE,
+    PROGRESS_PROCESSING_STARTED,
+    PROGRESS_RAG_COMPLETE,
+    _set_progress,
     create_review,
     get_review,
     list_reviews,
+    process_review,
 )
 
 
@@ -338,3 +345,174 @@ class TestReviewService:
 
         # Should order by created_at descending
         mock_db_session.execute.assert_called_once()
+
+
+@pytest.mark.unit
+class TestReviewProgress:
+    """Test suite for progress_pct reporting during review processing (issue #97)."""
+
+    @pytest.fixture
+    def in_flight_review(self):
+        """Create a mock Review row as it exists when processing starts."""
+        review = Mock()
+        review.id = uuid4()
+        review.status = "pending"
+        review.progress_pct = 0
+        review.sections = None
+        review.overall_score = None
+        return review
+
+    @pytest.fixture
+    def ingestible_profile(self):
+        """Create a mock Profile with a single GitHub source to ingest."""
+        profile = Mock()
+        profile.id = uuid4()
+        profile.user_id = uuid4()
+        profile.github_username = "octocat"
+        profile.portfolio_url = None
+        profile.resume_text = None
+        profile.resume_filename = None
+        return profile
+
+    @staticmethod
+    def _session_recording_progress(review, profile):
+        """Build a mock session for process_review that records progress on each commit.
+
+        Returns a ``(session, snapshots)`` tuple where ``snapshots`` collects the
+        value of ``review.progress_pct`` at every ``commit()`` call, i.e. every
+        value a polling client could observe.
+        """
+        session = AsyncMock()
+        session.add = Mock()
+
+        review_result = Mock()
+        review_result.scalars.return_value.first.return_value = review
+        profile_result = Mock()
+        profile_result.scalars.return_value.first.return_value = profile
+        session.execute = AsyncMock(side_effect=[review_result, profile_result])
+
+        snapshots: list[int] = []
+
+        async def record_commit():
+            snapshots.append(review.progress_pct)
+
+        session.commit = AsyncMock(side_effect=record_commit)
+        return session, snapshots
+
+    @pytest.mark.asyncio
+    async def test_process_review_emits_each_pipeline_milestone_in_order(
+        self, in_flight_review, ingestible_profile
+    ):
+        """Test process_review commits an advancing progress value per pipeline step."""
+        session, snapshots = self._session_recording_progress(in_flight_review, ingestible_profile)
+
+        await process_review(session, in_flight_review.id, ingestible_profile.id)
+
+        # Collapse repeated values (some steps commit more than once) and compare
+        # against the milestones the pipeline is expected to pass through.
+        observed = [p for i, p in enumerate(snapshots) if i == 0 or p != snapshots[i - 1]]
+        assert observed == [
+            PROGRESS_PROCESSING_STARTED,
+            PROGRESS_INGESTION_COMPLETE,
+            PROGRESS_AGENT_COMPLETE,
+            PROGRESS_RAG_COMPLETE,
+            PROGRESS_COMPLETE,
+        ]
+
+    @pytest.mark.asyncio
+    async def test_process_review_progress_never_decreases(
+        self, in_flight_review, ingestible_profile
+    ):
+        """Test observed progress values are monotonically non-decreasing."""
+        session, snapshots = self._session_recording_progress(in_flight_review, ingestible_profile)
+
+        await process_review(session, in_flight_review.id, ingestible_profile.id)
+
+        assert snapshots == sorted(snapshots)
+        assert all(0 <= p <= 100 for p in snapshots)
+
+    @pytest.mark.asyncio
+    async def test_process_review_reaches_100_when_complete(
+        self, in_flight_review, ingestible_profile
+    ):
+        """Test a completed review ends at status='complete' with progress_pct=100."""
+        session, _ = self._session_recording_progress(in_flight_review, ingestible_profile)
+
+        await process_review(session, in_flight_review.id, ingestible_profile.id)
+
+        assert in_flight_review.status == "complete"
+        assert in_flight_review.progress_pct == PROGRESS_COMPLETE
+
+    @pytest.mark.asyncio
+    async def test_process_review_emits_intermediate_progress_before_completing(
+        self, in_flight_review, ingestible_profile
+    ):
+        """Test progress is visible mid-run, not only 0 then 100.
+
+        This is the regression guard for issue #97: previously every poll returned
+        0 until the review finished, so the UI had nothing to animate.
+        """
+        session, snapshots = self._session_recording_progress(in_flight_review, ingestible_profile)
+
+        await process_review(session, in_flight_review.id, ingestible_profile.id)
+
+        intermediate = [p for p in snapshots if 0 < p < 100]
+        assert len(set(intermediate)) >= 3
+
+    @pytest.mark.asyncio
+    async def test_process_review_does_not_reach_100_when_safety_checks_fail(
+        self, in_flight_review, ingestible_profile
+    ):
+        """Test a review failed by safety checks keeps its partial progress."""
+        session, _ = self._session_recording_progress(in_flight_review, ingestible_profile)
+
+        with patch(
+            "core.services.review_service._run_safety_checks",
+            new=AsyncMock(return_value=False),
+        ):
+            await process_review(session, in_flight_review.id, ingestible_profile.id)
+
+        assert in_flight_review.status == "failed"
+        assert in_flight_review.progress_pct == PROGRESS_RAG_COMPLETE
+
+    @pytest.mark.asyncio
+    async def test_create_review_initializes_progress_at_zero(self):
+        """Test create_review starts a new review at progress_pct=0."""
+        session = AsyncMock()
+        session.add = Mock()
+        session.commit = AsyncMock()
+        session.refresh = AsyncMock()
+
+        with patch("core.services.review_service.Review") as mock_review_cls:
+            mock_review_cls.return_value = Mock()
+            await create_review(session, uuid4(), uuid4())
+
+            assert mock_review_cls.call_args[1]["progress_pct"] == 0
+
+    @pytest.mark.asyncio
+    async def test_set_progress_clamps_values_outside_0_100(self):
+        """Test _set_progress clamps out-of-range values into 0-100."""
+        review = Mock()
+        session = AsyncMock()
+        session.add = Mock()
+        session.commit = AsyncMock()
+
+        await _set_progress(session, review, 150)
+        assert review.progress_pct == 100
+
+        await _set_progress(session, review, -20)
+        assert review.progress_pct == 0
+
+    @pytest.mark.asyncio
+    async def test_set_progress_commits_so_polls_observe_the_value(self):
+        """Test _set_progress persists the review instead of only mutating it."""
+        review = Mock()
+        session = AsyncMock()
+        session.add = Mock()
+        session.commit = AsyncMock()
+
+        await _set_progress(session, review, 42)
+
+        assert review.progress_pct == 42
+        session.add.assert_called_once_with(review)
+        session.commit.assert_awaited_once()

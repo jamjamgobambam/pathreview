@@ -29,6 +29,17 @@ export const ReviewPage: React.FC = () => {
 
   const currentReview = fullReview || statusReview
 
+  // Clamp the reported progress into 0-100 so a missing, out-of-range or
+  // non-finite value from the API can never produce a broken bar width, and
+  // snap to 100 once the review is complete so the bar never freezes partway.
+  const rawProgress = statusReview?.progress_pct
+  const progressPct =
+    statusReview?.status === 'complete'
+      ? 100
+      : typeof rawProgress === 'number' && Number.isFinite(rawProgress)
+        ? Math.min(100, Math.max(0, Math.round(rawProgress)))
+        : 0
+
   const handleShare = () => {
     const url = window.location.href
     navigator.clipboard.writeText(url).then(() => {
@@ -93,8 +104,27 @@ ${section.suggestions.map((s) => `- ${s}`).join('\n')}
 
         {isPolling && (
           <div className="mb-12 p-8 bg-white rounded-lg shadow text-center">
-            <Loader className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
             <p className="text-gray-900 font-semibold">Analyzing your portfolio...</p>
+            {typeof statusReview?.progress_pct === 'number' ? (
+              <>
+                <div
+                  className="mt-4 w-full bg-gray-200 rounded-full h-4 overflow-hidden"
+                  role="progressbar"
+                  aria-label="Review progress"
+                  aria-valuenow={progressPct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <div
+                    className="h-full bg-blue-600 transition-all"
+                    style={{ width: `${progressPct}%` }}
+                  ></div>
+                </div>
+                <p className="mt-2 text-sm font-medium text-blue-600">{progressPct}% complete</p>
+              </>
+            ) : (
+              <Loader className="w-8 h-8 animate-spin text-blue-600 mx-auto mt-4" />
+            )}
             <p className="text-gray-600 text-sm mt-2">This may take a few moments</p>
           </div>
         )}

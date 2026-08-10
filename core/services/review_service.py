@@ -3,6 +3,7 @@ import structlog
 import json
 from datetime import datetime
 from sqlalchemy import select, and_
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models.review import Review
 from core.models.profile import Profile
@@ -10,6 +11,29 @@ from core.models.ingested_source import IngestedSource
 from api.schemas.review import FeedbackSection
 
 log = structlog.get_logger()
+
+# Progress milestones (percent complete) emitted by process_review as it works
+# through the pipeline. Each value is persisted so that polls of
+# GET /reviews/{id}/status observe an advancing number instead of a constant 0.
+PROGRESS_PROCESSING_STARTED = 10
+PROGRESS_INGESTION_COMPLETE = 35
+PROGRESS_AGENT_COMPLETE = 60
+PROGRESS_RAG_COMPLETE = 85
+PROGRESS_COMPLETE = 100
+
+
+async def _set_progress(db: AsyncSession, review: Review, pct: int) -> None:
+    """Persist a pipeline progress value on a review.
+
+    Args:
+        db: Async database session.
+        review: The in-flight review row to update.
+        pct: Progress percentage; clamped to the range 0-100 before being stored.
+    """
+    review.progress_pct = max(0, min(100, pct))
+    review.updated_at = datetime.utcnow()
+    db.add(review)
+    await db.commit()
 
 
 async def create_review(
@@ -23,6 +47,7 @@ async def create_review(
     review = Review(
         profile_id=profile_id,
         status="pending",
+        progress_pct=0,
         sections=None,
         overall_score=None,
     )
@@ -87,13 +112,16 @@ async def process_review(
     """
     Background task to process a review.
     Steps:
-    1. Set status="processing"
-    2. Run ingestion pipeline on profile's sources
-    3. Run agent orchestration
-    4. Run RAG retrieval + generation
+    1. Set status="processing", progress_pct=10
+    2. Run ingestion pipeline on profile's sources, progress_pct=35
+    3. Run agent orchestration, progress_pct=60
+    4. Run RAG retrieval + generation, progress_pct=85
     5. Run safety checks on output
-    6. Set status="complete", store sections in review.sections
+    6. Set status="complete", progress_pct=100, store sections in review.sections
     7. On exception: set status="failed", log error
+
+    Progress is committed after each step so that polls of
+    GET /reviews/{id}/status observe an advancing value while the review runs.
     """
     try:
         # Get the review
@@ -119,13 +147,13 @@ async def process_review(
 
         # Step 1: Set status to processing
         review.status = "processing"
-        db.add(review)
-        await db.commit()
+        await _set_progress(db, review, PROGRESS_PROCESSING_STARTED)
 
         log.info("review_processing_started", review_id=str(review_id), profile_id=str(profile_id))
 
         # Step 2: Run ingestion pipeline
         ingestion_results = await _run_ingestion_pipeline(db, profile)
+        await _set_progress(db, review, PROGRESS_INGESTION_COMPLETE)
         log.info(
             "ingestion_pipeline_completed",
             review_id=str(review_id),
@@ -134,6 +162,7 @@ async def process_review(
 
         # Step 3: Run agent orchestration
         agent_output = await _run_agent_orchestration(profile, ingestion_results)
+        await _set_progress(db, review, PROGRESS_AGENT_COMPLETE)
         log.info(
             "agent_orchestration_completed",
             review_id=str(review_id),
@@ -142,6 +171,7 @@ async def process_review(
 
         # Step 4: Run RAG retrieval + generation
         rag_output = await _run_rag_retrieval_generation(profile, ingestion_results, agent_output)
+        await _set_progress(db, review, PROGRESS_RAG_COMPLETE)
         log.info("rag_retrieval_completed", review_id=str(review_id))
 
         # Step 5: Run safety checks
@@ -168,10 +198,7 @@ async def process_review(
         review.status = "complete"
         review.sections = [s.model_dump() for s in sections]
         review.overall_score = rag_output.get("overall_score", None)
-        review.updated_at = datetime.utcnow()
-
-        db.add(review)
-        await db.commit()
+        await _set_progress(db, review, PROGRESS_COMPLETE)
 
         log.info(
             "review_processing_completed",
