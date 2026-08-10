@@ -9,14 +9,14 @@ else
   VENV_BIN := .venv/bin
 endif
 
-PYTHON := $(VENV_BIN)/python
-PIP := $(VENV_BIN)/pip
+PYTHON := $(VENV_BIN)/python3
+PIP := $(VENV_BIN)/pip3
 PYTEST := $(VENV_BIN)/pytest
 
 # ---- Setup ----
 
 setup: ## First-time setup: venv, deps, migrations, seed data
-	python -m venv .venv || python3 -m venv .venv
+	python3 -m venv .venv || python3 -m venv .venv
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
 	$(PIP) install -e ".[dev]"
 	$(VENV_BIN)/pre-commit install

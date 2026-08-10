@@ -16,7 +16,7 @@ class StructuralChunker(BaseChunker):
 
     SECTION_TOKEN_LIMIT = 800
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the chunker."""
         self.encoder = tiktoken.get_encoding("cl100k_base")
         self.semantic_chunker = SemanticChunker()
@@ -43,28 +43,35 @@ class StructuralChunker(BaseChunker):
             heading_path = " > ".join(section["path"])
             section_text = section["content"]
 
+            if not section_text:
+                continue
+
             # Check if section is too large for single chunk
             section_tokens = len(self.encoder.encode(section_text))
 
             if section_tokens > self.SECTION_TOKEN_LIMIT:
                 # Sub-chunk using semantic chunker
                 section_metadata = metadata.copy()
-                section_metadata.update({
-                    "heading_path": heading_path,
-                    "heading_level": section["level"],
-                })
+                section_metadata.update(
+                    {
+                        "heading_path": heading_path,
+                        "heading_level": section["level"],
+                    }
+                )
                 sub_chunks = self.semantic_chunker.chunk(section_text, section_metadata)
                 chunks.extend(sub_chunks)
             else:
                 # Single chunk for this section
                 section_metadata = metadata.copy()
-                section_metadata.update({
-                    "heading_path": heading_path,
-                    "heading_level": section["level"],
-                    "chunk_index": len(chunks),
-                    "char_start": 0,
-                    "char_end": len(section_text),
-                })
+                section_metadata.update(
+                    {
+                        "heading_path": heading_path,
+                        "heading_level": section["level"],
+                        "chunk_index": len(chunks),
+                        "char_start": 0,
+                        "char_end": len(section_text),
+                    }
+                )
                 chunks.append(Chunk(text=section_text, metadata=section_metadata))
 
         return chunks
@@ -77,9 +84,8 @@ class StructuralChunker(BaseChunker):
         """
         lines = text.split("\n")
         sections = []
-        heading_stack = []  # Stack of (level, heading_text)
-        current_section_lines = []
-        current_level = 0
+        heading_stack: list[tuple[int, str]] = []
+        current_section_lines: list[str] = []
 
         for line in lines:
             heading_match = re.match(r"^(#{1,6})\s+(.+)$", line)
@@ -87,12 +93,15 @@ class StructuralChunker(BaseChunker):
             if heading_match:
                 # Save previous section if exists
                 if current_section_lines:
-                    if heading_stack:
-                        sections.append({
-                            "content": "\n".join(current_section_lines).strip(),
-                            "path": [h[1] for h in heading_stack],
-                            "level": heading_stack[-1][0] if heading_stack else 0,
-                        })
+                    content = "\n".join(current_section_lines).strip()
+                    if content:
+                        sections.append(
+                            {
+                                "content": content,
+                                "path": [h[1] for h in heading_stack],
+                                "level": heading_stack[-1][0] if heading_stack else 0,
+                            }
+                        )
                     current_section_lines = []
 
                 # Process new heading
@@ -104,19 +113,22 @@ class StructuralChunker(BaseChunker):
                     heading_stack.pop()
 
                 heading_stack.append((heading_level, heading_text))
-                current_level = heading_level
 
             else:
                 # Regular content line
-                if heading_stack or current_section_lines:  # Only collect if we have a heading
-                    current_section_lines.append(line)
+                current_section_lines.append(line)
 
         # Save final section
-        if current_section_lines and heading_stack:
-            sections.append({
-                "content": "\n".join(current_section_lines).strip(),
-                "path": [h[1] for h in heading_stack],
-                "level": heading_stack[-1][0] if heading_stack else 0,
-            })
+        if current_section_lines:
+            content = "\n".join(current_section_lines).strip()
+            if content:
+
+                sections.append(
+                    {
+                        "content": content,
+                        "path": [h[1] for h in heading_stack],
+                        "level": heading_stack[-1][0] if heading_stack else 0,
+                    }
+                )
 
         return sections
