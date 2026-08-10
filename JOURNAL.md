@@ -68,3 +68,34 @@ Added `tests/unit/test_logging_conftest.py` (3 tests: event text in `caplog.text
 (Both scoped to files this PR touches — see pre-existing-failures note in the PR description: 52 failed/379 passed unit tests and 182 ruff/mypy errors exist on `main` already, unrelated to this change, and unaffected by it.)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments came in on [PR #691](https://github.com/ascherj/pathreview/pull/691) this week. The PR is still in Draft state with no reviews requested against it. This lines up with the Su26 course note that reviewer feedback isn't part of the loop this term, so I'm not reading anything into the silence — it's expected, not a signal about the quality of the change.
+
+**How you responded:**
+N/A — nothing to respond to. In lieu of waiting on a reviewer, I re-read my own PR description with a critical eye and confirmed the one open question I left for reviewers (whether the fixture should call the real `configure_logging()` instead of duplicating its processor chain) is still unresolved. I'm leaving it as documented rather than resolving it unilaterally, since it's the kind of judgment call a maintainer with more context on `core/logging.py`'s stability should weigh in on.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Tracing *why* the bug happened took longer than fixing it: the failing test was a one-line diagnosis (`caplog.text == ''`), but confirming the root cause meant reading `core/logging.py`, grepping all 37 call sites of `structlog.get_logger()`, and ruling out that any fixture already did partial bridging. The other hard part was the `cache_logger_on_first_use` risk from PLAN.md — reasoning through pytest's import/fixture ordering to be sure function-scoping actually closed that gap, not just "probably" closed it.
+
+**What did you learn about working in a large codebase?**
+A "single-file fix" still has a blast radius shaped by everything that depends on that file's behavior, not just the diff itself — structlog's configuration is process-global, so the real scope was "every test in the suite." That meant proving a before/after baseline (52 failed/379 passed, same test names both times), not just checking that the target test now passes. I also learned to treat existing patterns as the spec: mirroring `configure_logging()`'s processor chain instead of designing a new one meant less to justify in review.
+
+**How did AI tools help — and where did they fall short?**
+Most useful as a planning-stage sounding board — walking through PLAN.md's risks (global state collision, cache behavior, renderer choice) surfaced the `cache_logger_on_first_use` issue before any code was written, which is the cheapest place to catch it. It fell short on judgment calls that need codebase context it doesn't have: whether 52 pre-existing failures on `main` were safe to treat as a fixed baseline required actually diffing failing test *names* before/after, not just trusting a count; and whether the fixture should call `configure_logging()` directly vs. duplicate its chain is a maintainer-context question I couldn't resolve from the code alone.
+
+**What would you do differently if you started over?**
+I'd open the PR non-draft (or post in cohort Slack) by Week 9 Check-in 1 instead of waiting for Check-in 2, purely to maximize the window for feedback even though it isn't guaranteed this term.
+
+**What are you most proud of from this module?**
+Writing the reproduction and risk analysis in PLAN.md *before* writing the fix, then actually catching a real bug (the `cache_logger_on_first_use` / fixture-scope interaction) from that written-down risk instead of in review or in production.
