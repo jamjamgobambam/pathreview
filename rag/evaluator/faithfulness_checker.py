@@ -32,7 +32,7 @@ class FaithfulnessChecker:
 
         # Concatenate context text
         context_text = " ".join([
-            chunk.get("text", "") for chunk in context_chunks
+            chunk.get("text") or "" for chunk in context_chunks
         ])
 
         # Check each claim for support

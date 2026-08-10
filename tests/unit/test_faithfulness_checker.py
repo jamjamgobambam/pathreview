@@ -237,9 +237,19 @@ class TestFaithfulnessChecker:
 
         score = checker.check(feedback, context_chunks)
 
-        # Should handle gracefully
-        assert isinstance(score, float)
-        assert 0.0 <= score <= 1.0
+        assert score == 0.0
+
+    def test_none_context_chunk_preserves_valid_chunk_text(self, checker):
+        """Test None text does not discard text from another context chunk."""
+        feedback = "Has Python skills"
+        context_chunks = [
+            {"text": None},
+            {"text": "Python skills"},
+        ]
+
+        score = checker.check(feedback, context_chunks)
+
+        assert score == 1.0
 
     def test_missing_text_key_in_chunk(self, checker):
         """Test handling of missing 'text' key in context chunk."""
