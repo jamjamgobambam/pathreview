@@ -146,3 +146,71 @@ this PR does not add to them)
 
 **Draft PR feedback received from:** none (reviewer feedback is not a feature in
 Summer 2026 per course note; peer/mentor review not obtained before marking ready)
+
+## Week 10: Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No, still awaiting review
+
+**Summary of feedback:**
+No feedback arrived. Reviewer feedback is not a feature in Summer 2026 per the
+course note, so this is expected rather than a stalled review.
+
+**How you responded:**
+N/A, no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Reproducing this issue took more digging than I expected, because the bug wasn't
+where the issue description implied. Before I could even write a repro, I had to
+trace `HybridRetriever.retrieve()` through to `review_generator.py` and
+`review_service.py`, and discovered the retriever had zero callers anywhere in the
+app. The RAG pipeline was a stub returning hardcoded feedback. That reframed the
+whole task: I wasn't reproducing a live bug users would hit, I was reproducing a
+gap in an isolated, unwired module. Separately, the tooling threw a real curveball
+late in Week 9: my PR creation failed with a cryptic GitHub error, and it turned
+out `shraavb/pathreview` had never been a properly registered GitHub fork of the
+upstream repo, just an independently pushed copy. Fixing that meant renaming the
+old repo, creating a real fork, and re-pushing branches, a repo administration
+problem I didn't expect to hit this late.
+
+**What did you learn about working in a large codebase?**
+You can't trust an issue's framing at face value. I had to verify the claim myself
+by tracing the actual call graph, and it turned out to be narrower in scope than
+the issue implied. I also learned to check existing test conventions before writing
+new ones (matching `test_relevance_scorer.py`'s fixture style) and to distinguish
+similarly named but unrelated code (`rag/evaluator/relevance_scorer.py` vs. the
+reranker) before assuming reuse. Small pre-existing issues (a dead `all_chunks`
+variable, missing type annotations, an invalid commit scope) surface constantly in
+real codebases, and part of the job is deciding what's in scope to fix versus what
+to leave alone and just document.
+
+**How did AI tools help, and where did they fall short?**
+AI was most useful for mechanical and investigative work: tracing which files
+called `HybridRetriever`, matching exact mock return shapes to real method
+signatures, running before/after test suite comparisons in an isolated worktree,
+and researching current OpenRouter free tier model availability. It fell short on
+the judgment calls that actually shaped the design: choosing a domain appropriate
+reproduction pair (leadership/bakery vs. a generic example), deciding whether the
+LLM score should replace or blend with the existing score, and deciding what
+config pattern fit this specific codebase's conventions. Those needed my reasoning
+and preferences, not just generation.
+
+**What would you do differently if you started over?**
+I'd verify the fork was properly registered with GitHub in Week 7, before any work
+went into it. That mistake didn't surface until I tried to open a PR in Week 9, by
+which point fixing it meant repo surgery instead of a five minute setup check. I'd
+also trace the actual call graph (is this retriever even wired into the app?)
+before finalizing my problem summary in Week 7, since it changed how I scoped the
+whole issue.
+
+**What are you most proud of?**
+The reproduction test itself: building a concrete, domain realistic failure case
+(a bakery shift scheduling chunk outranking a genuine leadership chunk) that
+isolates exactly why the current scoring approach fails, rather than a vague
+"sometimes retrieval is bad" claim. It's the kind of test that makes the bug
+undeniable to a reviewer instead of asking them to trust a description.
