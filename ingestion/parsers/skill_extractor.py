@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -105,7 +105,7 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -143,7 +143,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -172,18 +172,30 @@ class SkillExtractor:
 
         # JavaScript/TypeScript detection
         js_evidence = []
-        if ".js" in str(filename or "").lower():
+        filename_lower = str(filename or "").lower()
+        if ".js" in filename_lower:
             js_evidence.append("JavaScript file extension (.js)")
-        if ".ts" in str(filename or "").lower():
-            js_evidence.append("TypeScript file extension (.ts)")
-        if re.search(r"\b(import|require)\s+", text):
+        if ".ts" in filename_lower or ".tsx" in filename_lower:
+            js_evidence.append("TypeScript file extension (.ts/.tsx)")
+        if re.search(r"\b(?:import|require)\b", text):
             js_evidence.append("CommonJS or ES6 imports")
+        if re.search(r"\b(?:const|let|var|function|console\.log)\b", text):
+            js_evidence.append("JavaScript syntax patterns")
+        if re.search(r"\b(?:interface|type\s+\w+\s*=|Promise<)\b", text):
+            js_evidence.append("TypeScript syntax patterns")
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
         if js_evidence:
             confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
+            lang = (
+                "TypeScript"
+                if ".ts" in filename_lower
+                or ".tsx" in filename_lower
+                or "interface" in text_lower
+                or "promise<" in text_lower
+                else "JavaScript"
+            )
             skills_dict[lang] = SkillDetection(
                 name=lang,
                 category="Language",
@@ -250,7 +262,9 @@ class SkillExtractor:
         text_lower = text.lower()
 
         for db, confidence in self.DATABASES.items():
-            if db in text_lower:
+            if db in text_lower or (
+                db == "postgresql" and ("psycopg2" in text_lower or "postgres" in text_lower)
+            ):
                 display_name = db.upper() if db in ["sql", "nosql"] else db.title()
                 if display_name not in skills_dict:
                     skills_dict[display_name] = SkillDetection(
@@ -274,3 +288,30 @@ class SkillExtractor:
                         confidence=confidence,
                         evidence=[f"Found '{tool}' reference in content"],
                     )
+
+        if re.search(r"\bFROM\b", text) and re.search(r"\bRUN\b", text):
+            if "Docker" not in skills_dict:
+                skills_dict["Docker"] = SkillDetection(
+                    name="Docker",
+                    category="Tool",
+                    confidence=0.95,
+                    evidence=["Dockerfile-style FROM/RUN instructions"],
+                )
+
+        if re.search(r"\bservices:\b", text_lower) and re.search(r"\bports:\b", text_lower):
+            if "Docker" not in skills_dict:
+                skills_dict["Docker"] = SkillDetection(
+                    name="Docker",
+                    category="Tool",
+                    confidence=0.95,
+                    evidence=["Docker Compose services definition"],
+                )
+
+        if "version:" in text_lower and "services:" in text_lower:
+            if "Docker" not in skills_dict:
+                skills_dict["Docker"] = SkillDetection(
+                    name="Docker",
+                    category="Tool",
+                    confidence=0.95,
+                    evidence=["Docker Compose configuration"],
+                )
