@@ -1,6 +1,7 @@
 """Prompt injection detection and defense."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -9,10 +10,13 @@ logger = structlog.get_logger()
 class PromptDefense:
     """Defend against prompt injection attacks."""
 
-    # Patterns indicating prompt injection attempts
     INJECTION_PATTERNS = [
-        r"\n\s*---+\s*\n",  # Separator line
-        r"\n\s*(?:System|Human|Assistant):",  # Role switching
+        # Role switches & delimiters with flexible whitespace (Issue #64)
+        r"\n[ \t]*(?:System|Human|Assistant)[ \t]*:",
+        r"\n[ \t]*\[[ \t]*(?:SYSTEM|HUMAN|ASSISTANT)[ \t]*\]",
+        r"\n[ \t]*---[ \t]*",
+        r"\n[ \t]*===[ \t]*",
+        # Original injection detection patterns
         r"{{.*?}}",  # Template injection
         r"{%.*?%}",  # Jinja-like injection
         r"\n\s*(?:Ignore|Forget|Disregard|Override)",  # Explicit instructions to ignore
@@ -29,22 +33,32 @@ class PromptDefense:
 
     @staticmethod
     def sanitize(text: str) -> str:
-        """Sanitize user input to prevent injection.
+        """Sanitizes user input before placing it in prompt templates.
 
-        Args:
-            text: User input text
-
-        Returns:
-            Sanitized text
+        Strips HTML and bracket formatting symbols and neutralizes multiline prompt
+        injection control vectors (role switches and delimiter lines) regardless of
+        leading whitespace or line-ending format.
         """
-        sanitized = text
+        if not text:
+            return ""
 
-        # Strip template delimiters
-        sanitized = sanitized.replace("{{", "").replace("}}", "")
-        sanitized = sanitized.replace("{%", "").replace("%}", "")
+        # Step 1: Strip bracket and HTML characters
+        sanitized = re.sub(r"[{}<>]", "", text)
 
-        # Remove angle brackets
-        sanitized = sanitized.replace("<", "").replace(">", "")
+        # Step 2: Neutralize role switches (e.g., \n System : -> \n[sanitized-role]:)
+        sanitized = re.sub(
+            r"(\r?\n)[ \t]*(System|Human|Assistant)[ \t]*:",
+            r"\1[sanitized-role]:",
+            sanitized,
+            flags=re.IGNORECASE,
+        )
+
+        # Step 3: Neutralize fake delimiter lines (e.g., \n --- -> \n[sanitized-delimiter])
+        sanitized = re.sub(
+            r"(\r?\n)[ \t]*(?:---|===)[ \t]*",
+            r"\1[sanitized-delimiter]\1",
+            sanitized,
+        )
 
         return sanitized
 
