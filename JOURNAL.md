@@ -75,3 +75,34 @@ The repository still has pre-existing lint, typing, and unrelated unit-test fail
 
 **Next step:**
 Request peer feedback, respond to the review, run the final checks, and mark the pull request ready for review.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+*Feedback received:* [ ] Yes  [x] No — still awaiting review
+
+*Summary of feedback:*
+No reviewer or maintainer feedback has been received yet. The pull request is open and ready for review, but its workflows and merge remain pending maintainer approval.
+
+*How you responded:*
+
+
+---
+
+### Reflection
+
+*What was harder than you expected?*
+The hardest part was separating problems caused by my change from problems that already existed in the repository. The baseline had 182 lint errors and 53 failing unit tests before implementation. When I attempted to commit, Ruff and Black modified the staged Python files, while mypy reported 26 existing annotation errors in the test file. I had to understand Git staging, restore only the hook-generated working-tree changes, preserve my intended diff, and document the baseline failures instead of expanding the issue into a repository-wide cleanup.
+
+*What did you learn about working in a large codebase?*
+I learned that contributing to someone else's codebase requires controlling scope and collecting evidence before changing anything. I first reproduced the exact ⁠ TypeError ⁠, identified how ⁠ dict.get("text", "") ⁠ still returns ⁠ None ⁠ when the key exists, and recorded the test and lint baseline. I kept the fix limited to ⁠ FaithfulnessChecker ⁠ even though I noticed similar behavior in ⁠ RelevanceScorer ⁠, because that was outside issue #153. Unlike building my own project, I could not treat every problem I encountered as part of my task. I had to follow the repository's Git workflow, tests, formatting tools, and review process.
+
+*How did AI tools help — and where did they fall short?*
+AI assistance helped me understand the unfamiliar codebase, trace the failure to Python's ⁠ dict.get() ⁠ behavior, compare possible fixes, and design regression coverage for both an all-null context and a mixture of null and valid chunks. It also helped me interpret test output and prepare the pull request documentation. However, AI-generated changes did not initially account for the repository's full pre-commit behavior: Ruff and Black reformatted the files, and mypy exposed many existing errors. I still needed to inspect the staged and unstaged diffs, verify which failures were pre-existing, make the scope decision myself, and ensure the final PR contained only intentional changes.
+
+*What would you do differently if you started over?*
+I would run the repository's pre-commit hooks and focused tests on the target files immediately after reproducing the issue, before implementation. That would reveal formatting, lint, and typing problems earlier. I would also record the baseline results in one place from the beginning and open the draft PR as soon as the first tested commit was available. I would still choose this issue because its scope and success criteria were clear, but I would plan the validation and commit workflow earlier.
+
+*What are you most proud of from this module?*
+I am most proud that I completed the full contribution cycle instead of stopping after writing a one-line fix. I reproduced the bug, explained its root cause, added regression coverage, compared the complete test suite before and after the change, documented the repository's existing failures honestly, and submitted PR #919 without introducing any new test failures.
