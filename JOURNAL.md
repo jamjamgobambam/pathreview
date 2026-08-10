@@ -140,7 +140,7 @@ A classmate (ayc325) left two comments on [PR #1](https://github.com/kneha07/pat
 2. They would have liked to see more, smaller commits mapping to each subtask in PLAN.md, instead of the work landing in a few larger commits.
 
 **How you responded:**
-In standup I walked through the issue and fix, then acknowledged both points directly: the wrong-base-repo mistake is a real process error I need to fix by opening a new PR against `ascherj/pathreview:main`, and the commit-granularity feedback is fair — future work should commit at each PLAN.md subtask boundary rather than batching. I'm tracking the corrected upstream PR as a follow-up action for this module.
+In standup I walked through the issue and fix, then acknowledged both points directly: the wrong-base-repo mistake is a real process error, and the commit-granularity feedback is fair — future work should commit at each PLAN.md subtask boundary rather than batching. On checking, I found the corrected upstream PR already existed: [PR #218](https://github.com/ascherj/pathreview/pull/218), opened from `kneha07:fix/146-pii-scrubber-parenthesized-phone` into `ascherj:main`, so the actual contribution the maintainers can review is #218, not #1. I added a comment on #1 pointing to #218 as the correct PR so it isn't mistaken for the real submission.
 
 ---
 
