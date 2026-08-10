@@ -1,11 +1,12 @@
 """Tests for resume_parser.py"""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
+from typing import Any, cast
+from unittest.mock import Mock, patch
 
-from ingestion.parsers.resume_parser import ResumeParser
+import pytest
+
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.resume_parser import ResumeParser
 
 
 @pytest.mark.unit
@@ -13,11 +14,13 @@ class TestResumeParser:
     """Test suite for ResumeParser."""
 
     @pytest.fixture
-    def parser(self):
+    def parser(self) -> ResumeParser:
         """Create a ResumeParser instance."""
         return ResumeParser()
 
-    def test_parse_single_column_resume_text(self, parser, sample_resume_text):
+    def test_parse_single_column_resume_text(
+        self, parser: ResumeParser, sample_resume_text: str
+    ) -> None:
         """Test parsing a standard single-column resume text."""
         result = parser.parse(sample_resume_text)
 
@@ -33,7 +36,7 @@ class TestResumeParser:
             "skills" in s for s in detected_lower
         )
 
-    def test_parse_resume_no_work_experience(self, parser):
+    def test_parse_resume_no_work_experience(self, parser: ResumeParser) -> None:
         """Test parsing a resume with no work experience section - handles gracefully."""
         resume_no_work = """
         John Smith
@@ -54,7 +57,26 @@ class TestResumeParser:
         detected_lower = [s.lower() for s in result.metadata["detected_sections"]]
         assert any("education" in s for s in detected_lower)
 
-    def test_parse_multipage_pdf(self, parser):
+    def test_parse_detects_sections_with_leading_whitespace(self, parser: ResumeParser) -> None:
+        """Test section detection when extracted text preserves indentation."""
+        resume_text = (
+            "John Smith\n"
+            "john@example.com\n\n"
+            "    Education:\n"
+            "- B.S. Computer Science, University (2023)\n\n"
+            "\tSkills: Python, JavaScript, React\n\n"
+            "  Experience:\n"
+            "- Software Developer at TechCorp\n"
+        )
+
+        result = parser.parse(resume_text)
+
+        detected_lower = [s.lower() for s in result.metadata["detected_sections"]]
+        assert "education" in detected_lower
+        assert "skills" in detected_lower
+        assert "experience" in detected_lower
+
+    def test_parse_multipage_pdf(self, parser: ResumeParser) -> None:
         """Test parsing a multi-page PDF resume."""
         # Create a mock PDF with multiple pages
         with patch("ingestion.parsers.resume_parser.PdfReader") as mock_pdf_reader:
@@ -81,7 +103,7 @@ class TestResumeParser:
             assert "Page 2 Content" in result.text
             assert "Page 3 Content" in result.text
 
-    def test_parse_markdown_resume(self, parser):
+    def test_parse_markdown_resume(self, parser: ResumeParser) -> None:
         """Test parsing a Markdown resume."""
         markdown_resume = """
         # Jane Doe
@@ -105,25 +127,29 @@ class TestResumeParser:
         assert "#" not in result.text or result.text.count("#") < markdown_resume.count("#")
         assert "Jane Doe" in result.text
 
-    def test_parse_invalid_content_type(self, parser):
+    def test_parse_invalid_content_type(self, parser: ResumeParser) -> None:
         """Test that invalid content type raises ValueError with clear message."""
+        invalid_content = cast("Any", 12345)
+
         with pytest.raises(ValueError) as exc_info:
-            parser.parse(12345)  # Invalid: integer
+            parser.parse(invalid_content)
 
         assert "Content must be bytes" in str(exc_info.value) or "Content must be" in str(
             exc_info.value
         )
 
-    def test_parse_invalid_list_content(self, parser):
+    def test_parse_invalid_list_content(self, parser: ResumeParser) -> None:
         """Test that list content raises ValueError."""
+        invalid_content = cast("Any", ["not", "valid"])
+
         with pytest.raises(ValueError) as exc_info:
-            parser.parse(["not", "valid"])
+            parser.parse(invalid_content)
 
         assert "Content must be bytes" in str(exc_info.value) or "Content must be" in str(
             exc_info.value
         )
 
-    def test_detect_sections(self, parser):
+    def test_detect_sections(self, parser: ResumeParser) -> None:
         """Test section detection in resume text."""
         text = """
         Experience:
@@ -143,7 +169,18 @@ class TestResumeParser:
         assert any("education" in s for s in sections_lower)
         assert any("skills" in s for s in sections_lower)
 
-    def test_strip_markdown_syntax(self, parser):
+    def test_detect_sections_does_not_match_words_in_sentences(self, parser: ResumeParser) -> None:
+        """Test section detection ignores section words in normal sentences."""
+        text = """
+        I have experience building education platforms.
+        My skills include Python, JavaScript, and React.
+        """
+
+        sections = parser._detect_sections(text)
+
+        assert sections == []
+
+    def test_strip_markdown_syntax(self, parser: ResumeParser) -> None:
         """Test markdown syntax stripping."""
         markdown_text = """
         # Header
@@ -163,7 +200,7 @@ class TestResumeParser:
         # But actual text content should remain
         assert "Header" in stripped or "Bold text" in stripped
 
-    def test_pdf_parsing_error_handling(self, parser):
+    def test_pdf_parsing_error_handling(self, parser: ResumeParser) -> None:
         """Test graceful error handling for invalid PDF."""
         with patch("ingestion.parsers.resume_parser.PdfReader") as mock_pdf_reader:
             mock_pdf_reader.side_effect = Exception("Invalid PDF format")
@@ -173,7 +210,7 @@ class TestResumeParser:
 
             assert "Failed to parse PDF" in str(exc_info.value)
 
-    def test_parse_preserves_text_content(self, parser):
+    def test_parse_preserves_text_content(self, parser: ResumeParser) -> None:
         """Test that parsing preserves actual content text."""
         original_text = "John Doe\nSoftware Engineer\nPython, JavaScript, React"
         result = parser.parse(original_text)
