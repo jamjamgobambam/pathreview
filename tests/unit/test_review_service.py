@@ -4,11 +4,14 @@ import pytest
 from uuid import uuid4
 from unittest.mock import AsyncMock, Mock, patch
 import asyncio
+from collections import defaultdict
 
 from core.services.review_service import (
     create_review,
     get_review,
     list_reviews,
+    process_review,
+    _process_review_impl,
 )
 
 
@@ -338,3 +341,59 @@ class TestReviewService:
 
         # Should order by created_at descending
         mock_db_session.execute.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_process_review_serializes_same_profile_concurrency(self):
+        """Two concurrent process_review calls for the same profile must not run in parallel."""
+        shared_profile_id = uuid4()
+        review_id_1 = uuid4()
+        review_id_2 = uuid4()
+        seen_order = []
+
+        async def fake_impl(db, review_id, profile_id):
+            seen_order.append(("start", review_id))
+            await asyncio.sleep(0.05)
+            seen_order.append(("end", review_id))
+
+        with patch("core.services.review_service._process_review_impl", side_effect=fake_impl):
+            with patch("core.services.review_service._profile_locks") as mock_locks:
+                lock = asyncio.Lock()
+                mock_locks.__getitem__ = lambda self, key: lock
+                await asyncio.gather(
+                    process_review(Mock(), review_id_1, shared_profile_id),
+                    process_review(Mock(), review_id_2, shared_profile_id),
+                )
+
+        starts = [item for item in seen_order if item[0] == "start"]
+        ends = [item for item in seen_order if item[0] == "end"]
+        assert len(starts) == 2
+        assert len(ends) == 2
+
+    @pytest.mark.asyncio
+    async def test_process_review_allows_different_profiles_concurrently(self):
+        """Two concurrent process_review calls for different profiles should run in parallel."""
+        profile_a = uuid4()
+        profile_b = uuid4()
+        seen_order = []
+
+        async def fake_impl(db, review_id, profile_id):
+            seen_order.append(("start", profile_id))
+            await asyncio.sleep(0.05)
+            seen_order.append(("end", profile_id))
+
+        with patch("core.services.review_service._process_review_impl", side_effect=fake_impl):
+            with patch("core.services.review_service._profile_locks") as mock_locks:
+                mock_locks.__getitem__ = lambda self, key: defaultdict(asyncio.Lock)[key]
+                start_time = asyncio.get_event_loop().time()
+                await asyncio.gather(
+                    process_review(Mock(), uuid4(), profile_a),
+                    process_review(Mock(), uuid4(), profile_b),
+                )
+                elapsed = asyncio.get_event_loop().time() - start_time
+
+        starts = [item for item in seen_order if item[0] == "start"]
+        ends = [item for item in seen_order if item[0] == "end"]
+        assert len(starts) == 2
+        assert len(ends) == 2
+        assert elapsed < 0.1
+
