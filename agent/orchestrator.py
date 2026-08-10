@@ -31,6 +31,11 @@ class Orchestrator:
     def run(self, profile_id: str, profile_data: dict) -> dict:
         """Execute analysis plan for a profile.
 
+        Each review starts fresh: the persisted session reflects only the tools
+        that ran for the current ``profile_data``. State is not carried over from
+        previous reviews of the same profile (issue #43), so results from tools
+        that no longer run (e.g. after a resume is removed) do not linger.
+
         Args:
             profile_id: Profile identifier
             profile_data: Profile data dict with github_username, projects, etc.
@@ -42,11 +47,6 @@ class Orchestrator:
 
         # Build execution plan
         plan = self._build_plan(profile_data)
-
-        # Load previous session state if available
-        session_state = {}
-        if self.session_store:
-            session_state = self.session_store.get(profile_id) or {}
 
         # Execute plan
         results = {}
@@ -61,10 +61,11 @@ class Orchestrator:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
                 results[tool_name] = {"error": str(e), "success": False}
 
-        # Persist state
+        # Persist state. Overwrite (rather than merge onto) any prior session so
+        # each review reflects only the tools that ran this time. Merging with
+        # dict.update() left stale results from earlier reviews in place (#43).
         if self.session_store:
-            session_state.update(results)
-            self.session_store.set(profile_id, session_state)
+            self.session_store.set(profile_id, results)
 
         logger.info("orchestrator_complete", profile_id=profile_id,
                    tools_executed=len(results))
