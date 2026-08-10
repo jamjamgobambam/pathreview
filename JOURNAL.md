@@ -63,3 +63,34 @@ Added `tests/unit/test_share_link.py` (9 tests): the `create_share_link`/`get_sh
 (Both in the "no new failures vs. the pre-existing baseline" sense — the repo already had 53 failing unit tests, 182 ruff errors, and 103 mypy errors before my changes; after my changes those numbers are unchanged aside from my 9 new passing tests and 2 fewer ruff errors. Documented in the PR.)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback came in. PR review isn't an active part of the cohort this term, so no comments or change requests arrived on #627 before the module ended. The PR is open against `ascherj/pathreview` and closes #101.
+
+**How you responded:**
+N/A — there was nothing to respond to. If feedback had come in I'd have triaged it into quick fixes vs. things worth discussing, made the clear fixes, and replied on the ones I disagreed with instead of silently changing them.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The state of the codebase, not the feature. I assumed I'd write my change and `make check` / `make test-unit` would pass. Instead the repo already had 53 failing unit tests, 182 ruff errors, and 103 mypy errors before I touched anything, and the pre-commit hooks blocked my commits on that existing debt — even in files I only imported, because mypy follows imports. The real work became recording a baseline, proving my diff introduced zero new failures, and committing with `--no-verify` so the pre-existing debt didn't block clean changes. That bookkeeping took more effort than the actual feature did.
+
+**What did you learn about working in a large codebase?**
+Contributing is as much about not disturbing things as adding to them. I kept wanting to "fix" pre-existing lint and type errors in files I was already editing, and I had to stop myself — that's scope creep in someone else's project. I also learned to match what's already there: the auth turned out to be a per-route FastAPI dependency, not global middleware, so making an endpoint public just meant leaving the dependency off; and the public `/reviews/shared/{token}` route had to be declared before `/reviews/{review_id}` or the `{review_id}` route would swallow it. On my own project I'd never have hit either of those.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for getting oriented fast in an unfamiliar codebase — tracing how auth worked, where routes registered, how the models/migrations/schemas fit together — and for catching this project's specific lint/type rules (B008, B904, UP017, a str-vs-UUID mismatch) before they turned into new failures. Where it fell short: it first assumed the fix was to repurpose the existing Share button, and I had to push back after actually reading the issue — it's labeled `enhancement` and says "add a button," so I kept the Share button and added a separate one. It also mangled my git history once while rewording commit messages — it dropped a whole commit, and I only caught it because I checked the log; we recovered from a backup branch. And it couldn't do the outward steps at all: opening the PR (no `gh` CLI on my machine) and the portal submission were on me. The judgment calls and the final verification stayed my job.
+
+**What would you do differently if you started over?**
+Run `make check` and `make test-unit` on day one, before writing a line, so I'd know the pre-existing baseline going in instead of discovering it mid-implementation. I'd also nail down the ambiguous product decisions earlier — new button vs. repurpose, and full vs. trimmed public response — ideally by asking on the issue up front rather than going back and forth about it. And I'd verify the git log after every history edit, not just at the end, after the dropped-commit scare.
+
+**What are you most proud of?**
+That my change came out clean and self-contained inside a messy repo. Every commit is one logical unit, my additions add zero new lint/type/test failures despite all the surrounding debt, and I can explain every decision — token as the primary key, 410 vs. 404 for an expired link, and the trimmed public response so an anonymous viewer never sees owner-linking or internal fields. It's not the biggest feature, but the discipline of it is the part I'd actually want to talk about in an interview.
