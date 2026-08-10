@@ -121,4 +121,75 @@ always-healthy.
 > failure set is **identical** (53, no new failures) and my changed files pass
 > ruff/black/mypy. "Passes" here means my changes introduce no new failures.
 
-**Draft PR feedback received from:** <!-- name or Slack handle, or "none" -->
+**Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback came in on PR #638. (Per the Summer 2026
+course note, reviewer feedback isn't a feature this term.) The PR remains open
+against `ascherj/pathreview:main`, closing #155.
+
+**How you responded:**
+No changes required, as no feedback was received. If a maintainer had asked me to
+use explicit `redis_host`/`redis_port` settings fields instead of parsing
+`redis_url`, I'd already flagged in the PR that I was open to that approach, so I
+could have pivoted quickly.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment setup was far harder than the actual fix. The one-line code change
+took minutes; getting to the point where I could run it took hours. On Windows I
+hit a chain of issues: Docker Desktop wouldn't start because WSL 2 wasn't installed
+(required an admin PowerShell `wsl --install` and a full reboot), `make` isn't
+installed by default so I had to run the underlying setup commands by hand, and the
+database seed script crashed on Python 3.14 with a `UnicodeEncodeError` just trying
+to print a `✓` character — which masked the real status until I forced UTF-8
+(`PYTHONUTF8=1`). None of that was in the issue; it was all yak-shaving to reach a
+working local repo.
+
+**What did you learn about working in a large codebase?**
+That "reproduce before you fix" is not busywork — it's the whole game. I learned to
+trace a bug across files (the symptom lived in `api/routes/health.py`, but the root
+cause was a missing field in `core/config.py`) rather than assuming the fix belongs
+where the error surfaces. I also learned to separate *my* impact from the codebase's
+existing state: this repo ships with ~53 failing unit tests and ~44 mypy errors on
+purpose, so I captured a baseline first and then proved my change added zero new
+failures. In my own projects I'd have "just committed"; here I had to justify that I
+didn't make things worse, and leave unrelated problems alone even when they were
+tempting to fix.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for navigation and mechanics: tracing the bug through the two
+files, diagnosing the WSL/Docker/encoding setup failures, scaffolding the positive
+and negative tests, and matching the repo's conventions (conventional commits, the
+PR template). Where it fell short was judgment: it initially recommended a "clean" PR
+branch as best practice, but when I asked it to re-read the assignment, the wording
+("all your Module 3 work lives" on one branch) actually pointed the other way — so
+the real decision came from reading the rubric carefully, not from the default
+suggestion. Decisions like whether bypassing the pre-commit hook with `--no-verify`
+was defensible (it was, because the hook failed on pre-existing errors, not my code)
+also needed my own reasoning about scope and intent.
+
+**What would you do differently if you started over?**
+I'd confirm the issue is actually *open on the live tracker* before committing to it.
+My first pick (the review-history timezone bug) turned out to be closed as "not
+planned" — the seed manifest in the repo lists far more issues than are actually
+open, so I burned time before re-picking #155. I'd also stand up the local
+environment *first*, before finalizing an issue, so setup surprises don't collide
+with a ticking clock later.
+
+**What are you most proud of?**
+The discipline around verification rather than the fix itself. I didn't just make the
+endpoint stop erroring — I wrote a negative test that points `redis_url` at a closed
+port to prove the probe reports Redis as genuinely *unhealthy* (503) when it's down,
+not just hard-coded to healthy. Proving the fix reports *true* status in both
+directions, and documenting the pre-existing failures so a reviewer could trust the
+change, is the part that felt like real engineering.
