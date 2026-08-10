@@ -59,16 +59,14 @@ Also updated tests/unit/test_tech_detector.py: added 4 new regression tests for 
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** 'https://github.com/ascherj/pathreview/pull/1019'
 
-**Branch:** [the branch name you worked on, e.g. `fix/123-short-description`]
+**Branch:** fix/150-tech-detector-exclude-paths
 
 **What you built:**
-[1–3 sentences summarizing what your fix does and how it works]
-
+Fixed _should_skip_file() in the tech detector to use path-segment matching instead of substring matching, so vendored/build directories at the root of a repo (not just nested ones) are correctly excluded from language detection, resolving the primary_language misclassification described in issue #150
 **Tests added or updated:**
-[Which test files did you touch? What do they cover?]
+tests/unit/test_tech_detector.py — added test_root_level_node_modules_excluded, test_root_level_build_directory_excluded, test_filenames_containing_skip_dir_substrings_not_excluded, and test_all_files_vendored_returns_unknown. Also added missing assertions to 5 existing tests that previously had none.
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
-
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
