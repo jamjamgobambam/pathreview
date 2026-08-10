@@ -109,3 +109,40 @@ marking it ready. Then address feedback, fill in the PR template, and submit.
 
 **Blockers:**
 None currently.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/1025
+
+**Branch:** `feat/34-llm-reranker`
+
+**What you built:**
+An optional LLM-based reranker for `HybridRetriever`. `Reranker.rerank()` batch-scores
+retrieved chunks against the query in one LLM call and uses that score to override the
+blended vector/keyword ranking for final ordering, falling back to the original
+blended order if the LLM call fails or its response can't be parsed.
+
+**Tests added or updated:**
+- `tests/unit/test_reranker.py` (new): 9 tests covering reordering by LLM score,
+  fenced-JSON and raw-JSON parsing, fallback on LLM error, fallback on unparseable
+  response, empty input, `top_k` truncation, missing chunk ids, call parameters
+  (temperature/model), and prompt truncation for long chunk text.
+- `tests/unit/test_hybrid_retriever.py` (updated): added a second test class
+  proving the reranker fixes the exact decoy-outranks-genuine gap demonstrated in
+  the Week 8 reproduction test, plus a test confirming graceful fallback to blended
+  order when the LLM call fails.
+
+Verified via a before/after full-suite comparison (last commit before this week's
+work vs. now, run in an isolated worktree): 53 pre-existing failures, unrelated to
+this issue, identical count before and after. This PR adds 11 new passing tests and
+introduces zero new lint or type errors in any file it touches.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(both pass for every file this PR touches; pre-existing repo-wide lint/mypy/test
+failures are documented above and in the PR's "Notes for Reviewers" section, and
+this PR does not add to them)
+
+**Draft PR feedback received from:** none (reviewer feedback is not a feature in
+Summer 2026 per course note; peer/mentor review not obtained before marking ready)
