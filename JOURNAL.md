@@ -117,3 +117,50 @@ fix and remains the regression guard for #155.
 **Self-review confirmation:** [x ] make check passes  [ x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [X] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+
+- GitHub Copilot flagged that the `TestClient` in `tests/unit/test_health_check.py`
+  (lines 49-51) was created but never closed, which leaks the underlying httpx transport and can surface `ResourceWarning`s / flaky tests.
+
+**How you responded:**
+
+Made the change. Wrapped the request in `try/finally` and added `client.close()` so the httpx transport is always released. Kept the bare `TestClient(app)` constructor instead of the `with TestClient(app) as ...` form on purpose.
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+
+Navigating through the backend and determining what test cases weren't passing. Using claude to fix a certain attriubute in one file and making sure it corresponds with updating other files that pertain to fixing a undefined variable
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+
+- Collaboration on production code requires more critical thinking, creativity and understanding of implmentation. Your not just building on your own perspestive, but including other like minds to develop a final product that everyone is sastified with. 
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+- Used claude to update redis client and fix attribute bugs. Fell short in closing test_Client.
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+- Implement functions that deal with redis client and use claude to build off of it.
+
+**What are you most proud of from this module?**
+- Submitting a pull-request, contributing to an open-source project.

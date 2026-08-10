@@ -46,9 +46,13 @@ def test_health_reports_redis_healthy_when_reachable():
             mock_redis.return_value.ping.return_value = True
             mock_redis.from_url.return_value.ping.return_value = True
 
-            # No context-manager form -> the startup/init_db event does not run.
+            # Bare constructor (not `with TestClient(app) as ...`) so the app lifespan /
+            # init_db startup does NOT run; close() releases the httpx transport without it.
             client = TestClient(app)
-            response = client.get("/health")
+            try:
+                response = client.get("/health")
+            finally:
+                client.close()
 
         body = response.json()
         # /health wraps its payload in `detail` on the 503 path; top-level on the 200 path.
