@@ -31,13 +31,15 @@ class TestPIIScrubber:
         assert "alice@example.com" not in scrubbed
         assert "bob@company.org" not in scrubbed
 
-    def test_us_phone_number_redaction(self, scrubber):
-        """Test US phone number is redacted."""
-        text = "Call me at (555) 123-4567"
-        scrubbed = scrubber.scrub(text)
+    def test_detect_phone_pii(self, scrubber):
+        """Test detect() finds a parenthesized US phone number."""
+        text = "Phone: (555) 123-4567"
+        detected = scrubber.detect(text)
 
-        assert "[REDACTED]" in scrubbed
-        assert "555" not in scrubbed or "1234567" not in scrubbed
+        phone_detections = [d for d in detected if d["type"] == "phone_us"]
+
+        assert len(phone_detections) == 1
+        assert phone_detections[0]["value"] == "(555) 123-4567"
 
     def test_us_phone_formats(self, scrubber):
         """Test various US phone number formats."""
@@ -252,3 +254,9 @@ class TestPIIScrubber:
 
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
+    def test_scrub_parenthesized_us_phone_number(self, scrubber):
+        text = "Call me at (415) 555-1234."
+        result = scrubber.scrub(text)
+
+        assert "(415) 555-1234" not in result
+        assert "[REDACTED]" in result   
