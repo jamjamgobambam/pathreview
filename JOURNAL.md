@@ -76,4 +76,4 @@ AI was a strong pair-programmer for the analytical parts — tracing the root ca
 I'd get my local environment fully working before picking an issue, and I'd open the PR as a checkpoint earlier in the week rather than waiting until things felt "done." Both are easy, mechanical changes to make next time, not a sign anything went fundamentally wrong this time.
 
 **What are you most proud of from this module?**
-That I didn't just accept "43 tests are failing" as a red flag — I actually proved which failures were mine to worry about and which weren't, by running the same inputs through the old and new code and comparing the results directly. That's the actual skill this module was built to teach, and I did it for real, not just in theory.
+That I didn't just accept "43 tests are failing" as a red flag — I actually proved which failures were mine to worry about and which weren't, by running the same inputs through the old and new code and comparing the results directly.
