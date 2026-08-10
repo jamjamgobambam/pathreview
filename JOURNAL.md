@@ -82,14 +82,13 @@ Fixed indented resume/markdown text losing its section headers: `_strip_markdown
 
 ### Reviewer feedback
 
-**Feedback received:** [ ] Yes  [X] No — still awaiting review
+**Feedback received:** [X] Yes  [ ] No — still awaiting review
 
 **Summary of feedback:**
-[What did reviewers comment on? Or note that no review came in.]
+I received a feedback from TF Stephany. They suggested me to include the steps to reproduce the bug fix. I was also suggested to match the convention while committing the changes.
 
 **How you responded:**
-[What changes did you make, or what did you reply? If no feedback,
-leave blank.]
+I included the step to verify the fix. I will be more careful of the convention while submitting the PRs.
 
 ---
 
