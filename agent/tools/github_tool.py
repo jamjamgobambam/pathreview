@@ -105,6 +105,7 @@ class GitHubTool(BaseTool):
             "open_issues_count": repo_json.get("open_issues_count", 0),
             "last_commit_date": repo_json.get("pushed_at", ""),
             "has_readme": self._has_readme(username, repo_name),
+            "has_tests": self._has_tests(username, repo_name),
             "topics": repo_json.get("topics", []),
             "homepage": repo_json.get("homepage") or "",
         }
@@ -135,3 +136,39 @@ class GitHubTool(BaseTool):
             return response.status_code == 200
         except Exception:
             return False
+
+    def _has_tests(self, username: str, repo_name: str) -> bool:
+        """Check if repository ships automated tests.
+
+        Looks at the repository root listing for common test locations such as
+        a tests or test directory, a pytest.ini file, an __tests__ or spec
+        folder, or a test_*.py file at the root.
+
+        Args:
+            username: GitHub username
+            repo_name: Repository name
+
+        Returns:
+            True if a test directory or test file is present at the repo root
+        """
+        url = f"{self.base_url}/repos/{username}/{repo_name}/contents"
+
+        headers = {}
+        if self.api_token:
+            headers["Authorization"] = f"token {self.api_token}"
+
+        try:
+            response = httpx.get(url, headers=headers, timeout=5.0)
+            response.raise_for_status()
+            entries = response.json()
+        except Exception:
+            return False
+
+        if not isinstance(entries, list):
+            return False
+
+        names = {str(entry.get("name", "")).lower() for entry in entries}
+        test_markers = {"tests", "test", "__tests__", "spec", "pytest.ini"}
+        if names & test_markers:
+            return True
+        return any(name.startswith("test_") and name.endswith(".py") for name in names)
