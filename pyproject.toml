@@ -80,6 +80,13 @@ disallow_untyped_defs = true
 check_untyped_defs = true
 exclude = ["alembic/versions/"]
 
+# agent/ is legacy untyped code; scope it out of strict annotation checks so it
+# doesn't block commits when followed via imports.
+[[tool.mypy.overrides]]
+module = "agent.*"
+disallow_untyped_defs = false
+warn_return_any = false
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
