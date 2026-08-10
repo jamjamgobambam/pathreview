@@ -75,3 +75,35 @@ Added `tests/unit/test_reranker.py` — 10 tests driven by a mock OpenAI client 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Pre-commit hooks and CI kept rejecting my changes for things I hadn't touched: lint rules I didn't know existed, tests in unrelated modules that broke because of an assumption I'd changed, and a couple of flaky failures that sent me chasing a bug that wasn't mine. 
+
+**What did you learn about working in a large codebase?**
+I learned that large-scale development is entirely different from building solo projects where you hold all the complexity in your head. In a large codebase, you have to act like an investigator. I learned to work from evidence—reading the surrounding code, identifying how similar problems were already solved, and strictly adhering to existing design patterns rather than trying to invent my own solutions from scratch.
+
+**How did AI tools help — and where did they fall short?**
+AI helps me to navigate the projects workflow, help me understand the function of each components.
+
+**What would you do differently if you started over?**
+Set up the local environment and get the full test suite passing on a clean checkout before writing a single line. 
+
+**What are you most proud of from this module?**
+I am able to design a new feature and commit it into the large codebase. 
