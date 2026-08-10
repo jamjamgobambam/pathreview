@@ -124,3 +124,35 @@ The repository-wide quality baseline reported 182 Ruff errors, 51 files requirin
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reivew is received.
+
+**How you responded:**
+No reivew is received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was separating the behavior I changed from problems that were already present in the repository. The focused phone tests passed, but the full validation suite had unrelated unit-test, tokenizer, lint, formatting, and type-checking failures. I had to compare before-and-after results instead of treating every red test as a regression. The workflow was also more complicated than expected: my first Issue #130 branch depended on an LLM proxy service that was not actually defined in the Compose file, and I later had to move the Issue #146 work onto a clean branch so the earlier commits did not leak into the new pull request. Even the small regex fix required careful reasoning about why `\b` fails before `(`, how to require balanced parentheses, and how to avoid matching a phone number inside a longer identifier.
+
+**What did you learn about working in a large codebase?**
+I learned that a small change has to be understood in the context of shared behavior, repository conventions, and an existing test baseline. The `phone_us` pattern is used by both `scrub()` and `detect()`, so I needed to verify complete replacement as well as exact detection values and offsets. I also had to preserve previously supported formats and add negative cases instead of testing only the reported example. In my own project I could redefine the expected behavior as I went, but in someone else's codebase I needed to keep the scope narrow, follow its branch and commit conventions, document existing failures honestly, and avoid "fixing" unrelated code just because I encountered it.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for quickly mapping the relevant files, explaining the regular-expression boundary problem, proposing edge cases, and organizing the reproduction and validation plan. They also helped interpret a large amount of test output and identify which failures were related to the changed files. However, AI could not determine the maintainer's intent. For example, its suggested regex or test cases still needed to be checked against the actual implementation. I had to inspect the code, run the focused and repository-wide checks, compare the baseline results, and make the final scope decisions myself.
+
+**What would you do differently if you started over?**
+I would inspect the named implementation target and its dependencies before committing to an issue. That would have revealed immediately that Issue #130's expected proxy service was missing and allowed me to ask the maintainer for clarification or select Issue #146 sooner. I would also create the issue branch directly from the latest `main` before making any edits and record the focused and full-suite baselines at the start. Those steps would reduce branch cleanup, make regression comparisons clearer, and leave more time for review and iteration.
+
+**What are you most proud of from this module?**
+I am most proud that I turned a one-example bug into precise regression coverage without broadening the implementation. The tests now prove that parenthesized numbers are fully removed, detection offsets select the exact original value, multiple supported formats still work, and embedded or unbalanced values are rejected. That gives future contributors a much clearer behavioral contract than a simple assertion that `[REDACTED]` appears somewhere in the output.
