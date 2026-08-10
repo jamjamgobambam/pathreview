@@ -86,3 +86,38 @@ See [PLAN.md](PLAN.md) for the fix plan.
 - [x] `make test-unit` introduces no new failures relative to baseline
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No — still awaiting review
+
+**Summary of feedback:** No reviewer or maintainer feedback was received on pull request #339. This matches the Summer 2026 course note that reviewer feedback is not part of this term.
+
+**How you responded:** No response or code changes were needed because no feedback was provided. I confirmed that the pull request remains open, is marked ready for review, and links issue #153.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was separating the failure caused by issue #153 from unrelated failures already present in the repository. The full unit suite was not completely green before my change, so a simple pass/fail result was not enough. I had to reproduce the exact `text: None` crash, record a baseline of 375 passing and 53 failing tests, make the smallest possible fix, and then confirm the result improved to 376 passing and 52 failing tests without introducing a new regression.
+
+**What did you learn about working in a large codebase?**
+
+I learned that contributing to someone else's codebase requires more investigation and restraint than building a feature from scratch. The existing tests, contribution guide, naming conventions, and surrounding implementation define the acceptable solution. A one-line fix still required understanding `dict.get` behavior, tracing the error into `FaithfulnessChecker.check()`, documenting the existing failures, keeping the change scoped to issue #153, and creating a reviewable commit history.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools were most helpful for quickly locating the relevant code path, explaining why `chunk.get("text", "")` does not handle an explicit `None`, and organizing the reproduction steps, plan, and pull-request description. They did not replace verification. I still needed to inspect the repository's actual tests and conventions, compare results against the baseline, and decide whether failures were related to my change. AI could suggest `chunk.get("text") or ""`, but only the targeted regression test and before/after suite results showed that the change was appropriate.
+
+**What would you do differently if you started over?**
+
+I would establish the test baseline and read the contribution checklist before making any implementation change. That would make it easier to separate project-wide test debt from issue-specific behavior and would reduce time spent interpreting failures later. I would also keep the journal updated immediately after each milestone—reproduction, implementation, verification, and PR submission—rather than reconstructing details at the end of the week.
+
+**What are you most proud of from this module?**
+
+I am most proud of turning a small-looking edge case into a complete, evidence-based contribution. The final record connects the original issue, a reproducible failure, a narrowly scoped fix, regression verification, a professional pull request, and a four-week journal. That process demonstrates not only that the crash was fixed, but also that the change was understood and validated responsibly.
+
