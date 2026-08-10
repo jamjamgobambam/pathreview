@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from datetime import datetime
+
 import structlog
-from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from core.database import get_db
 
@@ -36,18 +37,20 @@ async def health_check(db=Depends(get_db)):
         health_status["dependencies"]["postgres"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
+    redis_client = None
     try:
         # Check Redis (if available)
         import redis
+
         from core.config import settings
 
-        r = redis.Redis(
+        redis_client = redis.Redis(
             host=settings.redis_host,
             port=settings.redis_port,
             db=0,
             decode_responses=True,
         )
-        r.ping()
+        redis_client.ping()
         health_status["dependencies"]["redis"] = "healthy"
         log.debug("redis_health_check_passed")
     except Exception as exc:
@@ -72,10 +75,23 @@ async def health_check(db=Depends(get_db)):
         health_status["dependencies"]["vector_db"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
-    # Count safety events in last hour (placeholder)
+    # Count safety events across all event types in the last hour.
+    # SafetyMonitor stores per-type counts in Redis; we sum them here
+    # so operators can spot elevated safety activity at a glance without
+    # opening the monitoring dashboard (fixes #68).
     try:
-        # This would be populated by actual safety event logging
-        health_status["safety_events_last_hour"] = 0
+        from safety.monitoring import SafetyMonitor
+
+        if redis_client is not None:
+            monitor = SafetyMonitor(redis_client=redis_client)
+            total = sum(
+                monitor.get_event_count(event_type)
+                for event_type in SafetyMonitor.VALID_EVENT_TYPES
+            )
+            health_status["safety_events_last_hour"] = total
+            log.debug("safety_events_check_passed", count=total)
+        else:
+            log.warning("safety_events_skipped_no_redis")
     except Exception as exc:
         log.error("safety_events_check_failed", error=str(exc))
 
