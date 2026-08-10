@@ -96,3 +96,55 @@ matching several other tier-1 issues in the tracker (for example #146,
 pre-existing failures reference health.py or redis.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No
+
+**Summary of feedback:**
+No review came in during Week 10.
+
+**How you responded:**
+N/A, no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Running make check across the whole project was harder than I
+expected. It returned 183 errors on the first run, and at first that
+felt like I had broken something big. I had to learn to read through
+all of it carefully and figure out which errors were caused by my
+own change, versus which ones already existed in files I never
+touched. Separating "my bug" from "the project's existing debt" was
+a skill I didn't expect to need this early.
+
+**What did you learn about working in a large codebase?**
+In my own projects, if something is broken, it's almost always
+something I just wrote. In this codebase, that assumption doesn't
+hold. I had to actually verify, using grep and by reading
+core/config.py directly, rather than guessing, before I could be
+confident my fix was correct and my test wasn't just reproducing an
+already-known problem. I also learned that a fix isn't done until
+you've proven it with a passing test (with edge cases included), 
+not just by seeing the right output once in a browser.
+
+**How did AI tools help, and where did they fall short?**
+AI tools were most useful for understanding unfamiliar parts of the
+process fast, like what a specific error message actually meant, or
+how to structure a test I'd never written before.
+
+**What would you do differently if you started over?**
+I'd run make check and make test-unit right after reproducing the
+bug in Week 8, instead of waiting until right before opening the PR
+in Week 9. That would have given me more time to separate
+pre-existing issues from new ones, instead of doing it all under
+time pressure.
+
+**What are you most proud of from this module?**
+Writing the reproduction test before touching any code. It forced me
+to prove the bug was real and understand exactly where it lived,
+before I wrote a single line of the actual fix.
