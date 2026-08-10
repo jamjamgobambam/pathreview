@@ -12,6 +12,7 @@ from core.database import Base
 
 if TYPE_CHECKING:
     from core.models.profile import Profile
+    from core.models.webhook import Webhook
 
 
 class User(Base):
@@ -35,6 +36,9 @@ class User(Base):
     # Relationships
     profiles: Mapped[list["Profile"]] = relationship(
         "Profile", back_populates="user", cascade="all, delete-orphan"
+    )
+    webhooks: Mapped[list["Webhook"]] = relationship(
+        "Webhook", back_populates="user", cascade="all, delete-orphan"
     )
 
     __table_args__ = (Index("ix_users_email_active", "email", "is_active"),)

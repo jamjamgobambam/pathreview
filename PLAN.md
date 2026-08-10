@@ -26,11 +26,11 @@ Files I expect to touch:
 
 ### Plan
 
-1. **Add the data layer**: create `Webhook` and `WebhookDelivery` models plus the Alembic migration (`003_add_webhooks.py`), run `alembic upgrade head` locally and confirm the tables exist via `psql`.
-2. **Build `webhook_service.py`**: implement `register_webhook`/`list_webhooks`/`delete_webhook` (straightforward CRUD against the new table) first, since they're low-risk and testable in isolation.
-3. **Build delivery logic**: implement `deliver_webhook_notification(db, review_id)` using `httpx.AsyncClient` (the codebase currently only uses sync `httpx.get`/`httpx.head` in `agent/tools/github_tool.py`, so this introduces the first async HTTP client usage) with HMAC-SHA256 request signing (secret stored on the `Webhook` row) and a `tenacity`-based retry with exponential backoff (the dependency is already declared in `pyproject.toml:33` but currently unused anywhere; this would be the first real use of it).
-4. **Wire it into `process_review`**: add the two call sites in `core/services/review_service.py` (success path around line 174, failure path around line 192), passing `review_id` so the service can look up all active webhooks for that review's owning user and fan out.
-5. **Add the API surface**: `api/routes/webhooks.py` plus `api/schemas/webhook.py` plus registration in `api/main.py`, then write `tests/unit/test_webhook_service.py` covering registration, successful delivery, retry-then-succeed, and retry-exhausted-then-log-failure.
+1. **Add the data layer**: completed by creating `Webhook` and `WebhookDelivery` models plus the Alembic migration (`003_add_webhooks.py`).
+2. **Build `webhook_service.py`**: completed by implementing `register_webhook`, `list_webhooks`, `delete_webhook`, and `deliver_webhook_notification` with signed payload delivery and persistence of delivery attempts.
+3. **Build delivery logic**: completed by using `httpx.AsyncClient` with HMAC-SHA256 signing and retry handling for transient failures.
+4. **Wire it into `process_review`**: completed by invoking the notification flow at both the review-complete and review-failed branches in `core/services/review_service.py`.
+5. **Add the API surface**: completed by adding `api/routes/webhooks.py`, `api/schemas/webhook.py`, and router registration in `api/main.py`, along with targeted webhook tests in `tests/unit/test_webhook_service.py`.
 
 ### Inputs & outputs
 

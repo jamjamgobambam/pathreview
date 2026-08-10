@@ -1,13 +1,15 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
+from core.services import webhook_service
 
 log = structlog.get_logger()
 
@@ -40,8 +42,8 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
     return result.scalars().first()
@@ -172,6 +174,7 @@ async def process_review(
 
         db.add(review)
         await db.commit()
+        await webhook_service.deliver_webhook_notification(db, review_id)
 
         log.info(
             "review_processing_completed",
@@ -190,6 +193,7 @@ async def process_review(
                 review.updated_at = datetime.utcnow()
                 db.add(review)
                 await db.commit()
+                await webhook_service.deliver_webhook_notification(db, review_id)
         except Exception as e:
             log.error("review_status_update_failed", review_id=str(review_id), error=str(e))
 
