@@ -1,0 +1,28 @@
+{
+  "profile": {
+    "id": "7f3d2a1e-9c4b-4f8a-b6d5-2e1c8a7f4b93",
+    "user_id": "3b8e5c02-1d7a-4e69-9f14-6c2a0d5b8e37",
+    "github_username": "alexrivera",
+    "resume_filename": "alex_rivera_resume.pdf",
+    "resume_text": "Alex Rivera\nSoftware Engineer\nalex.rivera@example.com | github.com/alexrivera\n\nExperience:\n- Backend Engineer at Northwind Labs (2023-2025)\n  Built and maintained REST APIs in Python and FastAPI serving 40k daily requests.\n  Migrated a monolithic service to PostgreSQL with Alembic migrations.\n- Software Engineering Intern at Bluebird Systems (2022)\n  Added React components and unit tests to an internal analytics dashboard.\n\nEducation:\n- B.S. Computer Science, State University (2023)\n\nSkills: Python, FastAPI, TypeScript, React, PostgreSQL, Docker, pytest\n",
+    "portfolio_url": "https://alexrivera.dev",
+    "created_at": "2026-01-15T10:30:00+00:00",
+    "updated_at": "2026-02-02T14:05:00+00:00"
+  },
+  "repos": [
+    {
+      "name": "weather-dashboard",
+      "description": "A React and TypeScript dashboard showing current conditions and a 5-day forecast.",
+      "language": "TypeScript",
+      "url": "https://github.com/alexrivera/weather-dashboard",
+      "readme_text": "# Weather Dashboard\n\nA weather forecasting dashboard built with React and the OpenWeatherMap API.\n\n## Features\n- Current conditions by city\n- 5-day forecast\n- Saved locations\n\n## Tech Stack\n- React 18\n- TypeScript\n- Tailwind CSS\n- Vite\n\n## Getting Started\n```bash\nnpm install\nnpm run dev\n```\n"
+    },
+    {
+      "name": "recipe-api",
+      "description": "A FastAPI service for storing and searching recipes, backed by PostgreSQL.",
+      "language": "Python",
+      "url": "https://github.com/alexrivera/recipe-api",
+      "readme_text": "# Recipe API\n\nA REST API for storing, tagging, and searching recipes.\n\n## Features\n- CRUD endpoints for recipes and tags\n- Full-text search across ingredients\n- JWT authentication\n\n## Tech Stack\n- Python 3.11\n- FastAPI\n- PostgreSQL\n- SQLAlchemy + Alembic\n- pytest\n\n## Running Locally\n```bash\ndocker compose up -d\nuvicorn app.main:app --reload\n```\n"
+    }
+  ]
+}

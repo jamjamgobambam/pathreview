@@ -1,6 +1,26 @@
 """Shared test fixtures for PathReview."""
 
+import json
+from pathlib import Path
+from typing import Any
+
 import pytest
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+
+@pytest.fixture
+def sample_user_profile() -> dict[str, Any]:
+    """Return the shared sample portfolio fixture as a dict.
+
+    Loads ``tests/fixtures/sample_profiles/basic_profile.json``, which holds a
+    ``profile`` object mirroring the columns of :class:`core.models.profile.Profile`
+    and a ``repos`` list of two repositories. Use this instead of building profile
+    data inline so tests share one consistent sample portfolio.
+    """
+    fixture_path = FIXTURES_DIR / "sample_profiles" / "basic_profile.json"
+    with fixture_path.open(encoding="utf-8") as fixture_file:
+        return json.load(fixture_file)
 
 
 @pytest.fixture
