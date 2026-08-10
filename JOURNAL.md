@@ -79,28 +79,35 @@ leave blank.]
 
 **What was harder than you expected?**
 [Be specific — what part of the process, codebase, or workflow
-surprised you?] The part of the project that was the hardest was finding the actual issue in the file.
-Often times i found myself focused on the wrong function of in the files.
+surprised you?] The part of the project that was the hardest was finding the actual issue in
+orchestrator.py and error_handling.py. Often times i found myself focused on the wrong function —
+like `_build_plan` or the `retry_with_backoff` decorator — instead of the actual `except` blocks in
+`run()` and `_execute_tool` where the `exc_info` was missing.
 
 **What did you learn about working in a large codebase?**
 [What's different about contributing to someone else's production code
 vs. building your own project?] I think the biggest difference from a personal project is that you 
-have to spend a lot of time just reading and understanding the existing files before you can write any code.
-  I also learned that you have to be okay with leaving pre-existing broken tests alone as long as your specific fix works. 
+have to spend a lot of time just reading and understanding files like orchestrator.py and error_handling.py
+before you can write any code i.e tracing how `_execute_tool` calls `_execute_with_timeout`, which wraps
+`retry_with_backoff`, took a while to fully piece together. I also learned that you have to be okay with
+leaving pre-existing broken tests alone as long as your specific fix (adding `exc_info=True`) works. 
 
 **How did AI tools help — and where did they fall short?**
 [Where was AI assistance most useful this module? Where did you need
 to go beyond what AI could give you?] The AI tool helped in understanding the general idea of 
-what a certain file(s) were meant to do, and the purpose of each funtion in them. 
-It fell short in determining the exact way to resolve the issue and where the exact issue was.
+what orchestrator.py and error_handling.py were meant to do, and the purpose of functions like `run()`,
+`_execute_tool`, and `retry_with_backoff`. It fell short in determining the exact way to resolve the
+issue — it couldn't tell me which of the `logger.error` calls actually needed `exc_info=True` added,
+so i had to trace that myself.
 
 **What would you do differently if you started over?**
 [Issue selection, planning, implementation, or process — anything
 you'd change?]
-One thing i would change would be my approach to resolving the issue i chose. I think i went
-to quick into solving the issue before fully understanding the purpose of file(s) that the issue was in the context of the 
-entire project. 
+One thing i would change would be my approach to resolving issue #44. I think i went
+too quick into editing error_handling.py before fully understanding how orchestrator.py's `run()` loop
+and `_execute_tool` actually used it in the context of the entire project. 
 **What are you most proud of from this module?**
 [One thing — it doesn't have to be the PR itself.]
-I'm most proud of the journey of understanding and resolving the issue. I have not used some of the tools
-used in the project before. Taking the time to grasp their use and actually understanding it is something i am proud of. 
+I'm most proud of the journey of understanding and resolving issue #44. I had never used structlog's
+`capture_logs()` before this project. Taking the time to grasp how to use it to actually assert on
+`exc_info` in the test is something i am proud of. 
