@@ -91,6 +91,65 @@ separators to also accept a single literal space fixes both `scrub()` and
 phone tests (`test_us_phone_number_redaction`, `test_us_phone_formats`,
 `test_detect_phone_pii`, `test_phone_at_start_of_text`) now pass as well.
 
-**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+**Self-review confirmation:** [] make check passes  [] make test-unit passes
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No formal review has come in yet. In my PR I left an open question for reviewers:
+whether they prefer one broadened `phone_us` pattern or a separate explicit
+pattern for the parenthesized form. (Update this section if a reviewer responds.)
+
+**How you responded:**
+N/A — no feedback to address yet. If a reviewer asks for changes, I'll note the
+change and the commit that addressed it here.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment, not the code. The actual fix was a one-line regex change, but
+getting to the point where I could run it took the most effort: a broken
+virtualenv and pip, Docker not running, `make` expecting bash instead of
+PowerShell, and even discovering I had two copies of the repo in different
+folders. Untangling which test failures were mine versus already broken was also
+harder than expected — the suite had 48 pre-existing failures from other issues.
+
+**What did you learn about working in a large codebase?**
+That you have to understand the blast radius of a change before you make it. I
+confirmed the PII scrubber isn't even wired into the running app yet and that
+nothing else imports it, so my one-line change couldn't break other modules —
+that scoping gave me confidence. I also learned to respect the boundaries of my
+issue: there was a second, unrelated bug (the `street_address` regex) right next
+to mine, and the right move was to document it for reviewers, not "fix
+everything." Matching the project's conventions — branch naming, Conventional
+Commits, the PR template, Google-style docstrings — mattered as much as the code.
+
+**How did AI tools help — and where did they fall short?**
+AI tooling was most useful for navigating an unfamiliar codebase quickly:
+locating where the regex lived, tracing who consumed it, reasoning about regex
+behavior and edge cases, and drafting tests and the PR description. Where it fell
+short: it couldn't stand in for actually running things in my environment — I had
+to install dependencies, run the full test suite, and verify the results myself.
+It also couldn't make judgment calls for me, like the eligibility/scope decisions
+or choosing a literal space over `\s` to avoid matching across newlines. I treated
+AI output as a draft to verify against the project's conventions, not as final.
+
+**What would you do differently if you started over?**
+Set the environment up and get it fully green *before* touching any code, and pick
+a single folder for the repo so I'm never working out of the wrong copy. I'd also
+open a draft PR earlier in the week to leave more room for peer feedback instead
+of finishing most of the work first.
+
+**What are you most proud of from this module?**
+Keeping the fix minimal and honest. It would have been tempting to over-claim
+"all tests pass" or to fix the adjacent bug too, but instead I scoped the change
+tightly, wrote a regression test, and clearly documented the pre-existing failures
+so a reviewer knows exactly what my change does and doesn't affect.
