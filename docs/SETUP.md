@@ -48,7 +48,8 @@ cp .env.example .env
 # All other defaults work for local development
 
 # 3. Start backing services (PostgreSQL + Redis)
-#    ⚠️  Docker must be running before the next step — make setup runs database migrations
+#    ⚠️  Docker Desktop must be running before the next step — make setup runs database migrations
+#    On Windows, make sure the Docker CLI is available in Git Bash before running this command.
 docker compose up -d
 # Wait ~15 seconds, then verify all services are healthy:
 docker compose ps
@@ -80,6 +81,16 @@ To reset back to a clean seed state at any time: `make reset-db`
   - macOS/Linux: `lsof -i :5432` / `lsof -i :6379`
   - Windows (Git Bash): `netstat -ano | findstr :5432`
 - If ports are in use, stop the conflicting service or change ports in `docker-compose.yml`
+
+**Windows: `docker: command not found` in Git Bash:**
+- Install and open Docker Desktop, then wait for the Docker engine to show as running.
+- Ensure Docker's CLI is on your Git Bash `PATH`:
+  ```bash
+  export PATH="/c/Program Files/Docker/Docker/resources/bin:$PATH"
+  docker --version
+  docker compose version
+  ```
+- If that still fails, open Docker Desktop once, confirm the WSL 2 backend is enabled, and retry `docker compose up -d`.
 
 **Windows: "password authentication failed" when running migrations:**
 PostgreSQL is mapped to port **5433** on Windows (not 5432) to avoid conflicts with any native PostgreSQL installation. If you see auth errors, make sure your `.env` uses the correct connection string:

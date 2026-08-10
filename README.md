@@ -24,7 +24,8 @@ cd pathreview
 # Configure environment (add your OPENROUTER_API_KEY to .env)
 cp .env.example .env
 
-# Start backing services — must be running before make setup
+# Start backing services — Docker Desktop must be running first
+# If `docker compose up -d` fails with a daemon connection error, open Docker Desktop and retry.
 docker compose up -d
 
 # Run first-time setup (installs deps, runs migrations, seeds DB, installs frontend)
@@ -35,6 +36,8 @@ make run
 ```
 
 Then open http://localhost:5173 in your browser.
+
+If you see an error like `failed to connect to the docker API` or `open //./pipe/docker_engine`, Docker Desktop is not running or not fully initialized. Start Docker Desktop, wait for it to finish initializing, then rerun `docker compose up -d`.
 
 For detailed setup instructions including platform-specific notes, see [docs/SETUP.md](docs/SETUP.md).
 
