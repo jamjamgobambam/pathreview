@@ -53,6 +53,18 @@ class TestPIIScrubber:
             scrubbed = scrubber.scrub(text)
             assert "[REDACTED]" in scrubbed
 
+    def test_parenthesized_phone_edge_cases(self, scrubber):
+        """Test parenthesized phone numbers with varying separators (issue #146)."""
+        formats = [
+            "(555)123-4567",  # no space after closing paren
+            "(555)-123-4567",  # dash after closing paren
+        ]
+
+        for phone in formats:
+            text = f"Contact: {phone}"
+            scrubbed = scrubber.scrub(text)
+            assert "[REDACTED]" in scrubbed
+
     def test_international_phone_redaction(self, scrubber):
         """Test international phone number is redacted."""
         text = "Reach me at +44 20 7946 0958"
