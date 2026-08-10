@@ -57,3 +57,34 @@ None. The reproduction script isolates the exact pattern failures, making testin
 - [x] make test-unit passes — no new failures introduced (2 pre-existing collection errors from `core/config.py` env vars, unrelated to this issue; `safety/bias_detector.py` tests pass 32/32 in isolation)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback came in before the end of the module. Per the Summer 2026 course note, reviewer feedback is not a feature this semester.
+
+**How you responded:**
+N/A. No feedback received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating the pre-existing test infrastructure failures was harder than I anticipated. Before I could confidently verify my fix, I had to establish a baseline by running `make check` and `make test-unit` up front to document that 181 lint errors and 2 collection errors in `core/config.py` existed before I touched anything. Without that baseline, I couldn't have clearly argued that my changes introduced no new failures. That kind of defensive documentation isn't something I naturally do when building my own projects, but it is mandatory when contributing to someone else's codebase.
+
+**What did you learn about working in a large codebase?**
+The biggest difference from my own projects is that you can't treat the entire codebase as yours to fix. The `core/config.py` Pydantic validation errors and the 181 ruff errors are legitimate problems, but they belong to other issues. Contributing responsibly means scoping your change tightly, proving your contribution is isolated, and documenting the pre-existing state clearly, rather than either ignoring the failures or going off-scope to fix them.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for two things: explaining what each regex pattern was actually doing in plain English, and quickly running test output to confirm whether a pattern fix was too broad or too narrow. Where it fell short was in making judgment calls. Reading edge cases like "bootcamp attendance means inadequate training" required me to reason through the intent of the detector myself, not just accept a generated pattern.
+
+**What would you do differently if you started over?**
+I would run `make check` and `make test-unit` on day one, before selecting an issue, rather than after. Knowing the pre-existing failure state early would have shaped how I scoped my reproduction steps and written my `PLAN.md` with more precision. I also would have opened the draft PR earlier in Week 9 instead of waiting until the fix was finalized, since early feedback is the whole point of a draft PR.
+
+**What are you most proud of from this module?**
+The standalone reproduction script (`reproduce_bias.py`). Writing a script that imports the actual project module and programmatically demonstrates the bug, rather than just pointing at a failing test, gave me a cleaner and more honest proof of the issue. It also made verification after the fix unambiguous, the script either exits 0 or it doesn't.
