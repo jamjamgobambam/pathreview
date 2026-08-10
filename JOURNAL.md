@@ -108,3 +108,72 @@ degradation to `0` when Redis is down. All pass.
 > touches the files I changed.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments came in on PR #635
+(https://github.com/ascherj/pathreview/pull/635) — consistent with reviewer feedback not
+being a feature this term. I re-read the PR myself against `docs/CONTRIBUTING.md` one more
+time (branch name, conventional commits, docstrings, scope) and confirmed it's complete.
+
+**How you responded:**
+No changes required, since no feedback arrived. If a reviewer had pushed back on the
+"last hour" semantics, my planned response was already staged in the PR's Notes for
+Reviewers: offer to move to time-bucketed Redis keys for a true rolling window.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment was harder than the code. The actual fix was small, but getting the app
+runnable on Windows 11 Home was the real fight: Docker Desktop failed with "virtualization
+support wasn't detected," which turned out to be WSL 2 not being installed (BIOS
+virtualization was already on). The other genuinely hard part was *verifying* the change
+in a suite that already had ~52 failing tests and 31 errors — figuring out which failures
+were pre-existing vs. mine took more care than writing the fix, and I had to establish a
+baseline (`ruff`/`black`/`mypy`/`pytest` on the untouched `origin/main` files) before I
+could honestly claim "no new failures."
+
+**What did you learn about working in a large codebase?**
+Scope discipline is the biggest difference. While fixing #68 I found a *separate* bug —
+`health.py` reads `settings.redis_host`/`redis_port`, which don't exist on `Settings`
+(only `redis_url`) — and the instinct was to fix it too. In your own project you just fix
+it; in someone else's, the right move was to route around it (source Redis from
+`redis_url`) and flag it as a follow-up so my PR stays reviewable and about one thing. I
+also leaned hard on matching existing patterns instead of inventing my own:
+`get_total_event_count` mirrors the existing `get_event_count`, the endpoint reuses the
+established local-import style, and the tests mirror the fixture structure already in
+`tests/unit/`. Production code also demanded proving I didn't break unrelated things, not
+just that my feature works.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for navigation and verification scaffolding: quickly mapping how
+`SafetyMonitor` → Redis → `/health` connect, and building a reproduction that exercises
+the real `health_check` with a fake Redis so I didn't need the full Docker stack running.
+It was also good at the tedious rigor — running the tools against the `origin/main`
+baseline to separate pre-existing from new failures. Where it fell short: it couldn't fix
+the local virtualization/WSL 2 problem — that was hands-on on my actual machine — and it
+couldn't make the *design* call on whether "last hour" should be a strict rolling window
+or a best-effort cumulative total; that was a judgment about scope and the existing data
+model that I had to make and document.
+
+**What would you do differently if you started over?**
+Get the environment fully running in Week 7, before touching anything else. Because Docker
+lagged, I verified the fix through unit tests against the real endpoint rather than a live
+`make run` at localhost:5173 — which is solid, but I'd have preferred to also hit the
+running `/health` and see the number change. I'd also open the draft PR earlier in Week 9
+to leave room for feedback, and I'd sanity-check that the app actually boots before
+committing to an issue.
+
+**What are you most proud of?**
+The verification rigor. Rather than asserting "tests pass," I proved the change introduced
+zero new `ruff`/`black`/`mypy`/test failures by diffing against a clean `origin/main`
+baseline, and I handled the incidental `redis_host` bug the professional way — documented
+and scoped out instead of silently expanding the PR. The fix is small; the discipline
+around it is the part I'd stand behind in a real code review.
