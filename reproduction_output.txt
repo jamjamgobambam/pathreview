@@ -1,0 +1,146 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.9, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\fahmi\Pathreview Codepath\pathreview\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: C:\Users\fahmi\Pathreview Codepath\pathreview
+configfile: pyproject.toml
+plugins: anyio-4.14.2, hypothesis-6.157.0, asyncio-1.4.0, benchmark-5.2.3, cov-7.1.0, pytest_httpserver-1.1.5
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 18 items
+
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_text_with_python_imports PASSED [  5%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_text_with_python_type_annotations PASSED [ 11%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_text_with_typescript_files FAILED [ 16%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_jupyter_ipynb_detection PASSED [ 22%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_mixed_language_text PASSED [ 27%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_frameworks_detected_with_high_confidence PASSED [ 33%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_react_detection PASSED [ 38%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_database_technology_detection FAILED [ 44%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_devops_tool_detection FAILED [ 50%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_skill_has_evidence_list PASSED [ 55%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_filename_based_detection PASSED [ 61%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_javascript_detection FAILED [ 66%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_docker_compose_detection FAILED [ 72%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_aws_gcp_azure_detection PASSED [ 77%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_empty_text PASSED [ 83%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_unrecognized_language PASSED [ 88%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_confidence_scores_are_floats PASSED [ 94%]
+tests/unit/test_skill_extractor.py::TestSkillExtractor::test_skill_detection_dataclass PASSED [100%]
+
+================================== FAILURES ===================================
+_____________ TestSkillExtractor.test_text_with_typescript_files ______________
+
+self = <tests.unit.test_skill_extractor.TestSkillExtractor object at 0x0000020667DD4510>
+extractor = <ingestion.parsers.skill_extractor.SkillExtractor object at 0x0000020667C6FED0>
+
+    def test_text_with_typescript_files(self, extractor):
+        """Test TypeScript detection."""
+        text = """
+        export interface User {
+            id: string;
+            name: string;
+        }
+    
+        export class UserService {
+            async getUser(id: string): Promise<User> {}
+        }
+        """
+        result = extractor.extract_skills(text)
+    
+        skill_names = [s.name for s in result]
+        # Should detect TypeScript
+>       assert any("typescript" in s.lower() for s in skill_names)
+E       assert False
+E        +  where False = any(<generator object TestSkillExtractor.test_text_with_typescript_files.<locals>.<genexpr> at 0x0000020667D36A80>)
+
+tests\unit\test_skill_extractor.py:62: AssertionError
+____________ TestSkillExtractor.test_database_technology_detection ____________
+
+self = <tests.unit.test_skill_extractor.TestSkillExtractor object at 0x0000020667CCB850>
+extractor = <ingestion.parsers.skill_extractor.SkillExtractor object at 0x0000020667CB6E00>
+
+    def test_database_technology_detection(self, extractor):
+        """Test database technology detection."""
+        text = """
+        import psycopg2
+        conn = psycopg2.connect("dbname=mydb")
+        """
+        result = extractor.extract_skills(text)
+    
+>       skill_names = [s.name for s in skill_names]
+                                       ^^^^^^^^^^^
+E       UnboundLocalError: cannot access local variable 'skill_names' where it is not associated with a value
+
+tests\unit\test_skill_extractor.py:138: UnboundLocalError
+________________ TestSkillExtractor.test_devops_tool_detection ________________
+
+self = <tests.unit.test_skill_extractor.TestSkillExtractor object at 0x0000020667CCBA50>
+extractor = <ingestion.parsers.skill_extractor.SkillExtractor object at 0x0000020667E4C450>
+
+    def test_devops_tool_detection(self, extractor):
+        """Test DevOps tool detection."""
+        text = """
+        FROM python:3.9
+        RUN pip install requirements.txt
+        EXPOSE 8000
+        """
+        result = extractor.extract_skills(text)
+    
+        skill_names = [s.name for s in result]
+        # Should detect Docker
+>       assert any("docker" in s.lower() for s in skill_names)
+E       assert False
+E        +  where False = any(<generator object TestSkillExtractor.test_devops_tool_detection.<locals>.<genexpr> at 0x0000020667E381E0>)
+
+tests\unit\test_skill_extractor.py:153: AssertionError
+________________ TestSkillExtractor.test_javascript_detection _________________
+
+self = <tests.unit.test_skill_extractor.TestSkillExtractor object at 0x0000020667DF8910>
+extractor = <ingestion.parsers.skill_extractor.SkillExtractor object at 0x0000020667E80050>
+
+    def test_javascript_detection(self, extractor):
+        """Test JavaScript detection."""
+        text = """
+        const fs = require('fs');
+        const data = fs.readFileSync('file.txt');
+        console.log(data);
+        """
+        result = extractor.extract_skills(text)
+    
+        skill_names = [s.name for s in result]
+>       assert any("javascript" in s.lower() or "js" in s.lower() for s in skill_names)
+E       assert False
+E        +  where False = any(<generator object TestSkillExtractor.test_javascript_detection.<locals>.<genexpr> at 0x0000020667E38A00>)
+
+tests\unit\test_skill_extractor.py:183: AssertionError
+______________ TestSkillExtractor.test_docker_compose_detection _______________
+
+self = <tests.unit.test_skill_extractor.TestSkillExtractor object at 0x0000020667DF8D70>
+extractor = <ingestion.parsers.skill_extractor.SkillExtractor object at 0x0000020667DF83D0>
+
+    def test_docker_compose_detection(self, extractor):
+        """Test Docker and Docker Compose detection."""
+        text = """
+        version: '3.8'
+        services:
+          web:
+            build: .
+            ports:
+              - "8000:8000"
+        """
+        result = extractor.extract_skills(text)
+    
+        skill_names = [s.name for s in result]
+>       assert any("docker" in s.lower() for s in skill_names)
+E       assert False
+E        +  where False = any(<generator object TestSkillExtractor.test_docker_compose_detection.<locals>.<genexpr> at 0x0000020667D36810>)
+
+tests\unit\test_skill_extractor.py:198: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_text_with_typescript_files
+FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_database_technology_detection
+FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_devops_tool_detection
+FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_javascript_detection
+FAILED tests/unit/test_skill_extractor.py::TestSkillExtractor::test_docker_compose_detection
+======================== 5 failed, 13 passed in 0.31s =========================
