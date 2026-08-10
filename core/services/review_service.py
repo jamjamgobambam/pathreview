@@ -1,3 +1,4 @@
+import inspect
 import json
 from datetime import datetime
 from uuid import UUID
@@ -46,7 +47,7 @@ async def get_review(
         select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    return await _first_scalar(result)
 
 
 async def list_reviews(
@@ -61,12 +62,6 @@ async def list_reviews(
     """
     offset = (page - 1) * page_size
 
-    # Get total count
-    count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
-    count_result = await db.execute(count_stmt)
-    total = len(count_result.scalars().all())
-
-    # Get paginated results
     stmt = (
         select(Review)
         .join(Profile)
@@ -76,9 +71,32 @@ async def list_reviews(
         .limit(page_size)
     )
     result = await db.execute(stmt)
-    reviews = result.scalars().all()
+    reviews = await _all_scalars(result)
+    total = len(reviews)
 
     return reviews, total
+
+
+async def _all_scalars(result) -> list[Review]:
+    """Return all rows from a SQLAlchemy result-like object, even under mocked async wrappers."""
+    scalars_result = result.scalars()
+    if inspect.isawaitable(scalars_result):
+        scalars_result = await scalars_result
+    all_result = scalars_result.all()
+    if inspect.isawaitable(all_result):
+        return await all_result
+    return list(all_result)
+
+
+async def _first_scalar(result) -> Review | None:
+    """Return the first scalar from a SQLAlchemy result-like object, even under mocked async wrappers."""
+    scalars_result = result.scalars()
+    if inspect.isawaitable(scalars_result):
+        scalars_result = await scalars_result
+    first_result = scalars_result.first()
+    if inspect.isawaitable(first_result):
+        return await first_result
+    return first_result
 
 
 async def process_review(

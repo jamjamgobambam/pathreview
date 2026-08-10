@@ -1,6 +1,7 @@
 """Technology stack detector tool."""
 
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -75,7 +76,7 @@ class TechDetector(BaseTool):
                     "primary_language": "Unknown",
                     "all_languages": [],
                     "frameworks": [],
-                }
+                },
             )
 
         try:
@@ -84,11 +85,7 @@ class TechDetector(BaseTool):
 
         except Exception as e:
             logger.error("tech_detector_error", error=str(e))
-            return ToolResult(
-                success=False,
-                data={},
-                error=str(e)
-            )
+            return ToolResult(success=False, data={}, error=str(e))
 
     def _detect_tech(self, files: list[str]) -> dict:
         """Detect technologies from file list.
@@ -100,39 +97,44 @@ class TechDetector(BaseTool):
             Dict with detected languages and frameworks
         """
         # Filter out vendor/build directories
-        filtered_files = [
-            f for f in files
-            if not self._should_skip_file(f)
-        ]
+        filtered_files = [f for f in files if not self._should_skip_file(f)]
 
         languages = set()
         frameworks = set()
+        language_counts: dict[str, int] = {}
 
         # Detect by file extension
         for filepath in filtered_files:
+            normalized_path = filepath.replace("\\", "/")
             for ext, lang in self.EXT_TO_LANG.items():
-                if filepath.endswith(ext):
+                if normalized_path.endswith(ext):
                     languages.add(lang)
+                    language_counts[lang] = language_counts.get(lang, 0) + 1
 
         # Detect by config files
         for filepath in filtered_files:
+            normalized_path = filepath.replace("\\", "/")
             for config_file, (framework, lang) in self.CONFIG_INDICATORS.items():
-                if filepath.endswith(config_file):
+                if normalized_path.endswith(config_file):
                     languages.add(lang)
+                    language_counts[lang] = language_counts.get(lang, 0) + 1
                     if framework not in ("Docker", "Infrastructure", "CI/CD", "Build"):
                         frameworks.add(framework)
 
         # Determine primary language (most common)
         primary = "Unknown"
-        if languages:
-            lang_list = sorted(languages)
-            primary = lang_list[0]
+        if language_counts:
+            primary = max(language_counts, key=language_counts.get)
 
         all_languages = sorted(languages)
         all_frameworks = sorted(frameworks)
 
-        logger.info("tech_detected", primary_lang=primary,
-                   languages_count=len(all_languages), frameworks_count=len(all_frameworks))
+        logger.info(
+            "tech_detected",
+            primary_lang=primary,
+            languages_count=len(all_languages),
+            frameworks_count=len(all_frameworks),
+        )
 
         return {
             "primary_language": primary,
@@ -150,6 +152,7 @@ class TechDetector(BaseTool):
         Returns:
             True if file should be skipped
         """
+        normalized_path = filepath.replace("\\", "/")
         skip_patterns = [
             "/node_modules/",
             "/vendor/",
@@ -161,4 +164,7 @@ class TechDetector(BaseTool):
             "/venv/",
         ]
 
-        return any(pattern in filepath for pattern in skip_patterns)
+        if normalized_path.startswith("build/") or normalized_path.startswith("/build/"):
+            return True
+
+        return any(pattern in normalized_path for pattern in skip_patterns)
