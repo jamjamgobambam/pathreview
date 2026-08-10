@@ -66,3 +66,46 @@ calls `HybridRetriever` in production, so the reranker will be correct but unwir
 until that gets built out separately (see Risks & Unknowns in PLAN.md). Still deciding
 whether the LLM relevance score should fully replace the blended vector/keyword score
 or be combined as a third signal.
+
+## Week 9: Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All 5 sub-tasks from PLAN.md's Plan section are implemented:
+1. Designed the `Reranker` interface (`rerank(query, chunks, top_k)`), matching
+   `HybridRetriever`'s constructor-injection style so it can be unit-tested with a
+   mock client, the same way `HybridRetriever` is tested with mock stores.
+2. Implemented the batch LLM scoring call in `rag/retriever/reranker.py`, reusing
+   `output_parser.py`'s fenced-JSON parsing convention.
+3. Resolved the score-handling question from PLAN.md: the LLM score replaces the
+   blended score for final ordering, with a fallback to the original blended order
+   if the LLM call fails or its response can't be parsed.
+4. Wired `HybridRetriever` to optionally call the reranker between the blended-score
+   sort and the `max_chunks` slice, gated behind an opt-in constructor param.
+5. Added `tests/unit/test_reranker.py` (9 tests: reordering, JSON-fence parsing,
+   fallback on error, fallback on unparseable response, empty input, `top_k`,
+   missing-id handling, call parameters, prompt truncation) and extended
+   `tests/unit/test_hybrid_retriever.py` with 2 tests proving the reranker fixes
+   the exact decoy-outranks-genuine gap from the Week 8 reproduction.
+
+Also resolved two open PLAN.md risks by comparing options directly: the reranker
+reads config from `core/config.py`'s `Settings` singleton rather than a standalone
+config class (matches how the rest of the app is built, and avoids adding a second
+unused config pattern alongside the already-dead `ReviewConfig`), and added a
+dedicated `reranker_model` setting so the reranker can use a smaller/cheaper model
+independent of `openrouter_model`.
+
+Ran a before/after comparison of the full test suite (Week 8's last commit vs. now,
+via a throwaway worktree so the working tree stayed untouched): 53 pre-existing
+failures unrelated to this issue, identical count before and after. My changes add
+11 new passing tests and introduce no new failures. `make lint` and `make typecheck`
+show zero errors in any file I touched; all existing errors are pre-existing and
+outside this issue's scope.
+
+**Next steps:**
+Open a draft PR against `upstream` and request peer/mentor review in Slack before
+marking it ready. Then address feedback, fill in the PR template, and submit.
+
+**Blockers:**
+None currently.
