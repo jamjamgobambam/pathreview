@@ -94,8 +94,17 @@ ${section.suggestions.map((s) => `- ${s}`).join('\n')}
         {isPolling && (
           <div className="mb-12 p-8 bg-white rounded-lg shadow text-center">
             <Loader className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-900 font-semibold">Analyzing your portfolio...</p>
+            <p className="text-gray-900 font-semibold">
+              {statusReview?.status === 'pending' ? 'Queued for review...' : 'Analyzing your portfolio...'}
+            </p>
             <p className="text-gray-600 text-sm mt-2">This may take a few moments</p>
+            <div className="mt-6 w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div
+                className="h-full bg-blue-600 transition-all"
+                style={{ width: `${statusReview?.progress_pct ?? 0}%` }}
+              ></div>
+            </div>
+            <p className="mt-2 text-sm font-medium text-blue-600">{statusReview?.progress_pct ?? 0}%</p>
           </div>
         )}
 

@@ -44,3 +44,6 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+
+# Local Docker overrides (e.g. ARM64 chromadb numpy fix)
+docker-compose.override.yml

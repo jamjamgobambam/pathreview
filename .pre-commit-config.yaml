@@ -14,5 +14,6 @@ repos:
     rev: v1.8.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-redis]
+        additional_dependencies: [types-redis, sqlalchemy, pydantic, fastapi]
         args: [--ignore-missing-imports]
+        files: ^(api|core|ingestion|rag|agent|safety)/

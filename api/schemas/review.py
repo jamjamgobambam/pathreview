@@ -22,6 +22,7 @@ class ReviewResponse(BaseModel):
     sections: list[FeedbackSection] | None
     overall_score: float | None
     error_message: str | None = None
+    progress_pct: int = 0
     created_at: datetime
     updated_at: datetime
 

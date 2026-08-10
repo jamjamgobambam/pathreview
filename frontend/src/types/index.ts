@@ -26,6 +26,7 @@ export interface Review {
   overall_score?: number
   sections?: FeedbackSection[]
   error_message?: string
+  progress_pct?: number
   created_at: string
   updated_at: string
 }
