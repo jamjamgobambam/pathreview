@@ -308,3 +308,172 @@ here.*
 
 **Course portal submission:**
 `https://github.com/kredd2506/pathreview/tree/test/111-pii-scrubber-property-tests`
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+
+None. As of 9 Aug 2026, PR #358 has been open 11 days with 0 reviews, 0
+comments and no review requests. The repository has no CI configured, so
+nothing automated ran against it either. Per the Week 10 brief, reviewer
+feedback is not a feature of the Summer 2026 cohort, so this is the expected
+outcome rather than a stalled PR.
+
+Worth recording that the silence started earlier: I asked a scoping question on
+issue #111 in Week 8 and never got an answer, which is what forced the decision
+described below. Four other contributors had also commented claiming #111, and
+none of those claims were acknowledged either. I opened the PR knowing a
+maintainer might never look at it.
+
+**How you responded:**
+
+No feedback to respond to. What I did instead was try to make the PR reviewable
+without a conversation, on the assumption that the reviewer would arrive cold
+and skeptical:
+
+- Led the description with the scope decision I could not get answered, and
+  isolated the fix in a single commit (`a0f75cd`) so rejecting it is one revert
+  rather than an untangling.
+- Wrote the two judgment calls up as open questions with the counter-argument
+  included — the unseparated-SSN decision and case-sensitive addresses — rather
+  than presenting them as settled.
+- Documented the pre-existing red baseline in a table, with the explicit claim
+  that this branch introduces zero new failures, so a reviewer running the suite
+  and seeing 48 failures knows immediately which are mine (none).
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+Establishing what "working" even meant. I assumed a baseline where the suite is
+green and my job is to keep it green; instead `main` had 53 failing unit tests,
+182 ruff errors, and `make check` — the exact command `docs/CONTRIBUTING.md`
+tells you to run before opening a PR — exits non-zero on a clean checkout. So
+"do my tests pass" was not answerable in absolute terms. I had to build a clean
+`main` worktree, capture a baseline, and `comm`-diff the two failure lists to
+say anything defensible. The real work was constructing the measurement, not
+passing it.
+
+The second surprise was the shape of the bug. I picked an issue that asks for
+*tests*, expecting additive work with zero blast radius, and the tests
+immediately proved the component was broken — including `+44 20 7946 0958`
+scrubbing to `[REDACTED] 20 7946 0958`, which leaks the subscriber number while
+*looking* redacted. That is worse than no redaction, because it defeats review
+by eye. A test-only PR would have documented a live PII leak and left it open.
+
+Third, regex subtlety I would not have found by reading. `phone_us` began with
+`\b` immediately before `\(?`. A word boundary requires a word character on one
+side, so between a space and `(` there is no boundary — meaning that pattern
+could *never* match `(555) 123-4567`, the single most common written US format.
+The fix was a `(?<![-.\d])` lookbehind, which keeps the "don't start midway
+through a digit run" guarantee that `\b` was there to provide. I stared at that
+line several times believing it was fine.
+
+**What did you learn about working in a large codebase?**
+
+That the tests are a contract, not scratch paper. Five tests in
+`tests/unit/test_pii_scrubber.py` were already failing, and the fastest way to
+green was to edit their assertions. I left that file untouched on purpose and
+made the source satisfy it, because rewriting the test you are meant to pass is
+how a fix gets faked. Those 5 now pass without the file changing — which is a
+far stronger claim than "25/25 green" would have been.
+
+That scope is a real decision with a cost either way, and silence does not
+excuse you from making it. Ship tests only and I document a leak I know about;
+ship the fix and I exceed what the issue asked in a *safety* component. I chose
+the fix, isolated it in one commit, and led the PR with the reasoning so it can
+be cheaply overruled. In my own project this would have been a five-second call.
+
+That conventions are inferred, not given. Nothing told me a `hypothesis` profile
+belongs in `conftest.py` versus per-module `@settings` — there was no existing
+convention, so I chose per-module specifically to avoid imposing one on other
+suites, and said so in a comment. Similarly `make typecheck` excludes `tests/`
+while the pre-commit mypy hook does not, so the repo disagrees with itself about
+whether test files are type-checked; I annotated mine to satisfy the stricter of
+the two rather than bypass a hook.
+
+And that history is a shared artifact. I rebased onto an updated `main`, which
+rewrote five already-pushed commits and would have required a force-push. Undoing
+that — backup branch, reset to the published commit, cherry-pick on top — was
+straightforward, but only because I noticed *before* pushing. On a branch someone
+else had pulled, that force-push would have broken their checkout.
+
+**How did AI tools help — and where did they fall short?**
+
+Most useful on mechanical breadth: generating five `hypothesis` strategies with
+the right parameterization, tracing `PIIScrubber` usage across the repo to
+confirm no production callers, and drafting the PR description and commit
+bodies. It was also good at the regex reasoning once I pushed for the actual
+mechanism — the `\b`-before-`(` insight came out of that back-and-forth.
+
+Where it fell short, concretely and worth remembering:
+
+1. **It stated a verifiable fact without verifying it.** I wrote in both the
+   journal and the public PR that `make check` "cannot be run because its
+   `format` dependency runs `black .` and rewrites 52 files." That is wrong.
+   `check` runs `lint format typecheck` in order, aborts at `lint`, and never
+   reaches `format` — 0 files are modified. This came from reading the Makefile
+   and reasoning, instead of typing `make check`. It survived into a PR on
+   someone else's repository until I asked the direct question "is make check
+   passing?" and we actually ran it.
+2. **The first attempt to verify was itself invalid.** Checking it inside a
+   `git worktree` produced `.venv/bin/ruff: No such file or directory` — a
+   worktree has no `.venv` — and that missing-binary failure was briefly read as
+   a real lint failure. Right answer, wrong evidence, which is the more dangerous
+   failure mode.
+3. **It could not make the calls that mattered.** Tests-only versus tests+fix;
+   whether unseparated `123456789` should be redacted; whether case-sensitive
+   addresses are worth losing lowercase matches. Those are judgment about
+   consequences in a safety component, and defaulting to whatever sounded
+   reasonable would have been the wrong move.
+4. **The bugs were found by the technique, not the assistant.** Neither of us
+   predicted the pattern-ordering leak (`+2-000-000-0000` → `+2-[REDACTED]`) or
+   the unseparated trunk prefix (`1000-000-0000`). `hypothesis` found both and
+   shrank them to minimal counterexamples on the first run. That is the entire
+   argument of issue #111, demonstrated on me.
+
+The pattern: excellent at producing plausible output fast, and plausible output
+is exactly what a property test or an actually-executed command is for. Every
+claim in the final PR is one I ran a command to check.
+
+**What would you do differently if you started over?**
+
+Run the target test file *before* choosing the issue. I picked #111 believing it
+was additive test work and only discovered in Week 8 that the suite was already
+red — which changed the work fundamentally. Thirty seconds of `pytest` in Week 7
+would have told me.
+
+Stop waiting on the issue thread sooner. I lost time in Week 8 waiting for a
+scope answer that was never coming, on an issue four other people had already
+claimed. Better to decide, build it so the decision is cheap to reverse, and say
+so explicitly — which is where I eventually landed, just later than I should have.
+
+Verify claims as I write them, not at the end. The `make check` error existed
+because I wrote a plausible sentence and moved on. Writing "I ran X and got Y"
+forces the run.
+
+Ask for peer review at the start of the week rather than the end. The brief
+recommended an early draft PR; I opened mine ready-for-review late, which left
+no window for a classmate to look before the deadline.
+
+**What are you most proud of from this module?**
+
+That the property tests found two defects I had already convinced myself were not
+there. By Week 8 I had root-caused the problem to two defects and written them up
+in PLAN.md with a drafted fix — I thought I understood the component. The
+properties then produced `+2-000-000-0000` → `+2-[REDACTED]` and `1000-000-0000`
+matching nothing, neither of which I would have written a test for, because both
+sit in formats I did not think to imagine.
+
+The point of issue #111 is that example-based tests can only check formats the
+author already thought of. I proved that on myself, in public, in the PR
+description. Being the counterexample to my own analysis is a better outcome than
+being right would have been.
