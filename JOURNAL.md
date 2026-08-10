@@ -116,3 +116,73 @@ as test flakiness during development (documented in PLAN.md).
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none yet
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. Per the course note, reviewer feedback isn't a feature
+this term. I shared the draft PR link but didn't receive comments before
+finalizing.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Two things, and neither was the rate-limiting logic itself. First, just
+getting the environment running — I didn't have Make, Docker, WSL2, or
+Node installed on this machine, so Week 7 was mostly toolchain setup
+rather than looking at the actual issue. Second, and more surprisingly,
+the issue's own premise turned out to be wrong: it described per-user
+rate limiting as already working with only IP limiting missing, but
+investigation showed no rate limiting existed anywhere in the live app
+at all. That reframed the whole scope of the fix partway through Week 8,
+which I hadn't planned for.
+
+**What did you learn about working in a large codebase?**
+That the issue description is a starting hypothesis, not ground truth —
+I had to verify it against the actual code before trusting it. I also
+learned that "matching existing patterns" matters more than I expected:
+I based my rate-limit dependency on the existing `get_current_user`
+dependency style specifically so it would look and feel consistent with
+code already in the repo, rather than inventing my own pattern. And I ran
+into two genuinely subtle pre-existing bugs during testing (an
+async event-loop scoping issue, and a timestamp-collision bug in the
+existing rate limiter) that I never would have found working on a
+project of my own — they only surfaced because the codebase was bigger
+and had more moving parts than anything I'd built solo.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for fast iteration — writing dependency code that
+matched existing conventions, generating test scaffolding, and helping
+me reason through *why* a test was failing rather than just retrying
+things randomly. Where it fell short was diagnosing the two subtle bugs:
+those took actually reading log output line by line, forming a
+hypothesis, and testing it directly against Redis and the running
+server. No amount of asking "why is this failing" got me there faster
+than just methodically checking each layer (client fixture, dependency
+override, Redis state, event loop) one at a time.
+
+**What would you do differently if you started over?**
+Get the full dev environment set up before Week 7 starts, not during it
+— that cost real time I could've spent going deeper on testing or
+picking up a second issue. I'd also read the issue more skeptically from
+the start instead of taking its description at face value; if I'd traced
+the actual call sites in Week 7 instead of Week 8, I would have caught
+the scope mismatch a week earlier.
+
+**What are you most proud of from this module?**
+Not giving up on the two flaky-test bugs by just patching around them.
+It would have been easy to add a retry or loosen an assertion and move
+on, but I traced both down to their actual root causes — one in test
+configuration, one in the pre-existing `RateLimiter` class itself — and
+documented them clearly instead of hiding them. That felt like the
+difference between finishing an assignment and actually understanding
+the system I was working in.
