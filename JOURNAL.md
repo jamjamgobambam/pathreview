@@ -64,3 +64,56 @@ confirming `window_hours` was never enforced, and confirmed `health_check()` har
 `safety_events_last_hour` to `0` regardless of any logged events.
 
 **PLAN.md link:** https://github.com/Qianyu2021/pathreview/blob/fix/68-safety-event-count-health-check/PLAN.md
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+All five steps from `PLAN.md` are implemented and committed in `c1aa518`
+(`fix(api): surface safety event counts in /health`): added `core/redis.py`
+with a shared `get_redis()` dependency, reworked `SafetyMonitor.log_event` /
+`get_event_count` to use a Redis sorted set so `window_hours` is actually
+enforced, added `get_total_event_count`, wired `SafetyMonitor` and
+`Depends(get_redis)` into `health_check`, fixed the `db.execute("SELECT 1")` →
+`db.execute(text("SELECT 1"))` bug, and whitelisted `fastapi.Depends` for
+ruff's B008 check.
+
+**Next steps:**
+Add regression tests for both files (no prior coverage existed), confirm
+`make check` and `make test-unit` show no new failures versus the
+pre-existing baseline, then open a draft PR for peer/mentor review.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/Qianyu2021/pathreview/pull/1
+
+**Branch:** `fix/68-safety-event-count-health-check`
+
+**What you built:**
+`/health` now reports a real rolling one-hour count of safety events instead
+of a hardcoded `0`. A shared `get_redis()` FastAPI dependency backs a
+`SafetyMonitor` instance wired into the route, which tracks events in a Redis
+sorted set (scored by timestamp) so `window_hours` is enforced via
+`ZREMRANGEBYSCORE` + `ZCOUNT` rather than the old flat, unwindowed counter.
+
+**Tests added or updated:**
+`tests/unit/test_monitoring.py` (new) — covers window eviction/inclusion,
+custom windows, Redis-error fallback to `0`, and `get_total_event_count`
+summation. `tests/unit/test_health.py` (new) — covers the happy path, safety
+count summing across event types, a Redis failure during the safety-count
+lookup degrading to `0` (not a 500), and Redis/Postgres-down still returning
+503. Neither file had prior coverage.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both commands show pre-existing failures in unrelated modules — e.g.
+`test_bias_detector.py`, `test_pii_scrubber.py`, `test_review_service.py`,
+159 pre-existing lint errors elsewhere — that predate this branch and are
+untouched by this change. No new failures introduced.)
+
+**Draft PR feedback received from:** none yet — PR just opened, reviewer requested: ascherj
