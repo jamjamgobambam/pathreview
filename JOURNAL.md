@@ -63,3 +63,34 @@ A `WebParser` that fetches a candidate's portfolio URL over HTTP and extracts it
 (both pass for the code touched in this PR; 40 pre-existing test failures and pre-existing lint/mypy issues elsewhere in the codebase are unrelated and unchanged from before this fix — documented in the PR description)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments on https://github.com/ascherj/pathreview/pull/667 by the end of Week 10 (Su26: reviewer feedback is not provided this term). Re-checked the PR; still open with no review thread to respond to.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Separating *my* failures from the repo’s existing noise. `make test-unit` / `make check` still reported ~40 failing tests and lint/mypy issues in `review_service.py` / `test_review_service.py` that were already present at the pre-fix commit (`0024684`). I spent real time bisecting and comparing against that baseline before I trusted that my `WebParser` / portfolio-branch changes were clean. The other surprise was how little of the “portfolio URL” path actually did work: the UI collected the URL, but `_run_ingestion_pipeline` only stored `f"Portfolio data from {profile.portfolio_url}"` — so reproducing the bug meant proving a missing fetch/parse path, not a flaky network call.
+
+**What did you learn about working in a large codebase?**
+You can’t treat the repo like a greenfield app. I had to follow existing contracts (`BaseParser` / `ParseResult`), mirror how other ingestion branches populate `IngestedSource` (`source_type`, `source_url`, `content_hash`), and keep the portfolio change scoped so it didn’t drag in SPA rendering, SSRF hardening, or pipeline error UX. In my own projects I’d often widen scope mid-build; here the right move was a focused parser + wiring + tests, and documenting known limits (JS-rendered portfolios, timeouts swallowed by a broad `except Exception`) in `PLAN.md` instead of “fixing” everything in one PR.
+
+**How did AI tools help — and where did they fall short?**
+AI helped most for scaffolding: `HTMLParser` subclass sketch, `httpx` fetch/error patterns, and first drafts of unit tests with mocked `httpx.get`. It fell short on *ground truth* in this repo — e.g. whether failures were mine vs pre-existing, and whether a static fixture smoke test was enough. I still had to diff against the pre-fix commit, run the full unit suite, serve `tmp/portfolio_site/index.html` over real HTTP, and decide myself that SPA/client-rendered portfolios were out of scope rather than inventing a headless browser solution the AI suggested as “easy.”
+
+**What would you do differently if you started over?**
+I’d establish the pre-existing failure baseline on day one of reproduction (run `make test-unit` / `make check` on the pre-fix commit and save the output) so Week 9 self-review didn’t turn into detective work. I’d also pick a slightly smaller first slice earlier — land `WebParser` + tests first, then the `review_service` wiring — instead of holding the full five-task plan until everything landed together. For issue selection, I’d still choose this Tier 2 ingestion gap, but I’d write the SPA limitation into the issue/PR description up front so reviewers aren’t surprised.
+
+**What are you most proud of from this module?**
+The reproduction discipline: proving the gap with a real HTTP round-trip against a local static portfolio page (not only mocks), then replacing the placeholder with extracted visible text + `content_hash` so the portfolio `IngestedSource` finally carries evidence the rest of the pipeline can use. That felt like a real contribution path, not just “tests pass on my laptop.”
