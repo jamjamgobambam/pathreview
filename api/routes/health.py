@@ -1,8 +1,13 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from datetime import datetime
+from typing import Any
+
+import redis as redis_lib
 import structlog
-from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from core.database import get_db
+from core.redis import get_redis
+from safety.monitoring import SafetyMonitor
 
 log = structlog.get_logger()
 
@@ -10,12 +15,15 @@ router = APIRouter(prefix="/health", tags=["health"])
 
 
 @router.get("")
-async def health_check(db=Depends(get_db)):
+async def health_check(
+    db: Any = Depends(get_db),
+    redis_client: redis_lib.Redis = Depends(get_redis),
+) -> dict[str, Any]:
     """
     Check health of PostgreSQL, Redis, and Vector DB.
     Returns 200 if all healthy, 503 if any dependency is down.
     """
-    health_status = {
+    health_status: dict[str, Any] = {
         "status": "healthy",
         "dependencies": {
             "postgres": "unknown",
@@ -23,7 +31,7 @@ async def health_check(db=Depends(get_db)):
             "vector_db": "unknown",
         },
         "safety_events_last_hour": 0,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now().isoformat(),
     }
 
     try:
@@ -38,16 +46,7 @@ async def health_check(db=Depends(get_db)):
 
     try:
         # Check Redis (if available)
-        import redis
-        from core.config import settings
-
-        r = redis.Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            db=0,
-            decode_responses=True,
-        )
-        r.ping()
+        redis_client.ping()
         health_status["dependencies"]["redis"] = "healthy"
         log.debug("redis_health_check_passed")
     except Exception as exc:
@@ -72,12 +71,13 @@ async def health_check(db=Depends(get_db)):
         health_status["dependencies"]["vector_db"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
-    # Count safety events in last hour (placeholder)
+    # Count safety events recorded in the monitoring system
     try:
-        # This would be populated by actual safety event logging
-        health_status["safety_events_last_hour"] = 0
+        monitor = SafetyMonitor(redis_client)
+        health_status["safety_events_last_hour"] = monitor.get_total_event_count(window_hours=1)
     except Exception as exc:
         log.error("safety_events_check_failed", error=str(exc))
+        health_status["safety_events_last_hour"] = 0
 
     # Return 503 if any critical dependency is down
     if health_status["status"] == "unhealthy":
