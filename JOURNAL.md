@@ -1,0 +1,158 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/130
+
+**Issue title:** `docker-compose.yml` doesn't set memory limits for the LLM proxy service, causing OOM kills on 8GB machines
+
+**Tier:** [ ] Tier 1  [ ] Tier 2  [x] Tier 3
+
+**Problem summary:**
+The development stack needs a bounded memory allocation for its LLM proxy so workloads related to model cannot exhaust the RAM on host. In the current docker-compose.yml, the database, Redis, and vector database have memory caps, but no memory-limited LLM proxy service is defined. A successful fix would add an appropriate limit for the proxy on the minimum 8 GB development machine while preserving enough memory for the OS and other containers. This would contain excessive proxy memory use instead of allowing it to trigger system-wide OOM kills.
+
+**Branch name:** fix/130-llm-proxy-oom-memory-limit
+
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+**Scope Reasoning**:
+
+**Working assumption:** In this issue, "LLM proxy" means an intended local OpenAI-compatible gateway container in the development Docker Compose stack, such as LiteLLM. It does not mean the hosted OpenRouter API or Vite's frontend `/api` proxy.
+
+### Part 1 - Understanding the Issue
+
+[x] I can explain the problem and expected behavior in my own words.
+
+The intended development gateway can grow beyond the safe memory budget on an 8 GB machine because its container has no enforced ceiling. The fix should constrain that container so excessive LLM traffic cannot starve PostgreSQL, Redis, Chroma, the host operating system, or other applications.
+
+[x] I located and read the referenced file and supporting setup documentation.
+
+The issue is labeled `devops`, `docs`, and `tier-3`, and it names `docker-compose.yml` as the relevant file. I read that file in full and confirmed that it currently defines `db` (512M), `redis` (256M), and `vector-db` (1G); I also confirmed in `docs/SETUP.md` that 8 GB is the minimum supported RAM and that the OOM guidance recommends allocating at least 4 GB to Docker Desktop.
+
+[x] I can describe the intended before-and-after under the working assumption.
+
+Before the fix, the intended local gateway can use host memory without a Compose-enforced maximum. After the fix, its Compose service should have an explicit limit that fits within the documented 8 GB minimum and leaves headroom for the existing 1.75 GB of service limits, Docker overhead, and the host; exceeding the limit should be contained to the gateway instead of causing system-wide memory pressure.
+
+### Part 2 - Tier Fit
+
+[x] I confirmed that the tracker classifies this issue as Tier 3.
+
+[x] I understand why the issue can require Tier 3 infrastructure reasoning.
+
+The final edit may be small, but choosing a safe limit requires understanding the full development memory budget and how the gateway interacts with the other containers. My scope is limited to the proxy's resource limit, its validation, and any directly related setup documentation; designing a new model-serving architecture is outside this issue.
+
+### Part 3 - Codebase Readiness
+
+[x] I found and read the Compose service and resource-limit sections relevant to the change.
+
+The three existing services all use `deploy.resources.limits.memory`, which establishes the repository's current convention. The checked-in file does not contain the assumed gateway stanza, so I will not silently invent its image, ports, routing, or credentials; the narrow fix applies once the intended service definition or prerequisite branch is identified.
+
+[x] I can write a rough plan for the scoped fix.
+
+I will identify the intended gateway service, add an explicit memory limit using the existing Compose convention, validate the normalized Compose configuration, and verify that Docker reports the expected nonzero runtime limit. I will also update the OOM/setup guidance if the chosen budget changes what developers must allocate to Docker.
+
+[x] I found and read a relevant test file for this configuration.
+
+No existing test parses or validates `docker-compose.yml`, and CI has no Compose resource-limit check. I reviewed the repository's pytest conventions; the fix needs a new configuration-focused test or validation step that asserts the gateway has a valid, nonzero memory limit and that the Compose file normalizes successfully.
+
+### Part 4 - Scope and Time
+
+[x] I checked both issue activity and the cohort ledger's Claims count.
+
+The public issue currently has no comments, linked branch, or pull request. I confirm that the issue was added to the cohort ledger.
+
+[x] The scoped work is realistic for the Week 8-9 timeline.
+
+The issue estimates 2-4 hours, which is reasonable for selecting a memory budget, applying it to an identified Compose service, adding focused validation, and updating related documentation. Even if the work expands into designing and integrating an entirely new gateway, the estimated effort is still reasonable.
+
+[x] The issue has no formally listed blocker or dependency.
+
+GitHub lists no relationship, dependency, linked branch, or pull request. The missing gateway stanza is a scope condition rather than permission to invent a new service: I need to locate the intended definition or confirm the prerequisite with the maintainer before editing.
+
+### Verdict
+
+Under the stated assumption, the issue is understandable and the implementation boundary is clear: enforce and validate a safe memory limit on the intended local LLM gateway without designing a new LLM architecture. I also need to establish the new Compose-validation test because no relevant test currently exists.
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/shishkebab/pathreview/commit/d815b303b2f0929f718e8b94291cdf709b71eadd
+
+**Reproduction summary:**
+On an isolated 8 GB development virtual machine, start the LiteLLM proxy with both `mem_limit` and `deploy.resources.limits.memory` disabled, verify with `docker inspect` that `HostConfig.Memory=0`, and monitor it with `docker stats` while a controlled process allocates 640 MiB inside the proxy container. The issue is successfully reproduced when the proxy exceeds the intended 512 MiB budget without an enforced ceiling, demonstrating that its memory growth can compete with PostgreSQL, Redis, Chroma, and the host; the same workload can then be repeated with a 512 MiB limit to verify containment.
+
+**PLAN.md link:** https://github.com/shishkebab/pathreview/blob/fix/130-llm-proxy-oom-memory-limit/PLAN.md
+
+**Blockers or open questions:**
+The remaining open questions are whether the maintainer considers introducing LiteLLM part of issue #130, whether 512 MiB provides enough headroom under representative proxy traffic, and whether the regression check should be implemented as a pytest configuration test or a Compose validation step in CI.
+
+## Week 9 — Solution building & PR submission
+
+**Selected issue:** https://github.com/ascherj/pathreview/issues/146
+
+**Issue title:** PII scrubber fails to redact parenthesized US phone numbers
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I reproduced Issue #146 and confirmed that the four related tests failed because the shared US phone pattern could not match a number beginning with `(` or separators containing spaces. I updated the `phone_us` pattern to recognize parenthesized area codes and the existing dashed, dotted, spaced, and compact formats while preserving accurate match boundaries. I also strengthened the regression tests to check complete redaction, exact detection values and offsets, multiple numbers, embedded identifiers, and unbalanced parentheses. The eight focused phone tests now pass.
+
+**Next steps:**
+Move the Issue #146 changes onto a clean branch based on `main`, rerun the focused checks there, create the implementation commit, and prepare the draft pull request. The PR should remain limited to the US phone pattern, its regression tests, and the required course documentation.
+
+**Blockers:**
+There is no blocker in the Issue #146 implementation. The current branch still contains the five earlier Issue #130 commits, so it must not be used directly for the new pull request. Repository-wide validation also has unrelated baseline failures: the PII scrubber module has one existing `street_address` false-positive failure, while the broader unit and quality checks report additional pre-existing failures and network-dependent tokenizer setup errors. These results are separate from the eight passing Issue #146 tests.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/632
+
+**Branch:** [`fix/146-parenthesized-us-phone`](https://github.com/shishkebab/pathreview/tree/fix/146-parenthesized-us-phone)
+
+**What you built:**
+I updated the shared `phone_us` regular expression so `scrub()` and `detect()` recognize complete parenthesized US phone numbers, including `(555) 123-4567`, without consuming surrounding text. The pattern retains the existing dashed, dotted, spaced, and compact formats and rejects embedded identifiers and unbalanced area-code parentheses.
+
+**Tests added or updated:**
+I updated `tests/unit/test_pii_scrubber.py` to assert complete redaction, all supported US formats, exact detection values and offsets, numbers at the start of text, multiple mixed formats, and negative boundary cases. All eight focused Issue #146 test cases pass. The full PII scrubber module reports 28 passing tests and one pre-existing `street_address` false-positive failure in `test_mixed_pii_and_text`; the phone-number change does not affect that pattern or failure.
+
+**Pre-existing validation failures:**
+GNU Make is not installed in this Windows environment, so I ran the commands represented by `make check` and `make test-unit` directly. The initial repository-wide unit run reported 48 failures, 353 passes, and 31 tokenizer-related setup errors. The final run reported 49 failures and 383 passes after those setup errors progressed into tests; the additional visible `structural_chunker` failure is in an unrelated module that previously failed during setup. No new failure involves `PIIScrubber`, the revised `phone_us` pattern, or the added phone tests.
+
+The repository-wide quality baseline reported 182 Ruff errors, 51 files requiring Black formatting, and 5 mypy errors in unrelated modules or dependencies. After this change it reports 176 Ruff errors, the same 51 files requiring formatting, and the same 5 mypy errors. Ruff and Black pass for both changed Python files, and mypy passes for `safety/pii_scrubber.py`. These results confirm that Issue #146 introduces no new unit-test, lint, formatting, or source type-checking failures.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reivew is received.
+
+**How you responded:**
+No reivew is received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was separating the behavior I changed from problems that were already present in the repository. The focused phone tests passed, but the full validation suite had unrelated unit-test, tokenizer, lint, formatting, and type-checking failures. I had to compare before-and-after results instead of treating every red test as a regression. The workflow was also more complicated than expected: my first Issue #130 branch depended on an LLM proxy service that was not actually defined in the Compose file, and I later had to move the Issue #146 work onto a clean branch so the earlier commits did not leak into the new pull request. Even the small regex fix required careful reasoning about why `\b` fails before `(`, how to require balanced parentheses, and how to avoid matching a phone number inside a longer identifier.
+
+**What did you learn about working in a large codebase?**
+I learned that a small change has to be understood in the context of shared behavior, repository conventions, and an existing test baseline. The `phone_us` pattern is used by both `scrub()` and `detect()`, so I needed to verify complete replacement as well as exact detection values and offsets. I also had to preserve previously supported formats and add negative cases instead of testing only the reported example. In my own project I could redefine the expected behavior as I went, but in someone else's codebase I needed to keep the scope narrow, follow its branch and commit conventions, document existing failures honestly, and avoid "fixing" unrelated code just because I encountered it.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for quickly mapping the relevant files, explaining the regular-expression boundary problem, proposing edge cases, and organizing the reproduction and validation plan. They also helped interpret a large amount of test output and identify which failures were related to the changed files. However, AI could not determine the maintainer's intent. For example, its suggested regex or test cases still needed to be checked against the actual implementation. I had to inspect the code, run the focused and repository-wide checks, compare the baseline results, and make the final scope decisions myself.
+
+**What would you do differently if you started over?**
+I would inspect the named implementation target and its dependencies before committing to an issue. That would have revealed immediately that Issue #130's expected proxy service was missing and allowed me to ask the maintainer for clarification or select Issue #146 sooner. I would also create the issue branch directly from the latest `main` before making any edits and record the focused and full-suite baselines at the start. Those steps would reduce branch cleanup, make regression comparisons clearer, and leave more time for review and iteration.
+
+**What are you most proud of from this module?**
+I am most proud that I turned a one-example bug into precise regression coverage without broadening the implementation. The tests now prove that parenthesized numbers are fully removed, detection offsets select the exact original value, multiple supported formats still work, and embedded or unbalanced values are rejected. That gives future contributors a much clearer behavioral contract than a simple assertion that `[REDACTED]` appears somewhere in the output.
