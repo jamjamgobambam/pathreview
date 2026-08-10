@@ -70,3 +70,37 @@ tests/unit/test_tech_detector.py — added test_root_level_node_modules_excluded
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review came in, I sent it in past the deadline due to an extension I recieved. 
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the actual git/PR workflow right was harder than the code fix itself. The bug in _should_skip_file() was pretty small once I understood what was wrong, but getting everything committed correctly took a few attempts. I had pre-commit hooks changing the files when I committed, so I had to re-stage and commit again. I also had an unrelated change to frontend/package-lock.json showing up in git status, which ended up causing a stash conflict for a little bit. I also had to figure out that my repo had both an origin and an upstream remote, so the PR needed to go from sojsun17/pathreview to ascherj/pathreview. None of this was really explained in the issue, so I had to figure it out by running commands and seeing what went wrong.
+
+**What did you learn about working in a large codebase?**
+I learned that even if you're only changing one small function, you still have to deal with the tools and checks for the files you're touching. When I ran pre-commit, it found three lint issues that were already in test_tech_detector.py and weren't caused by me. At first, I thought they weren't my problem because I didn't write those lines, but the hook doesn't really care who wrote them. It still blocks the commit. I also found two other pre-existing bugs while working on issue #150: the alphabetical primary_language tie-break and the case-sensitive extension matching even though one of the tests said it should work differently. That showed me that you can find other problems just by actually running the code and tests instead of only looking at the changes you're supposed to make. I also learned that there's a difference between fixing something that's actually part of your issue and finding something that should probably be made into a separate issue.
+
+**How did AI tools help — and where did they fall short?**
+AI was most helpful for things that I probably could have figured out myself but would have taken longer to work through. It helped me understand why "/build/" in filepath wasn't catching root-level paths, write the corrected logic, and come up with regression tests for the fix. It also helped point out the two other bugs I ended up finding when I actually ran the tests. The main limitation was that AI couldn't see what was actually happening in my local environment. I still had to run pre-commit, make check, make test-unit, and the git commands myself and then use those results to figure out what was actually happening. There was also a point where I was told that some lint warnings were out of scope and shouldn't be fixed, but then pre-commit blocked my commit because of those exact warnings. That reminded me that I should still verify things with my own tools instead of assuming the AI is always right.
+
+**What would you do differently if you started over?**
+I would ask for peer review earlier instead of waiting until closer to the deadline. By the time I posted the draft PR in Slack, I think most people were already busy with their own Week 9 work, so no one ended up reviewing it. I would also run git stash, make check, and make test-unit against main earlier instead of waiting until after I had already committed. Having that baseline earlier would have made it easier to tell which issues were already there and which ones were caused by my changes.
+
+**What are you most proud of from this module?**
+I'm probably most proud of catching my own mistake with the pre-existing lint warnings. At first, I assumed that since I didn't write those lines, they weren't my responsibility. But once pre-commit actually blocked my commit because of them, I realized that wasn't really how the workflow works. Instead of trying to work around the check, I changed my approach based on what the tools were actually telling me. I think that's one of the biggest things I learned from this project.
