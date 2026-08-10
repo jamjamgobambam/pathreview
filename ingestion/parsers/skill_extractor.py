@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -105,7 +105,7 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -143,7 +143,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -170,24 +170,68 @@ class SkillExtractor:
                 evidence=python_evidence,
             )
 
-        # JavaScript/TypeScript detection
-        js_evidence = []
-        if ".js" in str(filename or "").lower():
-            js_evidence.append("JavaScript file extension (.js)")
-        if ".ts" in str(filename or "").lower():
-            js_evidence.append("TypeScript file extension (.ts)")
-        if re.search(r"\b(import|require)\s+", text):
-            js_evidence.append("CommonJS or ES6 imports")
+        # JavaScript / TypeScript detection.
+        # TypeScript is a superset of JavaScript, so TypeScript-specific markers
+        # are collected separately and, when present, decide the label. Detection
+        # is driven by code content (not just the filename) so it works when
+        # extract_skills() is called without a filename.
+        fname = str(filename or "").lower()
+        js_evidence: list[str] = []
+        ts_evidence: list[str] = []
+
+        # --- JavaScript signals (also valid for TypeScript) ---
+        if fname.endswith((".js", ".jsx", ".mjs", ".cjs")):
+            js_evidence.append("JavaScript file extension")
+        if re.search(r"\brequire\s*\(", text):
+            js_evidence.append("CommonJS require() call")
+        if re.search(r"\bimport\b[^;\n]*\bfrom\b", text):
+            js_evidence.append("ES module import ... from")
+        if re.search(r"\bexport\s+(default|const|let|function|class|interface|type|\{)", text):
+            js_evidence.append("ES module export")
+        if "console.log" in text:
+            js_evidence.append("console.log call")
+        if "=>" in text:
+            js_evidence.append("arrow function")
+        # Supporting signal from the pre-defined keyword set. Require two or more
+        # distinct keywords so a stray "class"/"import" in another language does
+        # not trip the detector on its own.
+        keyword_hits = sorted(
+            kw for kw in self.JS_TS_KEYWORDS if re.search(rf"\b{re.escape(kw)}\b", text)
+        )
+        if len(keyword_hits) >= 2:
+            js_evidence.append("JS/TS keywords (" + ", ".join(keyword_hits[:4]) + ")")
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
-        if js_evidence:
-            confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
-            skills_dict[lang] = SkillDetection(
-                name=lang,
+        # --- TypeScript-specific signals ---
+        if fname.endswith((".ts", ".tsx")):
+            ts_evidence.append("TypeScript file extension")
+        if re.search(r"\binterface\s+\w+", text):
+            ts_evidence.append("interface declaration")
+        if re.search(r"\btype\s+\w+\s*=", text):
+            ts_evidence.append("type alias")
+        if re.search(r"\benum\s+\w+", text):
+            ts_evidence.append("enum declaration")
+        if re.search(r"\bimplements\s+\w+", text):
+            ts_evidence.append("implements clause")
+        if re.search(r"\w+\s*:\s*(string|number|boolean|any|void|unknown|never)\b", text):
+            ts_evidence.append("type annotation")
+        if re.search(r"\b[A-Z]\w*<[A-Za-z_$]", text):
+            ts_evidence.append("generic type parameter")
+
+        if ts_evidence:
+            evidence = ts_evidence + js_evidence
+            skills_dict["TypeScript"] = SkillDetection(
+                name="TypeScript",
                 category="Language",
-                confidence=confidence,
+                confidence=min(0.95, 0.6 + len(evidence) * 0.1),
+                evidence=evidence,
+            )
+        elif js_evidence:
+            skills_dict["JavaScript"] = SkillDetection(
+                name="JavaScript",
+                category="Language",
+                confidence=min(0.95, 0.6 + len(js_evidence) * 0.1),
                 evidence=js_evidence,
             )
 

@@ -2,7 +2,7 @@
 
 import pytest
 
-from ingestion.parsers.skill_extractor import SkillExtractor, SkillDetection
+from ingestion.parsers.skill_extractor import SkillDetection, SkillExtractor
 
 
 @pytest.mark.unit
@@ -232,13 +232,47 @@ class TestSkillExtractor:
     def test_skill_detection_dataclass(self):
         """Test SkillDetection dataclass structure."""
         skill = SkillDetection(
-            name="Python",
-            category="Language",
-            confidence=0.95,
-            evidence=["import statement"]
+            name="Python", category="Language", confidence=0.95, evidence=["import statement"]
         )
 
         assert skill.name == "Python"
         assert skill.category == "Language"
         assert skill.confidence == 0.95
         assert len(skill.evidence) == 1
+
+    # --- Regression tests for issue #148 (JavaScript/TypeScript detection) ---
+
+    def test_commonjs_require_detected_as_javascript(self, extractor):
+        """CommonJS require('x') (bracket, no space) should be detected as JavaScript."""
+        text = "const fs = require('fs');\nconst path = require('path');"
+        skill_names = [s.name.lower() for s in extractor.extract_skills(text)]
+        assert "javascript" in skill_names
+
+    def test_es_module_import_detected_as_javascript(self, extractor):
+        """An ES module 'import ... from' should be detected as JavaScript."""
+        text = "import { useState } from 'react';\nexport const x = () => 1;"
+        skill_names = [s.name.lower() for s in extractor.extract_skills(text)]
+        assert "javascript" in skill_names
+
+    def test_typescript_detected_from_content_without_filename(self, extractor):
+        """TypeScript should be detected from content (interface, annotations) with no filename."""
+        text = (
+            "interface User { id: string; }\n"
+            "function greet(name: string): void { console.log(name); }"
+        )
+        skill_names = [s.name.lower() for s in extractor.extract_skills(text)]
+        assert "typescript" in skill_names
+
+    def test_typescript_detected_by_extension(self, extractor):
+        """A .ts filename should yield TypeScript even with sparse content."""
+        skill_names = [
+            s.name.lower() for s in extractor.extract_skills("const x = 1;", filename="app.ts")
+        ]
+        assert "typescript" in skill_names
+
+    def test_plain_javascript_is_not_labelled_typescript(self, extractor):
+        """Plain JavaScript (no type annotations) must not be reported as TypeScript."""
+        text = "const add = (a, b) => a + b;\nconsole.log(add(1, 2));"
+        skill_names = [s.name.lower() for s in extractor.extract_skills(text)]
+        assert "javascript" in skill_names
+        assert "typescript" not in skill_names
