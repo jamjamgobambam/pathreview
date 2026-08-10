@@ -78,3 +78,35 @@ No new test files — updated `tests/conftest.py`. Verified `tests/unit/test_bat
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. Reviewer feedback isn't a feature this term (Su26), so this is expected rather than a gap in my process.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment setup ate far more time than the actual fix. I hit a stale virtual environment from a completely different project silently shadowing the correct one in my shell — `alembic` was resolving to the wrong `.venv` even though my prompt showed `(.venv)` as active. On top of that, `make` isn't available by default in Git Bash on Windows, so I had to manually run each command from the Makefile instead of relying on `make setup`/`make run`. The actual code fix — adding a fixture to `tests/conftest.py` — took maybe an hour once I understood the root cause. The tooling around it took most of a session.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was realizing I couldn't just fix the symptom — I had to trace the fix back to how the system was *supposed* to work in production. The failing test pointed at `caplog`, but the actual root cause was in `core/logging.py`: `configure_logging()` existed and was correctly written, but nothing ever called it during test setup. In my own projects, I'd probably have just patched around the symptom. Here, I had to search the codebase (`grep -rn "structlog.configure"`) to find the real configuration, understand its processor chain, and make sure my test fixture mirrored it rather than inventing a parallel, possibly inconsistent setup. I also learned to separate "my change's failures" from "pre-existing failures" — running the full suite before and after my fix (53 failures → 52) was the only way to prove I hadn't broken anything else in a codebase with dozens of unrelated pre-existing issues.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for diagnosis — once I pasted the actual error tracebacks and file contents, it could quickly point to the specific line (`logger_factory=structlog.stdlib.LoggerFactory()`) that explained the disconnect between structlog and caplog, and it explained *why* the fix needed `ProcessorFormatter.wrap_for_formatter` specifically, not just that it was needed. It also caught things I'd have missed on my own, like the pre-commit hook checking `tests/` more strictly than `make check` does, which is why my fixture needed a return type annotation.
+
+Where it fell short: it couldn't run commands on my actual machine, so every environment issue (stale venv, missing `.venv` folder, no `make`, no Postgres running) still required me to run things, paste the real output, and iterate — AI could interpret errors, but I was the one debugging my specific Windows/Git Bash setup in real time. There was also a moment where a copy-paste from an AI-suggested edit merged a docstring onto the same line as a function signature, breaking indentation — a reminder that I still need to actually read and verify code before assuming it's correct just because it came from a suggestion.
+
+**What would you do differently if you started over?**
+I'd fully verify my local environment in Week 7 — confirm `.venv` exists, `make` works or I have manual fallback commands ready, and the app actually starts — before claiming an issue, instead of rediscovering venv/PATH problems again in Week 9 under time pressure. I'd also open a draft PR earlier in Week 9 rather than finalizing everything right before the deadline; I never got real feedback partly because I didn't leave time for it, even though the option existed.
+
+**What are you most proud of from this module?**
+Running the full test suite before and after my change and actually diffing the failure lists to prove I introduced zero regressions — not just checking that my one target test passed. That felt like the difference between "it works on my machine" and actually verifying a change is safe in a codebase I don't fully own.
