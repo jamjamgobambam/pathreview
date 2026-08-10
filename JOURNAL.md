@@ -114,3 +114,76 @@ confirmed identical before my changes by running both against `origin/main`:
   `tests/unit/test_rate_limit_middleware.py`).
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+**Review feedback received:**
+As of this writing, [PR #237](https://github.com/ascherj/pathreview/pull/237) has
+received no reviewer comments and no requested changes — `gh pr view` shows zero
+reviews and zero comments. I checked the cohort Slack channel and did not get a
+peer or mentor review either, despite the PR being open and marked ready for
+review since Week 9. Per the course guidance, I'm noting this and moving on
+rather than blocking on it; there's nothing to respond to, so this week's actual
+work is the reflection below.
+
+**Responses to feedback:**
+N/A — no feedback arrived to respond to. If a review comes in after submission,
+I'll add a follow-up commit and note the exchange here rather than silently
+resolving it.
+
+**Reflection:**
+
+*What I built and why.* I picked [issue #86](https://github.com/ascherj/pathreview/issues/86)
+because it was scoped tightly enough to fit the time box, but not trivial: the
+rate-limiting *logic* already existed and was already unit-tested in
+`safety/rate_limiter.py` — the actual gap was that nothing in the request path
+ever called it. That's a more honest bug to fix than it sounds, because the
+easy failure mode is to assume "no rate limiting" means "write a rate limiter,"
+when the real task was reading the existing code carefully enough to realize
+the missing piece was wiring, not logic. I built `RateLimitMiddleware` to mirror
+the existing `RequestIDMiddleware` pattern deliberately, rather than inventing a
+new middleware shape — matching an established convention was more valuable
+here than any cleverness on my part would have been.
+
+*What went wrong, and how I responded.* Two things surfaced along the way that I
+didn't fully appreciate at the start:
+
+1. I couldn't test against a live Redis instance locally, so my verification
+   leaned entirely on the existing `Mock()`-based unit test pattern and the
+   fail-open path (which triggers naturally when Redis is unreachable, so it
+   was actually exercised, just not by design). I flagged this as an open
+   question in Week 8 instead of pretending it was fully verified — in
+   retrospect I'd still make that call, but I'd also spend 20 minutes spinning
+   up a local Redis container so the fail-*closed* path got real coverage too,
+   not just fail-open.
+2. When I ran `make check` and `make test-unit` for real (rather than trusting
+   the checkboxes I'd initially filled in from memory), I found the codebase
+   already has 53 failing unit tests and 181+ lint errors on `main`, unrelated
+   to my change. My first draft of Check-in 2 just checked the boxes without
+   saying that — which was wrong, even though my actual code was fine. The fix
+   wasn't to lower the bar, it was to verify against `main` and document the
+   difference explicitly, which is what the assignment's pre-existing-failures
+   policy is actually asking for. That was a good, if slightly embarrassing,
+   lesson in not trusting my own self-review without rerunning the commands.
+
+*What I'd do differently with full context now.* Two things stand out:
+
+- I'd open the PR earlier in Week 9 and post it in the cohort Slack channel the
+  same day, rather than treating "draft PR feedback" as a checkbox to fill in
+  later. No feedback arrived this cycle, and part of that is on me for not
+  actively pinging someone rather than waiting for review to happen passively.
+- I'd reconsider the identifier-keying decision (client IP, since auth resolves
+  after the middleware runs) earlier and more deliberately. It works and is
+  documented as a known tradeoff in the PR's "Notes for Reviewers," but if this
+  were a real production system I'd want to decide up front whether IP-keyed
+  limits are acceptable long-term (e.g., behind a shared NAT/proxy) or whether
+  the middleware should sit after auth and key on user ID instead. I noted the
+  tradeoff rather than resolving it, which was the right scope call for a
+  3–5 hour issue, but it's the first thing I'd revisit with more time.
+
+*What this taught me about review culture.* Getting zero feedback is its own
+kind of data point: it means either the PR was clear enough that there was
+nothing to push back on, or that asynchronous review only works if someone
+actively drives it rather than assuming it happens automatically once a PR is
+open. I'm treating it as the latter — the lesson isn't "my PR was flawless,"
+it's "open PRs don't get reviewed by default; reviews get requested."
