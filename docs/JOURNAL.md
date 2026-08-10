@@ -110,3 +110,43 @@ passes all three checks.
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
 none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+The workflow seem harder than expected but once I recieved help on certain things how to submit and get the fork.
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+learned there is many things that are needed like build a working codebase for example know how fork a repo and use github.
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+They helped understand the codebase when it was needed.
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+I would do differently is adding more showing of buiding the codebase or having someone in the breakout rooms go over building the codebase.
+Also when you recruit people for the course make sure they are willing to talk and not just stare or be online contributing nothing. Also make sure they are okay with sharing and speaking to a group of people or create a whole course for these people because it really hurts a great course like this at codepath when you get nothing from the group portion of the session. It only hurts the ones not joining which for me was almost every session having to share and get people to communicate with anyone.
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+I completed the course and I didn't quit.
