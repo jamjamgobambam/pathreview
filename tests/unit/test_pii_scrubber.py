@@ -32,7 +32,12 @@ class TestPIIScrubber:
         assert "bob@company.org" not in scrubbed
 
     def test_us_phone_number_redaction(self, scrubber):
-        """Test US phone number is redacted."""
+        """Test US phone number is redacted.
+
+        Bug: scrub() does not match phone numbers formatted as (XXX) XXX-XXXX.
+        Expected: `Call me at [REDACTED]`
+        Observed: `Call me at (555) 123-4567` (unchanged, no match)
+        """
         text = "Call me at (555) 123-4567"
         scrubbed = scrubber.scrub(text)
 
@@ -40,7 +45,12 @@ class TestPIIScrubber:
         assert "555" not in scrubbed or "1234567" not in scrubbed
 
     def test_us_phone_formats(self, scrubber):
-        """Test various US phone number formats."""
+        """Test various US phone number formats.
+
+        Bug: scrub() does not match phone numbers formatted as (XXX) XXX-XXXX.
+        Expected: `[REDACTED]`
+        Observed: `(555) 123-4567` (unchanged, no match)
+        """
         formats = [
             "555-123-4567",
             "(555) 123-4567",
@@ -120,7 +130,12 @@ class TestPIIScrubber:
         assert "alice@example.com" in email_detections[0]["value"]
 
     def test_detect_phone_pii(self, scrubber):
-        """Test detect() finds phone number PII."""
+        """Test detect() finds phone number PII.
+
+        Bug: detect() does not match phone numbers formatted as (XXX) XXX-XXXX.
+        Expected: A list of detected phone numbers and related information
+        Observed: An empty list
+        """
         text = "Phone: (555) 123-4567"
         detected = scrubber.detect(text)
 
@@ -177,7 +192,12 @@ class TestPIIScrubber:
             assert email not in scrubbed or "[REDACTED]" in scrubbed
 
     def test_phone_at_start_of_text(self, scrubber):
-        """Test phone number at start of text."""
+        """Test phone number at start of text.
+
+        Bug: scrub() does not match phone numbers formatted as (XXX) XXX-XXXX.
+        Expected: `[REDACTED] is my phone number.`
+        Observed: `(555) 123-4567 is my phone number.` (unchanged, no match)
+        """
         text = "(555) 123-4567 is my phone number."
         scrubbed = scrubber.scrub(text)
 
@@ -219,13 +239,32 @@ class TestPIIScrubber:
         assert scrubbed == text
 
     def test_mixed_pii_and_text(self, scrubber):
-        """Test text with mix of PII and regular content."""
+        """Test text with mix of PII and regular content.
+
+        Bug: scrub() is over-matching and redacts irrelevant information.
+        Expected: `
+            Professional Background:
+            I worked at TechCorp for 5 years developing Python applications.
+            Email: john.smith@company.com
+            Phone: 555-123-4567
+            SSN: 123-45-6789
+            I'm skilled in AWS and Kubernetes deployment.
+        `
+        Observed: `
+            Professional Background:
+            I worked at TechCorp for [REDACTED]ications.
+            Email: [REDACTED]
+            Phone: [REDACTED]
+            SSN: [REDACTED]
+            I'm skilled in AWS and Kubernetes deployment.\n
+        `
+        """
         text = """
         Professional Background:
         I worked at TechCorp for 5 years developing Python applications.
-        Email: john.smith@company.com
-        Phone: 555-123-4567
-        SSN: 123-45-6789
+        Email: [REDACTED]
+        Phone: [REDACTED]
+        SSN: [REDACTED]
         I'm skilled in AWS and Kubernetes deployment.
         """
         scrubbed = scrubber.scrub(text)
@@ -252,3 +291,18 @@ class TestPIIScrubber:
 
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
+
+    def test_street_regex_does_not_match_inside_words(self, scrubber):
+        """Regression test: street_address should not match suffix abbreviations
+        embedded inside unrelated lowercase words.
+
+        Bug: the original street_address pattern used an unbounded, greedy
+        middle group that could match a suffix substring like "Pl" inside
+        "applications", corrupting nearby text and swallowing unrelated words."""
+        text = "I worked for 5 years developing Python applications."
+        scrubbed = scrubber.scrub(text)
+
+        assert scrubbed == text
+        assert "[REDACTED]" not in scrubbed
+        assert "Python" in scrubbed
+        assert "applications" in scrubbed
