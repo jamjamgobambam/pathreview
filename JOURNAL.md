@@ -93,7 +93,7 @@ None. Pre-existing test failures (53 failed, 378 passed) existed before changes 
 
 ### Check-in 2 (end of week)
 
-**PR link:** [Add safety event count to health check endpoint](https://github.com/ascherj/pathreview/pull/[YOUR_PR_NUMBER])
+**PR link:** [Add safety event count to health check endpoint](https://github.com/ascherj/pathreview/pull/962)
 *(Open the PR on GitHub first, then update this link)*
 
 **Branch:** `fix/68-safety-event-health-check`
@@ -110,3 +110,34 @@ Wired `SafetyMonitor` into the `/health` endpoint to report real safety event co
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** [pending peer review]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer comments have arrived yet for PR #962.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Understanding the existing health check flow and the hidden Redis settings bug was harder than expected. The code already had a partially implemented health route and the fix required carefully wiring a new dependency without changing unrelated behavior.
+
+**What did you learn about working in a large codebase?**
+I learned that a large codebase often contains hidden pre-existing issues and established patterns, so the safest fix is to follow the existing dependency and testing conventions closely. It also reinforced that documentation, issue planning, and small focused changes make contributions easier to review.
+
+**How did AI tools help — and where did they fall short?**
+AI helped me quickly identify the relevant files, draft the change logic, and write the test cases in the right style. It fell short when I needed to verify the actual repository state and make sure the fix matched the project-specific DI pattern, so I still had to inspect the code manually.
+
+**What would you do differently if you started over?**
+I would open the draft PR earlier in the week to get feedback sooner and I would document the issue plan with the Redis dependency decision before writing code. I would also run a smaller targeted `make` check on just the changed files earlier so I could separate pre-existing failures from my own changes.
+
+**What are you most proud of from this module?**
+I’m most proud that I completed the fix with targeted tests and maintained the project’s existing style while also documenting my work clearly in `JOURNAL.md`.
