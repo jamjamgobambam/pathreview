@@ -110,4 +110,34 @@ describe('ProfileForm', () => {
       expect(screen.getByText(/Portfolio URL must be 500 characters or less/i)).toBeInTheDocument()
     })
   })
+
+  it('submits the resume under the resume_file field name', async () => {
+    const submitMock = vi.fn(async () => ({ id: 'profile-123' }))
+    const { useProfileSubmit } = await import('../../hooks/useProfileSubmit')
+    vi.mocked(useProfileSubmit).mockReturnValueOnce({
+      submit: submitMock,
+      isLoading: false,
+      error: null
+    })
+
+    const user = userEvent.setup()
+    render(<ProfileForm onSuccess={mockOnSuccess} />)
+
+    await user.type(screen.getByPlaceholderText(/octocat/i), 'testuser')
+
+    const file = new File(['# My Resume'], 'resume.md', { type: 'text/markdown' })
+    const fileInput = screen.getByLabelText(/Resume/i) as HTMLInputElement
+    await user.upload(fileInput, file)
+
+    await fireEvent.click(screen.getByRole('button', { name: /Start Review/i }))
+
+    await waitFor(() => expect(submitMock).toHaveBeenCalledTimes(1))
+
+    // FastAPI binds the upload by parameter name; the field MUST be resume_file.
+    const formData = submitMock.mock.calls[0][0] as FormData
+    expect(formData.get('resume_file')).toBeInstanceOf(File)
+    expect((formData.get('resume_file') as File).name).toBe('resume.md')
+    // Guard against a regression to the old, silently-dropped field name.
+    expect(formData.get('resume')).toBeNull()
+  })
 })

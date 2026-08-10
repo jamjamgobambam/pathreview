@@ -26,7 +26,6 @@ class IngestedSource(Base):
         UUID(as_uuid=False),
         ForeignKey("profiles.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     source_type: Mapped[str] = mapped_column(
         String(50), nullable=False
@@ -34,7 +33,7 @@ class IngestedSource(Base):
     source_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
     content_hash: Mapped[str | None] = mapped_column(
-        String(64), nullable=True, index=True
+        String(64), nullable=True
     )  # SHA256 hash for deduplication
     chunk_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     ingested_at: Mapped[datetime] = mapped_column(

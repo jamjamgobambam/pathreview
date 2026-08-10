@@ -44,8 +44,11 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess }) => {
     try {
       const formData = new FormData()
       formData.append('github_username', github)
+      // The field name must match the FastAPI route parameter (`resume_file`).
+      // FastAPI binds multipart fields by parameter name, so a mismatch here
+      // silently drops the upload and persists resume_text as null.
       if (resumeFile) {
-        formData.append('resume', resumeFile)
+        formData.append('resume_file', resumeFile)
       }
       if (portfolioUrl) {
         formData.append('portfolio_url', portfolioUrl)

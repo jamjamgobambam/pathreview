@@ -1,18 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from uuid import UUID
-import structlog
+import io
 import mimetypes
+from uuid import UUID
 
-from api.schemas.profile import ProfileCreate, ProfileResponse, ProfileUpdate
+import structlog
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.profile import Profile
+from api.schemas.profile import ProfileCreate, ProfileResponse, ProfileUpdate
 from core.database import get_db
+from core.models.user import User
 from core.services.profile_service import (
     create_profile,
+    delete_profile,
     get_profile,
     update_profile,
-    delete_profile,
 )
 
 log = structlog.get_logger()
@@ -58,17 +59,18 @@ async def create_profile_endpoint(
             # Parse resume text
             if file_mime == "application/pdf":
                 try:
-                    import PyPDF2
-                    pdf_reader = PyPDF2.PdfReader(content)
-                    resume_text = "\n".join(
-                        page.extract_text() for page in pdf_reader.pages
-                    )
+                    from pypdf import PdfReader
+
+                    # PdfReader needs a file-like object, not raw bytes; and
+                    # extract_text() can return None for pages with no text.
+                    pdf_reader = PdfReader(io.BytesIO(content))
+                    resume_text = "\n".join(page.extract_text() or "" for page in pdf_reader.pages)
                 except Exception as exc:
                     log.error("pdf_parsing_failed", error=str(exc))
                     raise HTTPException(
                         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                         detail="Failed to parse PDF resume",
-                    )
+                    ) from exc
             else:
                 # Markdown or plain text
                 resume_text = content.decode("utf-8")
@@ -105,7 +107,7 @@ async def create_profile_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create profile",
-        )
+        ) from exc
 
 
 @router.get("/{profile_id}", response_model=ProfileResponse)
@@ -141,7 +143,7 @@ async def get_profile_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve profile",
-        )
+        ) from exc
 
 
 @router.put("/{profile_id}", response_model=ProfileResponse)
@@ -190,7 +192,7 @@ async def update_profile_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update profile",
-        )
+        ) from exc
 
 
 @router.delete("/{profile_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -235,4 +237,4 @@ async def delete_profile_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete profile",
-        )
+        ) from exc

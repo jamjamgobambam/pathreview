@@ -200,8 +200,8 @@ class TestPIIScrubber:
 
         for addr in addresses:
             text = f"Address: {addr}"
-            scrubbed = scrubber.scrub(text)
-            # Should attempt to redact addresses
+            # Smoke test only: execute must not raise (no assertion written).
+            scrubber.scrub(text)
 
     def test_empty_text(self, scrubber):
         """Test with empty text."""
@@ -248,7 +248,5 @@ class TestPIIScrubber:
     def test_detect_no_false_positives(self, scrubber):
         """Test that detect doesn't flag legitimate text as PII."""
         text = "The project uses version 1.2.3. It's available at https://example.com"
-        detected = scrubber.detect(text)
-
-        # Should be minimal or no detections
-        # (version number shouldn't be flagged as SSN)
+        # Smoke test only: execute must not raise (no assertion written).
+        scrubber.detect(text)

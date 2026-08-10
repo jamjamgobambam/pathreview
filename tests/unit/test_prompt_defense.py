@@ -242,9 +242,8 @@ def execute(code):
     return eval(code)
 ```
 """
-        is_injection = PromptDefense.is_injection_attempt(code)
-        # Code blocks contain execute/eval but in legitimate context
-        # May or may not flag depending on design choice
+        # Smoke test only: result is design-dependent, no assertion written.
+        PromptDefense.is_injection_attempt(code)
 
     def test_sanitize_with_mixed_delimiters(self):
         """Test sanitize handles mixed delimiters."""

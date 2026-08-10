@@ -2,16 +2,32 @@
 
 SHELL := /bin/bash
 
-# Detect Windows (Git Bash) vs Unix
+# Detect Windows vs Unix and use the correct virtualenv paths and executables.
 ifeq ($(OS),Windows_NT)
-  VENV_BIN := .venv/Scripts
+  VENV_BIN := .venv\Scripts
+  PYTHON := $(VENV_BIN)\python.exe
+  PIP := $(VENV_BIN)\pip.exe
+  PYTEST := $(VENV_BIN)\pytest.exe
+  PRECOMMIT := $(VENV_BIN)\pre-commit.exe
+  ALEMBIC := $(VENV_BIN)\alembic.exe
+  RUFF := $(VENV_BIN)\ruff.exe
+  BLACK := $(VENV_BIN)\black.exe
+  MYPY := $(VENV_BIN)\mypy.exe
+  # Forward-slash path for POSIX-shell recipes (e.g. `run`): a backslash in
+  # `.venv\Scripts` is eaten as an escape by /bin/sh, breaking `source`.
+  ACTIVATE := .venv/Scripts/activate
 else
   VENV_BIN := .venv/bin
+  PYTHON := $(VENV_BIN)/python
+  PIP := $(VENV_BIN)/pip
+  PYTEST := $(VENV_BIN)/pytest
+  PRECOMMIT := $(VENV_BIN)/pre-commit
+  ALEMBIC := $(VENV_BIN)/alembic
+  RUFF := $(VENV_BIN)/ruff
+  BLACK := $(VENV_BIN)/black
+  MYPY := $(VENV_BIN)/mypy
+  ACTIVATE := $(VENV_BIN)/activate
 endif
-
-PYTHON := $(VENV_BIN)/python
-PIP := $(VENV_BIN)/pip
-PYTEST := $(VENV_BIN)/pytest
 
 # ---- Setup ----
 
@@ -19,8 +35,8 @@ setup: ## First-time setup: venv, deps, migrations, seed data
 	python -m venv .venv || python3 -m venv .venv
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
 	$(PIP) install -e ".[dev]"
-	$(VENV_BIN)/pre-commit install
-	$(VENV_BIN)/alembic upgrade head
+	$(PRECOMMIT) install
+	$(ALEMBIC) upgrade head
 	$(PYTHON) scripts/seed_db.py
 	cd frontend && npm install
 	@echo ""
@@ -30,7 +46,7 @@ setup: ## First-time setup: venv, deps, migrations, seed data
 
 run: ## Start backend + frontend dev servers
 	@trap 'kill %1 %2 2>/dev/null' EXIT; \
-	source $(VENV_BIN)/activate && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
+	source $(ACTIVATE) && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
 	cd frontend && npm run dev & \
 	wait
 
@@ -48,13 +64,13 @@ test-all: ## Run full test suite
 # ---- Code Quality ----
 
 lint: ## Run ruff linter
-	$(VENV_BIN)/ruff check .
+	$(RUFF) check .
 
 format: ## Run black formatter
-	$(VENV_BIN)/black .
+	$(BLACK) .
 
 typecheck: ## Run mypy type checker
-	$(VENV_BIN)/mypy api/ core/ ingestion/ rag/ agent/ safety/
+	$(MYPY) api/ core/ ingestion/ rag/ agent/ safety/
 
 check: lint format typecheck ## Run lint + format + typecheck
 

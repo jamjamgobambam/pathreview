@@ -59,9 +59,8 @@ class TestTechDetector:
 
         data = result.data
         assert "Python" in data["all_languages"]
-        # Should not include JSON or data-only language
-        detected_lower = [lang.lower() for lang in data["all_languages"]]
         # .ipynb should be treated as Python, not JSON
+        assert "JSON" not in data["all_languages"]
 
     def test_node_modules_excluded(self, detector):
         """Test node_modules/ directory is excluded from counts."""
@@ -87,9 +86,9 @@ class TestTechDetector:
             "app.py",
         ]
 
-        result = detector.execute({"files": files})
-
-        # Python should be primary despite vendor files
+        # Smoke test: execute must not raise on vendor-heavy file lists.
+        # NOTE: assertions were never written here; see stub note in PR.
+        detector.execute({"files": files})
 
     def test_build_directory_excluded(self, detector):
         """Test build directory is excluded."""
@@ -125,9 +124,8 @@ class TestTechDetector:
             "main.py",
         ]
 
-        result = detector.execute({"files": files})
-
-        # Should detect Python as primary language
+        # Smoke test only: execute must not raise (assertions were never written).
+        detector.execute({"files": files})
 
     def test_github_actions_detection(self, detector):
         """Test GitHub Actions detection."""
@@ -136,10 +134,8 @@ class TestTechDetector:
             "main.py",
         ]
 
-        result = detector.execute({"files": files})
-
-        data = result.data
-        # Should detect both Python and CI/CD
+        # Smoke test only: execute must not raise (assertions were never written).
+        detector.execute({"files": files})
 
     def test_makefile_detection(self, detector):
         """Test Makefile detection."""
@@ -148,9 +144,8 @@ class TestTechDetector:
             "src/main.py",
         ]
 
-        result = detector.execute({"files": files})
-
-        # Should detect Makefile as build tool
+        # Smoke test only: execute must not raise (assertions were never written).
+        detector.execute({"files": files})
 
     def test_typescript_detection(self, detector):
         """Test TypeScript detection."""
@@ -253,9 +248,8 @@ class TestTechDetector:
             "main.py",
         ]
 
-        result = detector.execute({"files": files})
-
-        # Should detect frameworks
+        # Smoke test only: execute must not raise (assertions were never written).
+        detector.execute({"files": files})
 
     def test_unknown_extensions(self, detector):
         """Test handling of unknown file extensions."""
@@ -280,10 +274,10 @@ class TestTechDetector:
             "Index.JS",
         ]
 
-        result = detector.execute({"files": files})
-
-        data = result.data
-        # Should still detect languages despite case
+        # Smoke test only: execute must not raise (assertions were never written).
+        # NOTE: detector matching is case-sensitive, so "Main.PY"/"Index.JS" are
+        # NOT detected; a real assertion here would fail. Tracked as a follow-up.
+        detector.execute({"files": files})
 
     def test_multiple_extensions_same_file(self, detector):
         """Test file with multiple dots in name."""
@@ -363,3 +357,4 @@ class TestTechDetector:
 
         data = result.data
         # Should detect C++ (from .cpp files)
+        assert "C++" in data["all_languages"]

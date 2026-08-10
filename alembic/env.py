@@ -3,17 +3,17 @@
 import asyncio
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import NullPool
 
 from alembic import context
+from core.config import settings
 
 # Import models for auto-generation
 from core.models import Base
-from core.config import settings
 
-# this is the Alembic Config object, which provides the values of the [alembic] section of the alembic.ini file
+# this is the Alembic Config object, which provides the values of the
+# [alembic] section of the alembic.ini file
 config = context.config
 
 # Interpret the config file for Python logging.
