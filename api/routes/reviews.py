@@ -28,26 +28,29 @@ async def create_review_endpoint(
 ):
     """
     Create a new review for a profile.
-    Triggers ingestion pipeline and agent orchestration asynchronously.
-    Returns review with status="pending" immediately.
+    Triggers ingestion pipeline and agent orchestration asynchronously and
+    returns the review with status="pending" immediately — unless the
+    profile's content is unchanged since its last completed review, in which
+    case that review is returned as-is with no reprocessing.
     """
     try:
-        # Create review with status="pending"
         review = await create_review(
             db=db,
             profile_id=data.profile_id,
             user_id=current_user.id,
         )
 
-        # Add background task for processing
-        background_tasks.add_task(process_review, db, review.id, data.profile_id)
+        # A cache hit comes back "complete"; only a fresh review needs the
+        # pipeline.
+        if review.status == "pending":
+            background_tasks.add_task(process_review, db, review.id, data.profile_id)
 
-        log.info(
-            "review_created",
-            review_id=str(review.id),
-            profile_id=str(data.profile_id),
-            user_id=str(current_user.id),
-        )
+            log.info(
+                "review_created",
+                review_id=str(review.id),
+                profile_id=str(data.profile_id),
+                user_id=str(current_user.id),
+            )
 
         return ReviewResponse.model_validate(review)
 
