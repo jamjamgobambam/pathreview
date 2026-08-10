@@ -129,3 +129,65 @@ reported 345 passing tests, 52 failures, and 31 errors. My targeted
 integration tests pass, and Ruff and Black pass for the new test file.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+
+No reviewer feedback was provided. For Summer 2026, reviewer feedback is not part of the PathReview process, so I completed my reflection based on my implementation, testing, and self-review.
+
+**How you responded:**
+
+N/A — no reviewer feedback was received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was not writing the four authentication tests themselves. The harder part was understanding enough of an unfamiliar codebase to know where the tests belonged and how authentication moved through the application.
+
+At first, the issue referenced `tests/integration/test_auth_middleware.py`, but that file did not exist yet. I had to trace the authentication flow through `api/middleware/auth.py`, `core/security.py`, `api/main.py`, the protected review routes, and the existing unit tests before I understood what the integration tests needed to exercise.
+
+I also did not expect the repository to already contain so many failing checks. Before making my changes, `make check` reported 182 existing Ruff violations, while `make test-unit` collected 428 tests with 345 passing, 52 failing, and 31 errors. Later, the pre-commit mypy hook also failed because of existing type errors in production files. Learning how to separate problems caused by my work from problems that already existed was one of the most challenging parts of the project.
+
+**What did you learn about working in a large codebase?**
+
+I learned that contributing to an existing codebase is very different from building my own project from scratch. In my own project, I usually know where everything is because I created the structure. In PathReview, I first had to understand how several existing pieces connected before changing anything.
+
+For Issue #90, I followed the request from the protected `/reviews` endpoint to the `get_current_user()` authentication dependency and then to `decode_access_token()`. I also read the existing security unit tests to understand what was already covered before adding new tests.
+
+I learned the importance of making small, focused changes. My final implementation added only `tests/integration/test_auth_middleware.py` instead of changing authentication code or creating unnecessary shared fixtures.
+
+I also learned why establishing a baseline before making changes is important. Because the repository already had failing tests and lint/type-checking problems, recording those failures beforehand allowed me to show that my contribution did not introduce them.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools were most helpful for navigating the unfamiliar repository and helping me understand how different modules connected. I used AI to inspect the authentication flow, compare the existing unit tests with the integration tests required by the issue, and determine that FastAPI's `TestClient` was a reasonable choice for the new test file.
+
+Codex also helped generate the initial integration tests and run targeted checks. However, I still needed to verify its output instead of accepting it automatically. For example, one test run initially used an environment that did not have FastAPI installed, so I had to make sure the tests were run using the project's virtual environment. I also had to distinguish direct errors in my new file from the many pre-existing mypy errors in imported production files.
+
+The project showed me that AI can speed up exploration and implementation, but I still need to understand what the code is doing, verify commands and test results, and decide whether a suggested change actually belongs in the scope of the issue.
+
+**What would you do differently if you started over?**
+
+I would establish the repository baseline much earlier. Running `make check` and `make test-unit` before doing deeper implementation work would have immediately shown me which failures already existed and saved some uncertainty later.
+
+I would also spend more time at the beginning reading the contribution guide, existing test patterns, and the exact files connected to the issue before planning the implementation.
+
+I would open the draft PR earlier as well. Even though reviewer feedback was not available for Summer 2026, creating the draft earlier would have made the final submission process less rushed.
+
+Most importantly, I would continue breaking the issue into small steps instead of trying to understand the entire PathReview application at once. Tracing one flow at a time was much more effective.
+
+**What are you most proud of from this module?**
+
+I am most proud that I was able to contribute to a codebase that initially felt much larger and more complicated than the projects I had built myself.
+
+I started by setting up PathReview locally, troubleshooting Docker, PostgreSQL, Node, and npm, and eventually getting the complete application running. I then traced the authentication system, reproduced all four edge cases manually, created a solution plan, and implemented four passing integration tests for missing, malformed, expired, and incorrectly signed authentication tokens.
+
+My final contribution stayed focused on the issue instead of changing unrelated production code. More than just getting four tests to pass, I am proud that I learned how to investigate an unfamiliar system, document what I found, distinguish my own failures from pre-existing ones, and submit a real pull request with evidence supporting my changes.
