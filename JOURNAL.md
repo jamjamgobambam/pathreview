@@ -213,3 +213,86 @@ are pre-existing across 15 unrelated files. The full baseline is documented in t
 **Draft PR feedback received from:** none — the PR was opened as a draft early in the week
 and posted for peer review, but no one picked it up before the deadline. It is now marked
 ready for review with no review comments outstanding.
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. Checked PR #356 on 2026-08-09 via both the conversation thread and the
+inline review-comment API: zero comments, zero reviews, zero inline code comments. The PR
+has been marked ready for review since the end of Week 9 and remains open. Per the Su26
+course note, reviewer feedback is not provided this term, so this is the expected outcome
+rather than a stalled review.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Everything *around* the fix, rather than the fix. The mock rewiring the issue actually asks
+for — swap the `Result` object from `AsyncMock` to `MagicMock` so `.scalars()` stops
+returning a coroutine — took about an hour once I understood how `AsyncMock` propagates to
+auto-created child attributes. What cost real time was establishing ground truth. Getting
+the stack running on Apple Silicon meant diagnosing a crash loop that had nothing to do
+with my issue (the `chromadb/chroma:0.4.22` entrypoint reinstalls `chroma-hnswlib` on
+every start and pulls an unpinned NumPy 2.x, which breaks the image's own code). And in a
+repo where `make test-unit` fails 53 times on untouched `main`, even the question "did I
+break anything?" has no answer until you've captured a baseline to diff against. The other
+surprise: the issue report was incomplete. Fixing exactly what it describes yields 18/19 —
+the broken mocks were masking an independently wrong assertion
+(`execute.assert_called_once()` on a method that issues two queries by design). I didn't
+expect "reproduce the bug" to turn into "discover a second bug."
+
+**What did you learn about working in a large codebase?**
+In my own projects, a red test means I broke something; here, red is the resting state,
+and every claim about my change had to be made relative to a measured baseline (53 → 40
+unit failures, `ruff` 182 → 177, `mypy` unchanged — zero new failures anywhere). Second:
+conventions outrank preferences. The repo's pre-commit `mypy` hook cannot pass on any test
+file, and the honest options were annotating 19 test methods in a style no other test file
+uses, or committing with `--no-verify` and documenting it in the PR — I chose consistency
+with the codebase over a locally "clean" hook run. Third: structure the diff for the
+reviewer, not for yourself. I kept the required fix and the scope-expanding cleanup in
+separate commits specifically so a maintainer can drop the second one without asking me to
+rework anything. None of that mattered when the only reader of my code was me.
+
+**How did AI tools help — and where did they fall short?**
+Most useful for compressing understanding: getting the precise mechanism of the failure
+(`AsyncMock` auto-children are themselves async; in SQLAlchemy 2.x only
+`AsyncSession.execute()` is awaitable, the `Result` it returns is synchronous) took
+minutes of conversation instead of an afternoon in two sets of docs. It was also good at
+the disciplined-but-tedious work: diffing baselines, spotting the three tautological
+assertions that could never fail, and suggesting mutation testing as the way to prove the
+rewritten suite has teeth. It fell short in two places. It can't run my machine — the
+Chroma crash loop was diagnosed by reading container logs and testing hypotheses locally,
+not by asking. And the judgement calls — whether expanding scope to the vacuous assertions
+was appropriate for a first PR, whether `--no-verify` was defensible — aren't technical
+questions; AI could lay out the trade-offs, but the decision and its defence in the PR had
+to be mine, because I'm the one accountable to the maintainers for it.
+
+**What would you do differently if you started over?**
+Solicit review instead of waiting for it. I opened the draft PR early in Week 9 and posted
+it for peer review, and nobody picked it up before the deadline — next time I'd ask
+specific people directly rather than broadcasting. Related: I skipped the recommended
+Week 8 walkthrough video, and that's exactly the artifact that makes reviewing easy for a
+busy stranger. I'd also budget setup time explicitly — environment work cost more than the
+fix itself, and I planned as if it were free. What I'd keep: reproducing the issue before
+claiming it, and prototyping the fix in a scratch copy before writing the plan. Both paid
+off directly — the prototype is what surfaced the second defect while there was still time
+to plan around it.
+
+**What are you most proud of from this module?**
+The mutation testing. Green tests were never the real finish line — this file was proof
+that a suite can pass and be worthless, since three of its assertions literally could not
+fail. So I broke the service four deliberate ways (dropped the ownership filter, removed
+`.desc()`, zeroed the total count, broke the offset arithmetic) and confirmed the
+rewritten suite goes red on every one. The old suite caught none of the four. That's the
+difference between tests that pass and tests that protect something, and it's the habit
+from this module I most want to keep.
