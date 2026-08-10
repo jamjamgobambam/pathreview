@@ -1,18 +1,23 @@
 """BM25-based keyword search retriever."""
 
-from rank_bm25 import BM25Okapi
 import structlog
+from rank_bm25 import BM25Okapi
 
 logger = structlog.get_logger()
+
+# Stripped only from token edges, so terms like "c++", "c#", and "node.js"
+# stay intact while sentence-trailing punctuation ("React.", "Python,") doesn't
+# prevent a token from matching the same word elsewhere.
+_PUNCTUATION_STRIP_CHARS = ".,;:!?\"'()[]{}"
 
 
 class KeywordSearcher:
     """BM25-based keyword retrieval for sparse search."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize keyword searcher."""
         self.bm25 = None
-        self.chunks = []
+        self.chunks: list[dict] = []
 
     def index(self, chunks: list[dict]) -> None:
         """Build BM25 index from chunks.
@@ -21,9 +26,7 @@ class KeywordSearcher:
             chunks: List of chunk dicts with 'text' field
         """
         self.chunks = chunks
-        tokenized_corpus = [
-            self._tokenize(chunk["text"]) for chunk in chunks
-        ]
+        tokenized_corpus = [self._tokenize(chunk["text"]) for chunk in chunks]
         self.bm25 = BM25Okapi(tokenized_corpus)
         logger.info("keyword_index_built", chunk_count=len(chunks))
 
@@ -45,9 +48,7 @@ class KeywordSearcher:
         scores = self.bm25.get_scores(query_tokens)
 
         # Create list of (chunk, score) tuples
-        scored_chunks = [
-            (self.chunks[i], scores[i]) for i in range(len(self.chunks))
-        ]
+        scored_chunks = [(self.chunks[i], scores[i]) for i in range(len(self.chunks))]
 
         # Sort by score descending
         scored_chunks.sort(key=lambda x: x[1], reverse=True)
@@ -59,13 +60,15 @@ class KeywordSearcher:
             result["bm25_score"] = float(score)
             results.append(result)
 
-        logger.info("keyword_search_complete", query_len=len(query_tokens),
-                   results_count=len(results))
+        logger.info(
+            "keyword_search_complete", query_len=len(query_tokens), results_count=len(results)
+        )
         return results
 
     @staticmethod
     def _tokenize(text: str) -> list[str]:
-        """Simple tokenization: lowercase and split on whitespace.
+        """Tokenize text: lowercase, split on whitespace, and strip
+        leading/trailing punctuation from each token.
 
         Args:
             text: Text to tokenize
@@ -73,4 +76,6 @@ class KeywordSearcher:
         Returns:
             List of tokens
         """
-        return text.lower().split()
+        raw_tokens = text.lower().split()
+        stripped = (t.strip(_PUNCTUATION_STRIP_CHARS) for t in raw_tokens)
+        return [t for t in stripped if t]
