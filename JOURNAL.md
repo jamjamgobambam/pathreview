@@ -70,6 +70,37 @@ Project-wide check notes: `make test-unit` and `make check` currently fail on un
 
 **Draft PR feedback received from:** Requested review, no feedback received before submission
 
+## Week 10 - Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No - still awaiting review
+
+**Summary of feedback:**
+Requested review, no feedback received before submission. No reviewer or maintainer comments came in on my PR before the Week 10 deadline, and the Summer 2026 note says reviewer feedback is not required for this part of the module. My PR is still open at https://github.com/ascherj/pathreview/pull/373.
+
+**How you responded:**
+No code review response was needed because no feedback was received before submission. I kept the PR open and documented the final status honestly in this journal.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was separating issues caused by my change from existing project-wide failures. My targeted resume parser tests passed, but broader commands like `make test-unit` and `make check` reported failures in unrelated modules, so I had to slow down and document the difference instead of assuming my fix broke the whole codebase. I also had to work through WSL, the virtual environment, pre-commit hooks, formatting, linting, and mypy errors, which made the workflow feel more realistic than a small class project.
+
+**What did you learn about working in a large codebase?**
+I learned that even a small bug fix needs context. For issue #147, the production change was only in `ingestion/parsers/resume_parser.py`, but I still needed to understand the parser behavior, the existing tests in `tests/unit/test_resume_parser.py`, the repository's pre-commit checks, and how to explain unrelated failures clearly in my PR. Contributing to someone else's codebase means matching the existing style and keeping the change focused instead of rewriting more than necessary.
+
+**How did AI tools help - and where did they fall short?**
+AI tools helped me inspect the repository, understand the issue scope, compare possible issues, plan the fix, write journal entries, and debug test or lint output. The most useful part was having help translate terminal errors into specific next steps, especially with ruff, black, mypy, and pytest. Where AI fell short was that it could not replace me actually running commands in my WSL environment, checking the real output, and deciding what was safe to submit. I still had to verify the fix locally and make sure the PR description matched what really happened.
+
+**What would you do differently if you started over?**
+I would choose the smaller, more localized issue earlier instead of spending time on the accessibility testing issue first. Issue #147 was a better fit because it had a clear reproduction, a narrow production file, and existing unit tests that could be extended. I would also run the targeted tests and pre-commit-style checks earlier, because that would have caught the formatting and mypy issues before I tried to commit.
+
+**What are you most proud of from this module?**
+I am most proud that I adjusted my issue choice when the original plan became risky, reproduced the new bug locally, and submitted a focused PR with tests. I did not just make the parser accept more text broadly; I added a guard test so ordinary sentences with words like education or skills do not get mistaken for headers. That made the fix feel small, intentional, and easier for a maintainer to review.
+
 
 
 <!--
