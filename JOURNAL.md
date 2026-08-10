@@ -68,3 +68,34 @@ tests/unit/test_pii_scrubber.py — added test_parenthesized_phone_edge_cases co
 (no new failures introduced — pre-existing failures documented in PR description)
 
 **Draft PR feedback received from:** None
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was provided — per the Summer 2026 course note, reviewer feedback is not a feature this term.
+
+**How you responded:**
+N/A — no feedback to respond to this term.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The actual regex fix was one line and took very little time. What was harder was everything around it: confirming that failing tests and lint errors were pre-existing rather than caused by my change (I had to stash my fix and re-run tests against the original code to prove it), and getting comfortable with pre-commit hooks — I once interrupted a slow mypy run mid-commit with Ctrl+C, which cancelled the commit entirely without me realizing it at first. None of that was code — it was process and verification, and it took more time than the fix itself.
+
+**What did you learn about working in a large codebase?**
+The codebase already had ~180 pre-existing lint errors and ~49 pre-existing failing tests across modules I never touched, spanning bias detection, review services, resume parsing, and more. Contributing to it meant learning to isolate my change's blast radius precisely — proving what my one-line edit did and didn't affect — rather than assuming a clean slate like a solo project. I also had to work through project-specific setup (activating a `.venv`, understanding `make check` and `make test-unit` targets) that a from-scratch project wouldn't require.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for quickly diagnosing the two separate regex bugs stacked in one pattern (the `\b` boundary issue and the missing whitespace in separator classes) once I had the actual line of code and failing test output in front of it. It was also useful for explaining git/pre-commit behavior when I hit the interrupted-commit issue. Where it fell short: it couldn't fetch or read the actual source file from GitHub directly, so I had to run `grep` locally and paste the regex back for diagnosis — meaning I still needed to drive the terminal work myself throughout.
+
+**What would you do differently if you started over?**
+I'd activate the `.venv` and get oriented in the Makefile targets (`make check`, `make test-unit`) before writing any reproduction code, since I hit the same "wrong environment" error twice. I'd also run the full pre-existing test suite once, up front, right after cloning — so I'd have a baseline to compare against from day one instead of discovering pre-existing failures reactively while debugging my own change.
+
+**What are you most proud of from this module?**
+Verifying, rather than assuming, that my change didn't introduce regressions — actually stashing my fix and re-running tests against the original code to prove which failures were pre-existing before writing that into the PR description. That felt like the most "real engineering" part of the whole module.
