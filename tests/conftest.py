@@ -1,6 +1,37 @@
 """Shared test fixtures for PathReview."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
+import structlog
+
+if TYPE_CHECKING:
+    import logging
+    from collections.abc import Callable
+
+
+def _configure_structlog_for_tests() -> None:
+    """Route structlog events through stdlib for pytest log capture."""
+    logger_factory: Callable[..., logging.Logger] = structlog.stdlib.LoggerFactory()
+    structlog.configure(
+        processors=[
+            structlog.stdlib.filter_by_level,
+            structlog.stdlib.add_logger_name,
+            structlog.stdlib.add_log_level,
+            structlog.stdlib.PositionalArgumentsFormatter(),
+            structlog.processors.format_exc_info,
+            structlog.processors.JSONRenderer(sort_keys=True),
+        ],
+        context_class=dict,
+        wrapper_class=structlog.stdlib.BoundLogger,
+        logger_factory=logger_factory,
+        cache_logger_on_first_use=False,
+    )
+
+
+_configure_structlog_for_tests()
 
 
 @pytest.fixture
