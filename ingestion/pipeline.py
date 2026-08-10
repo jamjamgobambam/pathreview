@@ -69,6 +69,7 @@ class IngestionPipeline:
         Returns:
             IngestResult with ingestion status
         """
+        document_id = self._document_id("resume", profile_id, filename)
         source_id = f"resume_{profile_id}_{self._hash_content(content)}"
 
         logger.info(
@@ -92,6 +93,7 @@ class IngestionPipeline:
             metadata = parse_result.metadata.copy()
             metadata.update({
                 "source_id": source_id,
+                "document_id": document_id,
                 "profile_id": profile_id,
                 "filename": filename,
                 "source_type": "resume",
@@ -100,6 +102,9 @@ class IngestionPipeline:
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
             logger.info("Resume chunked successfully", chunk_count=len(chunks))
+
+            # Drop embeddings from any earlier version of this resume
+            self._delete_existing_vectors(document_id)
 
             # Generate embeddings and store
             self.batch_processor.process(chunks)
@@ -140,6 +145,7 @@ class IngestionPipeline:
         Returns:
             IngestResult with ingestion status
         """
+        document_id = self._document_id("readme", profile_id, repo_name)
         source_id = f"readme_{profile_id}_{repo_name}_{self._hash_content(content)}"
 
         logger.info(
@@ -167,6 +173,7 @@ class IngestionPipeline:
             metadata = parse_result.metadata.copy()
             metadata.update({
                 "source_id": source_id,
+                "document_id": document_id,
                 "profile_id": profile_id,
                 "repo_name": repo_name,
                 "source_type": "readme",
@@ -175,6 +182,9 @@ class IngestionPipeline:
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
             logger.info("README chunked successfully", chunk_count=len(chunks))
+
+            # Drop embeddings from any earlier version of this README
+            self._delete_existing_vectors(document_id)
 
             # Generate embeddings and store
             self.batch_processor.process(chunks)
@@ -214,6 +224,7 @@ class IngestionPipeline:
             IngestResult with ingestion status
         """
         repo_name = repo_data.get("name", "unknown")
+        document_id = self._document_id("repo", profile_id, repo_name)
         source_id = f"repo_{profile_id}_{repo_name}_{self._hash_content(str(repo_data))}"
 
         logger.info(
@@ -241,6 +252,7 @@ class IngestionPipeline:
             metadata = parse_result.metadata.copy()
             metadata.update({
                 "source_id": source_id,
+                "document_id": document_id,
                 "profile_id": profile_id,
                 "source_type": "repo",
             })
@@ -248,6 +260,9 @@ class IngestionPipeline:
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
             logger.info("Repository metadata chunked successfully", chunk_count=len(chunks))
+
+            # Drop embeddings from any earlier version of this repository
+            self._delete_existing_vectors(document_id)
 
             # Generate embeddings and store
             self.batch_processor.process(chunks)
@@ -270,6 +285,42 @@ class IngestionPipeline:
                 error=str(e),
             )
             raise
+
+    def _document_id(self, source_type: str, profile_id: str, name: str) -> str:
+        """
+        Build a stable identifier for a logical document.
+
+        Unlike source_id, this identifier excludes the content hash, so it stays the
+        same across every revision of the same document. It is the key that previously
+        stored embeddings are removed by when a document is re-ingested.
+
+        Args:
+            source_type: Type of source (resume, readme, repo)
+            profile_id: ID of the profile owner
+            name: Stable per-profile document name (filename or repo name)
+
+        Returns:
+            Stable document identifier
+        """
+        return f"{source_type}_{profile_id}_{name}"
+
+    def _delete_existing_vectors(self, document_id: str) -> None:
+        """
+        Remove embeddings left behind by a previous ingestion of the same document.
+
+        Changed content produces a new source_id and therefore new vector IDs, so
+        without this the earlier embeddings stay in the collection and retrieval
+        returns stale content alongside the current version.
+
+        Args:
+            document_id: Stable document identifier to purge
+
+        Raises:
+            Exception: Propagates vector store failures so that ingestion does not
+                continue while stale embeddings are still present.
+        """
+        self.vector_db.delete(where={"document_id": {"$eq": document_id}})
+        logger.info("Deleted existing vectors for document", document_id=document_id)
 
     def _hash_content(self, content: str | bytes) -> str:
         """Generate a hash of content for deduplication."""
