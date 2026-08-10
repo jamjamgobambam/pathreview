@@ -73,3 +73,34 @@ tests/unit/test_review_routes.py now has three tests instead of the one reproduc
 Note on what "passes" means here: this codebase already has pre-existing failures unrelated to my change. make lint has 180 pre-existing errors repo wide (my two files went from 14 to 12 since I cleaned up an unused import and import ordering along the way), make typecheck fails early because of a numpy stub compatibility issue in this environment that happens with or without my change, and make test-unit already had 53 failing tests before I touched anything. I confirmed none of that is new. Before my fix, running the full suite gave 54 failed and 375 passed. After my fix it's 53 failed and 378 passed, so the one test I expected to flip did, two more tests got added, and nothing else changed. Scoped mypy on api/ and core/ with --ignore-missing-imports also stayed at exactly 62 errors before and after.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback yet on PR #673. It's still sitting open and unreviewed as of this check in.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting onboarded to the codebase was harder than I expected. Before I could even think about the fix, I had to spend real time just reading through api/routes/reviews.py and core/services/review_service.py to understand how a review actually gets created and processed. On top of that I had to make sure I had the right dependencies set up for the project to even run locally, and this was also my first real exposure to pytest, so fixtures, mocks, and the whole testing setup took some getting used to before I felt comfortable writing my own tests.
+
+**What did you learn about working in a large codebase?**
+Working in a codebase like this takes a lot more time up front than working on my own project would. I can't just start typing, I have to get familiar with how things are organized and how existing pieces already solve similar problems before I add anything new. That extra time is what keeps me from introducing bugs I didn't mean to, and it also makes sure whatever I write is something another contributor could actually follow and understand later. I saw this play out directly with my own fix. My first plan assumed checking IngestedSource rows would tell me whether a profile had content, but once I got into the actual implementation I realized that check was circular, since those rows only get created after a review already exists. I also ran into a good amount of pre-existing lint, type, and test failures in the repo that had nothing to do with my change, and I had to learn how to tell those apart from anything I introduced myself.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most helpful for understanding the codebase itself, explaining what functions did, walking me through unfamiliar syntax, and pointing me toward where the actual gap in the code was. Once it came to figuring out which edge cases actually mattered to test though, like the missing profile case, the no content case, and making sure the normal case still worked, I wanted to think through those myself instead of letting that get decided for me. That part felt like something I needed to reason through on my own to actually understand the issue.
+
+**What would you do differently if you started over?**
+I would spend more time in the planning step before jumping into implementation. My PLAN.md draft going into week 9 assumed the IngestedSource row count was a safe way to check for content, and that only got caught once I was actually writing the fix. If I had sat with the plan a little longer and traced through when those rows actually get created, I probably would have caught that circular logic earlier instead of correcting it mid implementation.
+
+**What are you most proud of from this module?**
+I'm most proud of getting to go through something that actually resembles a real open source contribution from start to finish. Picking an issue, reproducing it, writing an actual plan, implementing the fix, and opening a PR against it feels a lot more meaningful than just building something on my own from scratch, since it forced me to work within someone else's codebase and conventions the whole way through.
