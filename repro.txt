@@ -1,0 +1,92 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0 -- /var/home/oak/Codes/courses/codepath/AI201/week7/pathreview/.venv/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default'
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /var/home/oak/Codes/courses/codepath/AI201/week7/pathreview
+configfile: pyproject.toml
+plugins: hypothesis-6.158.1, anyio-4.14.2, pytest_httpserver-1.1.5, cov-7.1.0, benchmark-5.2.3, asyncio-1.4.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 25 items / 19 deselected / 6 selected
+
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_us_phone_number_redaction FAILED [ 16%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_us_phone_formats FAILED [ 33%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_international_phone_redaction PASSED [ 50%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_phone_pii FAILED [ 66%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_phone_at_start_of_text FAILED [ 83%]
+tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_phone_at_end_of_text PASSED [100%]
+
+=================================== FAILURES ===================================
+________________ TestPIIScrubber.test_us_phone_number_redaction ________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x7f3c37b63bb0>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x7f3c3787c440>
+
+    def test_us_phone_number_redaction(self, scrubber):
+        """Test US phone number is redacted."""
+        text = "Call me at (555) 123-4567"
+        scrubbed = scrubber.scrub(text)
+    
+>       assert "[REDACTED]" in scrubbed
+E       AssertionError: assert '[REDACTED]' in 'Call me at (555) 123-4567'
+
+tests/unit/test_pii_scrubber.py:39: AssertionError
+____________________ TestPIIScrubber.test_us_phone_formats _____________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x7f3c378b8180>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x7f3c37833250>
+
+    def test_us_phone_formats(self, scrubber):
+        """Test various US phone number formats."""
+        formats = [
+            "555-123-4567",
+            "(555) 123-4567",
+            "555.123.4567",
+            "+1 555 123 4567",
+        ]
+    
+        for phone in formats:
+            text = f"Contact: {phone}"
+            scrubbed = scrubber.scrub(text)
+>           assert "[REDACTED]" in scrubbed
+E           AssertionError: assert '[REDACTED]' in 'Contact: (555) 123-4567'
+
+tests/unit/test_pii_scrubber.py:54: AssertionError
+____________________ TestPIIScrubber.test_detect_phone_pii _____________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x7f3c37866970>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x7f3c378b88a0>
+
+    def test_detect_phone_pii(self, scrubber):
+        """Test detect() finds phone number PII."""
+        text = "Phone: (555) 123-4567"
+        detected = scrubber.detect(text)
+    
+        phone_detections = [d for d in detected if "phone" in d["type"]]
+>       assert len(phone_detections) > 0
+E       assert 0 > 0
+E        +  where 0 = len([])
+
+tests/unit/test_pii_scrubber.py:128: AssertionError
+----------------------------- Captured stdout call -----------------------------
+2026-07-29 00:43:26 [info     ] pii_detected                   count=0 types=0
+_________________ TestPIIScrubber.test_phone_at_start_of_text __________________
+
+self = <tests.unit.test_pii_scrubber.TestPIIScrubber object at 0x7f3c378a75f0>
+scrubber = <safety.pii_scrubber.PIIScrubber object at 0x7f3c378b8fc0>
+
+    def test_phone_at_start_of_text(self, scrubber):
+        """Test phone number at start of text."""
+        text = "(555) 123-4567 is my phone number."
+        scrubbed = scrubber.scrub(text)
+    
+>       assert "[REDACTED]" in scrubbed
+E       AssertionError: assert '[REDACTED]' in '(555) 123-4567 is my phone number.'
+
+tests/unit/test_pii_scrubber.py:184: AssertionError
+=========================== short test summary info ============================
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_us_phone_number_redaction
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_us_phone_formats
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_detect_phone_pii
+FAILED tests/unit/test_pii_scrubber.py::TestPIIScrubber::test_phone_at_start_of_text
+================== 4 failed, 2 passed, 19 deselected in 0.18s ==================
