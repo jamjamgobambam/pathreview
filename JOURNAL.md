@@ -69,3 +69,34 @@ Added a new `RepoAnalyzer` tool (`agent/tools/repo_analyzer.py`) that checks a r
 Scoped to the files this PR touches: `ruff`/`black`/`mypy` (via pre-commit) pass on every changed file, and the new/updated tests (`test_repo_analyzer.py`, `test_github_tool.py`, `test_orchestrator.py`, 15 tests total) pass. Repo-wide, `make check`/`make test-unit` do not pass — `ruff check .` has 174 pre-existing errors and the full unit suite has 53 pre-existing failures, both in modules unrelated to and untouched by this change (`test_review_service.py`, `test_security.py`, `test_skill_extractor.py`, etc.).
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in
+
+**How you responded:**
+NA
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Keeping the PR scoped to what the issue actually asked for. The detection logic itself (`repo_analyzer.py`) was the easy part. What I didn't anticipate was that wiring it into `orchestrator.py` would trip the mypy pre-commit hook on pre-existing, unrelated type-annotation gaps in three other files (`error_handling.py`, `context_manager.py`, `session_store.py`) just because `orchestrator.py` imports them and mypy checks transitively. I had to decide whether to fix that debt, work around it, or leave it — and once I did fix it, I had to go back and split it into its own commit so the feature diff didn't get muddied. On top of that, my branch already carried a few unrelated commits from earlier weeks (JOURNAL/PLAN updates, a docker-compose tweak), which made the PR's "files changed" count look much bigger than the actual fix and took some digging to explain. None of this was hard technically, it was the constant "does this belong in this PR or not" judgment call that ate the most time.
+
+**What did you learn about working in a large codebase?**
+That "the files this issue touches" is a starting point, not a boundary. The issue named two files, but the real change surface included a third (`orchestrator.py`, to actually register the tool) plus a ripple of pre-existing type-annotation debt in files I never meant to touch, surfaced only because mypy checks imports transitively. 
+
+**How did AI tools help — and where did they fall short?**
+Claude Code was most useful for the mechanical, easy-to-get-subtly-wrong parts: scaffolding `repo_analyzer.py` and its parametrized tests quickly, diffing before/after to prove which mypy errors were actually pre-existing versus introduced by me, and drafting a PR description that matched the class template section-by-section. It also caught itself on a real mistake — it had checked both self-review boxes in JOURNAL.md as passing while the sentence right below admitted they didn't, and flagged that contradiction back to me instead of leaving it. Where it fell short: a stash/reset/cherry-pick sequence to split a commit lost an earlier journal edit outright and had to be manually recovered from dangling commit objects, and it couldn't open or edit the GitHub PR directly since the `gh` CLI isn't installed in my environment, anything on the actual GitHub UI still needed me.
+
+**What would you do differently if you started over?**
+Decide up front whether pre-existing lint/type debt in files I merely import is in scope, instead of committing once, getting confused by a "13 files changed" PR diff, and reverse-engineering the split afterward. I'd also start the feature branch cleanly off `main` rather than layering code commits on top of earlier weeks' journal/plan commits, since that mixing is exactly what made the file count confusing in the first place.
+
+**What are you most proud of from this module?**
+I'm proud of how I handled the mypy debt. It would've been easy to either bypass the failing pre-commit hook with `--no-verify` or just fix everything and bury it inside the feature commit. Instead, I first verified the errors were actually pre-existing — stashing my diff and rerunning mypy against the unmodified branch to prove `error_handling.py`, `context_manager.py`, and `session_store.py` were already broken before I touched anything. Then I fixed them properly with real type annotations, and kept them in their own `chore` commit so the fix is reviewable on its own and doesn't get credited to or blamed on the `has_tests` feature.
