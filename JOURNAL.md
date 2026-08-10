@@ -82,3 +82,32 @@ Added an automated red-team suite for prompt injection defense: a JSON attack/be
 - [x] Security suite: `pytest tests/security -m security` → 18 passed
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No – still awaiting review
+
+**Summary of feedback:**
+No reviewer comments on [PR #640](https://github.com/ascherj/pathreview/pull/640) as of Week 10. Per Su26 course note, maintainer review is not expected this term, so I’m documenting “no feedback” and closing out the module with reflection.
+
+**How you responded:**
+N/A — no review comments to address. Left the PR open and ready for review with the template fully filled in.
+
+### Reflection
+
+**What was harder than you expected?**
+Reproducing #71 properly in Week 8. I expected “missing tests” to be enough, but probing `PromptDefense` with real jailbreak payloads showed several attacks already slipped through — so the issue was both a missing suite *and* a weak detector. Getting Docker/WSL working on Windows also ate more setup time than I planned before I could even run the app.
+
+**What did you learn about working in a large codebase?**
+You can’t treat PathReview like a greenfield app. Changes have to match existing patterns (`@pytest.mark.security`, CONTRIBUTING branch names, CI layout), and full-repo `make check` / `make test-unit` already fail in unrelated modules — so the bar is “don’t make it worse,” not “fix the whole suite.” Tracing from issue → `safety/prompt_defense.py` → unit tests → CI was more important than rewriting lots of code.
+
+**How did AI tools help — and where did they fall short?**
+AI helped navigate the multi-module layout, draft the corpus/tests, and fill PLAN/JOURNAL templates quickly. It fell short on environment reality (WSL/Docker first-run, Windows encoding in seed scripts, pre-commit mypy edge cases) — those needed hands-on debugging. I also had to review every AI-suggested regex so benign resume text like “I learned to ignore flaky tests…” wasn’t falsely flagged.
+
+**What would you do differently if you started over?**
+I’d open a draft PR earlier in Week 9 for peer feedback, and I’d pick the Tier 3 issue only after a tighter Week 7 “is this right for me?” pass on effort (7–10 hours). I’d also write the red-team corpus *before* expanding patterns, so every defense change is driven by a failing case instead of guessing regexes first.
+
+**What are you most proud of from this module?**
+The end-to-end contribution loop on #71: claim → reproduce with failing security tests → PLAN → real suite + hardened defense + CI path filter → submitted PR. Especially the benign controls in the corpus — they forced me to keep detection specific instead of just blocking anything with the word “ignore.”
