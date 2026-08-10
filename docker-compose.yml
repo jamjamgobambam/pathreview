@@ -36,7 +36,7 @@ services:
           memory: 256M
 
   vector-db:
-    image: chromadb/chroma:0.4.22
+    image: chromadb/chroma:0.4.24
     ports:
       - "8001:8000"
     volumes:

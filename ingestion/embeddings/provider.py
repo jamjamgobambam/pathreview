@@ -69,13 +69,14 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
 
     MODEL = "text-embedding-3-small"
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize OpenAI client."""
         try:
             from openai import OpenAI
+
             self.client = OpenAI()
-        except ImportError:
-            raise ImportError("openai package is required for OpenAIEmbeddingProvider")
+        except ImportError as e:
+            raise ImportError("openai package is required for OpenAIEmbeddingProvider") from e
 
     def embed(self, texts: list[str]) -> list[list[float]]:
         """
@@ -121,6 +122,5 @@ def get_embedding_provider(provider_name: str) -> EmbeddingProvider:
         return OpenAIEmbeddingProvider()
     else:
         raise ValueError(
-            f"Unknown embedding provider: {provider_name}. "
-            "Supported: 'mock', 'openai'"
+            f"Unknown embedding provider: {provider_name}. " "Supported: 'mock', 'openai'"
         )
