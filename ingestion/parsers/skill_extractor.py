@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -90,6 +90,18 @@ class SkillExtractor:
         "oracle": 0.85,
     }
 
+    # Client-library / driver names that imply an underlying database even when
+    # the database's own name never appears in the text (e.g. `import psycopg2`).
+    DB_DRIVERS = {
+        "psycopg2": ("PostgreSQL", 0.90),
+        "psycopg": ("PostgreSQL", 0.90),
+        "asyncpg": ("PostgreSQL", 0.90),
+        "pymysql": ("MySQL", 0.90),
+        "mysqlclient": ("MySQL", 0.90),
+        "pymongo": ("MongoDB", 0.90),
+        "motor": ("MongoDB", 0.85),
+    }
+
     TOOLS = {
         "docker": 0.95,
         "kubernetes": 0.95,
@@ -105,7 +117,7 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -143,7 +155,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -157,7 +169,7 @@ class SkillExtractor:
             python_evidence.append("Python import statements")
         if re.search(r"\bdef\s+\w+\s*\(", text):
             python_evidence.append("Python function definitions")
-        if re.search(r":\s*(int|str|float|bool|list|dict)", text):
+        if re.search(r":\s*(int|str|float|bool|list|dict)\b", text):
             python_evidence.append("Python type annotations")
         if "requirements.txt" in text_lower:
             python_evidence.append("requirements.txt found")
@@ -170,25 +182,49 @@ class SkillExtractor:
                 evidence=python_evidence,
             )
 
-        # JavaScript/TypeScript detection
+        # JavaScript / TypeScript detection. These are tracked independently
+        # (a codebase can contain both) and use JS/TS-specific signals so that a
+        # plain Python `import x` no longer counts as a JavaScript import.
+        filename_lower = str(filename or "").lower()
+
         js_evidence = []
-        if ".js" in str(filename or "").lower():
-            js_evidence.append("JavaScript file extension (.js)")
-        if ".ts" in str(filename or "").lower():
-            js_evidence.append("TypeScript file extension (.ts)")
-        if re.search(r"\b(import|require)\s+", text):
-            js_evidence.append("CommonJS or ES6 imports")
+        if ".js" in filename_lower or ".jsx" in filename_lower:
+            js_evidence.append("JavaScript file extension")
+        if re.search(r"\brequire\s*\(", text):
+            js_evidence.append("CommonJS require() call")
+        if re.search(r"\bimport\b.*\bfrom\s+['\"]", text):
+            js_evidence.append("ES6 import statement")
+        if re.search(r"\bconsole\.(log|error|warn|info)\b", text):
+            js_evidence.append("console usage")
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
+        ts_evidence = []
+        if ".ts" in filename_lower or ".tsx" in filename_lower:
+            ts_evidence.append("TypeScript file extension")
+        if re.search(r"\binterface\s+\w+", text):
+            ts_evidence.append("TypeScript interface declaration")
+        if re.search(r":\s*(string|number|boolean)\b", text):
+            ts_evidence.append("TypeScript type annotations")
+        if re.search(r"\bPromise<", text):
+            ts_evidence.append("TypeScript generic type usage")
+        if re.search(r"\b(type|enum)\s+\w+\s*[={]", text):
+            ts_evidence.append("TypeScript type/enum declaration")
+
         if js_evidence:
-            confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
-            skills_dict[lang] = SkillDetection(
-                name=lang,
+            skills_dict["JavaScript"] = SkillDetection(
+                name="JavaScript",
                 category="Language",
-                confidence=confidence,
+                confidence=min(0.95, 0.6 + len(js_evidence) * 0.1),
                 evidence=js_evidence,
+            )
+
+        if ts_evidence:
+            skills_dict["TypeScript"] = SkillDetection(
+                name="TypeScript",
+                category="Language",
+                confidence=min(0.95, 0.6 + len(ts_evidence) * 0.1),
+                evidence=ts_evidence,
             )
 
         # Other languages by extension
@@ -203,7 +239,6 @@ class SkillExtractor:
             ".swift": ("Swift", 0.95),
         }
 
-        filename_lower = str(filename or "").lower()
         for ext, (lang, confidence) in extension_langs.items():
             if ext in filename_lower:
                 skills_dict[lang] = SkillDetection(
@@ -260,6 +295,19 @@ class SkillExtractor:
                         evidence=[f"Found '{db}' reference in content"],
                     )
 
+        # Detect databases indirectly via their client-library / driver names.
+        for driver, (display_name, confidence) in self.DB_DRIVERS.items():
+            if (
+                re.search(rf"\b{re.escape(driver)}\b", text_lower)
+                and display_name not in skills_dict
+            ):
+                skills_dict[display_name] = SkillDetection(
+                    name=display_name,
+                    category="Database",
+                    confidence=confidence,
+                    evidence=[f"Found '{driver}' driver reference in content"],
+                )
+
     def _detect_tools(self, text: str, skills_dict: dict) -> None:
         """Detect tools and DevOps technologies."""
         text_lower = text.lower()
@@ -274,3 +322,24 @@ class SkillExtractor:
                         confidence=confidence,
                         evidence=[f"Found '{tool}' reference in content"],
                     )
+
+        # Detect Docker from Dockerfile / docker-compose content even when the
+        # word "docker" itself never appears.
+        if "Docker" not in skills_dict:
+            docker_evidence = None
+            if re.search(r"^\s*FROM\s+\S+", text, re.MULTILINE) and re.search(
+                r"^\s*(RUN|EXPOSE|CMD|ENTRYPOINT|COPY|WORKDIR)\b", text, re.MULTILINE
+            ):
+                docker_evidence = "Dockerfile instructions (FROM/RUN/EXPOSE)"
+            elif re.search(r"^\s*services:\s*$", text, re.MULTILINE) and re.search(
+                r"^\s*version:\s*['\"]?\d", text, re.MULTILINE
+            ):
+                docker_evidence = "docker-compose configuration"
+
+            if docker_evidence:
+                skills_dict["Docker"] = SkillDetection(
+                    name="Docker",
+                    category="Tool",
+                    confidence=0.90,
+                    evidence=[docker_evidence],
+                )

@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -37,6 +37,9 @@ class IngestedSource(Base):
         String(64), nullable=True, index=True
     )  # SHA256 hash for deduplication
     chunk_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    raw_data: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # JSON-serialized raw ingested payload, for debugging/audit
     ingested_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=datetime.utcnow
     )

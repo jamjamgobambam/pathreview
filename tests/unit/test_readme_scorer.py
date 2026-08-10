@@ -15,26 +15,39 @@ class TestReadmeScorer:
         return ReadmeScorer()
 
     def test_readme_with_all_quality_signals(self, scorer):
-        """Test README with all quality signals returns high score."""
-        readme = """
+        """Test README with all quality signals returns high score.
+
+        The fixture is intentionally long (>500 words) so it lands in the
+        "comprehensive" word-count category -- the point of this test is a
+        genuinely thorough README, not a stub that merely names the sections.
+        """
+        feature_lines = "\n".join(
+            f"- Feature {i}: a meaningful capability described in enough "
+            f"detail to be useful to a reader evaluating this project."
+            for i in range(1, 40)
+        )
+        readme = f"""
         # Project Name
-        A comprehensive project description.
+        A comprehensive project description that explains what the project
+        does, who it is for, and why it exists in a few sentences of prose.
 
         ## Installation
         ```bash
         pip install package
         ```
+        Detailed installation notes covering supported Python versions,
+        optional extras, and platform-specific caveats for macOS and Linux.
 
         ## Usage
         ```python
         import package
         package.run()
         ```
+        A longer walkthrough of common usage patterns, configuration options,
+        and how to integrate the package into an existing application.
 
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+        {feature_lines}
 
         ## Tech Stack
         - Python 3.9
@@ -157,9 +170,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
