@@ -8,6 +8,7 @@
 
 **Problem summary:**
 The `/health` API endpoint currently reports basic service status but doesn't include any information about the safety monitoring system. This means operators have no way to see recent safety-related activity, like how many safety events triggered in the last hour, without separately opening the monitoring dashboard. The fix adds a new `safety_events_last_hour` field to the health check response, pulling that count from the existing safety monitoring logic in `safety/monitoring.py`. This affects the `api/routes/health.py` endpoint and the safety layer of the codebase, making it easier to monitor system health from one place instead of two.
+
 **Selection reasoning:**
 I chose this as a Tier 1 issue because it's my first time contributing to a large, unfamiliar codebase, and this task has a small, well-defined scope: two named files (`api/routes/health.py` and `safety/monitoring.py`), a clear before/after behavior, and an estimated effort of 2-4 hours. It also touches a part of the app (health/monitoring) that's easier to reason about in isolation compared to a deeper architectural change, which fits my current comfort level with the codebase.
 
@@ -24,43 +25,40 @@ I chose this as a Tier 1 issue because it's my first time contributing to a larg
 
 **PLAN.md link:** https://github.com/salabili212/pathreview/blob/fix/68-safety-event-count-health-check/PLAN.md
 
-## Week 10 — Reflection
-
-**Reviewer feedback received:** [ ] Yes  [x] No
-
-No reviewer comments have arrived on PR #876 as of this writing. The PR is open and waiting for a maintainer to review, but no feedback has come in yet.
-
----
-
-### Reflection Prompts
-
-**1. What was harder than you expected?**
-
-The hardest part was figuring out how to get a `SafetyMonitor` instance inside the `health_check()` function in `api/routes/health.py`. The function already used FastAPI's dependency injection for the database (`get_db`), but `SafetyMonitor` needs a Redis client that gets created separately inside the Redis health check block. I ended up reusing the existing `redis_client` variable from that block rather than opening a second connection, but tracing that connection flow and understanding the code structure took most of my time on this fix.
-
-**2. What did you learn about working in a large codebase?**
-
-I learned that a large codebase often already has the pieces you need — you just have to find them. The `SafetyMonitor` class in `safety/monitoring.py` already had `get_event_count()` and `VALID_EVENT_TYPES` ready to use; the only missing piece was wiring them into `health.py`. Reading the existing code before writing anything new saved me from duplicating logic that was already there and helped me understand the intent of the issue much faster.
-
-**3. How did AI tools help — and where did they fall short?**
-
-AI helped me quickly understand how `SafetyMonitor` was structured and what specific changes were needed in `api/routes/health.py` without reading every file in the repo from scratch. Where it fell short was during local setup — I couldn't get the backend server to start during reproduction (the frontend logged repeated "socket hang up" errors), and AI couldn't fix a Docker environment issue it couldn't run or see. I ended up confirming the bug directly in the source code instead of hitting the live `/health` endpoint.
-
-**4. What would you do differently if you started over?**
-
-I would run `make check` before writing a single line of code to get a clean baseline of what linter and type errors already exist in the codebase. I didn't do that, so when I saw pre-existing `ruff` and `mypy` failures after my fix, I wasn't sure if I had introduced them or if they were already there. I ended up documenting them in the PR's "Notes for Reviewers" section, but it would have been less stressful to know upfront.
-
-**5. What are you most proud of from this module?**
-
-I'm most proud of the Notes for Reviewers section I wrote in PR #876, where I explained exactly how the Redis client is reused across the health check blocks and gave a concrete manual verification step (`redis-cli INCR safety:events:pii_detected`, then `GET /health` to confirm `safety_events_last_hour` is greater than 0). Writing that forced me to fully understand the fix rather than just paste code, and it meant I could be honest with reviewers about the pre-existing linter failures instead of pretending everything passed cleanly.
-
 **Reproduction summary:**
-Attempted to run the app locally (`docker compose up -d`, `make setup`, `make run` via Git Bash). Docker services (Redis, Postgres, vector DB) started successfully, but the backend API server did not respond (frontend logged repeated "socket hang up" errors when proxying to it), so I could not confirm the bug via a live HTTP request. Instead, I confirmed the issue directly in the source: in `api/routes/health.py`, the `safety_events_last_hour` field is hardcoded to `0` inside a comment marked "placeholder," and is never populated from `SafetyMonitor.get_event_count()` in `safety/monitoring.py`, which already tracks real event counts in Redis. This confirms the gap exists and shows exactly where it lives, even though I wasn't able to hit the live endpoint due to a local backend startup issue I'm still debugging.
-
-**PLAN.md link:** [paste link here after you commit]
-
-**Walkthrough video (recommended):** [optional — add if you record one]
+Attempted to run the app locally (`docker compose up -d`, `make setup`, `make run` via Git Bash). Docker services (Redis, Postgres, vector DB) started successfully, but the backend API server did not respond (frontend logged repeated "socket hang up" errors when proxying to it), so I could not confirm the bug via a live HTTP request. Instead, I confirmed the issue directly in the source: in `api/routes/health.py`, the `safety_events_last_hour` field is hardcoded to `0` inside a comment marked "placeholder," and is never populated from `SafetyMonitor.get_event_count()` in `safety/monitoring.py`, which already tracks real event counts in Redis. This confirms the gap exists and shows exactly where it lives, even though I wasn't able to hit the live endpoint due to a local backend startup issue.
 
 **Blockers or open questions:**
 Still need to trace where `SafetyMonitor` is instantiated in the app so I can access it from `health.py` (it currently only depends on `get_db`, not Redis). Also unsure whether to fix the "last hour" windowing bug in `get_event_count` (it's actually a flat 24-hour Redis expiry, not enforced hourly) or just document that discrepancy for now and address it during implementation.
 
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback came in on PR #876. The PR remains open and awaiting maintainer review.
+
+**How you responded:**
+N/A — no feedback was received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was figuring out how to get a `SafetyMonitor` instance inside the `health_check()` function in `api/routes/health.py`. The function already used FastAPI's dependency injection for the database via `get_db`, but `SafetyMonitor` needs a Redis client that is created separately inside the Redis health check block. I ended up reusing the existing `redis_client` variable from that block rather than opening a second connection, but tracing that connection flow took most of my time on this fix.
+
+**What did you learn about working in a large codebase?**
+I learned that a large codebase often already has the pieces you need — you just have to find them. The `SafetyMonitor` class in `safety/monitoring.py` already had `get_event_count()` and `VALID_EVENT_TYPES` ready to use; the only missing piece was wiring them into `health.py`. Reading existing code before writing anything new saved me from duplicating logic and helped me understand the issue much faster.
+
+**How did AI tools help — and where did they fall short?**
+AI helped me quickly understand how `SafetyMonitor` was structured and what specific changes were needed in `api/routes/health.py` without reading every file in the repo. Where it fell short was local setup — I couldn't get the backend server running during reproduction (the frontend logged "socket hang up" errors), and AI couldn't fix a Docker environment issue it couldn't run itself. I confirmed the bug directly in the source code instead.
+
+**What would you do differently if you started over?**
+I would run `make check` before writing any code to get a baseline of pre-existing lint and type errors in the codebase. I didn't do that, so after my fix I couldn't tell whether failures I saw were mine or pre-existing. I ended up documenting them in the PR's Notes for Reviewers section, but knowing the baseline upfront would have been less stressful.
+
+**What are you most proud of from this module?**
+I'm most proud of the Notes for Reviewers section in PR #876, where I explained how the Redis client is reused and gave a concrete manual verification step: run `redis-cli INCR safety:events:pii_detected`, then `GET /health` and confirm `safety_events_last_hour` is greater than 0. Writing that forced me to fully understand the fix rather than just paste code.
