@@ -97,3 +97,44 @@ The four pre-existing tests tied to this issue (test_us_phone_number_redaction, 
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 <!-- **Draft PR feedback received from:** [name or Slack handle, or "none"] -->
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+<!-- [Be specific — what part of the process, codebase, or workflow
+surprised you?] -->
+Setting up the local environment took much longer than expected, especially getting Docker and ChromaDB running correctly on my machine. I ran into disk space issues, credential errors, and architecture mismatches that had nothing to do with the actual code. It taught me that environment setup is its own skill, separate from writing the fix itself.
+
+**What did you learn about working in a large codebase?**
+<!-- [What's different about contributing to someone else's production code
+vs. building your own project?] -->
+It's important to spend real time understanding how the project works before trying to solve anything, especially the specific part you're touching. I also learned to understand the existing formats and conventions before diving in, since that helps prevent easy mistakes later. Working in someone else's codebase means respecting patterns that are already there instead of just doing things your own way.
+
+**How did AI tools help — and where did they fall short?**
+<!-- [Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?] -->
+I used Claude to help me understand the codebase, create a test script, and explain the root cause of the bug. AI fell short when it gave me simpler test cases than I thought were actually thorough enough. I had to write a more specific prompt that asked for a proper test case covering all the edge cases I cared about, rather than accepting the first version it gave me.
+
+**What would you do differently if you started over?**
+<!-- [Issue selection, planning, implementation, or process — anything
+you'd change?] -->
+I wish I had figured out earlier what was actually necessary to solve my specific issue, instead of spending so much time trying to get the whole app working with ChromaDB and Docker when it wasn't even needed for my fix. Once I realized the pii_scrubber.py bug had nothing to do with the vector database, I could have moved much faster. I'm still glad I chose a regex issue, since it let me fill in gaps in my own understanding, but next time I'd check sooner whether a blocker is actually relevant to my issue before sinking hours into fixing it.
+
+**What are you most proud of from this module?**
+<!-- [One thing — it doesn't have to be the PR itself.] -->
+I'm most proud that I didn't use AI blindly throughout this process. I thought critically about the answers it generated and was able to identify what was missing or incomplete in its solutions. That felt like the real skill this module was testing, not just getting the fix to work.
