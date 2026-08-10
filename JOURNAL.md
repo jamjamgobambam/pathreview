@@ -84,3 +84,45 @@ I fixed the stale-result bug by addressing its actual root cause in the caching 
 **Self-review confirmation:** [ X ] make check passes  [ X ] make test-unit passes
 
 **Draft PR feedback received from:** ["none"]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [ X ] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+No review received.
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+Figuring out that the issue was misattributed. The bug report pointed straight at `session.store.py`, and it would've been easy to start patching there. Tracing the actual call path to realize that `run()` never consults the session store to skip execution took more careful reading that I expected for what looked like a straightforward caching bug. The real staleness only happened in a narrow case: if the same `Orchestrator` object was reused for a second review, one of its tools (`market_analyzer`) was being fed a hardcoded placeholder instead of the real porfolio data, so its cache couldn't tell the two reviews apart. It wasn't hard in the sense of complex code but it was hard because the obvious explanation was wrong, and I had to be willing to contradict the issue as written. 
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+That the file names in the bug report isn't always where the fix belong. Here I had to map dependencies across `orchestrator.py`, `context_manager.py`, and `session_sotre.py` before I could even trust my own diagnosis. After mapping, I needed to write tests that could prove the mechanism, not just assert the symptom. That distinction (test that reproduces the _described_ bug vs. test that guards the _actual_ fix) was new to me. 
+The number of files in the codebase was initially overwhelming as it took a little while to get my bearings. This was a really good learning that I can take into future OSS projects but it's clear that there will be different file structures for different codebases. 
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+Claude was useful for generating the three-test structure once I'd already worked out the diagnosis. These were a reproduction test, fix-target test, and confirming the old repro test should be retired rather than kept as `xfail`. It was also a good sounding board for tracing the call path methodically. Where it fell short: it couldn't tell me which explanation was _right_. For example, the misattibution insight (that the bug isn't in `session_store.py` at all) came from reading the orchestrator's actual execution flow myself, not from AI suggesting it. I had to independently verify the placeholder input to `market_analyzer` was the real culprit before I trusted the plan enough to act on it. 
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+I'd write the PLAN.md's "Map" and "Inputs & Outputs" sections before finalizing my Week 7 problem summary, not after. My Weeek 7 write-up still leaned on the session_store framing before I'd fully traced the code, so I ended up correcting my own understanding mid-document. Front-loading that tracing wouldn't made the whole write-up more precise from the start.
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+Following the tracing through multiple files felt like a huge task but was easier the longer I worked with the code. I also am proud that I was able to do my first PR. I didn't receive any feedback but just understanding how to do a pull request and follow contribution standards was really meaningful. I plan to continue to do open-source contributions because it's a great learning platform plus it increases my merit among programers. 
+I'm also proud that I was able to make real engineering judgements such as identifying that the issue description was misattributed. Given that I am a novice and not sure of the reaction of a maintainer when presented with "bug description is wrong" requires an understanding of the code and the process enough to push that information to the maintainer regardless of their potential reaction. 
