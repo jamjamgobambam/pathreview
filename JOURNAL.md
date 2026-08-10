@@ -146,3 +146,92 @@ so there is nothing to unit-test.
 
 **Draft PR feedback received from:** [ none ]
 
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [ x ] No — still awaiting review
+
+**Summary of feedback:**
+
+No review came in. PR #626 has been open since August 3 with no review comments,
+no line comments, and no requested reviewers. It's still open and unmerged. I
+checked the Files changed and Conversation tabs again this week to confirm.
+
+**How you responded:**
+
+Nothing to respond to, so I left the PR alone. I did re-read my own diff while
+waiting and re-checked the field names and types in `docs/API.md` against
+`api/schemas/profile.py`, `api/schemas/review.py`, and the routes, so the PR is
+still accurate if a maintainer picks it up later. If feedback does come in, I'd
+reply in the thread and push a new commit on `docs/89-api-request-body-schemas`
+rather than force-pushing over the history.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+I picked a Tier 1 docs issue partly because I thought writing down what an
+endpoint takes would be mechanical. The writing was the easy part; figuring out
+what was actually true took longer. `POST /profiles` is `multipart/form-data`
+with a file upload, not JSON like the endpoints around it, so I couldn't copy the
+pattern from the neighboring sections and had to read the route signature in
+`api/routes/profiles.py`.
+
+**What did you learn about working in a large codebase?**
+
+In my own projects I'm the source of truth — if I forget how something works I
+just change it. Here the code was the authority and I was writing about it, so
+every line had to be checkable against `api/routes/` or `api/schemas/`. Instead
+of writing what seemed reasonable, I did it one field at a time: write the field,
+open the schema, confirm the name, type, and whether it's required.
+
+I also learned the existing conventions count as part of the task. I matched the
+heading style and table format already in `docs/API.md` even where I'd have laid
+it out differently, since a docs PR that reads like a different author is harder
+to merge. Running `make check` and `make test-unit` on a docs-only change felt
+pointless at first, until I realized it's there to show I didn't break anything,
+not to test my diff.
+
+**How did AI tools help — and where did they fall short?**
+
+AI helped most with orientation and formatting. When I was picking the issue I
+used it to find where profile and review handling lived so I wasn't grepping
+blind, and later to draft the field tables and the `curl -F` example once I'd
+given it the fields. That saved a lot of time on markdown formatting.
+
+Where it fell short was the part that mattered. When I asked about the request
+body for `POST /profiles`, it gave me a clean JSON body, which is wrong — the
+endpoint is form-data with a file. It looked right because it matched the rest of
+the API, and if I'd pasted it in I'd have written docs worse than no docs, since
+a reader would trust them. The plain text vs. PDF/Markdown question was similar:
+AI could tell me what the code accepts, but not what the maintainer meant, and
+that was the actual decision. It was good for "where is this" and "format this."
+I had to check "is this true" myself.
+
+**What would you do differently if you started over?**
+
+I'd open the draft PR earlier. I did the reproduction, wrote PLAN.md, and
+finished the change before opening PR #626 in Week 9, so my open question about
+plain text vs. PDF/Markdown sat in my journal for a week instead of somewhere a
+maintainer could see it. In a draft PR in Week 8 it might have gotten an answer.
+
+Related to that, I'd ask open questions on the issue thread instead of deciding
+quietly and explaining afterward. I still think my call was right, but I made it
+alone when there was an easy way not to. I'd keep the issue choice — Tier 1 docs
+was the right first contribution to a repo I didn't know, and it still made me
+read real backend code.
+
+**What are you most proud of from this module?**
+
+Catching that `POST /profiles` is form-data and not JSON instead of taking the
+answer that looked right. It would have been easy to use the JSON body AI gave
+me, or to assume it matched the endpoints around it, and nothing would have
+caught it — docs have no tests, `make check` passes either way, and no reviewer
+has looked at the PR. The only check was me opening `api/routes/profiles.py` and
+reading the signature. That's the habit I'm keeping from this module more than
+the PR itself.
