@@ -24,6 +24,36 @@ I chose this as a Tier 1 issue because it's my first time contributing to a larg
 
 **PLAN.md link:** https://github.com/salabili212/pathreview/blob/fix/68-safety-event-count-health-check/PLAN.md
 
+## Week 10 — Reflection
+
+**Reviewer feedback received:** [ ] Yes  [x] No
+
+No reviewer comments have arrived on PR #876 as of this writing. The PR is open and waiting for a maintainer to review, but no feedback has come in yet.
+
+---
+
+### Reflection Prompts
+
+**1. What was harder than you expected?**
+
+The hardest part was figuring out how to get a `SafetyMonitor` instance inside the `health_check()` function in `api/routes/health.py`. The function already used FastAPI's dependency injection for the database (`get_db`), but `SafetyMonitor` needs a Redis client that gets created separately inside the Redis health check block. I ended up reusing the existing `redis_client` variable from that block rather than opening a second connection, but tracing that connection flow and understanding the code structure took most of my time on this fix.
+
+**2. What did you learn about working in a large codebase?**
+
+I learned that a large codebase often already has the pieces you need — you just have to find them. The `SafetyMonitor` class in `safety/monitoring.py` already had `get_event_count()` and `VALID_EVENT_TYPES` ready to use; the only missing piece was wiring them into `health.py`. Reading the existing code before writing anything new saved me from duplicating logic that was already there and helped me understand the intent of the issue much faster.
+
+**3. How did AI tools help — and where did they fall short?**
+
+AI helped me quickly understand how `SafetyMonitor` was structured and what specific changes were needed in `api/routes/health.py` without reading every file in the repo from scratch. Where it fell short was during local setup — I couldn't get the backend server to start during reproduction (the frontend logged repeated "socket hang up" errors), and AI couldn't fix a Docker environment issue it couldn't run or see. I ended up confirming the bug directly in the source code instead of hitting the live `/health` endpoint.
+
+**4. What would you do differently if you started over?**
+
+I would run `make check` before writing a single line of code to get a clean baseline of what linter and type errors already exist in the codebase. I didn't do that, so when I saw pre-existing `ruff` and `mypy` failures after my fix, I wasn't sure if I had introduced them or if they were already there. I ended up documenting them in the PR's "Notes for Reviewers" section, but it would have been less stressful to know upfront.
+
+**5. What are you most proud of from this module?**
+
+I'm most proud of the Notes for Reviewers section I wrote in PR #876, where I explained exactly how the Redis client is reused across the health check blocks and gave a concrete manual verification step (`redis-cli INCR safety:events:pii_detected`, then `GET /health` to confirm `safety_events_last_hour` is greater than 0). Writing that forced me to fully understand the fix rather than just paste code, and it meant I could be honest with reviewers about the pre-existing linter failures instead of pretending everything passed cleanly.
+
 **Reproduction summary:**
 Attempted to run the app locally (`docker compose up -d`, `make setup`, `make run` via Git Bash). Docker services (Redis, Postgres, vector DB) started successfully, but the backend API server did not respond (frontend logged repeated "socket hang up" errors when proxying to it), so I could not confirm the bug via a live HTTP request. Instead, I confirmed the issue directly in the source: in `api/routes/health.py`, the `safety_events_last_hour` field is hardcoded to `0` inside a comment marked "placeholder," and is never populated from `SafetyMonitor.get_event_count()` in `safety/monitoring.py`, which already tracks real event counts in Redis. This confirms the gap exists and shows exactly where it lives, even though I wasn't able to hit the live endpoint due to a local backend startup issue I'm still debugging.
 
