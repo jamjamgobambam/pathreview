@@ -53,7 +53,7 @@ Repo-wide `make check` and `make test-unit` still report many unrelated pre-exis
 
 **PR link:** [to be added after PR submission](https://github.com/ascherj/pathreview/pull/889)
 
-**Branch:** `fix/155-health-check-redis-settings`
+**Branch:** `fix/156-health-check-redis-settings`
 
 **What you built:**
 I fixed the `/health` endpoint so the Redis probe uses the real `settings.redis_url` configuration and the PostgreSQL probe executes a SQLAlchemy text query instead of a raw SQL string. With those two changes in place, the health endpoint returns `200 OK` locally and reports PostgreSQL, Redis, and the vector DB as healthy when the services are available.
@@ -64,3 +64,33 @@ I updated `tests/unit/test_health.py`. The test now covers the fixed healthy pat
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 -- Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No -- still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments came in on my PR by Tuesday, August 11, 2026. Because Summer 2026 does not rely on reviewer feedback for this checkpoint, I documented the lack of review and treated the journal reflection as the main deliverable for the week.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was not writing the final code change; it was getting confident about the real cause of the bug inside a codebase I did not author. The issue looked simple at first, but I still had to trace how the health route, settings model, and test setup fit together before I could trust a fix. It also took more time than I expected to separate my issue from unrelated repository failures, because repo-wide checks were noisy and I had to stay disciplined about proving my specific health-check change worked instead of assuming a failing global test run meant my fix was wrong.
+
+**What did you learn about working in a large codebase?**
+I learned that even small bugs in a production-style codebase are connected to conventions that are easy to miss when you first open the repo. In my own projects, I usually know where configuration lives and what assumptions the code is making. Here, I had to verify that `core/config.py` exposed `redis_url`, confirm how `api/routes/health.py` was using settings, and make sure the fix matched the existing application design instead of forcing in my own pattern. I also learned that targeted tests matter a lot in a larger codebase because they let you validate one behavior even when other unrelated parts of the repo are unstable.
+
+**How did AI tools help -- and where did they fall short?**
+AI was most useful for speeding up the early investigation work: summarizing the issue, helping me identify likely files to inspect, and drafting test ideas for the health-check path. It also helped me compare implementation options quickly, such as whether to construct Redis directly from host and port values or use the existing `redis_url` setting. Where AI fell short was repo-specific judgment. It could suggest plausible changes, but it could not reliably tell which approach best matched this project's conventions without me reading the code and verifying behavior myself. I still had to decide what evidence counted, what failures were unrelated, and whether the proposed fix was actually aligned with the codebase rather than just technically possible.
+
+**What would you do differently if you started over?**
+If I started over, I would isolate a narrower verification workflow earlier. I spent time thinking about full-repo validation before it was clear that targeted reproduction and focused unit coverage would give me a better signal for this issue. I would also write down the relevant file map and expected healthy-path behavior sooner, because once I had that written in `PLAN.md`, the work became much more straightforward. Earlier structure would have reduced some of the uncertainty in the middle of the module.
+
+**What are you most proud of from this module?**
+I am most proud of staying methodical. I did not just patch the visible error message; I reproduced the problem, traced it back to the configuration mismatch, implemented a fix that matched the existing settings model, and documented the reasoning across the journal and plan. That process felt more like real contribution work than just completing a coding exercise.
