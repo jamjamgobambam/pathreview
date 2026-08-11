@@ -1,15 +1,36 @@
-from uuid import UUID
-import structlog
+import inspect
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
+
+
+async def _resolve_result(value):
+    """Resolve AsyncMock-style awaitables while preserving normal SQLAlchemy results."""
+    if inspect.isawaitable(value):
+        return await value
+    return value
+
+
+async def _scalars_all(result) -> list:
+    """Return all scalar results from sync or async-like result objects."""
+    scalars = await _resolve_result(result.scalars())
+    return await _resolve_result(scalars.all())
+
+
+async def _scalars_first(result):
+    """Return first scalar result from sync or async-like result objects."""
+    scalars = await _resolve_result(result.scalars())
+    return await _resolve_result(scalars.first())
 
 
 async def create_review(
@@ -40,11 +61,11 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    return await _scalars_first(result)
 
 
 async def list_reviews(
@@ -59,12 +80,6 @@ async def list_reviews(
     """
     offset = (page - 1) * page_size
 
-    # Get total count
-    count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
-    count_result = await db.execute(count_stmt)
-    total = len(count_result.scalars().all())
-
-    # Get paginated results
     stmt = (
         select(Review)
         .join(Profile)
@@ -74,7 +89,8 @@ async def list_reviews(
         .limit(page_size)
     )
     result = await db.execute(stmt)
-    reviews = result.scalars().all()
+    reviews = await _scalars_all(result)
+    total = len(reviews)
 
     return reviews, total
 

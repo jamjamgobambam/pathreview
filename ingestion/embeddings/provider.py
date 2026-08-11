@@ -1,7 +1,7 @@
 import hashlib
+import math
+import random
 from abc import ABC, abstractmethod
-
-import numpy as np
 
 
 class EmbeddingProvider(ABC):
@@ -49,13 +49,14 @@ class MockEmbeddingProvider(EmbeddingProvider):
             seed = int.from_bytes(text_hash[:4], byteorder="big")
 
             # Generate consistent random vector
-            rng = np.random.RandomState(seed)
-            embedding = rng.normal(0, 1, self.EMBEDDING_DIM)
+            rng = random.Random(seed)
+            embedding = [rng.gauss(0, 1) for _ in range(self.EMBEDDING_DIM)]
 
             # Normalize
-            embedding = embedding / np.linalg.norm(embedding)
+            norm = math.sqrt(sum(value * value for value in embedding))
+            embedding = [value / norm for value in embedding]
 
-            embeddings.append(embedding.tolist())
+            embeddings.append(embedding)
 
         return embeddings
 
@@ -73,9 +74,10 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
         """Initialize OpenAI client."""
         try:
             from openai import OpenAI
+
             self.client = OpenAI()
-        except ImportError:
-            raise ImportError("openai package is required for OpenAIEmbeddingProvider")
+        except ImportError as exc:
+            raise ImportError("openai package is required for OpenAIEmbeddingProvider") from exc
 
     def embed(self, texts: list[str]) -> list[list[float]]:
         """
@@ -121,6 +123,5 @@ def get_embedding_provider(provider_name: str) -> EmbeddingProvider:
         return OpenAIEmbeddingProvider()
     else:
         raise ValueError(
-            f"Unknown embedding provider: {provider_name}. "
-            "Supported: 'mock', 'openai'"
+            f"Unknown embedding provider: {provider_name}. " "Supported: 'mock', 'openai'"
         )

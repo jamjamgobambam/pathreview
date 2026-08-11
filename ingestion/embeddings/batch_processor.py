@@ -1,8 +1,9 @@
+import logging
+
 import structlog
 
 from ..chunking.base import Chunk
 from .provider import EmbeddingProvider
-
 
 logger = structlog.get_logger()
 
@@ -37,6 +38,9 @@ class BatchEmbeddingProcessor:
             RuntimeError: If embedding or storage fails
         """
         if not chunks:
+            logging.getLogger(__name__).warning(
+                "Empty chunks list provided to BatchEmbeddingProcessor"
+            )
             logger.warning("Empty chunks list provided to BatchEmbeddingProcessor")
             return []
 
@@ -67,7 +71,7 @@ class BatchEmbeddingProcessor:
                 logger.info("Generated embeddings for batch", embedding_count=len(embeddings))
 
                 # Store in vector DB
-                for chunk, embedding in zip(batch, embeddings):
+                for chunk, embedding in zip(batch, embeddings, strict=False):
                     try:
                         embedding_id = self._store_embedding(chunk, embedding)
                         results.append((chunk, embedding_id))

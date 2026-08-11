@@ -242,7 +242,7 @@ def execute(code):
     return eval(code)
 ```
 """
-        is_injection = PromptDefense.is_injection_attempt(code)
+        PromptDefense.is_injection_attempt(code)
         # Code blocks contain execute/eval but in legitimate context
         # May or may not flag depending on design choice
 

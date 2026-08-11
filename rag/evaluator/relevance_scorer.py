@@ -38,14 +38,20 @@ class RelevanceScorer:
 
             # Keyword overlap as relevance signal
             overlap = len(query_tokens & chunk_tokens)
-            relevance = overlap / len(query_tokens)
+            recall = overlap / len(query_tokens)
+            precision = overlap / len(chunk_tokens)
+            relevance = (recall + precision) / 2
             relevances.append(relevance)
 
         # Return average relevance
         avg_relevance = sum(relevances) / len(relevances)
 
-        logger.info("relevance_scored", query_len=len(query_tokens),
-                   chunks_count=len(chunks), avg_score=avg_relevance)
+        logger.info(
+            "relevance_scored",
+            query_len=len(query_tokens),
+            chunks_count=len(chunks),
+            avg_score=avg_relevance,
+        )
 
         return min(avg_relevance, 1.0)
 
@@ -59,4 +65,11 @@ class RelevanceScorer:
         Returns:
             List of tokens
         """
-        return text.lower().split()
+        tokens = []
+        for token in text.lower().split():
+            normalized = token.strip(".,!?;:()[]{}")
+            if len(normalized) > 3 and normalized.endswith("s"):
+                normalized = normalized[:-1]
+            if normalized:
+                tokens.append(normalized)
+        return tokens

@@ -52,13 +52,15 @@ class ReadmeParser(BaseParser):
         """
         headings = []
         for line_num, line in enumerate(content.split("\n")):
-            match = re.match(r"^(#{1,6})\s+(.+)$", line)
+            match = re.match(r"^\s*(#{1,6})\s+(.+)$", line)
             if match:
                 level = len(match.group(1))
                 text = match.group(2).strip()
-                headings.append({
-                    "level": level,
-                    "text": text,
-                    "line": line_num,
-                })
+                headings.append(
+                    {
+                        "level": level,
+                        "text": text,
+                        "line": line_num,
+                    }
+                )
         return headings

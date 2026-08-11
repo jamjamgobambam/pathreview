@@ -109,7 +109,10 @@ class TestBiasDetector:
 
     def test_clean_feedback_not_flagged(self):
         """Test clean, objective feedback is not flagged."""
-        text = "You have demonstrated strong Python skills. Your code is well-organized and follows best practices."
+        text = (
+            "You have demonstrated strong Python skills. "
+            "Your code is well-organized and follows best practices."
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -117,7 +120,9 @@ class TestBiasDetector:
 
     def test_technical_feedback_not_flagged(self):
         """Test pure technical feedback not flagged."""
-        text = "Consider adding error handling to your API endpoints and documenting the parameters."
+        text = (
+            "Consider adding error handling to your API endpoints and documenting the parameters."
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -210,7 +215,9 @@ class TestBiasDetector:
 
     def test_multiple_bias_indicators(self):
         """Test text with multiple bias indicators."""
-        text = "young bootcamp graduates can't write code and immigrant developers lack fundamentals"
+        text = (
+            "young bootcamp graduates can't write code and immigrant developers lack fundamentals"
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -250,7 +257,10 @@ class TestBiasDetector:
 
     def test_skill_assessment_not_biased(self):
         """Test skill assessment without bias language."""
-        text = "Your JavaScript skills are at an intermediate level. Practice would help advance to senior level."
+        text = (
+            "Your JavaScript skills are at an intermediate level. "
+            "Practice would help advance to senior level."
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -258,7 +268,10 @@ class TestBiasDetector:
 
     def test_comparative_without_bias(self):
         """Test comparison without biased assumptions."""
-        text = "Your bootcamp education covers practical skills. University education provides theory. Both have value."
+        text = (
+            "Your bootcamp education covers practical skills. "
+            "University education provides theory. Both have value."
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 

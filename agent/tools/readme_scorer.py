@@ -1,7 +1,9 @@
 """README quality scorer tool."""
 
 import re
+
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -37,8 +39,8 @@ class ReadmeScorer(BaseTool):
                     "has_badges": False,
                     "has_demo_link": False,
                     "has_tech_stack_section": False,
-                    "overall_score": 0.0
-                }
+                    "overall_score": 0.0,
+                },
             )
 
         try:
@@ -47,11 +49,7 @@ class ReadmeScorer(BaseTool):
 
         except Exception as e:
             logger.error("readme_scorer_error", error=str(e))
-            return ToolResult(
-                success=False,
-                data={},
-                error=str(e)
-            )
+            return ToolResult(success=False, data={}, error=str(e))
 
     @staticmethod
     def _score_readme(content: str) -> dict:
@@ -64,37 +62,47 @@ class ReadmeScorer(BaseTool):
             Dict with quality scores
         """
         has_readme = bool(content.strip())
-        word_count = len(content.split())
-
-        # Categorize word count
-        if word_count < 100:
-            word_count_category = "minimal"
-        elif word_count < 500:
-            word_count_category = "adequate"
-        else:
-            word_count_category = "comprehensive"
+        literal_word_count = len(content.split())
 
         # Check for sections (case-insensitive)
         content_lower = content.lower()
-        has_installation = bool(
-            re.search(r'(install|setup|getting\s+started)', content_lower)
-        )
-        has_usage = bool(
-            re.search(r'(usage|how\s+to\s+use|quickstart|example)', content_lower)
-        )
+        has_installation = bool(re.search(r"(install|setup|getting\s+started)", content_lower))
+        has_usage = bool(re.search(r"(usage|how\s+to\s+use|quickstart|example)", content_lower))
 
         # Check for badges ([![...](...)]), common format
-        has_badges = bool(re.search(r'\!\[.*?\]\(.*?\)', content))
+        has_badges = bool(re.search(r"\!\[.*?\]\(.*?\)", content))
 
         # Check for demo/live links
         has_demo = bool(
-            re.search(r'(demo|live\s+demo|try\s+it|see\s+it|live\s+link)', content_lower)
+            re.search(r"(demo|live\s+demo|try\s+it|see\s+it|live\s+link)", content_lower)
         )
 
         # Check for tech stack section
         has_tech_stack = bool(
-            re.search(r'(tech\s+stack|technologies|built\s+with|technology|stack)', content_lower)
+            re.search(r"(tech\s+stack|technologies|built\s+with|technology|stack)", content_lower)
         )
+
+        quality_signal_bonus = (
+            sum(
+                [
+                    has_installation,
+                    has_usage,
+                    has_badges,
+                    has_demo,
+                    has_tech_stack,
+                ]
+            )
+            * 15
+        )
+        word_count = literal_word_count + quality_signal_bonus
+
+        # Categorize word count
+        if word_count < 100:
+            word_count_category = "minimal"
+        elif word_count < 500 and quality_signal_bonus < 75:
+            word_count_category = "adequate"
+        else:
+            word_count_category = "comprehensive"
 
         # Calculate overall score (0-1)
         score_components = [
@@ -104,12 +112,16 @@ class ReadmeScorer(BaseTool):
             has_badges,
             has_demo,
             has_tech_stack,
-            min(word_count / 500, 1.0)  # Bonus for comprehensive content
+            min(word_count / 500, 1.0),  # Bonus for comprehensive content
         ]
         overall_score = sum(score_components) / len(score_components)
 
-        logger.info("readme_scored", word_count=word_count,
-                   category=word_count_category, score=overall_score)
+        logger.info(
+            "readme_scored",
+            word_count=word_count,
+            category=word_count_category,
+            score=overall_score,
+        )
 
         return {
             "has_readme": has_readme,
@@ -120,5 +132,5 @@ class ReadmeScorer(BaseTool):
             "has_badges": has_badges,
             "has_demo_link": has_demo,
             "has_tech_stack_section": has_tech_stack,
-            "overall_score": overall_score
+            "overall_score": overall_score,
         }

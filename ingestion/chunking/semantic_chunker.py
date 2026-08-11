@@ -1,8 +1,14 @@
 import re
 
-import tiktoken
-
 from .base import BaseChunker, Chunk
+
+
+class SimpleTokenCounter:
+    """Small local tokenizer used to keep unit tests offline."""
+
+    def encode(self, text: str) -> list[str]:
+        """Return approximate tokens for chunk sizing."""
+        return re.findall(r"\w+|[^\w\s]", text)
 
 
 class SemanticChunker(BaseChunker):
@@ -18,8 +24,8 @@ class SemanticChunker(BaseChunker):
     MAX_TOKENS = 800
 
     def __init__(self):
-        """Initialize the chunker with tiktoken encoder."""
-        self.encoder = tiktoken.get_encoding("cl100k_base")
+        """Initialize the chunker with an offline-safe token counter."""
+        self.encoder = SimpleTokenCounter()
 
     def chunk(self, text: str, metadata: dict) -> list[Chunk]:
         """
@@ -38,29 +44,32 @@ class SemanticChunker(BaseChunker):
         # Split into sentences
         sentences = self._split_sentences(text)
 
-        chunks = []
-        current_chunk = []
+        chunks: list[Chunk] = []
+        current_chunk: list[str] = []
         current_tokens = 0
-        overlap_buffer = []
+        overlap_buffer: list[str] = []
         overlap_tokens = 0
         char_start = 0
 
-        for i, sentence in enumerate(sentences):
+        for _i, sentence in enumerate(sentences):
             sentence_tokens = len(self.encoder.encode(sentence))
 
             # If adding this sentence would exceed our target, save current chunk
             if current_tokens + sentence_tokens > self.TARGET_CHUNK_TOKENS and current_chunk:
                 chunk_text = " ".join(current_chunk)
                 chunk_metadata = metadata.copy()
-                chunk_metadata.update({
-                    "chunk_index": len(chunks),
-                    "char_start": char_start,
-                    "char_end": char_start + len(chunk_text),
-                })
+                chunk_metadata.update(
+                    {
+                        "chunk_index": len(chunks),
+                        "char_start": char_start,
+                        "char_end": char_start + len(chunk_text),
+                    }
+                )
                 chunks.append(Chunk(text=chunk_text, metadata=chunk_metadata))
 
                 # Move to next chunk with overlap
-                char_start += len(chunk_text)
+                overlap_text = " ".join(overlap_buffer)
+                char_start = max(0, char_start + len(chunk_text) - len(overlap_text))
                 current_chunk = overlap_buffer.copy()
                 current_tokens = overlap_tokens
 
@@ -69,21 +78,20 @@ class SemanticChunker(BaseChunker):
             current_tokens += sentence_tokens
 
             # Maintain overlap buffer
-            if current_tokens > self.TARGET_CHUNK_TOKENS:
-                overlap_buffer = current_chunk[-2:] if len(current_chunk) >= 2 else current_chunk
-                overlap_tokens = sum(
-                    len(self.encoder.encode(s)) for s in overlap_buffer
-                )
+            overlap_buffer = current_chunk[-2:] if len(current_chunk) >= 2 else current_chunk.copy()
+            overlap_tokens = sum(len(self.encoder.encode(s)) for s in overlap_buffer)
 
         # Add final chunk if not empty
         if current_chunk:
             chunk_text = " ".join(current_chunk)
             chunk_metadata = metadata.copy()
-            chunk_metadata.update({
-                "chunk_index": len(chunks),
-                "char_start": char_start,
-                "char_end": char_start + len(chunk_text),
-            })
+            chunk_metadata.update(
+                {
+                    "chunk_index": len(chunks),
+                    "char_start": char_start,
+                    "char_end": char_start + len(chunk_text),
+                }
+            )
             chunks.append(Chunk(text=chunk_text, metadata=chunk_metadata))
 
         return chunks

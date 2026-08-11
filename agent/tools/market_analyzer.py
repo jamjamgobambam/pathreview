@@ -1,8 +1,10 @@
 """Job market comparison tool."""
 
-import redis
 import json
+
+import redis
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -65,7 +67,7 @@ class MarketAnalyzer(BaseTool):
                     "in_demand_skills": [],
                     "missing_high_demand_skills": [],
                     "market_alignment_score": 0.0,
-                }
+                },
             )
 
         try:
@@ -74,11 +76,7 @@ class MarketAnalyzer(BaseTool):
 
         except Exception as e:
             logger.error("market_analyzer_error", error=str(e))
-            return ToolResult(
-                success=False,
-                data={},
-                error=str(e)
-            )
+            return ToolResult(success=False, data={}, error=str(e))
 
     def _analyze_market(self, detected_skills: dict) -> dict:
         """Analyze skills against market data.
@@ -91,44 +89,42 @@ class MarketAnalyzer(BaseTool):
         """
         # Flatten detected skills
         all_detected = set()
-        for category, skills_list in detected_skills.items():
+        for _category, skills_list in detected_skills.items():
             all_detected.update(skills_list)
 
         # Find in-demand skills the user has
-        in_demand = []
+        in_demand: list[dict[str, str | float]] = []
         for skill, demand in self.MARKET_DATA.items():
             if skill in all_detected:
-                in_demand.append({
-                    "skill": skill,
-                    "demand_score": demand
-                })
+                in_demand.append({"skill": skill, "demand_score": demand})
 
         # Sort by demand
-        in_demand.sort(key=lambda x: x["demand_score"], reverse=True)
+        in_demand.sort(key=lambda x: float(x["demand_score"]), reverse=True)
 
         # Find high-demand skills they're missing (>0.80)
-        missing_high_demand = []
+        missing_high_demand: list[dict[str, str | float]] = []
         for skill, demand in self.MARKET_DATA.items():
             if skill not in all_detected and demand > 0.80:
-                missing_high_demand.append({
-                    "skill": skill,
-                    "demand_score": demand
-                })
+                missing_high_demand.append({"skill": skill, "demand_score": demand})
 
         # Sort by demand
-        missing_high_demand.sort(key=lambda x: x["demand_score"], reverse=True)
+        missing_high_demand.sort(key=lambda x: float(x["demand_score"]), reverse=True)
 
         # Calculate alignment score
         if in_demand:
-            avg_demand = sum([s["demand_score"] for s in in_demand]) / len(in_demand)
+            avg_demand = sum(float(s["demand_score"]) for s in in_demand) / len(in_demand)
         else:
             avg_demand = 0.0
 
         market_alignment = min(avg_demand * 0.8, 1.0)
 
-        logger.info("market_analyzed", user_skills=len(all_detected),
-                   in_demand=len(in_demand), missing_high_demand=len(missing_high_demand),
-                   alignment=market_alignment)
+        logger.info(
+            "market_analyzed",
+            user_skills=len(all_detected),
+            in_demand=len(in_demand),
+            missing_high_demand=len(missing_high_demand),
+            alignment=market_alignment,
+        )
 
         result = {
             "in_demand_skills": in_demand,
@@ -153,11 +149,7 @@ class MarketAnalyzer(BaseTool):
             return
 
         try:
-            self.redis_client.setex(
-                "market_analysis:latest",
-                ttl_seconds,
-                json.dumps(result)
-            )
+            self.redis_client.setex("market_analysis:latest", ttl_seconds, json.dumps(result))
             logger.info("market_analysis_cached", ttl_seconds=ttl_seconds)
         except Exception as e:
             logger.warning("market_analysis_cache_failed", error=str(e))

@@ -1,11 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class SkillDetection:
     """Result of detecting a skill."""
+
     name: str
     category: str
     confidence: float
@@ -80,6 +80,8 @@ class SkillExtractor:
 
     DATABASES = {
         "postgresql": 0.95,
+        "postgres": 0.95,
+        "psycopg2": 0.90,
         "mysql": 0.95,
         "mongodb": 0.95,
         "redis": 0.90,
@@ -92,6 +94,7 @@ class SkillExtractor:
 
     TOOLS = {
         "docker": 0.95,
+        "dockerfile": 0.95,
         "kubernetes": 0.95,
         "git": 0.90,
         "github": 0.90,
@@ -105,7 +108,7 @@ class SkillExtractor:
         "ansible": 0.85,
     }
 
-    def extract_skills(self, text: str, filename: Optional[str] = None) -> list[SkillDetection]:
+    def extract_skills(self, text: str, filename: str | None = None) -> list[SkillDetection]:
         """
         Extract skills from source code or documentation text.
 
@@ -116,7 +119,7 @@ class SkillExtractor:
         Returns:
             List of detected skills with confidence scores
         """
-        detected_skills = {}
+        detected_skills: dict[str, SkillDetection] = {}
 
         # Detect languages first
         self._detect_languages(text, filename, detected_skills)
@@ -143,7 +146,7 @@ class SkillExtractor:
     def _detect_languages(
         self,
         text: str,
-        filename: Optional[str],
+        filename: str | None,
         skills_dict: dict,
     ) -> None:
         """Detect programming languages."""
@@ -178,12 +181,23 @@ class SkillExtractor:
             js_evidence.append("TypeScript file extension (.ts)")
         if re.search(r"\b(import|require)\s+", text):
             js_evidence.append("CommonJS or ES6 imports")
+        if re.search(r"\b(const|let|var|function)\s+\w+", text):
+            js_evidence.append("JavaScript declarations")
+        if "console.log" in text_lower:
+            js_evidence.append("JavaScript console usage")
+        if re.search(r"\binterface\s+\w+|\bPromise<|:\s*(string|number|boolean)", text):
+            js_evidence.append("TypeScript syntax")
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
         if js_evidence:
             confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
+            lang = (
+                "TypeScript"
+                if ".ts" in str(filename or "").lower()
+                or any("TypeScript" in evidence for evidence in js_evidence)
+                else "JavaScript"
+            )
             skills_dict[lang] = SkillDetection(
                 name=lang,
                 category="Language",
@@ -251,7 +265,8 @@ class SkillExtractor:
 
         for db, confidence in self.DATABASES.items():
             if db in text_lower:
-                display_name = db.upper() if db in ["sql", "nosql"] else db.title()
+                display_name = "PostgreSQL" if db in {"postgres", "psycopg2"} else db.title()
+                display_name = display_name.upper() if db in ["sql", "nosql"] else display_name
                 if display_name not in skills_dict:
                     skills_dict[display_name] = SkillDetection(
                         name=display_name,
@@ -265,8 +280,13 @@ class SkillExtractor:
         text_lower = text.lower()
 
         for tool, confidence in self.TOOLS.items():
-            if tool in text_lower:
-                display_name = tool.upper() if tool in ["ci/cd"] else tool.title()
+            found = tool in text_lower
+            if tool == "docker" and re.search(r"(?m)^\s*FROM\s+\S+|^\s*services:\s*$", text):
+                found = True
+
+            if found:
+                display_name = "Docker" if tool == "dockerfile" else tool.title()
+                display_name = display_name.upper() if tool in ["ci/cd"] else display_name
                 if display_name not in skills_dict:
                     skills_dict[display_name] = SkillDetection(
                         name=display_name,

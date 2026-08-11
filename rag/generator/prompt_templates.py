@@ -6,8 +6,7 @@ logger = structlog.get_logger()
 
 
 PROMPT_TEMPLATES = {
-    "skills_feedback": {
-        "v1": """Analyze the skills demonstrated in the provided portfolio context.
+    "skills_feedback": {"v1": """Analyze the skills demonstrated in the provided portfolio context.
 
 Portfolio Context:
 {context}
@@ -26,8 +25,7 @@ Format your response as JSON with these fields:
 - language_proficiency: dict mapping languages to proficiency level
 - framework_expertise: list of mastered frameworks
 - tool_proficiency: list of tools used effectively
-"""
-    },
+"""},
     "projects_feedback": {
         "v1": """Evaluate the quality and presentation of projects in the portfolio.
 
@@ -50,8 +48,7 @@ Format as JSON:
 - presentation_notes: suggestions for improvement
 """
     },
-    "presentation_feedback": {
-        "v1": """Evaluate the overall presentation quality of the portfolio.
+    "presentation_feedback": {"v1": """Evaluate the overall presentation quality of the portfolio.
 
 Portfolio Context:
 {context}
@@ -70,10 +67,8 @@ Format as JSON:
 - profile_completeness: percentage
 - organization_score: 0-1
 - presentation_suggestions: list of improvements
-"""
-    },
-    "gaps_feedback": {
-        "v1": """Identify skill gaps relative to job market demands.
+"""},
+    "gaps_feedback": {"v1": """Identify skill gaps relative to job market demands.
 
 Portfolio Context:
 {context}
@@ -92,10 +87,8 @@ Format as JSON:
 - underrepresented_areas: areas with low portfolio coverage
 - market_alignment_score: 0-1
 - recommended_learning_areas: prioritized list
-"""
-    },
-    "first_impression": {
-        "v1": """Provide a 2-3 sentence overall first impression of this portfolio.
+"""},
+    "first_impression": {"v1": """Provide a 2-3 sentence overall first impression of this portfolio.
 
 Portfolio Context:
 {context}
@@ -109,8 +102,7 @@ Write a concise, professional summary capturing:
 - Immediate opportunities for growth
 
 Provide only the summary text, no JSON formatting needed.
-"""
-    }
+"""},
 }
 
 

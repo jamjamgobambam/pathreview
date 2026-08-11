@@ -1,7 +1,8 @@
 """Tests for prompt_templates.py - Snapshot tests"""
 
-import pytest
 import hashlib
+
+import pytest
 
 from rag.generator.prompt_templates import PROMPT_TEMPLATES, get_template
 
@@ -52,7 +53,9 @@ class TestPromptTemplates:
         """Test each template contains {context} placeholder."""
         for template_name, versions in PROMPT_TEMPLATES.items():
             for version, template_text in versions.items():
-                assert "{context}" in template_text, f"{template_name} v{version} missing {{context}}"
+                assert (
+                    "{context}" in template_text
+                ), f"{template_name} v{version} missing {{context}}"
 
     def test_each_template_contains_github_username_placeholder(self):
         """Test each template contains {github_username} placeholder."""
@@ -118,13 +121,13 @@ class TestPromptTemplates:
 
     def test_all_templates_have_v1(self):
         """Test all templates have v1 version."""
-        for template_name in PROMPT_TEMPLATES.keys():
+        for template_name in PROMPT_TEMPLATES:
             assert "v1" in PROMPT_TEMPLATES[template_name]
 
     def test_templates_are_strings(self):
         """Test all templates are strings."""
-        for template_name, versions in PROMPT_TEMPLATES.items():
-            for version, template_text in versions.items():
+        for _template_name, versions in PROMPT_TEMPLATES.items():
+            for _version, template_text in versions.items():
                 assert isinstance(template_text, str)
                 assert len(template_text) > 0
 
@@ -151,19 +154,32 @@ class TestPromptTemplates:
         """Test gaps_feedback template mentions missing/gap concepts."""
         template = PROMPT_TEMPLATES["gaps_feedback"]["v1"]
 
-        assert "gap" in template.lower() or "missing" in template.lower() or "demand" in template.lower()
+        assert (
+            "gap" in template.lower()
+            or "missing" in template.lower()
+            or "demand" in template.lower()
+        )
 
     def test_presentation_feedback_mentions_readme(self):
         """Test presentation_feedback template mentions README or presentation."""
         template = PROMPT_TEMPLATES["presentation_feedback"]["v1"]
 
-        assert "readme" in template.lower() or "presentation" in template.lower() or "organization" in template.lower()
+        assert (
+            "readme" in template.lower()
+            or "presentation" in template.lower()
+            or "organization" in template.lower()
+        )
 
     def test_first_impression_is_concise(self):
         """Test first_impression template instructs concise output."""
         template = PROMPT_TEMPLATES["first_impression"]["v1"]
 
-        assert "2" in template or "3" in template or "sentence" in template.lower() or "summary" in template.lower()
+        assert (
+            "2" in template
+            or "3" in template
+            or "sentence" in template.lower()
+            or "summary" in template.lower()
+        )
 
     def test_get_template_default_version(self):
         """Test get_template() defaults to v1 when version not specified."""
@@ -216,11 +232,15 @@ class TestPromptTemplates:
         template = PROMPT_TEMPLATES["first_impression"]["v1"]
 
         # Should specify format (JSON or plain text)
-        assert "json" in template.lower() or "text" in template.lower() or "summary" in template.lower()
+        assert (
+            "json" in template.lower()
+            or "text" in template.lower()
+            or "summary" in template.lower()
+        )
 
     def test_templates_have_portfolio_context(self):
         """Test templates mention portfolio or context."""
-        for name in PROMPT_TEMPLATES.keys():
+        for name in PROMPT_TEMPLATES:
             template = PROMPT_TEMPLATES[name]["v1"]
             # All should have context mention or portfolio mention
             assert "{context}" in template or "portfolio" in template.lower()
@@ -228,23 +248,24 @@ class TestPromptTemplates:
     def test_template_get_logs_retrieval(self):
         """Test that get_template logs retrieval."""
         # Import logger to verify it's used
-        with pytest.MonkeyPatch.context() as mp:
+        with pytest.MonkeyPatch.context():
             from unittest.mock import patch
-            with patch('rag.generator.prompt_templates.logger') as mock_logger:
+
+            with patch("rag.generator.prompt_templates.logger"):
                 get_template("skills_feedback")
                 # Should log template retrieval
 
     def test_each_template_name_is_valid_identifier(self):
         """Test template names are valid Python identifiers."""
-        for name in PROMPT_TEMPLATES.keys():
+        for name in PROMPT_TEMPLATES:
             assert name.isidentifier()
             assert "_" in name  # Should use snake_case
 
     def test_template_versions_are_strings(self):
         """Test template version keys are strings."""
-        for template_name, versions in PROMPT_TEMPLATES.items():
+        for _template_name, versions in PROMPT_TEMPLATES.items():
             assert isinstance(versions, dict)
-            for version_key in versions.keys():
+            for version_key in versions:
                 assert isinstance(version_key, str)
                 assert version_key.startswith("v")
 
@@ -252,8 +273,8 @@ class TestPromptTemplates:
         """Test templates don't contain hardcoded test usernames."""
         forbidden = ["john", "jane", "test", "demo"]
 
-        for name, versions in PROMPT_TEMPLATES.items():
-            for version, template_text in versions.items():
+        for _name, versions in PROMPT_TEMPLATES.items():
+            for _version, template_text in versions.items():
                 for forbidden_word in forbidden:
                     # Should use {github_username} placeholder instead
                     assert not (
@@ -263,11 +284,12 @@ class TestPromptTemplates:
 
     def test_templates_use_consistent_placeholders(self):
         """Test all templates use consistent placeholder syntax."""
-        for name, versions in PROMPT_TEMPLATES.items():
-            for version, template_text in versions.items():
+        for _name, versions in PROMPT_TEMPLATES.items():
+            for _version, template_text in versions.items():
                 # All placeholders should use {name} syntax
                 import re
-                placeholders = re.findall(r'\{(\w+)\}', template_text)
+
+                placeholders = re.findall(r"\{(\w+)\}", template_text)
                 assert "context" in placeholders
                 assert "github_username" in placeholders
                 assert "project_count" in placeholders

@@ -1,10 +1,11 @@
 """Evaluation suite for RAG system."""
 
 from dataclasses import dataclass
+
 import structlog
 
-from .relevance_scorer import RelevanceScorer
 from .faithfulness_checker import FaithfulnessChecker
+from .relevance_scorer import RelevanceScorer
 
 logger = structlog.get_logger()
 
@@ -12,6 +13,7 @@ logger = structlog.get_logger()
 @dataclass
 class EvalResult:
     """Result of evaluation."""
+
     relevance_score: float
     faithfulness_score: float
     overall_score: float
@@ -46,12 +48,11 @@ class EvalSuite:
         overall = (relevance + faithfulness) / 2
 
         result = EvalResult(
-            relevance_score=relevance,
-            faithfulness_score=faithfulness,
-            overall_score=overall
+            relevance_score=relevance, faithfulness_score=faithfulness, overall_score=overall
         )
 
-        logger.info("eval_suite_complete", relevance=relevance,
-                   faithfulness=faithfulness, overall=overall)
+        logger.info(
+            "eval_suite_complete", relevance=relevance, faithfulness=faithfulness, overall=overall
+        )
 
         return result

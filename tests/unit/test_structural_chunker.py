@@ -2,8 +2,8 @@
 
 import pytest
 
-from ingestion.chunking.structural_chunker import StructuralChunker
 from ingestion.chunking.base import Chunk
+from ingestion.chunking.structural_chunker import StructuralChunker
 
 
 @pytest.mark.unit
@@ -74,13 +74,11 @@ Content under grandchild.
 """
         result = chunker.chunk(text, {})
 
-        found_path = False
         for chunk in result:
             if "heading_path" in chunk.metadata:
                 path = chunk.metadata["heading_path"]
                 if "Child" in path:
                     # Should have " > " as separator if it has parent
-                    found_path = True
                     assert isinstance(path, str)
 
     def test_large_section_sub_chunked(self, chunker):
@@ -165,13 +163,12 @@ Content here.
 """
         result = chunker.chunk(text, {})
 
-        found_full_path = False
         for chunk in result:
             if "heading_path" in chunk.metadata:
                 path = chunk.metadata["heading_path"]
                 # Should contain the hierarchy
                 if "Installation" in path or "Prerequisites" in path:
-                    found_full_path = True
+                    pass
 
     def test_chunks_have_text_content(self, chunker):
         """Test that all chunks have text content."""

@@ -60,7 +60,7 @@ class TestTechDetector:
         data = result.data
         assert "Python" in data["all_languages"]
         # Should not include JSON or data-only language
-        detected_lower = [lang.lower() for lang in data["all_languages"]]
+        [lang.lower() for lang in data["all_languages"]]
         # .ipynb should be treated as Python, not JSON
 
     def test_node_modules_excluded(self, detector):
@@ -87,7 +87,7 @@ class TestTechDetector:
             "app.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
         # Python should be primary despite vendor files
 
@@ -125,7 +125,7 @@ class TestTechDetector:
             "main.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
         # Should detect Python as primary language
 
@@ -136,9 +136,8 @@ class TestTechDetector:
             "main.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
-        data = result.data
         # Should detect both Python and CI/CD
 
     def test_makefile_detection(self, detector):
@@ -148,7 +147,7 @@ class TestTechDetector:
             "src/main.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
         # Should detect Makefile as build tool
 
@@ -253,7 +252,7 @@ class TestTechDetector:
             "main.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
         # Should detect frameworks
 
@@ -280,9 +279,8 @@ class TestTechDetector:
             "Index.JS",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
-        data = result.data
         # Should still detect languages despite case
 
     def test_multiple_extensions_same_file(self, detector):
@@ -359,7 +357,6 @@ class TestTechDetector:
             "header.h",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
-        data = result.data
         # Should detect C++ (from .cpp files)

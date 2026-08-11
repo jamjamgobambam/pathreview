@@ -1,6 +1,7 @@
 """Prompt injection detection and defense."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -12,7 +13,7 @@ class PromptDefense:
     # Patterns indicating prompt injection attempts
     INJECTION_PATTERNS = [
         r"\n\s*---+\s*\n",  # Separator line
-        r"\n\s*(?:System|Human|Assistant):",  # Role switching
+        r"\n\s*(?:System|Human|Assistant)\s*:",  # Role switching
         r"{{.*?}}",  # Template injection
         r"{%.*?%}",  # Jinja-like injection
         r"\n\s*(?:Ignore|Forget|Disregard|Override)",  # Explicit instructions to ignore

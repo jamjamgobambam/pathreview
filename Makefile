@@ -40,7 +40,11 @@ test-unit: ## Run unit tests only (~30 seconds)
 	$(PYTEST) tests/unit -v -m unit
 
 test-integration: ## Run integration tests only
-	$(PYTEST) tests/integration -v -m integration
+	@if [ -z "$$(find tests/integration -name 'test_*.py' -print -quit)" ]; then \
+		echo "No integration tests found; skipping."; \
+	else \
+		$(PYTEST) tests/integration -v -m integration; \
+	fi
 
 test-all: ## Run full test suite
 	$(PYTEST) tests/ -v

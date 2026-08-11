@@ -1,6 +1,7 @@
 """Bias detection in generated feedback."""
 
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -12,15 +13,18 @@ class BiasDetector:
     # Genuinely dismissive phrases about educational background
     DISMISSIVE_PATTERNS = [
         r"(?:bootcamp|self-taught|online\s+course)\s+(?:education|training)\s+is\s+(?:insufficient|inadequate|lacks)",
-        r"(?:bootcamp|self-taught)\s+(?:graduates?|developers?)\s+(?:lack|missing)\s+(?:rigor|fundamentals|proper\s+training)",
+        r"(?:bootcamp|self-taught)\s+(?:education|training)\s+lacks\s+(?:rigor|fundamentals|proper\s+training)",
+        r"(?:bootcamp|coding\s+bootcamp|self-taught)\s+(?:graduates?|developers?|programmers?)\s+(?:can't|cannot|won't|lack|missing)\s+(?:write|handle|afford|rigor|fundamentals|proper\s+training|production|enterprise)",
         r"(?:bootcamp|coding\s+bootcamp)\s+(?:doesn't|does\s+not)\s+prepare\s+(?:you|developers?)",
-        r"(?:self-taught|bootcamp)\s+is\s+(?:not|never)\s+(?:equal|comparable)\s+to\s+(?:university|traditional|formal)",
+        r"(?:self-taught|bootcamp)(?:\s+developers?)?\s+(?:is|are)\s+(?:not|never)\s+(?:equal|comparable)\s+to\s+(?:university|traditional|formal)",
+        r"(?:bootcamp|coding\s+bootcamp)\s+attendance\s+means\s+(?:inadequate|insufficient)",
     ]
 
     # Demographic assumptions (about age, background, identity)
     DEMOGRAPHIC_PATTERNS = [
-        r"(?:young|old|aged)\s+(?:person|developer|programmer)\s+(?:can't|cannot|won't|will\s+not)",
+        r"(?:young|old|aged)\s+(?:people|persons|developers?|programmers?)\s+(?:can't|cannot|won't|will\s+not)",
         r"(?:person\s+from|coming\s+from)\s+(?:poor|rich|working[\s-]?class)",
+        r"(?:developers?|programmers?)\s+from\s+(?:poor|rich|working[\s-]?class)\s+backgrounds?\s+(?:can't|cannot|won't|will\s+not)",
         r"(?:immigrant|international|foreign)\s+developers?.*(?:can't|cannot|won't|struggle)",
     ]
 
