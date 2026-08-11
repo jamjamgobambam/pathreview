@@ -1,0 +1,19 @@
+{
+  "id": "strong",
+  "github_username": "alexchen",
+  "resume_filename": "resume.md",
+  "resume_text": "Alex Chen\nSenior Software Engineer\nalex.chen@example.com | github.com/alexchen\n\nExperience:\n- Senior Software Engineer at CloudScale (2021-2024)\n  Designed a distributed task queue serving 2M jobs/day. Reduced p99 latency by 40%.\n  Led migration from monolith to FastAPI microservices; mentored 3 engineers.\n- Software Engineer at DataNest (2018-2021)\n  Built Python data pipelines processing 500GB/day. Introduced CI/CD with GitHub Actions.\n\nEducation:\n- M.S. Computer Science, Tech Institute (2018)\n- B.S. Computer Science, State University (2016)\n\nSkills: Python, Go, TypeScript, React, Kubernetes, PostgreSQL, Redis, AWS, FastAPI, gRPC\n",
+  "projects": [
+    {
+      "name": "dist-queue",
+      "github_repo": "alexchen/dist-queue",
+      "readme": "# Distributed Task Queue\nProduction-ready queue with at-least-once delivery and horizontal scaling.\n\n## Results\n- Sustained 2M jobs/day in load tests\n- p99 end-to-end latency under 120ms\n- Documented failure modes and recovery runbooks\n\n## Tech Stack\n- Go workers, Redis streams, Prometheus metrics\n- Helm charts for Kubernetes deploy\n"
+    },
+    {
+      "name": "portfolio-site",
+      "github_repo": "alexchen/portfolio-site",
+      "readme": "# Portfolio Site\nPersonal site showcasing projects with measurable outcomes.\n\n## Features\n- Case studies with before/after metrics\n- Accessible UI (WCAG AA)\n- CI preview deploys\n\n## Tech Stack\n- Next.js, TypeScript, Tailwind CSS\n"
+    }
+  ],
+  "eval_query": "Python Go Kubernetes Redis distributed task queue latency portfolio projects skills"
+}

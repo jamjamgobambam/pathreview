@@ -38,6 +38,8 @@ Thumbs.db
 # Test / Coverage
 htmlcov/
 .coverage
+eval_results.json
+.chromadb/
 .coverage.*
 .pytest_cache/
 .mypy_cache/
