@@ -96,3 +96,35 @@ Added real snapshot tests for the versioned prompt templates in `rag/generator/p
 *(Pre-existing failures noted: `make check`/ruff reports 361 lint errors and `make test-unit` reports 53 failing tests across unrelated modules — e.g. `test_resume_parser.py`, `test_review_service.py`, `test_skill_extractor.py`, `test_pii_scrubber.py` — all pre-dating this branch and untouched by this PR. Confirmed identical failure lists before and after my changes; this PR introduces zero new lint errors or test failures.)*
 
 **Draft PR feedback received from:** none — PR opened as ready for review at https://github.com/ascherj/pathreview/pull/813; requesting peer/mentor feedback in Slack
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments on [PR #813](https://github.com/ascherj/pathreview/pull/813) as of Week 10. This matches the Summer 2026 note that reviewer feedback is not a featured part of the course this term. The PR remains open and ready for review on `ascherj/pathreview`.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting a reliable local environment was harder than the actual issue fix. Docker failed with overlay mount errors and permission denied on `docker.sock`, which blocked `make setup` before I could even look at prompt templates. I also briefly ended up with two copies of the repo (a nested `pathreview/` clone) that diverged from the remote, so `git pull` aborted on uncommitted `JOURNAL.md` changes — more process friction than coding friction. Once the environment was stable, the Week 9 implementation itself was straightforward; the surprise was how much of Module 3 time went into tooling, git hygiene, and documenting pre-existing test/lint failures rather than writing new assertions.
+
+**What did you learn about working in a large codebase?**
+In your own project you often know why every file exists. Here I had to treat `docs/CONTRIBUTING.md`, `PLAN.md`, and existing tests as the map — especially matching patterns in `tests/unit/test_prompt_templates.py` instead of inventing a new testing style. Contributing also means respecting scope: issue #37 was test-only, so I left `rag/generator/prompt_templates.py` untouched even though editing production code would have been tempting. Another lesson was that “green CI” is not always realistic on day one — the suite already had dozens of unrelated failures, so the bar became “don’t make things worse,” which I verified by diffing pass/fail lists before and after my change.
+
+**How did AI tools help — and where did they fall short?**
+AI helped most for orientation and scaffolding: summarizing the issue, drafting `PLAN.md` / journal sections, proposing snapshot-hash constants, and walking through CONTRIBUTING conventions. It also helped diagnose environment errors (Docker overlay vs. missing Postgres). It fell short when details had to be exact — for example, an early draft of expected hashes was truncated by one character and only a programmatic verify script caught it. AI also couldn’t open the cross-fork PR against `ascherj/pathreview` correctly from this environment (it created a fork-internal PR first), so I still had to create the real upstream PR in the GitHub UI. The useful pattern was: AI drafts → I run tests and verify hashes/diffs myself before committing.
+
+**What would you do differently if you started over?**
+I’d lock environment setup on Day 1 (one clone path, Docker Desktop or native Postgres decided early, no nested repos) before writing any journal content. I’d also open the draft PR earlier in Week 9 instead of near the end, so peer feedback could land before Check-in 2. On the technical side, I’d decide “constants vs. JSON fixture” in Week 8 and stick with it immediately — we already leaned toward constants, and delaying that choice didn’t buy much. Finally, I’d keep Week 8 reproduction tests in a form that can coexist with the fix (or mark them clearly temporary) so I wouldn’t have to delete a file whose assertions intentionally broke once snapshots existed.
+
+**What are you most proud of from this module?**
+I’m most proud of proving the gap before fixing it: the Week 8 reproduction showed that a one-word template edit changed the hash but still passed the stub snapshot test, and Week 9 closed that loop with real expected SHA-256 values plus a regression test that simulates the same edit. Watching the new tests fail on a temporary `"Analyze"` → `"Analyse"` mutation, then pass again after revert, made the contribution feel concrete — not just “added some asserts,” but a guardrail that behaves the way the issue described.
