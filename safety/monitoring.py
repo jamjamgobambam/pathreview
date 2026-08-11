@@ -1,6 +1,7 @@
 """Safety event monitoring."""
 
 import time
+import uuid
 
 import redis
 import structlog
@@ -32,8 +33,11 @@ class SafetyMonitor:
         """Log a safety event.
 
         Records the event in a Redis sorted set keyed by event type, using the
-        current timestamp as both member and score so that occurrences can be
-        counted over a rolling time window. The key expires after 24 hours.
+        current timestamp as the score so that occurrences can be counted over a
+        rolling time window. The member appends a UUID to the timestamp because
+        sorted-set members must be unique: two events logged within the same
+        timestamp would otherwise collide, silently overwriting each other and
+        undercounting. The key expires after 24 hours.
 
         Args:
             event_type: Type of event (from VALID_EVENT_TYPES)
@@ -50,7 +54,7 @@ class SafetyMonitor:
             # Store event in a sorted set scored by timestamp for windowed counts
             key = f"safety:events:z:{event_type}"
             now = time.time()
-            self.redis.zadd(key, {str(now): now})
+            self.redis.zadd(key, {f"{now}:{uuid.uuid4()}": now})
             # Set expiry to 24 hours
             self.redis.expire(key, 86400)
 

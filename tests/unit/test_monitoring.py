@@ -61,6 +61,39 @@ class TestSafetyMonitor:
         warn_args = mock_logger.warning.call_args
         assert warn_args[0][0] == "unknown_event_type"
 
+    def test_log_event_same_timestamp_does_not_overwrite(self, monitor, mock_redis):
+        """Test two events logged at the same timestamp use distinct sorted-set members.
+
+        This pins down the fix for the sorted-set member collision issue found in PR
+        review: Redis sorted-set members must be unique, so using the bare timestamp
+        as the member meant two events sharing a time.time() value would overwrite
+        each other and undercount. The member now carries a UUID suffix, so identical
+        timestamps still produce two separate entries.
+        """
+        mock_redis.zadd = Mock()
+        mock_redis.expire = Mock()
+
+        # Both calls see the exact same clock reading.
+        with patch("time.time", return_value=10000.0):
+            monitor.log_event("pii_detected", {"source": "prompt"})
+            monitor.log_event("pii_detected", {"source": "prompt"})
+
+        assert mock_redis.zadd.call_count == 2
+
+        members = []
+        for call_args in mock_redis.zadd.call_args_list:
+            assert call_args[0][0] == "safety:events:z:pii_detected"
+            value_dict = call_args[0][1]
+            assert len(value_dict) == 1
+            member, score = next(iter(value_dict.items()))
+            # The score stays the raw timestamp so window pruning still works.
+            assert score == 10000.0
+            members.append(member)
+
+        # Same timestamp, but the members must differ or the second event would
+        # silently replace the first.
+        assert members[0] != members[1]
+
     def test_get_event_count_returns_zcard_result(self, monitor, mock_redis):
         """Test get_event_count returns the zcard result when the key exists."""
         mock_redis.zremrangebyscore = Mock()
