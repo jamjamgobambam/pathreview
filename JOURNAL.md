@@ -83,3 +83,34 @@ Added `tests/unit/test_architecture_docs.py`. It verifies that `docs/ARCHITECTUR
 The repository contains documented pre-existing failures, but the same failures remained before and after my contribution. The unit-test result improved from 375 passing tests to 376 passing tests while remaining at 53 failures, confirming that the new test passed and no new failures were introduced.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**  
+No reviewer feedback was received. The Summer 2026 course notes stated that reviewer feedback was not being provided during this term, so I documented that no review came in.
+
+**How you responded:**  
+No changes were required in response to reviewer feedback because none was received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**  
+The hardest part was navigating a large unfamiliar codebase and figuring out where the actual hybrid retrieval behavior was implemented. At first, searches returned unrelated scoring code and files inside `.venv` and `node_modules`, so I had to narrow the search until I found `rag/retriever/hybrid.py` and compare it directly with `docs/ARCHITECTURE.md`.
+
+**What did you learn about working in a large codebase?**  
+I learned that contributing to an existing project requires understanding how multiple files work together before making even a small change. For Issue #36, I had to trace the behavior across `rag/retriever/hybrid.py`, `rag/retriever/vector_store.py`, `rag/retriever/keyword_search.py`, and `docs/ARCHITECTURE.md` instead of assuming the documentation alone described the full system.
+
+**How did AI tools help — and where did they fall short?**  
+AI tools helped me navigate the repository, narrow down searches, understand the hybrid scoring formula, create a solution plan, and structure the documentation and test. However, I still had to verify the suggestions against the real code, especially when early searches returned unrelated files and when the repository had many pre-existing Ruff, Mypy, formatting, and unit-test failures.
+
+**What would you do differently if you started over?**  
+I would inspect the project structure and exclude folders such as `.venv` and `node_modules` from searches immediately. I would also run the baseline tests and validation checks earlier so I could separate pre-existing failures from anything caused by my contribution before starting the implementation.
+
+**What are you most proud of from this module?**  
+I am most proud that I was able to take Issue #36 from initial investigation through planning, implementation, testing, and a real pull request. I documented the hybrid retrieval scoring process, including the 0.7 vector and 0.3 BM25 weighting, added a focused test for the architecture documentation, and confirmed that my work did not introduce new test failures.
