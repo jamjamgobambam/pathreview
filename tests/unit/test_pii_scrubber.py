@@ -1,6 +1,9 @@
 """Tests for pii_scrubber.py"""
 
+import string
+
 import pytest
+from hypothesis import given, strategies as st
 
 from safety.pii_scrubber import PIIScrubber
 
@@ -252,3 +255,29 @@ class TestPIIScrubber:
 
         # Should be minimal or no detections
         # (version number shouldn't be flagged as SSN)
+        assert all(
+            item["type"] != "ssn" or item["value"] != "1.2.3"
+            for item in detected
+        )
+
+    @given(st.text(alphabet=string.ascii_letters + string.digits + string.whitespace, min_size=1, max_size=100))
+    def test_scrubber_property_based_text_preserved(self, text):
+        """Property-based test: scrubbing non-PII text should preserve the input."""
+        scrubber = PIIScrubber()
+        scrubbed = scrubber.scrub(text)
+        assert scrubbed == text
+
+    @given(
+        st.one_of(
+            st.emails(),
+            st.from_regex(r"\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}", fullmatch=True),
+            st.from_regex(r"\+[0-9]{1,3}(?:[-.\s]?[0-9]{1,14})+", fullmatch=True),
+            st.from_regex(r"(?!000|666)[0-9]{3}-(?!00)[0-9]{2}-(?!0000)[0-9]{4}", fullmatch=True),
+        )
+    )
+    def test_scrubber_property_based_redacts_pii(self, pii_text):
+        """Property-based test: scrubber should redact generated PII values."""
+        scrubber = PIIScrubber()
+        scrubbed = scrubber.scrub(pii_text)
+        assert "[REDACTED]" in scrubbed
+        assert pii_text not in scrubbed
