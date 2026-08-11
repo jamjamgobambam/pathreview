@@ -94,6 +94,51 @@ Pre-existing baseline noise remains on this tree (~182 ruff findings; unit suite
 
 ---
 
-## Week 10 — Iteration and reflection
+## Week 10 — Iteration & reflection
 
-*(To be filled in next week.)*
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No formal reviewer or maintainer comments had arrived on [PR #828](https://github.com/ascherj/pathreview/pull/828) when I wrote this reflection. Summer 2026 course notes say formal reviewer feedback is not part of this term, so the empty review queue is expected rather than a blocker. I did post a peer-review request in Slack asking classmates familiar with GitHub Actions or dependency security to look at the PR; I had not received a Slack reply to document by the time of this entry.
+
+**How you responded:**
+No reviewer-requested code changes were required. I did a final self-review of `.github/workflows/ci.yml`, the PR description source (`docs/PR_BODY_128.md`), local audit evidence under `_audit_scratch/`, and the Week 9 journal entries. If maintainer or peer comments arrive later, I will reply professionally and update this section.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Defining a useful, mergeable vulnerability *policy* was harder than writing the GitHub Actions YAML. The issue sounded simple—run Python and JavaScript audits and fail on high-severity findings—but local runs showed the first design would not work as intended.
+
+The draft Python job ran `pip audit` after upgrading pip, yet `pip audit` is not a valid command in this environment. The scanner is the separate `pip-audit` package, and CI must install and invoke it explicitly (we pinned `pip-audit==2.10.1`).
+
+The scans also exposed advisories that already existed in the tree. Two Python findings (`PYSEC-2026-311` for `chromadb`, `PYSEC-2026-1325` for `ecdsa`) had no listed fix versions. Clearing the remaining frontend high/critical development-tool findings would have required a breaking Vite/Vitest major upgrade (`npm audit fix --force`). That shifted the work from a small workflow edit into decisions about production vs development scope, severity thresholds, temporary exceptions, and PR boundaries—without using `continue-on-error` or `|| true` to fake a green gate. The final policy blocks production-dep audits, documents two narrow Python ignores, and leaves the Vite migration as follow-up.
+
+**What did you learn about working in a large codebase?**
+A focused change still has to respect repository conventions, existing debt, and what maintainers can reasonably review. In my own projects I can revise deps, CI, and docs together; here each extra surface expands review scope and regression risk.
+
+Issue #128 points at `.github/workflows/ci.yml`, but implementing it correctly also meant reading `pyproject.toml`, frontend package metadata and lockfile, sibling CI jobs, CONTRIBUTING/SETUP, audit output, and the PR template. A short audit command is meaningless without knowing how deps are installed and which packages are production vs tooling.
+
+I also learned that unrelated baseline failures are not automatically my issue. Local `make check` / `make test-unit` were already noisy on this tree. My job was to compare baseline vs branch and show the workflow/docs change did not add application-suite failures—not to turn #128 into broad lint/test cleanup. CI jobs are executable project behavior: their exit codes gate merges, so thresholds and exceptions deserve the same care as application logic.
+
+**How did AI tools help — and where did they fall short?**
+AI helped most when work was split by role. Cursor could see the full repo and was useful for locating files, checking history, running audits, applying focused edits, and verifying the workflow against real command output. Microsoft 365 Copilot helped with longer policy analysis, CI concept explanations, audit triage, and drafting reviewer-facing text without spending as much Cursor generation quota.
+
+That loop worked when each side stayed in its lane: Copilot proposed options such as a production-focused gate; Cursor had to verify them. Copilot’s suggested `pip-audit` pin was not authoritative until Cursor confirmed `2.10.1` from a local install and confirmed `npm audit --omit=dev --audit-level=high` exited 0.
+
+AI fell short wherever suggestions were treated as facts without running commands. Early drafts assumed upgrading pip would expose `pip audit`. Models also cannot decide what maintainers will accept as security policy—that needs repo evidence, exit codes, scope judgment, and honest documentation. The reliable pattern became: ask for options → execute and inspect → correct unsupported claims → record only what the tree demonstrates. Short decision handoffs beat pasting entire transcripts.
+
+**What would you do differently if you started over?**
+I would run the real audit commands as soon as I claimed the issue. The biggest unknown was whether current dependencies already violated the proposed gate. Finding that earlier would have exposed the policy problem before planning around the invalid `pip audit` command.
+
+I would also separate verified facts from proposed decisions sooner: inspect the workflow → confirm the missing jobs → install/identify real tools → record versions, findings, and exit codes → classify prod vs dev → ask for policy advice with that evidence → implement the smallest defensible gate → open a draft PR earlier for visibility, then mark ready after verification.
+
+Finally, I would pass shorter decision summaries between Copilot and Cursor—verified facts, chosen option, rejected alternatives, and required checks—instead of full reasoning dumps.
+
+**What are you most proud of from this module?**
+I am most proud that I did not treat the first red scans as a reason to hide failures or force a breaking frontend migration into a CI-gate PR. I investigated why the jobs failed, corrected the Python command, separated runtime deps from tooling, and chose a blocking policy with narrow, documented exceptions.
+
+The change is small in file count but changes project behavior: before PR #828, CI checked quality and functionality but not dependency advisories; afterward, separate Python and frontend jobs enforce a documented baseline and make failures visible by ecosystem. I am also proud that I can explain *why* that policy exists, what it does *not* cover (full-tree Vite/Vitest remediation), and what follow-up should remove the temporary ignores.
