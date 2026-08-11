@@ -18,34 +18,90 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+
+        ![Build Status](https://example.com/badge.svg)
+        ![Coverage](https://example.com/coverage.svg)
+
+        A comprehensive project description. This project is a full-stack
+        application designed to help developers track, review, and improve
+        the quality of their open source contributions over time. It began
+        as a small internal tool and has grown into a project used by
+        several teams to standardize how code reviews are performed across
+        many repositories. The goal is to give contributors fast, actionable
+        feedback on documentation, test coverage, and overall code health so
+        that they can spend less time on manual review and more time on
+        writing good software.
+
+        The application is built around a simple idea: most of the friction
+        in code review comes from inconsistent expectations. By automating
+        the parts of review that can be automated, such as checking whether
+        a README has the right sections, whether tests exist, and whether
+        the code style matches project conventions, reviewers can focus
+        their attention on the parts of a change that actually require
+        human judgment. This has proven to be a valuable approach in
+        practice, since many pull requests are held up on things that could
+        have been caught automatically.
 
         ## Installation
+        Clone the repository and install the dependencies using the command
+        below. The setup process only takes a couple of minutes on a modern
+        machine and works on macOS, Linux, and Windows through WSL.
         ```bash
+        git clone https://example.com/project.git
+        cd project
         pip install package
         ```
 
         ## Usage
+        Once installed, you can run the tool from the command line. The
+        example below shows a minimal quickstart that scores a single
+        repository, but the tool also supports batch mode for scoring many
+        repositories at once.
         ```python
         import package
         package.run()
         ```
 
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+        - Feature 1: Automated README quality scoring, including checks for
+          installation instructions, usage examples, and badges.
+        - Feature 2: Test coverage analysis that reports which modules are
+          missing meaningful test coverage.
+        - Feature 3: Code style and linting checks that run automatically
+          on every pull request.
+        - Feature 4: A dashboard that summarizes review history so teams
+          can see trends in code quality over time.
 
         ## Tech Stack
+        This project is built with a modern, well-supported technology
+        stack chosen for reliability and ease of contribution.
         - Python 3.9
         - FastAPI
         - PostgreSQL
+        - React for the frontend dashboard
+        - Docker for local development and deployment
 
-        ![Build Status](https://example.com/badge.svg)
-        ![Coverage](https://example.com/coverage.svg)
+        ## Contributing
+        Contributions are welcome from developers of all experience levels.
+        Please open an issue before starting work on a large change so that
+        the maintainers can provide feedback on the approach. Smaller fixes,
+        such as documentation improvements or bug fixes, can be submitted
+        directly as a pull request.
 
         ## Live Demo
-        [Try it here](https://demo.example.com)
+        [Try it here](https://demo.example.com) to see the dashboard in
+        action with a set of sample repositories already scored.
+
+        ## Roadmap
+        Planned improvements include support for additional languages
+        beyond Python and JavaScript, deeper integration with continuous
+        integration providers, and a plugin system that allows teams to
+        define their own custom scoring rules. Feedback from early adopters
+        has been overwhelmingly positive, and the maintainers are actively
+        looking for contributors interested in helping shape the next set
+        of features. If you have ideas for how this project could better
+        support your team's workflow, please open a discussion thread so it
+        can be considered for a future release.
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -157,9 +213,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +275,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +291,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
