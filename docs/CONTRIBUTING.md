@@ -75,11 +75,12 @@ test(agent): add unit tests for readme_scorer tool
 ## Running Checks Locally
 
 ```bash
-make lint       # Ruff linter
-make format     # Black formatter
-make typecheck  # Mypy type checker
-make check      # All three
-make test-unit  # Unit tests
+make lint           # Ruff linter
+make format         # Black formatter
+make typecheck      # Mypy type checker
+make check          # All three
+make test-unit      # Unit tests
+make migrate-check  # Verify migrations apply cleanly and match the models
 ```
 
 ## Adding a New Parser

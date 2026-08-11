@@ -75,10 +75,14 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -e ".[dev]"
+      - name: Validate migrations
+        run: bash scripts/validate_migrations.sh
+        env:
+          DATABASE_URL: postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_test
       - name: Run integration tests
         run: pytest tests/integration -v --tb=short
         env:
-          DATABASE_URL: postgresql://pathreview:pathreview@localhost:5432/pathreview_test
+          DATABASE_URL: postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_test
           REDIS_URL: redis://localhost:6379/0
           LLM_PROVIDER: mock
 
