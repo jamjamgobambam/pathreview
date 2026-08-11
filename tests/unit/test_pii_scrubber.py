@@ -53,6 +53,23 @@ class TestPIIScrubber:
             scrubbed = scrubber.scrub(text)
             assert "[REDACTED]" in scrubbed
 
+    def test_parenthesized_phone_no_space(self, scrubber):
+        """Test parenthesized phone number with no space after the area code."""
+        text = "Call (555)123-4567 anytime"
+        scrubbed = scrubber.scrub(text)
+
+        assert "[REDACTED]" in scrubbed
+        assert "555" not in scrubbed
+
+    def test_multiple_phone_formats_in_same_text(self, scrubber):
+        """Test dashed and parenthesized numbers in the same string both get redacted."""
+        text = "Home: 555-123-4567, Cell: (555) 987-6543"
+        scrubbed = scrubber.scrub(text)
+
+        assert scrubbed.count("[REDACTED]") == 2
+        assert "555-123-4567" not in scrubbed
+        assert "(555) 987-6543" not in scrubbed
+
     def test_international_phone_redaction(self, scrubber):
         """Test international phone number is redacted."""
         text = "Reach me at +44 20 7946 0958"
