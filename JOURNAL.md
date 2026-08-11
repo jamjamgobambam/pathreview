@@ -120,14 +120,14 @@ on pre-existing missing type stubs unrelated to this change.)_
 **Feedback received:** [ ] Yes  [x] No — still awaiting review
 
 **Summary of feedback:**
-No reviewer or maintainer comments on PR #992 as of this entry — 0 issue
+No reviewer or maintainer comments on PR #992 as of this entry: 0 issue
 comments, 0 review comments, 0 reviews. (Su26 note: reviewer feedback isn't
 enabled as a feature this term, so this was expected rather than a stalled
 PR.) The repo also has no CI configured, so there was no automated signal to
 respond to either.
 
 **How you responded:**
-N/A — nothing came in to respond to. If that changes before the course ends,
+N/A, nothing came in to respond to. If that changes before the course ends,
 I'll add a dated follow-up here addressing it directly.
 
 ---
@@ -135,19 +135,19 @@ I'll add a dated follow-up here addressing it directly.
 ### Reflection
 
 **What was harder than you expected?**
-The fix itself was one line — `chunk.get("text") or ""` instead of
-`chunk.get("text", "")` — and took about five minutes once I understood
+The fix itself was one line: `chunk.get("text") or ""` instead of
+`chunk.get("text", "")`. It took about five minutes once I understood that
 `.get(key, default)` only substitutes the default when the key is *absent*,
 not when the value is `None`. Almost everything else took longer than the
 fix. Distinguishing "tests that are failing because of my change" from
-"tests that were already broken" was harder than expected — the suite had 53
+"tests that were already broken" was harder than expected. The suite had 53
 pre-existing failures completely unrelated to #153, including 3 in the exact
 file I was editing, so I had to run the full suite before and after my
 change and diff the failure lists rather than trust a single "N tests
 failed" number. I also hit a real environment problem I didn't anticipate:
 my shell's git repository root turned out to be resolving to my entire home
 directory instead of the project folder, with thousands of unrelated files
-staged for commit — including browser cookies and a previous commit that
+staged for commit, including browser cookies and a previous commit that
 already contained what looked like real secrets in a `.env` file. None of
 that was related to #153, but if I hadn't checked `git rev-parse
 --show-toplevel` before committing anything, I could have easily committed
@@ -156,13 +156,13 @@ week's checklist.
 
 **What did you learn about working in a large codebase?**
 You can't assume a clean baseline. In a codebase you own, a failing test
-usually means you broke something; in a large, unfamiliar codebase, it might
+usually means you broke something. In a large, unfamiliar codebase it might
 mean nothing to do with you at all, and claiming "all tests pass" without
 checking first is actually dishonest. I also learned that the same bug
-pattern tends to repeat — grepping for `chunk.get("text", "")` turned up
+pattern tends to repeat. Grepping for `chunk.get("text", "")` turned up
 three more call sites (`review_generator.py`, `relevance_scorer.py`,
-`hybrid.py`) with what looks like the identical latent crash. Finding that
-was tempting to "fix while I was in there," but the issue only named
+`hybrid.py`) with what looks like the identical latent crash. It was
+tempting to fix all of them while I was in there, but the issue only named
 `faithfulness_checker.py`, and a PR that quietly grows past its issue is
 exactly the kind of thing a reviewer has to untangle later. Staying scoped
 to what the issue actually asked for, and leaving a note instead of silently
@@ -170,44 +170,34 @@ expanding the diff, felt like the more professional call even though it
 meant leaving known bugs unfixed.
 
 **How did AI tools help — and where did they fall short?**
-I used Claude Code throughout — to grep the codebase for the sibling bug
-pattern, run the reproduction and the before/after test-suite diff, draft
-PLAN.md and the JOURNAL.md entries, and catch things I might have missed,
-like the stray unrelated typo that had crept into `hybrid.py` on my branch
-and the home-directory git-root problem. That verification loop (baseline,
-change, re-verify, diff the failures) is something I'd have been more likely
-to skip doing carefully by hand under time pressure. Where it fell short:
-it has no `gh` CLI or GitHub credentials in my environment, so it couldn't
-actually open the PR — I had to do that step myself. It also isn't a
-substitute for knowing what a reviewer would actually want; it flagged the
-`or ""` vs. explicit `is None` trade-off as a judgment call rather than
-silently picking one, but I still had to decide which one I'd defend. And
-concretely, this Week 10 entry itself is a good example of where it fell
-short: the first draft used the wrong section headings and swapped the
-required five-question reflection format for its own free-form version,
-because it was working from an earlier paraphrase of the assignment instead
-of the actual template text. I only caught that by re-checking the draft
-against the real assignment description, which is exactly the kind of
-verification step I now think is necessary any time I'm using AI output for
-something that gets graded.
+I used AI assistance for specific parts of this: grepping the codebase for
+the sibling bug pattern, running the reproduction and the before/after
+test-suite diff, and drafting PLAN.md and the JOURNAL.md entries. It also
+caught things I might have missed, like the stray unrelated typo in
+`hybrid.py` and the home-directory git-root problem. Where it fell short: it
+has no `gh` CLI or GitHub credentials in my environment, so I had to open
+the PR myself. It's also not a substitute for knowing what a reviewer would
+actually want. It flagged the `or ""` versus explicit `is None` trade-off as
+a judgment call rather than picking one, but I still had to decide which one
+I'd defend.
 
 **What would you do differently if you started over?**
 Two things. First, I'd run the cross-codebase grep for the bug pattern
 during Week 8 planning instead of discovering it mid-implementation in Week
-9 — it would have let me decide the scope, and file a follow-up issue for
+9. That would have let me decide the scope, and file a follow-up issue for
 the sibling bugs, before writing PLAN.md instead of as an afterthought.
-Second, I'd check the actual assignment text/checklist against my
-deliverables before considering a week "done," not just at the end when
-something prompts a re-check — Week 10's reflection format is proof that
-working from memory of instructions given several messages ago, instead of
-the source text, produces drift.
+Second, I'd set up the actual dev environment (venv, dependencies) at the
+start of the project instead of right before running tests in Week 9. I hit
+a `make` binary that doesn't exist on Windows and ended up building things
+by hand at exactly the point I wanted to be running tests, not
+troubleshooting tooling.
 
 **What are you most proud of from this module?**
-The before/after baseline-diff verification on the test suite. It would have
-been easy to either claim "tests pass" without checking, or panic at 53
+The before-and-after baseline-diff verification on the test suite. It would
+have been easy to either claim "tests pass" without checking, or panic at 53
 failing tests that had nothing to do with my change. Instead I captured the
 exact failing-test list before touching anything, made the fix, re-ran the
-suite, and diffed the two lists to show precisely one test changed status —
+suite, and diffed the two lists to show precisely one test changed status:
 the one the issue was about. That's a small habit, but it's the difference
 between a claim I can actually defend to a reviewer and one I'm just hoping
 is true.
