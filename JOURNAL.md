@@ -50,3 +50,34 @@ Short, accurate claims get scored 0.0 by the faithfulness evaluator. The problem
 **Self-review confirmation:** [x] make check passes [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No — still awaiting review
+
+**Summary of feedback:**
+N/A (Summer 2026 cohort — no reviewer feedback assigned)
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Balancing the claim extraction logic so that it splits sentences effectively without creating false positives or breaking short valid phrases was trickier than expected. Handling subtle edge cases—such as `None` values in `context_text` causing unexpected `TypeError`s during evaluation also required careful safe-checking that wasn't immediately obvious when first inspecting the issue.
+
+**What did you learn about working in a large codebase?**
+Working in an established codebase means adhering strictly to existing conventions and testing practices. Bypassing existing environment issues (like pre-existing `mypy` type hint warnings) while ensuring that all 23 unit tests passed and writing targeted new test cases taught me how to isolate my changes without breaking surrounding infrastructure.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were very helpful for quickly pinpointing where the short claim length constraint was failing in `_is_supported` and generating initial regex patterns for splitting conjunctions. However, they fell short when dealing with dynamic token overlap logic and edge cases like `None` safe-checking, which required hands-on debugging and precise logical structuring.
+
+**What would you do differently if you started over?**
+If starting over, I would write unit tests for edge cases (like short 1-token claims and `None` handling) _before_ attempting the fix, following a stricter Test-Driven Development (TDD) workflow to verify the failure modes earlier in the process.
+
+**What are you most proud of from this module?**
+I am most proud of creating a comprehensive fix that solved both the primary short claim faithfulness scoring bug and underlying null handling, backed by a clean PR with unit tests verifying full test suite compliance.
