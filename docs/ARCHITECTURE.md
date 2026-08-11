@@ -59,6 +59,60 @@ A plan-execute orchestrator that coordinates multiple analysis tools. Each tool 
 ### RAG System (`rag/`)
 Hybrid retrieval (vector similarity + BM25 keyword) fetches relevant context from the user's ingested documents. The generator uses prompt templates to produce structured, evidence-based feedback. The evaluator scores retrieval relevance and generation faithfulness.
 
+#### Hybrid Retrieval Scoring
+PathReview combines semantic vector retrieval with BM25 keyword retrieval to balance conceptual similarity with exact-term matching. By default, vector retrieval contributes 70% of the final score and keyword retrieval contributes 30%.
+
+The vector store first converts each returned distance into a similarity score:
+
+```
+vector_score = 1 / (1 + distance)
+```
+
+Because vector and BM25 scores use different scales, each score is normalized against the highest score returned by its respective retrieval method:
+
+```
+normalized_vector_score =
+    vector_score / highest_vector_score
+
+normalized_keyword_score =
+    bm25_score / highest_bm25_score
+```
+
+The final hybrid score is calculated as a weighted sum:
+
+```
+hybrid_score =
+    (vector_weight * normalized_vector_score)
+    + (keyword_weight * normalized_keyword_score)
+```
+
+The default weights are:
+
+```
+vector_weight = 0.7
+keyword_weight = 0.3
+```
+
+If a chunk appears in only one result set, its score for the other retrieval method is treated as zero.
+
+For example, suppose the highest vector score returned for a query is 0.90 and the highest BM25 score is 12.0. A candidate chunk has a vector score of 0.72 and a BM25 score of 9.0.
+
+Its normalized scores are:
+
+```
+normalized_vector_score = 0.72 / 0.90 = 0.80
+normalized_keyword_score = 9.0 / 12.0 = 0.75
+```
+
+Its final hybrid score is:
+
+```
+hybrid_score = (0.7 * 0.80) + (0.3 * 0.75)
+             = 0.785
+```
+
+Results are sorted from highest to lowest hybrid score. By default, chunks with a blended score below 0.3 are removed, and no more than 10 chunks are returned.
+
 ### Safety Layer (`safety/`)
 Middleware wrapping the generation pipeline. Components run in sequence: prompt injection defense → content filter → bias detector → PII scrubber. All safety events are logged with structured metadata for monitoring.
 
