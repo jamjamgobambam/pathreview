@@ -241,6 +241,41 @@ class TestFaithfulnessChecker:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
+    def test_mixed_valid_and_none_chunks_still_scores(self, checker):
+        """Test a mix of valid and None-text chunks scores from the valid one."""
+        feedback = "The developer has strong Python and Django skills."
+        context_chunks = [
+            {"text": "Python expertise and Django framework experience shown."},
+            {"text": None},  # malformed chunk must not abort the whole check
+        ]
+
+        score = checker.check(feedback, context_chunks)
+
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+        # The valid chunk supports the claim, so it should still score.
+        assert score > 0.0
+
+    def test_all_none_chunks_returns_valid_score(self, checker):
+        """Test that all-None chunks behave like empty context, not a crash."""
+        feedback = "Has Python skills"
+        context_chunks = [{"text": None}, {"text": None}]
+
+        score = checker.check(feedback, context_chunks)
+
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+
+    def test_non_string_chunk_text_does_not_crash(self, checker):
+        """Test that non-string chunk text (e.g. int) is ignored, not stringified."""
+        feedback = "Has Python skills"
+        context_chunks = [{"text": 123}]
+
+        score = checker.check(feedback, context_chunks)
+
+        assert isinstance(score, float)
+        assert 0.0 <= score <= 1.0
+
     def test_missing_text_key_in_chunk(self, checker):
         """Test handling of missing 'text' key in context chunk."""
         feedback = "Has Python skills"
