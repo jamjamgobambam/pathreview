@@ -83,8 +83,6 @@ because the endpoint uses OAuth2 form data — a gotcha invisible from the doc.
 Two endpoints (`PUT /profiles/{profile_id}` and `GET /reviews/{review_id}/status`)
 are implemented in the route files but missing from `docs/API.md` entirely.
 
-**PLAN.md link:** [link to PLAN.md on your branch after commit]
-
 **Walkthrough video (recommended):** [not recorded]
 
 **Blockers or open questions:**
@@ -121,7 +119,8 @@ none in files touched by this PR.
 
 ### Check-in 2 (end of week)
 
-**PR link:** [will add after opening PR]
+**PR link:**
+https://github.com/ascherj/pathreview/pull/823
 
 **Branch:** `docs/117-api-curl-examples`
 
@@ -140,3 +139,90 @@ curl examples are included, and the form-data warning is documented.
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback came in before the end of the course. This is noted
+as normal per the module guide — maintainers are often volunteers with
+limited time, and a PR without a review is not a failed contribution.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment setup was harder than expected — not conceptually, but in
+practice. Docker containers have to be running and healthy before `make run`,
+and if you start the app first the connection pool initializes with dead
+connections and silently stays broken until you restart. There's no obvious
+error message pointing to the real cause. I lost real time to this across
+multiple sessions before I understood the startup sequence well enough to
+do it reliably. I'd flag that as the single most friction-causing part of
+the whole module.
+
+The other thing that surprised me was the test question for a docs-only
+change. The testing guide assumes you're touching a Python function — it
+says to find the test file for the module you changed and match the pattern.
+But `docs/API.md` is a markdown file. There is no test file for it. I had
+to reason through a reasonable approach from scratch: regression tests that
+check the markdown file contains the expected endpoints and curl examples.
+It works and it's legitimate, but it wasn't something I could just look up.
+
+**What did you learn about working in a large codebase?**
+The biggest thing was how much the pre-existing state of the codebase
+shapes your work. `make check` reported 182 lint errors and `make test-unit`
+had 53 failing tests before I touched a single file. In my own projects,
+a failing test means I broke something. Here it meant I needed to understand
+the baseline before I could say anything meaningful about whether my changes
+made things better or worse. That shift — from "all tests should pass" to
+"my changes should not introduce new failures" — is a real adjustment.
+
+I also learned how important it is to read the actual code rather than
+trust a description of it. The login endpoint's form-data requirement is
+not mentioned anywhere in the existing docs. I only found it by reading
+`api/routes/auth.py` and seeing `OAuth2PasswordRequestForm`. If I had
+written the curl example from memory or from a summary, it would have
+shown JSON and been wrong.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for orientation — summarizing what route files do,
+explaining the FastAPI dependency injection pattern, helping me understand
+what `OAuth2PasswordRequestForm` means in practice. That kind of "explain
+this code to me" use saved real time.
+
+Where it fell short: AI predicted that issue #3 in a previous project
+(duplicate search results) was a many-to-many join fan-out bug fixable
+with `.distinct()`. When I reproduced it, the bug didn't manifest — SQLAlchemy
+2.0 de-duplicates ORM entity queries automatically. I would have submitted
+a fix for a bug that didn't exist if I hadn't run the reproduction first.
+That's the lesson: AI can generate a plausible explanation, but plausible
+is not the same as correct. You have to verify against the real system.
+
+**What would you do differently if you started over?**
+Start Docker Desktop before doing anything else, every session, without
+thinking about it. That's the obvious one.
+
+Less obviously: I'd open the draft PR in Week 8 rather than Week 9. The
+assignment says not to wait until the due date, and I understand why now —
+getting feedback before the final submission would have been more valuable
+than getting it after. Even if no maintainer reviewed it, the act of
+writing the PR description early would have clarified my thinking about
+what I was actually building and why.
+
+**What are you most proud of from this module?**
+The reproduction work from Week 8. I actually ran all 11 endpoints against
+the live API and captured real response shapes before writing a single
+example. That's what made the curl examples accurate rather than
+plausible-looking-but-wrong. The login form-data gotcha — `POST /auth/login`
+returns 422 if you send JSON instead of form data — is something I only
+caught by hitting the endpoint myself and seeing it fail. That observation
+is probably the most useful thing in the entire PR, and I only found it
+because I did the reproduction properly rather than skipping it.
