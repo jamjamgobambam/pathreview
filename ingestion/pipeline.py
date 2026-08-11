@@ -69,7 +69,9 @@ class IngestionPipeline:
         Returns:
             IngestResult with ingestion status
         """
-        source_id = f"resume_{profile_id}_{self._hash_content(content)}"
+        content_hash = self._hash_content(content)
+        document_id = f"resume_{profile_id}"
+        source_id = f"{document_id}_{content_hash}"
 
         logger.info(
             "Starting resume ingestion",
@@ -92,6 +94,7 @@ class IngestionPipeline:
             metadata = parse_result.metadata.copy()
             metadata.update({
                 "source_id": source_id,
+                "document_id": document_id,
                 "profile_id": profile_id,
                 "filename": filename,
                 "source_type": "resume",
@@ -100,6 +103,9 @@ class IngestionPipeline:
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
             logger.info("Resume chunked successfully", chunk_count=len(chunks))
+
+            # Evict any prior version of this document before storing the new one
+            self._delete_existing_chunks(document_id)
 
             # Generate embeddings and store
             self.batch_processor.process(chunks)
@@ -140,7 +146,9 @@ class IngestionPipeline:
         Returns:
             IngestResult with ingestion status
         """
-        source_id = f"readme_{profile_id}_{repo_name}_{self._hash_content(content)}"
+        content_hash = self._hash_content(content)
+        document_id = f"readme_{profile_id}_{repo_name}"
+        source_id = f"{document_id}_{content_hash}"
 
         logger.info(
             "Starting README ingestion",
@@ -167,6 +175,7 @@ class IngestionPipeline:
             metadata = parse_result.metadata.copy()
             metadata.update({
                 "source_id": source_id,
+                "document_id": document_id,
                 "profile_id": profile_id,
                 "repo_name": repo_name,
                 "source_type": "readme",
@@ -175,6 +184,9 @@ class IngestionPipeline:
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
             logger.info("README chunked successfully", chunk_count=len(chunks))
+
+            # Evict any prior version of this README before storing the new one
+            self._delete_existing_chunks(document_id)
 
             # Generate embeddings and store
             self.batch_processor.process(chunks)
@@ -214,7 +226,9 @@ class IngestionPipeline:
             IngestResult with ingestion status
         """
         repo_name = repo_data.get("name", "unknown")
-        source_id = f"repo_{profile_id}_{repo_name}_{self._hash_content(str(repo_data))}"
+        content_hash = self._hash_content(str(repo_data))
+        document_id = f"repo_{profile_id}_{repo_name}"
+        source_id = f"{document_id}_{content_hash}"
 
         logger.info(
             "Starting repo metadata ingestion",
@@ -241,6 +255,7 @@ class IngestionPipeline:
             metadata = parse_result.metadata.copy()
             metadata.update({
                 "source_id": source_id,
+                "document_id": document_id,
                 "profile_id": profile_id,
                 "source_type": "repo",
             })
@@ -248,6 +263,9 @@ class IngestionPipeline:
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
             logger.info("Repository metadata chunked successfully", chunk_count=len(chunks))
+
+            # Evict any prior version of this repo metadata before storing the new one
+            self._delete_existing_chunks(document_id)
 
             # Generate embeddings and store
             self.batch_processor.process(chunks)
@@ -279,18 +297,24 @@ class IngestionPipeline:
 
     def _check_skip(self, source_id: str, source_type: str) -> Optional[IngestResult]:
         """
-        Check if source has already been ingested.
+        Check if this exact content has already been ingested.
 
-        Returns IngestResult if should skip, None if should proceed.
+        The vector store is the source of truth: ``source_id`` embeds the content
+        hash, so if chunks with this id already exist the content is unchanged and
+        we skip re-embedding it. A changed document has a different ``source_id``
+        and is not skipped here — its stale chunks are evicted by
+        ``_delete_existing_chunks`` before the new version is stored.
+
+        Args:
+            source_id: Content-addressed id for this exact version of the source.
+            source_type: Type of source (resume, readme, repo).
+
+        Returns:
+            IngestResult if ingestion should be skipped, None if it should proceed.
         """
         try:
-            # Query database for existing source
-            # This assumes a table/model named IngestedSource
-            existing = self.db_session.query(
-                "IngestedSource"  # Placeholder - actual query depends on ORM
-            ).filter_by(source_id=source_id).first()
-
-            if existing:
+            existing = self.vector_db.get(where={"source_id": {"$eq": source_id}}, limit=1)
+            if existing and existing.get("ids"):
                 logger.info("Source already ingested, skipping", source_id=source_id)
                 return IngestResult(
                     source_id=source_id,
@@ -306,6 +330,37 @@ class IngestionPipeline:
             )
 
         return None
+
+    def _delete_existing_chunks(self, document_id: str) -> None:
+        """
+        Remove any previously stored chunks for a document before re-ingesting.
+
+        Chunks are keyed on a stable ``document_id`` (independent of content), so
+        an edited document fully replaces its prior version instead of piling new
+        chunks alongside the old ones. This prevents the retriever from returning
+        stale content after a re-ingestion (issue #27). Safe no-op when the
+        document has never been ingested.
+
+        Args:
+            document_id: Stable identifier for the document, independent of its
+                content hash (e.g. ``readme_{profile_id}_{repo_name}``).
+        """
+        try:
+            existing = self.vector_db.get(where={"document_id": {"$eq": document_id}})
+            stale_ids = existing.get("ids") if existing else None
+            if stale_ids:
+                self.vector_db.delete(ids=stale_ids)
+                logger.info(
+                    "Evicted stale chunks before re-ingestion",
+                    document_id=document_id,
+                    count=len(stale_ids),
+                )
+        except Exception as e:
+            logger.warning(
+                "Could not delete existing chunks",
+                document_id=document_id,
+                error=str(e),
+            )
 
     def _record_ingested_source(
         self,
