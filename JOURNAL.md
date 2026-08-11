@@ -62,3 +62,34 @@ Updated tests/unit/test_faithfulness_checker.py: confirmed the existing test_non
 (Both commands pass for the files this PR touches; the project has pre-existing, unrelated failures documented in the PR's Notes for Reviewers section, confirmed via git stash to exist before this change.)
 
 **Draft PR feedback received from:** none — no peer/mentor review available this term (per course announcement); self-reviewed against the pre-submission checklist instead.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review comments arrived on PR #592 by the end of the module. Per the course announcement, reviewer feedback is not a feature this term (Summer 2026) — self-review against the pre-submission checklist was the substitute for this cycle.
+
+**How you responded:**
+N/A — no feedback was received to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the local environment running was more work than I expected. I hit a WSL2 install requirement for Docker Desktop, then a real dependency conflict where chromadb's pinned image rebuilt hnswlib against a newer, incompatible numpy at container startup, crashing the vector-db service with AttributeError: np.float_ was removed in NumPy 2.0. I had to add a command override in docker-compose.yml to pin numpy<2 before I could even start on the actual fix. I didn't expect that much of Week 7 to be infrastructure debugging rather than reading code.
+
+**What did you learn about working in a large codebase?**
+The biggest difference from my own projects was realizing the codebase already had real, pre-existing problems unrelated to my issue -- 182 make check errors and 53 failing tests on main before I touched anything. I had to learn to isolate exactly which failures were mine, using git stash to compare before and after my change, instead of assuming everything red was something I broke. In my own projects a failing test always means I broke something; here it sometimes just means someone else's code has debt I am not responsible for.
+
+**How did AI tools help -- and where did they fall short?**
+AI was most useful for isolating scope quickly. For example, when my new test test_mixed_none_and_valid_context_chunks unexpectedly failed, working through it step by step revealed the failure was caused by a separate pre-existing bug in _is_supported()'s keyword-overlap threshold, not my fix -- the feedback text just needed clearer word overlap with the context. Where it fell short was tasks that required actually running things and reading real output -- I still had to run make check, make test-unit, and read raw tracebacks myself to confirm claims like "182 pre-existing errors" rather than trusting an assumption.
+
+**What would you do differently if you started over?**
+I would run make check and make test-unit on a completely clean checkout before doing anything else, even before setup troubleshooting, so I had the full baseline numbers from minute one instead of gathering them mid-way through Week 9. I would also draft my new test's input data more carefully upfront -- my first version of test_mixed_none_and_valid_context_chunks used feedback and context text with only one overlapping word, which failed for an unrelated reason and cost me a debugging detour before I adjusted the wording. If real review had been available this term, I also would have opened a top-level PR comment flagging the _is_supported() scoring bug I found in three other tests, rather than just noting it in Notes for Reviewers -- surfacing it explicitly would have been the more proactive move, even though fixing it was out of scope for #153.
+
+**What are you most proud of from this module?**
+I am proud of how I handled the PR's Notes for Reviewers section. Instead of just fixing my one bug and moving on, I actually verified with git stash which of the 53 failing tests and 182 lint errors existed before my change, and documented that precisely instead of vaguely. That felt like the real difference between a student exercise and an actual professional contribution.
