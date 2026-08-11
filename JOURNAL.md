@@ -65,3 +65,37 @@ None. This is a documentation-only change to `docs/ARCHITECTURE.md`, which is no
 > Note on pre-existing failures: before making any change, `make check` reported 182 ruff errors and `make test-unit` reported 53 failed / 375 passed. These failures are all in pre-existing Python source and test files (e.g. `test_pii_scrubber.py`, `test_review_service.py`, `test_resume_parser.py`, `test_tech_detector.py`) and are unrelated to this issue. My change touches only `docs/ARCHITECTURE.md` (zero Python), so it introduces no new failures — the pre-commit hooks confirm no Python files were checked. Per the Week 9 guidance, "passes" here means my changes introduce no new failures.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No — still awaiting review
+
+**Summary of feedback:**
+N/A
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Creating the pull request and using github in general was harder than I suspected. I am not that familiar with these tools, so it was interesting learning how to do it.
+
+**What did you learn about working in a large codebase?**
+I learned that you don't need to know how every single
+
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+
+**How did AI tools help — and where did they fall short?**
+AI was helpful in planning out the structure of the issue and how I should first tackle it. It fell short due to being sometimes unavailable. Some parts of the assignment I had to do without the use of AI, like how certain things were worded or explained in ARCHITECTURE.md.
+
+**What would you do differently if you started over?**
+I'd probably pick up another issue if I had more time.
+
+**What are you most proud of from this module?**
+I'm most proud of my ability to complete all assignments on time.
