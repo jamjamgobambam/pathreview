@@ -53,6 +53,23 @@ class TestPIIScrubber:
             scrubbed = scrubber.scrub(text)
             assert "[REDACTED]" in scrubbed
 
+    def test_parenthesized_phone_fully_redacted(self, scrubber):
+        """Test that parenthesized phone numbers are fully redacted, including the opening paren."""
+        text = "Call me at (555) 123-4567"
+        scrubbed = scrubber.scrub(text)
+
+        assert scrubbed == "Call me at [REDACTED]"
+        assert "(" not in scrubbed
+
+    def test_parenthesized_phone_fully_detected(self, scrubber):
+        """Test detect() captures the full parenthesized number, including the opening paren."""
+        text = "Call me at (555) 123-4567"
+        detected = scrubber.detect(text)
+
+        phone_detections = [d for d in detected if d["type"] == "phone_us"]
+        assert len(phone_detections) == 1
+        assert phone_detections[0]["value"] == "(555) 123-4567"
+
     def test_international_phone_redaction(self, scrubber):
         """Test international phone number is redacted."""
         text = "Reach me at +44 20 7946 0958"
