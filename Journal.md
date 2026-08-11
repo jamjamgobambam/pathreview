@@ -78,3 +78,46 @@ To ensure that this change corrected the error this fix is targeting, I also imp
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** ["none"]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in, but I will eagerly await any input and use all the skills taught in this course to professionally address their concerns.
+
+**How you responded:**
+There was no feedback to respond to, but when I do receive it I will respond in a professional way that utilizes every insight or skill taught throughout this course.
+---
+
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+
+Starting this project, I wasn't expecting the setup to be this technically involved, in the sense that I utilized most of the insights taught throughout this course. These topics range from Git/Git hub knowledge to coordinate documentation when addressing a fix, troubleshooting when docket containers weren't loading correctly, or utilizing a specific approach with AI to understand a codebase when encountering it for the first time.
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+
+I learned the very important skill of opening my programming perspective to eventually hone on problem or fix entirely. Being able to understand a large codebase with the goal of understanding the different mechanisms interconnected with a specific issue is a wonderful skill that I wouldn't have developed without this simulated codebase. Prior to this experience, I would avoid public codebases or PR contributions because I was afraid of approaching larger codebases since they were too daunting. I also learned the importance of documentation when submitting PRs or when interacting with public codebases, documenting design decisions or testing methods is incredibly important since it aids in trying to understand a codebase to develop a bug fix for any collaborator in the future. Prior to this class, I wouldn't document anything since I figured that the programming spoke for itself. This would always hurt me in the future since I would always return to the project to add a fix or expand the project, but I would quickly give up because I struggled so much in trying to  understand my code after a long hiatus.
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+
+I lack the broad programming knowledge to understand the vast variety of programming disciplines or libraries utilized in larger codebases like this one. With AI, I was able to quickly learn about a variety of functions or libraries without having to sift through pages and pages of documentation like I'm accustomed to. Particularly, I asked it why a TEXT wrapper was needed in SQLAlchemy if it had allowed raw SQL string in the previous version. Claude would inform me by collecting insights across reddit or stack overflow to explain the importance of wrapping the sql string with a TEXT wrapper. With this insight, I utilized the TEXT wrapper instead of downgrading the SQLAlchemy import which would break several other functions in the process. Along the same strain of using AI to inform me of a topic to assist me with decision making, it fell short when addressing the many import or setup challenges I came across. When I was first setting up the project, I asked AI for any insights or potential fixes when my Ubuntu distro wasn't mounting correctly with Docker or when Redis wasn't downloading correctly when running Make Setup. I asked AI for help, but it was largely lackluster so I had to research some fixes and experiment many times. This is expected, because there aren't that many documented instances of this issue occurring so there's nothing AI can base their judgment or help on.
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+Regarding my issue selection, I wouldn't change anything about it because I believe I chose the right issue when considering the limited amount of time I had to implement a fix. In another circumstance, I would've definitely tried a issue with a higher difficulty if I had a bit more time. If I could start over, I would definitely change how I planned my implementation by committing some more time into trying to understand the larger codebase. Particularly, since after implementing my fix I wrote a test case that was too broad for the issue I was tackling. I later on had to adjust the scope of the test case, but I could've avoided it if I had accustomed myself a tiny bit more with the larger codebase environment. As a result, this would've altered my process because I wouldn't've had to narrow my test case later on in the timeline.
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+I'm most proud of my commitment to documenting my interaction with the codebase since I used to view this as a waste of time. It took a lot to overcome my previous biases of ignoring documentation when it didn't have a direct payoff I could see. Another aspect I'm proud of myself for is my tenacity in utilizing GitHub or git to interact with this project, it's a very daunting or scary tool to use since it can have such a big impact on the larger programming project but I feel like I overcame it because of  this opportunity.
