@@ -1,0 +1,43 @@
+{
+  "github_username": "janedoe",
+  "resume_text": "# Jane Doe\nSoftware Engineer — jane.doe@example.com | github.com/janedoe\n\n## Summary\nBackend-leaning full-stack engineer with two years of experience building web services.\n\n## Skills\nPython, FastAPI, React, TypeScript, PostgreSQL, Docker\n\n## Experience\nSoftware Engineer at Example Corp (2022–2024)\nBuilt REST APIs and internal developer tooling used by 20+ engineers.\n\n## Education\nB.S. Computer Science, State University (2022)\n\n## Projects\nSee the linked repositories below.",
+  "repositories": [
+    {
+      "name": "portfolio-api",
+      "html_url": "https://github.com/janedoe/portfolio-api",
+      "description": "FastAPI backend that serves portfolio and resume data.",
+      "language": "Python",
+      "stargazers_count": 12,
+      "forks_count": 3,
+      "open_issues_count": 2,
+      "pushed_at": "2026-06-15T14:30:00Z",
+      "readme_content": "# Portfolio API\n\nA FastAPI service exposing portfolio data over a REST API.",
+      "file_structure": [
+        "app/main.py",
+        "app/models.py",
+        "requirements.txt",
+        "tests/test_api.py",
+        ".github/workflows/ci.yml",
+        "Dockerfile"
+      ]
+    },
+    {
+      "name": "task-dashboard",
+      "html_url": "https://github.com/janedoe/task-dashboard",
+      "description": "A React + TypeScript task board for tracking daily work.",
+      "language": "TypeScript",
+      "stargazers_count": 5,
+      "forks_count": 1,
+      "open_issues_count": 0,
+      "pushed_at": "2026-05-01T09:00:00Z",
+      "readme_content": "# Task Dashboard\n\nA small React and TypeScript single-page app for managing tasks.",
+      "file_structure": [
+        "src/App.tsx",
+        "src/index.tsx",
+        "package.json",
+        "tsconfig.json",
+        "vite.config.ts"
+      ]
+    }
+  ]
+}
