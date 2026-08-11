@@ -1,17 +1,30 @@
 """Redis-backed session store."""
 
-import redis
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING, Any, Protocol
+
 import structlog
-from typing import Optional
+
+if TYPE_CHECKING:
+    import redis
 
 logger = structlog.get_logger()
+
+
+class SessionStoreProtocol(Protocol):
+    """Minimal session store interface used by Orchestrator."""
+
+    def get(self, session_id: str) -> dict[str, Any] | None: ...
+
+    def set(self, session_id: str, data: dict[str, Any], ttl_seconds: int = 3600) -> None: ...
 
 
 class SessionStore:
     """Store and retrieve session data from Redis."""
 
-    def __init__(self, redis_client: redis.Redis):
+    def __init__(self, redis_client: redis.Redis) -> None:
         """Initialize session store.
 
         Args:
@@ -19,7 +32,7 @@ class SessionStore:
         """
         self.redis = redis_client
 
-    def get(self, session_id: str) -> Optional[dict]:
+    def get(self, session_id: str) -> dict[str, Any] | None:
         """Get session data.
 
         Args:
@@ -38,7 +51,7 @@ class SessionStore:
 
             parsed = json.loads(data)
             logger.info("session_retrieved", session_id=session_id)
-            return parsed
+            return parsed if isinstance(parsed, dict) else None
 
         except json.JSONDecodeError:
             logger.error("session_decode_error", session_id=session_id)
@@ -47,7 +60,7 @@ class SessionStore:
             logger.error("session_get_error", session_id=session_id, error=str(e))
             return None
 
-    def set(self, session_id: str, data: dict, ttl_seconds: int = 3600) -> None:
+    def set(self, session_id: str, data: dict[str, Any], ttl_seconds: int = 3600) -> None:
         """Store session data.
 
         Args:
