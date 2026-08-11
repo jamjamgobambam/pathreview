@@ -121,3 +121,34 @@ makes pass; no new failures introduced, confirmed by diffing against a
 pre-existing errors before and after this change.)
 
 **Draft PR feedback received from:** [pending]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — not a feature this cohort (per Su26 note)
+
+**Summary of feedback:**
+No review came in — reviewer feedback isn't wired up for Summer 2026 per the course note. I did post PR #247 in Slack as a draft during Week 9 for informal peer input.
+
+**How you responded:**
+N/A — nothing to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Not the streak algorithm — that's a five-line sorted-list walk. What actually took time was the stuff around it: deciding what "correct" behavior even is when GitHub's API misbehaves. I only found the pagination problem because I tested against `torvalds/linux` and watched it try to walk 14,000+ pages — if I'd only tested against small repos I'd have shipped an unbounded loop. I also didn't expect to spend real time on process mechanics: `gh` wasn't installed, so I had to install and auth it mid-week, and it turned out I already had an open PR (#247) from Week 7 sitting there with stale placeholder content that I'd forgotten about, so "open a PR" actually meant "notice the old one and fix it" instead of starting clean.
+
+**What did you learn about working in a large codebase?**
+You inherit constraints you didn't choose. `GitHubTool` already had a `BaseTool`/`ToolResult` contract, an existing error-handling pattern in `execute()`, and a Conventional Commits + branch-naming convention — my job was to fit inside those, not redesign them. The bigger lesson was about the test suite itself: this repo has 54 pre-existing failing tests unrelated to my change, so "does `make test-unit` pass" isn't a yes/no question here — I had to diff my branch against a stashed baseline to prove I hadn't made anything worse, rather than just eyeballing green/red.
+
+**How did AI tools help — and where did they fall short?**
+AI was fastest at mechanical stuff: scaffolding the paginated-fetch loop, generating the `httpx` mock fixtures for 13 test cases, and catching lint issues (the `zip()` strict= warning, the `datetime.UTC` alias) I wouldn't have thought to check for. It fell short on the actual judgment calls — how far back to look, whether a page cap or a lookback window is the right bound, whether a failed commits call should fail the whole tool or degrade — those needed me to reason about the real GitHub API and this specific tool's contract, not just plausible-sounding code. I also had to double check that an AI-suggested detail (`httpx.Response.links` parsing the `Link` header) was real behavior and not a hallucinated convenience.
+
+**What would you do differently if you started over?**
+I'd check for an existing open PR on my branch before assuming I needed to open a new one — that cost me a confused round trip. I'd also wire `GITHUB_TOKEN` through properly from the start instead of leaving it unauthenticated; the streak feature adds up to 20 more API calls per profile on top of what was already there, and 60 requests/hour unauthenticated is not a lot of room.
+
+**What are you most proud of from this module?**
+The failure-degradation test (`test_commits_call_failure_degrades_to_zero_streak`). It's not flashy, but it's the one test that would have caught a real production bug — the naive version of this feature fails the entire tool the moment GitHub rate-limits you, silently losing star counts and README data that had nothing to do with the streak. Writing that test forced me to actually design for partial failure instead of assuming the happy path.
