@@ -7,6 +7,7 @@ from typing import Optional
 from .memory.session_store import SessionStore
 from .memory.context_manager import ContextManager
 from .error_handling import retry_with_backoff
+from .tools.base import ToolResult
 
 logger = structlog.get_logger()
 
@@ -53,13 +54,27 @@ class Orchestrator:
         for tool_name, tool_input in plan:
             try:
                 result = self._execute_tool(tool_name, tool_input)
-                results[tool_name] = result.data if hasattr(result, 'data') else result
-
-                logger.info("tool_executed", tool=tool_name, success=True)
+                if isinstance(result, ToolResult):
+                    if result.success:
+                        results[tool_name] = result.data
+                        logger.info("tool_executed", tool=tool_name, success=True)
+                    else:
+                        results[tool_name] = {
+                            "success": False,
+                            "error": result.error,
+                        }
+                        logger.error(
+                            "tool_execution_failed",
+                            tool=tool_name,
+                            error=result.error,
+                        )
+                else:
+                    results[tool_name] = result
+                    logger.info("tool_executed", tool=tool_name, success=True)
 
             except Exception as e:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
-                results[tool_name] = {"error": str(e), "success": False}
+                raise
 
         # Persist state
         if self.session_store:
@@ -160,8 +175,9 @@ class Orchestrator:
         try:
             result = self._execute_with_timeout(tool, tool_input)
 
-            # Cache result
-            self.context_manager.store_tool_result(tool_name, input_hash, result)
+            # Cache only successful results
+            if not isinstance(result, ToolResult) or result.success:
+                self.context_manager.store_tool_result(tool_name, input_hash, result)
 
             return result
 

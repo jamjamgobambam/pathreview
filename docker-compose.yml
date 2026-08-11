@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: pathreview
       POSTGRES_DB: pathreview_dev
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -24,7 +24,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -38,7 +38,7 @@ services:
   vector-db:
     image: chromadb/chroma:0.4.22
     ports:
-      - "8001:8000"
+      - "127.0.0.1:8001:8000"
     volumes:
       - chromadata:/chroma/chroma
     environment:
