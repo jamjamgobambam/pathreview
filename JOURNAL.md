@@ -28,14 +28,14 @@
 - Branch: `issue-111-pii-scrubber-tests`
 - Repo/branch link: https://github.com/amulya-asu/pathreview/tree/issue-111-pii-scrubber-tests
 - PR status: submitted and ready for review
-- PR link: https://github.com/amulya-asu/pathreview/pull/<replace-with-PR-number>
+- PR link: https://github.com/amulya-asu/pathreview/pull/1
 - PR summary: Fix PII scrubber regexes, add Hypothesis property-based tests, and document the issue plan and journal entries.
 - Tests run: `C:/Python313/python.exe -m pytest tests/unit/test_pii_scrubber.py -q`
 - Additional validation: `make check && make test-unit`
 - Self-review checklist:
   - [x] Branch name follows assignment convention
   - [x] Repository/branch link provided
-  - [ ] PR link to be added after opening PR
+  - [x] PR link added after opening PR
   - [x] Test command documented
   - [x] Journal and plan documents updated
 
