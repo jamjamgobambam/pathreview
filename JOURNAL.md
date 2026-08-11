@@ -29,3 +29,35 @@ Reproduced by executing unit tests against `ResumeParser` with a resume string l
 **Blockers or open questions:**
 None at this time. Ready for implementation in Week 9.
 
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented defensive section extraction and bounds checking in `ingestion/parsers/resume_parser.py`. Updated regex section header detection to account for leading whitespace and markdown headers, and added `extract_sections()` with default empty list fallbacks for all standard section headers.
+
+**Next steps:**
+Verify unit test suite coverage, run self-review checks (`make check` / `make test-unit`), commit changes, push to remote branch, and open pull request.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/1
+
+**Branch:** fix/1-resume-parser-index-error
+
+**What you built:**
+Added defensive bounds checking, enhanced section matching, and safe empty list fallbacks to `ResumeParser`. Resumes lacking work experience sections are parsed gracefully without raising unhandled `IndexError` or `KeyError` exceptions.
+
+**Tests added or updated:**
+Added `test_extract_sections_no_experience` to `tests/unit/test_resume_parser.py` and updated section detection and markdown stripping test cases to verify resumes without work experience sections.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
+
+
