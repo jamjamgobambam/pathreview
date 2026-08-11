@@ -112,42 +112,43 @@ test file, and pre-commit mypy reports missing annotations throughout the existi
 **Feedback received:** [ ] Yes  [x] No — still awaiting review
 
 **Summary of feedback:**
-No reviewer feedback has been received yet. Pull request #843 is awaiting peer or mentor review.
+
+No reviewer feedback has been received. The Summer 2026 course instructions note that reviewer feedback is not provided this term, and pull request #843 currently has no review submissions or review comments.
 
 **How you responded:**
-No reviewer-directed changes have been made yet. I completed a detailed self-review, strengthened
-the properties so partial redaction cannot pass, reran the focused tests, and documented existing
-repository failures in the pull request.
+
+Because no reviewer feedback was available, no reviewer-directed changes were necessary. I used the week to complete a detailed self-review, rerun the focused property-based tests, review the final diff, and document the repository's pre-existing test, lint, and type-check failures in the pull request.
 
 ---
 
 ### Reflection
 
 **What was harder than you expected?**
-The hardest part was separating failures introduced by my work from failures already present in the
-repository. The focused property tests passed, but the complete PII test file exposed existing phone
-and address regex problems. Hypothesis also showed that checking only whether the original value
-disappeared was too weak because partial redaction could satisfy that assertion.
+
+The hardest part was separating problems introduced by my work from problems that already existed in the repository. The focused property tests passed, but the complete PII scrubber test file contained failures caused by existing phone-number and street-address regex behavior. The quality checks also reported existing lint and type-annotation problems in the test file. Understanding which failures actually belonged to issue #111 required inspecting the implementation, reviewing the full diff, and running progressively narrower checks.
+
+Hypothesis also exposed a subtle testing problem: simply checking that the original PII value disappeared was not strong enough, because a partial redaction could satisfy that assertion without fully removing the sensitive value.
 
 **What did you learn about working in a large codebase?**
-I learned to establish the current behavior and baseline before editing, preserve unrelated work,
-and keep a pull request focused even when nearby defects are discovered. Contributing to someone
-else's codebase requires following its existing contract and documenting issues that belong in
-separate follow-up work.
+
+I learned that contributing to an existing codebase requires understanding its current contract and baseline before making changes. A test should verify behavior the application actually claims to support rather than silently expanding that behavior.
+
+I also learned the importance of preserving unrelated work, following repository conventions, checking whether failures reproduce before my changes, and keeping a pull request focused even when nearby defects are discovered. In my own project I could immediately change both the tests and implementation, but in a shared production codebase those changes may belong to separate issues and need to be justified independently.
 
 **How did AI tools help — and where did they fall short?**
-AI tools helped locate the relevant implementation and configuration, design component-based
-Hypothesis strategies, interpret minimized examples, and review the final diff. They fell short when
-repository-wide commands were suggested before accounting for the Windows environment and stale
-virtual-environment launchers. I still needed to evaluate the output, distinguish generator mistakes
-from production bugs, and make scope decisions.
+
+AI tools helped me explore the repository, locate the PII implementation, understand its regular expressions, design Hypothesis strategies, review the diff, and interpret minimized failing examples. They were especially useful for identifying partial-redaction cases that simple example-based tests could miss and for quickly comparing generated inputs with the scrubber's supported behavior.
+
+AI assistance fell short when it initially suggested repository-wide commands without accounting for my Windows environment and the repository's stale virtual-environment launchers. It also could not replace the judgment needed to distinguish a genuine scrubber defect from an invalid generator assumption or decide whether a discovered problem belonged in this pull request. I still needed to inspect the actual output, verify commands locally, compare against the baseline, and make the final scope decisions myself.
 
 **What would you do differently if you started over?**
-I would create the correct issue branch first, run and save baseline test and quality-check results,
-and verify the development environment before implementing anything. I would also begin with strict
-complete-output assertions instead of first checking only that the original PII value disappeared.
+
+I would first create the correct issue branch from the latest `main`, then run and save the baseline focused tests, relevant unit tests, lint checks, and type checks before editing. I would also verify the local development tools and virtual environment before reaching the commit stage.
+
+During implementation, I would begin with strict properties that verify the complete scrubbed output rather than only checking that the original PII value disappeared. That would make it easier to identify partial-redaction behavior earlier and distinguish implementation limitations from generator mistakes.
 
 **What are you most proud of from this module?**
-I am most proud that the strategies construct realistic PII from meaningful components rather than
-copying the production regular expressions. This gives the randomized tests a better chance of
-detecting regressions and helped reveal subtle partial-redaction behavior during development.
+
+I am most proud of creating property-based strategies that are independent from the production regular expressions. Instead of copying the implementation with `st.from_regex()`, the tests construct realistic emails, phone numbers, Social Security numbers, and street addresses from meaningful components.
+
+This makes the tests more valuable for detecting future regressions rather than simply reproducing the implementation's assumptions, and it helped expose subtle partial-redaction behavior that fixed examples could easily miss.
