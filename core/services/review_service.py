@@ -1,13 +1,15 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import httpx
+import structlog
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
@@ -229,11 +231,13 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
     # Ingest from portfolio URL if available
     if profile.portfolio_url:
         try:
-            # Placeholder: actual portfolio ingestion logic
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(profile.portfolio_url)
+            response.raise_for_status()
             portfolio_data = {
                 "source_type": "portfolio",
                 "url": profile.portfolio_url,
-                "data": f"Portfolio data from {profile.portfolio_url}",
+                "data": response.text,
             }
             sources.append(portfolio_data)
 
@@ -241,6 +245,7 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
             ingested = IngestedSource(
                 profile_id=profile.id,
                 source_type="portfolio",
+                source_url=profile.portfolio_url,
                 raw_data=json.dumps(portfolio_data),
             )
             db.add(ingested)

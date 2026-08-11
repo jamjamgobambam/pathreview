@@ -1,6 +1,5 @@
 import hashlib
 from dataclasses import dataclass
-from typing import Optional
 
 import structlog
 
@@ -10,7 +9,7 @@ from .embeddings.provider import EmbeddingProvider
 from .parsers.readme_parser import ReadmeParser
 from .parsers.repo_analyzer import RepoAnalyzer
 from .parsers.resume_parser import ResumeParser
-
+from .parsers.web_parser import WebParser
 
 logger = structlog.get_logger()
 
@@ -21,7 +20,7 @@ class IngestResult:
     source_id: str
     chunk_count: int
     skipped: bool
-    skip_reason: Optional[str] = None
+    skip_reason: str | None = None
 
 
 class IngestionPipeline:
@@ -51,6 +50,7 @@ class IngestionPipeline:
         self.resume_parser = ResumeParser()
         self.readme_parser = ReadmeParser()
         self.repo_analyzer = RepoAnalyzer()
+        self.web_parser = WebParser()
 
     def ingest_resume(
         self,
@@ -86,7 +86,10 @@ class IngestionPipeline:
         try:
             # Parse resume
             parse_result = self.resume_parser.parse(content)
-            logger.info("Resume parsed successfully", sections=parse_result.metadata.get("detected_sections"))
+            logger.info(
+                "Resume parsed successfully",
+                sections=parse_result.metadata.get("detected_sections"),
+            )
 
             # Prepare metadata
             metadata = parse_result.metadata.copy()
@@ -271,13 +274,81 @@ class IngestionPipeline:
             )
             raise
 
+    def ingest_web(
+        self,
+        profile_id: str,
+        url: str,
+        content: str | bytes,
+    ) -> IngestResult:
+        """
+        Ingest a portfolio website page.
+
+        Args:
+            profile_id: ID of the profile owner
+            url: Portfolio URL
+            content: HTML content for the page
+
+        Returns:
+            IngestResult with ingestion status
+        """
+        source_id = f"web_{profile_id}_{self._hash_content(url)}_{self._hash_content(content)}"
+
+        logger.info(
+            "Starting website ingestion",
+            profile_id=profile_id,
+            url=url,
+            source_id=source_id,
+        )
+
+        skip_result = self._check_skip(source_id, "web")
+        if skip_result:
+            return skip_result
+
+        try:
+            parse_result = self.web_parser.parse(content)
+            logger.info(
+                "Website parsed successfully",
+                title=parse_result.metadata.get("title"),
+                word_count=parse_result.metadata.get("word_count"),
+            )
+
+            metadata = parse_result.metadata.copy()
+            metadata.update({
+                "source_id": source_id,
+                "profile_id": profile_id,
+                "url": url,
+                "source_type": "web",
+            })
+
+            chunks = self.strategy_selector.chunk(parse_result.text, metadata)
+            logger.info("Website chunked successfully", chunk_count=len(chunks))
+
+            self.batch_processor.process(chunks)
+            logger.info("Website embeddings stored", chunk_count=len(chunks))
+
+            self._record_ingested_source(source_id, "web", profile_id, len(chunks))
+
+            return IngestResult(
+                source_id=source_id,
+                chunk_count=len(chunks),
+                skipped=False,
+            )
+        except Exception as e:
+            logger.error(
+                "Website ingestion failed",
+                profile_id=profile_id,
+                url=url,
+                error=str(e),
+            )
+            raise
+
     def _hash_content(self, content: str | bytes) -> str:
         """Generate a hash of content for deduplication."""
         if isinstance(content, str):
             content = content.encode()
         return hashlib.sha256(content).hexdigest()[:16]
 
-    def _check_skip(self, source_id: str, source_type: str) -> Optional[IngestResult]:
+    def _check_skip(self, source_id: str, source_type: str) -> IngestResult | None:
         """
         Check if source has already been ingested.
 
