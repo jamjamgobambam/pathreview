@@ -1,9 +1,55 @@
-"""Tests for prompt_templates.py - Snapshot tests"""
+"""Tests for prompt_templates.py - Snapshot tests
 
-import pytest
+Snapshot workflow (issue #37):
+    EXPECTED_TEMPLATE_HASHES below stores a SHA-256 digest of each
+    (template_name, version) template string. If you intentionally change
+    wording for an existing version, these tests will fail — that's the
+    point. Two ways to respond:
+
+    1. Unintentional change: revert the edit in prompt_templates.py.
+    2. Intentional change: add a NEW version key (e.g. "v2") instead of
+       editing the existing one in place, then add its hash below.
+
+    Do not update an existing hash to make a v1 edit pass silently — that
+    defeats the purpose of this guardrail.
+"""
+
 import hashlib
 
+import pytest
+
 from rag.generator.prompt_templates import PROMPT_TEMPLATES, get_template
+
+# Expected SHA-256 hash of each template's exact text, keyed by
+# (template_name, version). Regenerate with:
+#   hashlib.sha256(PROMPT_TEMPLATES[name][version].encode("utf-8")).hexdigest()
+EXPECTED_TEMPLATE_HASHES = {
+    ("first_impression", "v1"): "9e7697ff3efd892c82c63ffcc8365690685fb1c29f79d45d84e057b2d0672dd0",
+    ("gaps_feedback", "v1"): "b2673a1a1f018f2f2fdf37b2dfb6b30634404ba7bb2c241cc01b6240b9097950",
+    ("presentation_feedback", "v1"): (
+        "87230b7045d66a1fae7d06e2509c6fae31046e0c4e8d30a3c3d6fe9ad2a7a3d7"
+    ),
+    ("projects_feedback", "v1"): "7e53575582f45389e4a3e4f93c7c137da629d3a14809e16f746732b9a06740d1",
+    ("skills_feedback", "v1"): "a24d6d717d4f365c28a686f28b3e77f47204c325ce892fc32d68eb82259f6816",
+}
+
+# Combined hash of ALL template content, used as a single belt-and-suspenders
+# check in addition to the per-template hashes above.
+EXPECTED_COMBINED_TEMPLATE_HASH = "a1c692a29d4b09b2bd24b38f6ae0ef25ac34b1b672c9a9bbec24f9d33245a4a6"
+
+
+def _sha256(text: str) -> str:
+    """Hash template text with SHA-256 (utf-8 encoded)."""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _combined_template_hash() -> str:
+    """Hash of every template's text concatenated in sorted (name, version) order."""
+    template_content = ""
+    for name in sorted(PROMPT_TEMPLATES.keys()):
+        for version in sorted(PROMPT_TEMPLATES[name].keys()):
+            template_content += PROMPT_TEMPLATES[name][version]
+    return _sha256(template_content)
 
 
 @pytest.mark.unit
@@ -52,7 +98,9 @@ class TestPromptTemplates:
         """Test each template contains {context} placeholder."""
         for template_name, versions in PROMPT_TEMPLATES.items():
             for version, template_text in versions.items():
-                assert "{context}" in template_text, f"{template_name} v{version} missing {{context}}"
+                assert (
+                    "{context}" in template_text
+                ), f"{template_name} v{version} missing {{context}}"
 
     def test_each_template_contains_github_username_placeholder(self):
         """Test each template contains {github_username} placeholder."""
@@ -151,19 +199,32 @@ class TestPromptTemplates:
         """Test gaps_feedback template mentions missing/gap concepts."""
         template = PROMPT_TEMPLATES["gaps_feedback"]["v1"]
 
-        assert "gap" in template.lower() or "missing" in template.lower() or "demand" in template.lower()
+        assert (
+            "gap" in template.lower()
+            or "missing" in template.lower()
+            or "demand" in template.lower()
+        )
 
     def test_presentation_feedback_mentions_readme(self):
         """Test presentation_feedback template mentions README or presentation."""
         template = PROMPT_TEMPLATES["presentation_feedback"]["v1"]
 
-        assert "readme" in template.lower() or "presentation" in template.lower() or "organization" in template.lower()
+        assert (
+            "readme" in template.lower()
+            or "presentation" in template.lower()
+            or "organization" in template.lower()
+        )
 
     def test_first_impression_is_concise(self):
         """Test first_impression template instructs concise output."""
         template = PROMPT_TEMPLATES["first_impression"]["v1"]
 
-        assert "2" in template or "3" in template or "sentence" in template.lower() or "summary" in template.lower()
+        assert (
+            "2" in template
+            or "3" in template
+            or "sentence" in template.lower()
+            or "summary" in template.lower()
+        )
 
     def test_get_template_default_version(self):
         """Test get_template() defaults to v1 when version not specified."""
@@ -173,19 +234,79 @@ class TestPromptTemplates:
         assert template_default == template_v1
 
     def test_template_snapshot_content_hash(self):
-        """Snapshot test: verify template content hash."""
-        # Create hash of all template content
-        template_content = ""
+        """Snapshot test: verify combined template content matches expected hash.
+
+        Fails if ANY template's text changes without EXPECTED_COMBINED_TEMPLATE_HASH
+        being updated. See the module docstring for the intentional-change workflow.
+        """
+        content_hash = _combined_template_hash()
+
+        assert isinstance(content_hash, str)
+        assert len(content_hash) == 64  # SHA-256 hash length
+        assert content_hash == EXPECTED_COMBINED_TEMPLATE_HASH, (
+            "Combined prompt template content changed unexpectedly. If this is "
+            "intentional, add a new version key (e.g. 'v2') rather than editing "
+            "the existing version, then update EXPECTED_COMBINED_TEMPLATE_HASH "
+            "and EXPECTED_TEMPLATE_HASHES."
+        )
+
+    def test_each_template_matches_snapshot_hash(self):
+        """Snapshot test: verify each individual template matches its expected hash.
+
+        This pinpoints exactly which template/version changed, unlike the
+        combined hash check above which only reports that *something* changed.
+        """
         for name in sorted(PROMPT_TEMPLATES.keys()):
             for version in sorted(PROMPT_TEMPLATES[name].keys()):
-                template_content += PROMPT_TEMPLATES[name][version]
+                actual_hash = _sha256(PROMPT_TEMPLATES[name][version])
+                expected_hash = EXPECTED_TEMPLATE_HASHES.get((name, version))
 
-        content_hash = hashlib.md5(template_content.encode()).hexdigest()
+                assert expected_hash is not None, (
+                    f"No expected snapshot hash registered for {name}/{version}. "
+                    "Add one to EXPECTED_TEMPLATE_HASHES."
+                )
+                assert actual_hash == expected_hash, (
+                    f"{name}/{version} content changed unexpectedly. If this edit "
+                    "is intentional, add a new version (e.g. 'v2') instead of "
+                    f"editing {version} in place, then update EXPECTED_TEMPLATE_HASHES."
+                )
 
-        # Expected hash - update if templates intentionally change
-        # This helps detect unintended changes to templates
-        assert isinstance(content_hash, str)
-        assert len(content_hash) == 32  # MD5 hash length
+    def test_snapshot_hashes_cover_every_template_version(self):
+        """Ensure EXPECTED_TEMPLATE_HASHES stays in sync with PROMPT_TEMPLATES.
+
+        Catches both directions of drift: a new template/version added without
+        a snapshot entry, and a stale snapshot entry left behind after removal.
+        """
+        actual_keys = {
+            (name, version) for name, versions in PROMPT_TEMPLATES.items() for version in versions
+        }
+        expected_keys = set(EXPECTED_TEMPLATE_HASHES.keys())
+
+        assert actual_keys == expected_keys, (
+            f"Mismatch between PROMPT_TEMPLATES and EXPECTED_TEMPLATE_HASHES. "
+            f"Missing snapshots: {actual_keys - expected_keys}. "
+            f"Stale snapshots: {expected_keys - actual_keys}."
+        )
+
+    def test_snapshot_detects_unversioned_content_edit(self):
+        """Regression test: confirm the snapshot mechanism actually catches edits.
+
+        Simulates the exact failure mode from issue #37 — editing v1 text in
+        place — and verifies the new per-template hash check would flag it,
+        proving this guardrail (unlike the old stub) does its job.
+        """
+        original_text = PROMPT_TEMPLATES["skills_feedback"]["v1"]
+        mutated_text = original_text.replace("Analyze", "Analyse", 1)
+
+        assert mutated_text != original_text  # sanity check the mutation is real
+
+        mutated_hash = _sha256(mutated_text)
+        expected_hash = EXPECTED_TEMPLATE_HASHES[("skills_feedback", "v1")]
+
+        # If someone edited v1 in place without updating the snapshot, the new
+        # test_each_template_matches_snapshot_hash test would fail on this
+        # exact comparison — which is the desired behavior.
+        assert mutated_hash != expected_hash
 
     def test_skills_feedback_requests_json_format(self):
         """Test skills_feedback requests JSON output."""
@@ -216,7 +337,11 @@ class TestPromptTemplates:
         template = PROMPT_TEMPLATES["first_impression"]["v1"]
 
         # Should specify format (JSON or plain text)
-        assert "json" in template.lower() or "text" in template.lower() or "summary" in template.lower()
+        assert (
+            "json" in template.lower()
+            or "text" in template.lower()
+            or "summary" in template.lower()
+        )
 
     def test_templates_have_portfolio_context(self):
         """Test templates mention portfolio or context."""
@@ -230,7 +355,8 @@ class TestPromptTemplates:
         # Import logger to verify it's used
         with pytest.MonkeyPatch.context() as mp:
             from unittest.mock import patch
-            with patch('rag.generator.prompt_templates.logger') as mock_logger:
+
+            with patch("rag.generator.prompt_templates.logger") as mock_logger:
                 get_template("skills_feedback")
                 # Should log template retrieval
 
@@ -267,7 +393,8 @@ class TestPromptTemplates:
             for version, template_text in versions.items():
                 # All placeholders should use {name} syntax
                 import re
-                placeholders = re.findall(r'\{(\w+)\}', template_text)
+
+                placeholders = re.findall(r"\{(\w+)\}", template_text)
                 assert "context" in placeholders
                 assert "github_username" in placeholders
                 assert "project_count" in placeholders
