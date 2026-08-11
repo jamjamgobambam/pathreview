@@ -190,18 +190,20 @@ N/A - No feedback received so no changes
 ### Reflection
 
 **What was harder than you expected?**
-Steering AI correctly and validating the code it generated.
+Steering AI correctly and validating the code it generated for `core/services/webhook_service` and `tests/unit/test_webhook_service.py`.
 
 **What did you learn about working in a large codebase?**
 As I have prior experience as a software engineer navigating the codebase wasn't new but it helped refresh my skills and learn how much time AI can save when coding while emphasizing system design and architectural skills.
 
 **How did AI tools help — and where did they fall short?**
-To generate tests, code and validate everything works. The time it took to code it from scratch took less than a day and I spent valuable time on validating and designing the system which sharpened my design skills.
+To generate tests, code and validate everything works. The time it took to code the webhook service, router and tests from scratch took less than a day and I spent valuable time on validating and designing the system which sharpened my design skills.
 
-It fell short when it generated code that worked but failed on specific edge cases and sometimes used the longer path to give me answers.
+It fell short when it generated code that worked but failed on specific edge cases and sometimes used the longer path to give me answers. For example to generate client setup in `docs/API.md` and `tests/unit/test_callback.py`, it took longer than 1 hour.
 
 **What would you do differently if you started over?**
 I wouldn't change anything; the course structure helped me to dip my toes slowly and confidently into using AI along with my current software engineering skills.
 
 **What are you most proud of from this module?**
-Sharpening my comprehension and critical skills on AI generated content to validate, test and question what it does. It is very easy to trust AI as it is, but I did not want to lose my critical thinking skills so I deliberately took my time each week even though the actual work wasn't very hard.
+Setting up and validating the client setup for the webhook from registering, getting notifications etc. It allowed me to demonstrate my software engineering experience from when I would build APIs, SDKs for external clients and it felt satisfying to see the end to end work.
+
+I also got to sharpen my comprehension and critical skills when using AI assisted development to validate, test and question what it does. I deliberately took my time each week for this even though the actual work wasn't very hard.
