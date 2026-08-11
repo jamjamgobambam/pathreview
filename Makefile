@@ -1,26 +1,43 @@
 .PHONY: setup run test-unit test-integration test-all lint format typecheck check migrate seed reset-db eval clean
 
-SHELL := /bin/bash
+ifeq ($(OS),Windows_NT)
+  SHELL := cmd.exe
+else
+  SHELL := /bin/bash
+endif
 
 # Detect Windows (Git Bash) vs Unix
 ifeq ($(OS),Windows_NT)
-  VENV_BIN := .venv/Scripts
+  VENV_BIN := $(CURDIR)/.venv/Scripts
+  ACTIVATE := "$(VENV_BIN)/activate"
+  PYTHON_BIN := "$(VENV_BIN)/python.exe"
 else
-  VENV_BIN := .venv/bin
+  VENV_BIN := $(CURDIR)/.venv/bin
+  ACTIVATE := "$(VENV_BIN)/activate"
+  PYTHON_BIN := "$(VENV_BIN)/python"
 endif
 
-PYTHON := $(VENV_BIN)/python
-PIP := $(VENV_BIN)/pip
-PYTEST := $(VENV_BIN)/pytest
+PYTHON := $(PYTHON_BIN)
+PIP := $(PYTHON) -m pip
+PYTEST := $(PYTHON) -m pytest
+ifeq ($(OS),Windows_NT)
+  ALEMBIC := $(VENV_BIN)/alembic.exe
+else
+  ALEMBIC := $(VENV_BIN)/alembic
+endif
+PRE_COMMIT := $(PYTHON) -m pre_commit
+RUFF := $(PYTHON) -m ruff
+BLACK := $(PYTHON) -m black
+MYPY := $(PYTHON) -m mypy
 
 # ---- Setup ----
 
 setup: ## First-time setup: venv, deps, migrations, seed data
 	python -m venv .venv || python3 -m venv .venv
-	$(PYTHON) -m pip install --upgrade pip setuptools wheel
+	$(PIP) install --upgrade pip setuptools wheel
 	$(PIP) install -e ".[dev]"
-	$(VENV_BIN)/pre-commit install
-	$(VENV_BIN)/alembic upgrade head
+	$(PRE_COMMIT) install
+	$(ALEMBIC) upgrade head
 	$(PYTHON) scripts/seed_db.py
 	cd frontend && npm install
 	@echo ""
@@ -29,10 +46,7 @@ setup: ## First-time setup: venv, deps, migrations, seed data
 # ---- Run ----
 
 run: ## Start backend + frontend dev servers
-	@trap 'kill %1 %2 2>/dev/null' EXIT; \
-	source $(VENV_BIN)/activate && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
-	cd frontend && npm run dev & \
-	wait
+	$(PYTHON) scripts/run_dev.py
 
 # ---- Tests ----
 
@@ -48,20 +62,20 @@ test-all: ## Run full test suite
 # ---- Code Quality ----
 
 lint: ## Run ruff linter
-	$(VENV_BIN)/ruff check .
+	$(RUFF) check .
 
 format: ## Run black formatter
-	$(VENV_BIN)/black .
+	$(BLACK) .
 
 typecheck: ## Run mypy type checker
-	$(VENV_BIN)/mypy api/ core/ ingestion/ rag/ agent/ safety/
+	$(MYPY) api/ core/ ingestion/ rag/ agent/ safety/
 
 check: lint format typecheck ## Run lint + format + typecheck
 
 # ---- Database ----
 
 migrate: ## Run pending database migrations
-	$(VENV_BIN)/alembic upgrade head
+	$(ALEMBIC) upgrade head
 
 seed: ## Re-seed the database with sample data
 	$(PYTHON) scripts/seed_db.py
@@ -69,7 +83,7 @@ seed: ## Re-seed the database with sample data
 reset-db: ## Drop and recreate the development database
 	docker compose exec db psql -U pathreview -d postgres -c "DROP DATABASE IF EXISTS pathreview_dev;"
 	docker compose exec db psql -U pathreview -d postgres -c "CREATE DATABASE pathreview_dev;"
-	$(VENV_BIN)/alembic upgrade head
+	$(ALEMBIC) upgrade head
 	$(PYTHON) scripts/seed_db.py
 
 # ---- Evaluation ----

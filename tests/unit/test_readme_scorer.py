@@ -16,6 +16,8 @@ class TestReadmeScorer:
 
     def test_readme_with_all_quality_signals(self, scorer):
         """Test README with all quality signals returns high score."""
+        # NOTE: This fixture is intentionally long (>500 words) so it is
+        # categorized as "comprehensive" by the scorer. Do not shorten it.
         readme = """
         # Project Name
         A comprehensive project description.
@@ -46,6 +48,56 @@ class TestReadmeScorer:
 
         ## Live Demo
         [Try it here](https://demo.example.com)
+
+        ## Overview
+        This project provides a robust and well tested foundation for building
+        modern web applications with a focus on developer experience, clarity,
+        and long term maintainability. The design philosophy centers on keeping
+        the surface area small while making the common workflows fast and
+        predictable so that new contributors can become productive quickly and
+        existing contributors can reason about the system with confidence.
+
+        The architecture is intentionally modular. Each component has a clearly
+        defined responsibility and communicates with the rest of the system
+        through stable, documented interfaces. This separation makes it easy to
+        replace individual pieces without disturbing the overall behavior of the
+        application, and it keeps the testing story straightforward because each
+        module can be exercised in isolation.
+
+        ## Configuration
+        Configuration is handled through environment variables and a small set of
+        optional configuration files. Sensible defaults are provided for every
+        setting so that the project runs out of the box, while advanced users can
+        override any value to tune the behavior for their specific deployment.
+        The configuration layer validates every value at startup and reports
+        clear, actionable error messages when something is missing or malformed.
+
+        ## Contributing
+        Contributions are welcome and appreciated. Before opening a pull request,
+        please run the full test suite and make sure the linter passes. When you
+        add a new feature, include unit tests that cover both the happy path and
+        the important edge cases. Documentation updates should accompany any
+        change that affects user facing behavior so that the project remains
+        approachable for newcomers.
+
+        ## Testing
+        The test suite is organized into unit tests and integration tests. Unit
+        tests focus on individual functions and classes, while integration tests
+        verify that the components work correctly together. Running the suite is
+        as simple as invoking the test runner, and the continuous integration
+        pipeline executes the same commands on every push to guarantee that the
+        main branch always stays green and ready to ship.
+
+        ## Roadmap
+        Future work includes expanding the plugin system, improving performance
+        for very large inputs, and adding additional adapters for popular data
+        stores. Community feedback drives the prioritization of these items, so
+        please open an issue if there is a capability you would like to see.
+
+        ## License
+        This project is released under a permissive open source license, which
+        means you are free to use, modify, and distribute it in both personal and
+        commercial projects, subject to the terms described in the license file.
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -157,9 +209,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +271,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +287,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 

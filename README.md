@@ -7,9 +7,13 @@ PathReview analyzes GitHub profiles, resumes, and project repositories to genera
 ## Features
 
 - **Profile Ingestion** — Upload a resume (PDF or Markdown), connect a GitHub profile, and link project repositories
+
 - **RAG-Powered Feedback** — Retrieval-augmented generation produces specific, evidence-based feedback referencing your actual work
+
 - **Multi-Tool Agent** — An AI agent orchestrates GitHub analysis, skill extraction, README scoring, and market comparison
+
 - **Safety Guardrails** — Bias detection, content filtering, PII scrubbing, and prompt injection defense ensure feedback is constructive and safe
+
 - **Web Dashboard** — View results, track improvement over time, and export shareable review summaries
 
 ## Quick Start
