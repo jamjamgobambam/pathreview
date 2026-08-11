@@ -109,7 +109,10 @@ class TestBiasDetector:
 
     def test_clean_feedback_not_flagged(self):
         """Test clean, objective feedback is not flagged."""
-        text = "You have demonstrated strong Python skills. Your code is well-organized and follows best practices."
+        text = (
+            "You have demonstrated strong Python skills. Your code is "
+            "well-organized and follows best practices."
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -117,7 +120,10 @@ class TestBiasDetector:
 
     def test_technical_feedback_not_flagged(self):
         """Test pure technical feedback not flagged."""
-        text = "Consider adding error handling to your API endpoints and documenting the parameters."
+        text = (
+            "Consider adding error handling to your API endpoints and "
+            "documenting the parameters."
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -210,7 +216,10 @@ class TestBiasDetector:
 
     def test_multiple_bias_indicators(self):
         """Test text with multiple bias indicators."""
-        text = "young bootcamp graduates can't write code and immigrant developers lack fundamentals"
+        text = (
+            "young bootcamp graduates can't write code and immigrant "
+            "developers lack fundamentals"
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -250,7 +259,10 @@ class TestBiasDetector:
 
     def test_skill_assessment_not_biased(self):
         """Test skill assessment without bias language."""
-        text = "Your JavaScript skills are at an intermediate level. Practice would help advance to senior level."
+        text = (
+            "Your JavaScript skills are at an intermediate level. Practice "
+            "would help advance to senior level."
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -258,7 +270,10 @@ class TestBiasDetector:
 
     def test_comparative_without_bias(self):
         """Test comparison without biased assumptions."""
-        text = "Your bootcamp education covers practical skills. University education provides theory. Both have value."
+        text = (
+            "Your bootcamp education covers practical skills. University "
+            "education provides theory. Both have value."
+        )
 
         is_biased, reason = BiasDetector.detect_bias(text)
 
@@ -274,3 +289,60 @@ class TestBiasDetector:
 
         assert is_biased_obs is False  # Factual
         assert is_biased_ass is True  # Biased assumption
+
+    def test_issue_example_formal_cs_rigor_detected(self):
+        """Test issue example about bootcamp vs formal CS rigor is detected."""
+        text = (
+            "The candidate only attended a bootcamp, so this project lacks "
+            "the rigor of a formal CS education"
+        )
+
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is True
+        assert reason == "Dismissive language about educational background"
+
+    def test_issue_example_age_frameworks_detected(self):
+        """Test issue example about age and modern frameworks is detected."""
+        text = "Given their age, they likely cannot keep up with modern frameworks"
+
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is True
+        assert reason == "Demographic assumptions detected"
+
+    def test_background_group_positive_statement_not_flagged(self):
+        """Test background-group mentions without assumptions are not flagged."""
+        text = "Developers from poor backgrounds bring valuable resilience and perspective to teams."
+
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is False
+        assert reason == ""
+
+    def test_coming_from_background_neutral_statement_not_flagged(self):
+        """Test neutral background phrasing is not flagged."""
+        text = "Coming from working-class backgrounds can shape practical product intuition."
+
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is False
+        assert reason == ""
+
+    def test_issue_example_age_without_comma_detected(self):
+        """Test age issue example is detected without requiring a comma."""
+        text = "Given their age they likely cannot keep up with modern frameworks"
+
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is True
+        assert reason == "Demographic assumptions detected"
+
+    def test_insufficiently_word_form_not_matched_as_insufficient(self):
+        """Test longer word forms do not trigger insufficient substring matches."""
+        text = "The online course education section is insufficiently documented in this profile."
+
+        is_biased, reason = BiasDetector.detect_bias(text)
+
+        assert is_biased is False
+        assert reason == ""
