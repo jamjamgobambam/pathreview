@@ -179,3 +179,77 @@ failures pre-date this PR and live in modules it does not touch; details in the 
 for Reviewers.)_
 
 **Draft PR feedback received from:** _None, Yet to be Reviewed_
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review comments arrived on PR #824 (https://github.com/ascherj/pathreview/pull/824)
+before the module ended — the PR shows 0 comments and 1 participant. On the course fork,
+CI is gated behind "2 workflows awaiting approval" (a maintainer has to approve runs for a
+first-time contributor), and with hundreds of open PRs on the repo none was picked up for
+review. This is a normal open-source outcome, not a failed contribution.
+
+**How you responded:**
+There was nothing to respond to, so no changes were made in response to review. If feedback
+had come in I would have triaged it with the review guide's three buckets (clear fixes,
+discussion-needed, clarification-needed) — the most likely comment being whether the
+punctuation-tokenization weakness I flagged in "Notes for Reviewers" should be folded into
+this PR or split into a follow-up issue, which I would have argued to keep separate to keep
+#152 focused.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The environment and tooling were harder than the actual code. The fix itself is a handful of
+lines in `_is_supported`, but getting a clean commit through on Windows was the real fight:
+`make` isn't installed, so I ran the venv commands directly; the pre-commit `mypy` hook was
+first blocked by a Windows Application Control policy and later choked on NumPy 2.x's type
+stubs under `python_version = 3.11`; and at one point I committed the JOURNAL but not the
+actual fix, so PR #824 briefly contained no code change at all. Telling "my problem" apart
+from "the environment's problem" took more effort than writing `min(2, len(claim_tokens))`.
+
+**What did you learn about working in a large codebase?**
+That my change is a small island in a lot of code I didn't write and can't fix all at once.
+Running the full unit suite surfaced 53 failures that had nothing to do with me — skill
+extractor, structural chunker, tech detector, all separate open issues — so the real skill
+was establishing a baseline: I stashed my changes and ran the suite before and after to prove
+it went from 55 to 53 failures, which let me honestly claim "no new failures" instead of
+hoping. I also learned to scope ruthlessly: while reproducing I found a genuine
+punctuation-tokenization bug and confirmed that `test_none_context_chunk_text` actually
+belongs to issue #153, but fixing either would have been scope creep, so I documented them in
+the PR's Notes for Reviewers rather than touching them.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for orientation and drafting: tracing that the `return len(meaningful_overlap) >= 2`
+line in `_is_supported` was the root cause, confirming that `check()` feeds `EvalSuite`, and
+drafting the PLAN, the tests, and the PR description. It fell short on anything tied to the
+live state of the repo: after `black` reformatted the test file, the line numbers I had
+written into PLAN.md were stale and had to be re-derived from the actual file; the mypy
+failure needed real diagnosis (a DLL block vs. a NumPy-stub/Python-version mismatch) rather
+than a generic fix; and only running the code revealed the punctuation edge case. AI sped up
+the reading and writing, but I still had to run everything and check it against reality.
+
+**What would you do differently if you started over?**
+Two things. First, I'd commit the fix and its tests as one atomic commit the moment they
+passed, instead of interleaving journal commits — when I reset staging and committed only the
+JOURNAL, the PR silently lost the fix and I only caught it by reading `git log`. Second, I'd
+fix the environment up front (install `make` and a working `mypy`, or configure pre-commit to
+skip `mypy` on test files) so I wasn't doing the `SKIP=mypy` dance on every `.py` commit. On
+the issue itself I'd still choose #152 for its RAG-evaluation relevance, but I'd check the
+ledger's crowding count before committing to it.
+
+**What are you most proud of from this module?**
+The reproduction-to-regression discipline. In Week 8 I captured the bug as two failing tests —
+the moment it clicked was seeing identical wording score 1.0 as a long claim and 0.0 as a
+short one — and in Week 9 those same tests turned green and now guard the fix. Beyond that,
+I'm proud of how honest the PR is: it quantifies the before/after (55 → 53 failures), draws a
+clear scope boundary, and is transparent about the pre-existing failures and the Windows
+toolchain caveats — the kind of PR a maintainer could trust without knowing me.
