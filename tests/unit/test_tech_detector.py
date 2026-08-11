@@ -58,10 +58,8 @@ class TestTechDetector:
         result = detector.execute({"files": files})
 
         data = result.data
-        assert "Python" in data["all_languages"]
-        # Should not include JSON or data-only language
-        detected_lower = [lang.lower() for lang in data["all_languages"]]
-        # .ipynb should be treated as Python, not JSON
+        assert data["all_languages"] == ["Python"]
+        assert "JSON" not in data["all_languages"]
 
     def test_node_modules_excluded(self, detector):
         """Test node_modules/ directory is excluded from counts."""
@@ -78,6 +76,19 @@ class TestTechDetector:
         assert data["primary_language"] == "Python"
         # node_modules shouldn't dominate
 
+    def test_nested_vendor_directory_excluded(self, detector):
+        """Test a vendor directory nested below the repo root is still excluded."""
+        files = [
+            "src/main.py",
+            "packages/app/node_modules/lib/index.js",
+            "app.py",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+
     def test_vendor_files_excluded(self, detector):
         """Test vendor files are excluded."""
         files = [
@@ -89,7 +100,9 @@ class TestTechDetector:
 
         result = detector.execute({"files": files})
 
+        data = result.data
         # Python should be primary despite vendor files
+        assert data["primary_language"] == "Python"
 
     def test_build_directory_excluded(self, detector):
         """Test build directory is excluded."""
@@ -127,7 +140,9 @@ class TestTechDetector:
 
         result = detector.execute({"files": files})
 
-        # Should detect Python as primary language
+        data = result.data
+        assert "Infrastructure" in data["all_languages"]
+        assert "Python" in data["all_languages"]
 
     def test_github_actions_detection(self, detector):
         """Test GitHub Actions detection."""
@@ -139,7 +154,7 @@ class TestTechDetector:
         result = detector.execute({"files": files})
 
         data = result.data
-        # Should detect both Python and CI/CD
+        assert "Python" in data["all_languages"]
 
     def test_makefile_detection(self, detector):
         """Test Makefile detection."""
@@ -150,7 +165,9 @@ class TestTechDetector:
 
         result = detector.execute({"files": files})
 
-        # Should detect Makefile as build tool
+        data = result.data
+        assert "Make" in data["frameworks"]
+        assert "Python" in data["all_languages"]
 
     def test_typescript_detection(self, detector):
         """Test TypeScript detection."""
@@ -255,7 +272,9 @@ class TestTechDetector:
 
         result = detector.execute({"files": files})
 
-        # Should detect frameworks
+        data = result.data
+        assert "Node.js" in data["frameworks"]
+        assert "Python" in data["frameworks"]
 
     def test_unknown_extensions(self, detector):
         """Test handling of unknown file extensions."""
@@ -280,10 +299,9 @@ class TestTechDetector:
             "Index.JS",
         ]
 
-        result = detector.execute({"files": files})
-
-        data = result.data
-        # Should still detect languages despite case
+        # Extension matching is case-sensitive today (a separate, pre-existing
+        # quirk unrelated to #150); this is a smoke test, not a behavior assertion.
+        detector.execute({"files": files})
 
     def test_multiple_extensions_same_file(self, detector):
         """Test file with multiple dots in name."""
@@ -362,4 +380,4 @@ class TestTechDetector:
         result = detector.execute({"files": files})
 
         data = result.data
-        # Should detect C++ (from .cpp files)
+        assert "C++" in data["all_languages"]
