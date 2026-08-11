@@ -101,3 +101,70 @@ failures, which is the bar for "passes" in a codebase with documented
 pre-existing failures.)_
 
 **Draft PR feedback received from:** none (pending — will request in the cohort Slack channel)
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No peer or mentor review has come in yet. I opened the PR and requested review in
+the cohort Slack channel; as of this entry no one has commented. To keep momentum
+I did a second self-review pass instead of waiting idle (see below).
+
+**How you responded:**
+No external feedback to address. My own self-review pass did catch one real issue:
+the new pipeline/regression tests each created an ephemeral ChromaDB collection
+under a fixed name, so when the whole suite ran in one process the second test hit
+`Collection [...] already exists` and failed. I fixed it by giving every test a
+uniquely named collection (`..._{uuid4().hex}`) in the `_make_pipeline` helper, so
+the tests are isolated and order-independent. If reviewer feedback arrives before
+the deadline I'll address it and note the changes here.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Figuring out which code path was actually live. There were two writers into the
+vector store — `VectorStore.add_chunks` (which *looked* like the canonical one)
+and `BatchEmbeddingProcessor._store_embedding` → the raw ChromaDB collection. The
+first reads `chunk.source_id` / `chunk.id` attributes that the `Chunk` dataclass
+never defines, so it's effectively dead code; the real path was the second one.
+`VectorStore.delete_by_source_id` also already existed but had zero callers. Most
+of the difficulty wasn't writing the fix — it was proving to myself where the bug
+actually lived before changing the id/delete scheme.
+
+**What did you learn about working in a large codebase?**
+Someone else's codebase is full of aspirational or half-wired code sitting next to
+the path that actually runs, and the names lie a little — `source_id` quietly
+embedded the content hash, which is exactly what made an edited README look like a
+brand-new document. You fix the path that's exercised, not the one that reads as
+canonical, and you verify with a test rather than trusting the structure. I also
+learned to treat "passing" realistically: this repo already had 53 failing unit
+tests and 182 ruff findings on a clean checkout, so the bar is "introduce no new
+failures," not "leave the whole repo green."
+
+**How did AI tools help — and where did they fall short?**
+AI was fastest at orientation — grepping for callers of `delete_by_source_id`,
+tracing the write path, and drafting the tests and Google-style docstrings to
+match the repo's conventions. Where it fell short: it couldn't tell me which write
+path was actually used — I had to read the code and reason about the `Chunk`
+dataclass myself — and its first draft of the tests used a fixed collection name
+that only failed once I actually ran the whole suite. The lesson held: generated
+code is a starting point you still have to run and verify.
+
+**What would you do differently if you started over?**
+Resolve the "which write path is live" question during Week 8 planning instead of
+carrying it as a blocker into implementation, and run the full `make test-unit` /
+`make check` baseline on day one so I'd know the pre-existing failures up front. I'd
+also open the draft PR earlier in the week to leave real room for peer review
+rather than finishing the code first and requesting review late.
+
+**What are you most proud of from this module?**
+Turning the Week 8 reproduction into a regression test that now guards the fix —
+the same test that proved the bug was real is the one that will fail if anyone
+reintroduces it — and landing a `document_id` scheme that fixes all three ingest
+paths (readme/resume/repo) without changing the existing `source_id` string, so
+nothing downstream breaks.
