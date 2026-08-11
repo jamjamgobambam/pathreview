@@ -1,10 +1,12 @@
 """Tests for batch_processor.py"""
 
 import pytest
+import chromadb
 from unittest.mock import Mock, MagicMock, patch
 
 from ingestion.chunking.base import Chunk
 from ingestion.embeddings.batch_processor import BatchEmbeddingProcessor
+from ingestion.embeddings.provider import MockEmbeddingProvider
 
 
 @pytest.mark.unit
@@ -206,3 +208,49 @@ class TestBatchEmbeddingProcessor:
             called_texts = mock_embed.call_args[0][0]
             assert called_texts[0] == "Important content here"
             assert called_texts[1] == "More important content"
+
+    def test_reingestion_replaces_existing_document(self):
+        """Reproduce stale embeddings after document re-ingestion."""
+        client = chromadb.Client()
+
+        collection = client.create_collection(
+            name="test_reingestion",
+            metadata={"hnsw:space": "cosine"},
+        )
+        processor = BatchEmbeddingProcessor(
+            embedding_provider=MockEmbeddingProvider(),
+            vector_db=collection,
+        )
+
+        original_chunk = Chunk(
+            text="Original document says Python.",
+            metadata={
+                "source_id": "document-123",
+                "source_type": "resume",
+                "chunk_index": 0,
+            },
+        )
+
+        updated_chunk = Chunk(
+            text="Updated document says Rust.",
+            metadata={
+                "source_id": "document-123",
+                "source_type": "resume",
+                "chunk_index": 0,
+            },
+        )
+
+        # Initial ingestion
+        processor.process([original_chunk])
+
+        # Re-ingest changed content using the same source ID
+        processor.process([updated_chunk])
+
+        stored = collection.get(
+            ids=["document-123_chunk_0"],
+            include=["documents"],
+        )
+
+        assert stored["documents"][0] == "Updated document says Rust."
+
+

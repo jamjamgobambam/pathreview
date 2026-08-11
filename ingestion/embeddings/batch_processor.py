@@ -108,7 +108,7 @@ class BatchEmbeddingProcessor:
         embedding_id = f"{source_id}_chunk_{chunk_index}"
 
         # Store in ChromaDB
-        self.vector_db.add(
+        self.vector_db.upsert(
             ids=[embedding_id],
             embeddings=[embedding],
             metadatas=[chunk.metadata],
