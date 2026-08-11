@@ -1,0 +1,10 @@
+8:                 [-o FILE] [--ignore-vuln ID] [--disable-pip]
+11:audit the Python environment for dependencies with known vulnerabilities
+32:  -s SERVICE, --vulnerability-service SERVICE
+33:                        the vulnerability service to audit dependencies
+41:  -S, --strict          fail the entire audit if dependency collection fails
+44:                        include a description for each vulnerability; `auto`
+49:                        includes alias IDs for each vulnerability; `auto`
+65:                        vulnerabilities (default: False)
+86:  --ignore-vuln ID      ignore a specific vulnerability by its vulnerability
+ERROR: unknown command "audit"

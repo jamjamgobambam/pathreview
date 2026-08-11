@@ -1,0 +1,262 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "esbuild": {
+      "name": "esbuild",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1102341,
+          "name": "esbuild",
+          "dependency": "esbuild",
+          "title": "esbuild enables any website to send any requests to the development server and read the response",
+          "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-346"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
+          },
+          "range": "<=0.24.2"
+        }
+      ],
+      "effects": [
+        "vite"
+      ],
+      "range": "<=0.24.2",
+      "nodes": [
+        "node_modules/esbuild"
+      ],
+      "fixAvailable": {
+        "name": "vite",
+        "version": "8.2.0",
+        "isSemVerMajor": true
+      }
+    },
+    "react-router": {
+      "name": "react-router",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1124268,
+          "name": "react-router",
+          "dependency": "react-router",
+          "title": "React Router: Open redirect via backslash in <Link> and useNavigate (CVE-2025-68470 bypass)",
+          "url": "https://github.com/advisories/GHSA-wrjc-x8rr-h8h6",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-601"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=6.0.0 <7.18.0"
+        },
+        {
+          "source": 1124272,
+          "name": "react-router",
+          "dependency": "react-router",
+          "title": "React Router: Arbitrary Constructor Injection via deserializeErrors() in React Router SSR Hydration",
+          "url": "https://github.com/advisories/GHSA-337j-9hxr-rhxg",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-470"
+          ],
+          "cvss": {
+            "score": 6.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+          },
+          "range": ">=6.4.0 <7.18.0"
+        }
+      ],
+      "effects": [
+        "react-router-dom"
+      ],
+      "range": "6.0.0 - 7.17.0",
+      "nodes": [
+        "node_modules/react-router"
+      ],
+      "fixAvailable": true
+    },
+    "react-router-dom": {
+      "name": "react-router-dom",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1124270,
+          "name": "react-router-dom",
+          "dependency": "react-router-dom",
+          "title": "React Router: Open redirect leading to XSS",
+          "url": "https://github.com/advisories/GHSA-jjmj-jmhj-qwj2",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-601"
+          ],
+          "cvss": {
+            "score": 6.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:L/A:N"
+          },
+          "range": ">=6.30.2 <=6.30.4"
+        },
+        "react-router"
+      ],
+      "effects": [],
+      "range": "6.0.0-alpha.0 - 7.17.0",
+      "nodes": [
+        "node_modules/react-router-dom"
+      ],
+      "fixAvailable": true
+    },
+    "vite": {
+      "name": "vite",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1116229,
+          "name": "vite",
+          "dependency": "vite",
+          "title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
+          "url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-22",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=6.4.1"
+        },
+        {
+          "source": 1120784,
+          "name": "vite",
+          "dependency": "vite",
+          "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
+          "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-73",
+            "CWE-522"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=6.4.2"
+        },
+        {
+          "source": 1123525,
+          "name": "vite",
+          "dependency": "vite",
+          "title": "vite: `server.fs.deny` bypass on Windows alternate paths",
+          "url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff",
+          "severity": "high",
+          "cwe": [
+            "CWE-22",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": "<=6.4.2"
+        },
+        "esbuild"
+      ],
+      "effects": [
+        "vite-node",
+        "vitest"
+      ],
+      "range": "<=6.4.2",
+      "nodes": [
+        "node_modules/vite"
+      ],
+      "fixAvailable": {
+        "name": "vite",
+        "version": "8.2.0",
+        "isSemVerMajor": true
+      }
+    },
+    "vite-node": {
+      "name": "vite-node",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "vite"
+      ],
+      "effects": [
+        "vitest"
+      ],
+      "range": "<=2.2.0-beta.2",
+      "nodes": [
+        "node_modules/vite-node"
+      ],
+      "fixAvailable": {
+        "name": "vitest",
+        "version": "4.1.10",
+        "isSemVerMajor": true
+      }
+    },
+    "vitest": {
+      "name": "vitest",
+      "severity": "critical",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1120126,
+          "name": "vitest",
+          "dependency": "vitest",
+          "title": "When Vitest UI server is listening, arbitrary file can be read and executed",
+          "url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp",
+          "severity": "critical",
+          "cwe": [
+            "CWE-862"
+          ],
+          "cvss": {
+            "score": 9.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+          },
+          "range": "<3.2.6"
+        },
+        "vite",
+        "vite-node"
+      ],
+      "effects": [],
+      "range": "<=3.2.5",
+      "nodes": [
+        "node_modules/vitest"
+      ],
+      "fixAvailable": {
+        "name": "vitest",
+        "version": "4.1.10",
+        "isSemVerMajor": true
+      }
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 4,
+      "high": 1,
+      "critical": 1,
+      "total": 6
+    },
+    "dependencies": {
+      "prod": 10,
+      "dev": 360,
+      "optional": 49,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 369
+    }
+  }
+}

@@ -1,0 +1,508 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@babel/core": {
+      "name": "@babel/core",
+      "severity": "low",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1123528,
+          "name": "@babel/core",
+          "dependency": "@babel/core",
+          "title": "@babel/core: Arbitrary File Read via sourceMappingURL Comment",
+          "url": "https://github.com/advisories/GHSA-4x5r-pxfx-6jf8",
+          "severity": "low",
+          "cwe": [
+            "CWE-22",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 3.2,
+            "vectorString": "CVSS:3.1/AV:L/AC:H/PR:N/UI:N/S:C/C:L/I:N/A:N"
+          },
+          "range": "<=7.29.0"
+        }
+      ],
+      "effects": [],
+      "range": "<=7.29.0",
+      "nodes": [
+        "node_modules/@babel/core"
+      ],
+      "fixAvailable": true
+    },
+    "esbuild": {
+      "name": "esbuild",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1102341,
+          "name": "esbuild",
+          "dependency": "esbuild",
+          "title": "esbuild enables any website to send any requests to the development server and read the response",
+          "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-346"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
+          },
+          "range": "<=0.24.2"
+        }
+      ],
+      "effects": [
+        "vite"
+      ],
+      "range": "<=0.24.2",
+      "nodes": [
+        "node_modules/esbuild"
+      ],
+      "fixAvailable": {
+        "name": "vite",
+        "version": "8.2.0",
+        "isSemVerMajor": true
+      }
+    },
+    "form-data": {
+      "name": "form-data",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1120743,
+          "name": "form-data",
+          "dependency": "form-data",
+          "title": "form-data: CRLF injection in form-data via unescaped multipart field names and filenames",
+          "url": "https://github.com/advisories/GHSA-hmw2-7cc7-3qxx",
+          "severity": "high",
+          "cwe": [
+            "CWE-93"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": ">=4.0.0 <4.0.6"
+        }
+      ],
+      "effects": [],
+      "range": "4.0.0 - 4.0.5",
+      "nodes": [
+        "node_modules/form-data"
+      ],
+      "fixAvailable": true
+    },
+    "picomatch": {
+      "name": "picomatch",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1115549,
+          "name": "picomatch",
+          "dependency": "picomatch",
+          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+          },
+          "range": "<2.3.2"
+        },
+        {
+          "source": 1115552,
+          "name": "picomatch",
+          "dependency": "picomatch",
+          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj",
+          "severity": "high",
+          "cwe": [
+            "CWE-1333"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<2.3.2"
+        }
+      ],
+      "effects": [],
+      "range": "<=2.3.1",
+      "nodes": [
+        "node_modules/picomatch"
+      ],
+      "fixAvailable": true
+    },
+    "postcss": {
+      "name": "postcss",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1117015,
+          "name": "postcss",
+          "dependency": "postcss",
+          "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+          "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-79"
+          ],
+          "cvss": {
+            "score": 6.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+          },
+          "range": "<8.5.10"
+        },
+        {
+          "source": 1124252,
+          "name": "postcss",
+          "dependency": "postcss",
+          "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+          "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q",
+          "severity": "high",
+          "cwe": [
+            "CWE-22",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": "<=8.5.11"
+        },
+        {
+          "source": 1124288,
+          "name": "postcss",
+          "dependency": "postcss",
+          "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+          "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849",
+          "severity": "high",
+          "cwe": [
+            "CWE-22"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": "<=8.5.17"
+        },
+        {
+          "source": 1130709,
+          "name": "postcss",
+          "dependency": "postcss",
+          "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+          "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-22",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=8.5.22"
+        }
+      ],
+      "effects": [],
+      "range": "<=8.5.22",
+      "nodes": [
+        "node_modules/postcss"
+      ],
+      "fixAvailable": true
+    },
+    "react-router": {
+      "name": "react-router",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1120064,
+          "name": "react-router",
+          "dependency": "react-router",
+          "title": "React Router's same-origin redirect with path starting // causes open redirect via protocol-relative URL reinterpretation",
+          "url": "https://github.com/advisories/GHSA-2j2x-hqr9-3h42",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-601"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=6.7.0 <6.30.4"
+        },
+        {
+          "source": 1124268,
+          "name": "react-router",
+          "dependency": "react-router",
+          "title": "React Router: Open redirect via backslash in <Link> and useNavigate (CVE-2025-68470 bypass)",
+          "url": "https://github.com/advisories/GHSA-wrjc-x8rr-h8h6",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-601"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=6.0.0 <7.18.0"
+        },
+        {
+          "source": 1124272,
+          "name": "react-router",
+          "dependency": "react-router",
+          "title": "React Router: Arbitrary Constructor Injection via deserializeErrors() in React Router SSR Hydration",
+          "url": "https://github.com/advisories/GHSA-337j-9hxr-rhxg",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-470"
+          ],
+          "cvss": {
+            "score": 6.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+          },
+          "range": ">=6.4.0 <7.18.0"
+        }
+      ],
+      "effects": [
+        "react-router-dom"
+      ],
+      "range": "6.0.0 - 7.17.0",
+      "nodes": [
+        "node_modules/react-router"
+      ],
+      "fixAvailable": true
+    },
+    "react-router-dom": {
+      "name": "react-router-dom",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1124270,
+          "name": "react-router-dom",
+          "dependency": "react-router-dom",
+          "title": "React Router: Open redirect leading to XSS",
+          "url": "https://github.com/advisories/GHSA-jjmj-jmhj-qwj2",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-601"
+          ],
+          "cvss": {
+            "score": 6.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:L/A:N"
+          },
+          "range": ">=6.30.2 <=6.30.4"
+        },
+        "react-router"
+      ],
+      "effects": [],
+      "range": "6.6.3-pre.0 - 6.30.4",
+      "nodes": [
+        "node_modules/react-router-dom"
+      ],
+      "fixAvailable": true
+    },
+    "vite": {
+      "name": "vite",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1116229,
+          "name": "vite",
+          "dependency": "vite",
+          "title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
+          "url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-22",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=6.4.1"
+        },
+        {
+          "source": 1120784,
+          "name": "vite",
+          "dependency": "vite",
+          "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
+          "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-73",
+            "CWE-522"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=6.4.2"
+        },
+        {
+          "source": 1123525,
+          "name": "vite",
+          "dependency": "vite",
+          "title": "vite: `server.fs.deny` bypass on Windows alternate paths",
+          "url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff",
+          "severity": "high",
+          "cwe": [
+            "CWE-22",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": "<=6.4.2"
+        },
+        "esbuild"
+      ],
+      "effects": [
+        "vite-node",
+        "vitest"
+      ],
+      "range": "<=6.4.2",
+      "nodes": [
+        "node_modules/vite"
+      ],
+      "fixAvailable": {
+        "name": "vite",
+        "version": "8.2.0",
+        "isSemVerMajor": true
+      }
+    },
+    "vite-node": {
+      "name": "vite-node",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "vite"
+      ],
+      "effects": [
+        "vitest"
+      ],
+      "range": "<=2.2.0-beta.2",
+      "nodes": [
+        "node_modules/vite-node"
+      ],
+      "fixAvailable": {
+        "name": "vitest",
+        "version": "4.1.10",
+        "isSemVerMajor": true
+      }
+    },
+    "vitest": {
+      "name": "vitest",
+      "severity": "critical",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1120126,
+          "name": "vitest",
+          "dependency": "vitest",
+          "title": "When Vitest UI server is listening, arbitrary file can be read and executed",
+          "url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp",
+          "severity": "critical",
+          "cwe": [
+            "CWE-862"
+          ],
+          "cvss": {
+            "score": 9.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+          },
+          "range": "<3.2.6"
+        },
+        "vite",
+        "vite-node"
+      ],
+      "effects": [],
+      "range": "<=3.2.5",
+      "nodes": [
+        "node_modules/vitest"
+      ],
+      "fixAvailable": {
+        "name": "vitest",
+        "version": "4.1.10",
+        "isSemVerMajor": true
+      }
+    },
+    "ws": {
+      "name": "ws",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1119108,
+          "name": "ws",
+          "dependency": "ws",
+          "title": "ws: Uninitialized memory disclosure",
+          "url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-908"
+          ],
+          "cvss": {
+            "score": 4.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": ">=8.0.0 <8.20.1"
+        },
+        {
+          "source": 1123259,
+          "name": "ws",
+          "dependency": "ws",
+          "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+          "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-770",
+            "CWE-1050"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=8.0.0 <8.21.0"
+        }
+      ],
+      "effects": [],
+      "range": "8.0.0 - 8.20.1",
+      "nodes": [
+        "node_modules/ws"
+      ],
+      "fixAvailable": true
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 1,
+      "moderate": 4,
+      "high": 5,
+      "critical": 1,
+      "total": 11
+    },
+    "dependencies": {
+      "prod": 8,
+      "dev": 360,
+      "optional": 49,
+      "peer": 10,
+      "peerOptional": 0,
+      "total": 369
+    }
+  }
+}

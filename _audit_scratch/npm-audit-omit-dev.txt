@@ -1,0 +1,24 @@
+npm warn Unknown env config "devdir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+# npm audit report
+
+react-router  6.0.0 - 7.17.0
+Severity: moderate
+React Router's same-origin redirect with path starting // causes open redirect via protocol-relative URL reinterpretation - https://github.com/advisories/GHSA-2j2x-hqr9-3h42
+React Router: Open redirect via backslash in <Link> and useNavigate (CVE-2025-68470 bypass) - https://github.com/advisories/GHSA-wrjc-x8rr-h8h6
+React Router: Arbitrary Constructor Injection via deserializeErrors() in React Router SSR Hydration - https://github.com/advisories/GHSA-337j-9hxr-rhxg
+fix available via `npm audit fix`
+node_modules/react-router
+  react-router-dom  6.6.3-pre.0 - 6.30.4
+  Depends on vulnerable versions of react-router
+  node_modules/react-router-dom
+
+
+2 moderate severity vulnerabilities
+
+To address all issues, run:
+  npm audit fix
+npm notice
+npm notice New major version of npm available! 11.17.0 -> 12.0.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+npm notice To update run: npm install -g npm@12.0.2
+npm notice

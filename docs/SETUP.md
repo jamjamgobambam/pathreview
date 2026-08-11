@@ -121,3 +121,22 @@ If you have PostgreSQL installed natively on Windows (e.g. from a previous proje
 
 **`alembic upgrade head` fails with "No module named asyncpg":**
 - Run: `.venv/Scripts/pip install asyncpg` (Windows) or `.venv/bin/pip install asyncpg` (Mac/Linux).
+
+## Dependency vulnerability audits (local parity with CI)
+
+CI runs two blocking jobs on pull requests and pushes to `main`:
+
+```bash
+# Python runtime dependencies (pinned scanner; temporary ignores documented in ci.yml)
+python -m pip install --upgrade pip
+python -m pip install -e .
+python -m pip install "pip-audit==2.10.1"
+pip-audit \
+  --ignore-vuln PYSEC-2026-311 \
+  --ignore-vuln PYSEC-2026-1325
+
+# Frontend production dependencies (high/critical)
+cd frontend && npm ci && npm audit --omit=dev --audit-level=high
+```
+
+Use `pip-audit` (the package), not `pip audit`. The frontend job omits `devDependencies` so known Vite/Vitest toolchain advisories do not block every PR; remediate those separately.
