@@ -75,3 +75,33 @@ Updated tests/unit/test_health_route.py. Added a route-level test using FastAPI'
 
 **Draft PR feedback received from:** none
 EOF
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. (Per Summer 2026 course notes, reviewer feedback is not a feature this term).
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Dealing with the local environment and strict pre-commit hooks (ruff, black, mypy) was surprisingly difficult. The actual code fix was just one line, but getting the tests to pass without a real database, figuring out how to mock the FastAPI settings properly, and satisfying the strict type-checking rules took several iterations and debugging steps.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's production code requires respecting strict conventions. You can't just write code that works functionally; it has to integrate seamlessly without breaking pre-existing tests, and it must follow the project's specific linting and formatting rules (like adding `-> None` to all test functions).
+
+**How did AI tools help — and where did they fall short?**
+AI was incredibly helpful for understanding the root cause of the SQLAlchemy 2.x error and generating the initial boilerplate for the route-level tests. However, it fell short when it came to environment-specific quirks—like the `make test-unit` command hanging due to a pytest-benchmark plugin issue, or the exact configuration needed to mock the application settings so the test wouldn't throw a 503 error.
+
+**What would you do differently if you started over?**
+I would run `make check` and `make test-unit` *before* writing any code to establish a baseline of pre-existing failures. I would also look at the pre-commit config file early on so I could write properly formatted, type-hinted code from the very first commit, avoiding the back-and-forth of fixing hook failures.
+
+**What are you most proud of from this module?**
+Getting the route-level test to pass by successfully mocking the async database session and application settings. It felt like a real-world testing scenario rather than just a simple toy example, and proved that the fix actually works in the context of the FastAPI router.
