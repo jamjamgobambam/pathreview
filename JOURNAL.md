@@ -123,3 +123,39 @@ The existing unit test now validates the intended behavior.
 **Draft PR feedback received from:**
 
 None
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes
+
+**Summary of feedback:**
+A reviewer confirmed that the updated README test fixture became comprehensive by expanding the test content and repeating it to ensure it consistently exceeded the comprehensive word-count threshold while preserving the existing quality signals.
+
+**How you responded:**
+I thanked the reviewer for taking the time to review the PR and confirmed that expanding the fixture while preserving the original quality signals was the intended approach.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+Understanding an unfamiliar codebase was harder than I expected. Even though Issue #156 was relatively small, I still needed to understand how the README scorer worked, how the existing tests were structured, and why the fixture no longer satisfied the expected category. I also spent a significant amount of time debugging Git, pre-commit hooks, Ruff, and mypy before I could successfully submit my changes.
+
+**What did you learn about working in a large codebase?**
+
+I learned that contributing to an existing project is very different from building my own projects. Instead of designing everything myself, I had to understand existing architecture, coding conventions, and testing patterns before making any changes. Reading existing tests became just as important as reading the implementation itself.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools helped me understand unfamiliar code, explain existing tests, debug Git issues, and navigate the repository much faster. They were especially useful for understanding project structure and interpreting error messages. However, AI could not determine the correct solution without context. I still needed to verify the implementation, understand the project's conventions, run the tests locally, and confirm that the changes actually solved the issue.
+
+**What would you do differently if you started over?**
+
+If I started over, I would spend more time exploring the codebase before making changes. I would also open my pull request earlier so I could receive feedback sooner and leave more time for revisions before the deadline.
+
+**What are you most proud of from this module?**
+
+I am most proud of successfully contributing to a real open-source project for the first time. Beyond fixing the issue itself, I learned the complete contribution workflow, including reproducing an issue, planning a solution, updating tests, creating a pull request, responding to review feedback, and documenting my work throughout the process.
