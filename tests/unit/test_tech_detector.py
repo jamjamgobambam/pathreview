@@ -10,11 +10,11 @@ class TestTechDetector:
     """Test suite for TechDetector."""
 
     @pytest.fixture
-    def detector(self):
+    def detector(self) -> TechDetector:
         """Create a TechDetector instance."""
         return TechDetector()
 
-    def test_single_language_repo(self, detector):
+    def test_single_language_repo(self, detector: TechDetector) -> None:
         """Test single-language repo correctly identifies primary_language."""
         files = [
             "main.py",
@@ -30,7 +30,7 @@ class TestTechDetector:
         assert data["primary_language"] == "Python"
         assert "Python" in data["all_languages"]
 
-    def test_mixed_language_repo_python_primary(self, detector):
+    def test_mixed_language_repo_python_primary(self, detector: TechDetector) -> None:
         """Test mixed-language repo with Python as primary."""
         files = [
             "main.py",
@@ -47,7 +47,7 @@ class TestTechDetector:
         assert "Python" in data["all_languages"]
         assert "JavaScript" in data["all_languages"]
 
-    def test_ipynb_counted_as_python_not_json(self, detector):
+    def test_ipynb_counted_as_python_not_json(self, detector: TechDetector) -> None:
         """Test .ipynb files are counted as Python/Jupyter, NOT as JSON."""
         files = [
             "analysis.ipynb",
@@ -60,10 +60,9 @@ class TestTechDetector:
         data = result.data
         assert "Python" in data["all_languages"]
         # Should not include JSON or data-only language
-        detected_lower = [lang.lower() for lang in data["all_languages"]]
         # .ipynb should be treated as Python, not JSON
 
-    def test_node_modules_excluded(self, detector):
+    def test_node_modules_excluded(self, detector: TechDetector) -> None:
         """Test node_modules/ directory is excluded from counts."""
         files = [
             "src/main.py",
@@ -78,7 +77,7 @@ class TestTechDetector:
         assert data["primary_language"] == "Python"
         # node_modules shouldn't dominate
 
-    def test_vendor_files_excluded(self, detector):
+    def test_vendor_files_excluded(self, detector: TechDetector) -> None:
         """Test vendor files are excluded."""
         files = [
             "src/main.py",
@@ -87,11 +86,11 @@ class TestTechDetector:
             "app.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
         # Python should be primary despite vendor files
 
-    def test_build_directory_excluded(self, detector):
+    def test_build_directory_excluded(self, detector: TechDetector) -> None:
         """Test build directory is excluded."""
         files = [
             "src/main.py",
@@ -104,7 +103,7 @@ class TestTechDetector:
         data = result.data
         assert data["primary_language"] == "Python"
 
-    def test_config_file_detection(self, detector):
+    def test_config_file_detection(self, detector: TechDetector) -> None:
         """Test detection from config files."""
         files = [
             "package.json",
@@ -117,7 +116,7 @@ class TestTechDetector:
         data = result.data
         assert "Node.js" in data["all_languages"] or "JavaScript" in data["all_languages"]
 
-    def test_dockerfile_detection(self, detector):
+    def test_dockerfile_detection(self, detector: TechDetector) -> None:
         """Test Docker file detection."""
         files = [
             "Dockerfile",
@@ -125,34 +124,33 @@ class TestTechDetector:
             "main.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
         # Should detect Python as primary language
 
-    def test_github_actions_detection(self, detector):
+    def test_github_actions_detection(self, detector: TechDetector) -> None:
         """Test GitHub Actions detection."""
         files = [
             ".github/workflows/test.yml",
             "main.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
-        data = result.data
         # Should detect both Python and CI/CD
 
-    def test_makefile_detection(self, detector):
+    def test_makefile_detection(self, detector: TechDetector) -> None:
         """Test Makefile detection."""
         files = [
             "Makefile",
             "src/main.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
         # Should detect Makefile as build tool
 
-    def test_typescript_detection(self, detector):
+    def test_typescript_detection(self, detector: TechDetector) -> None:
         """Test TypeScript detection."""
         files = [
             "src/main.ts",
@@ -165,7 +163,7 @@ class TestTechDetector:
         data = result.data
         assert "TypeScript" in data["all_languages"]
 
-    def test_go_detection(self, detector):
+    def test_go_detection(self, detector: TechDetector) -> None:
         """Test Go language detection."""
         files = [
             "main.go",
@@ -179,7 +177,7 @@ class TestTechDetector:
         assert "Go" in data["all_languages"]
         assert data["primary_language"] == "Go"
 
-    def test_rust_detection(self, detector):
+    def test_rust_detection(self, detector: TechDetector) -> None:
         """Test Rust detection."""
         files = [
             "src/main.rs",
@@ -192,7 +190,7 @@ class TestTechDetector:
         data = result.data
         assert "Rust" in data["all_languages"]
 
-    def test_java_detection(self, detector):
+    def test_java_detection(self, detector: TechDetector) -> None:
         """Test Java detection."""
         files = [
             "Main.java",
@@ -205,7 +203,7 @@ class TestTechDetector:
         data = result.data
         assert "Java" in data["all_languages"]
 
-    def test_multiple_python_files(self, detector):
+    def test_multiple_python_files(self, detector: TechDetector) -> None:
         """Test counting multiple Python files."""
         files = [
             "main.py",
@@ -220,7 +218,7 @@ class TestTechDetector:
         assert data["primary_language"] == "Python"
         assert "Python" in data["all_languages"]
 
-    def test_empty_file_list(self, detector):
+    def test_empty_file_list(self, detector: TechDetector) -> None:
         """Test with empty file list."""
         result = detector.execute({"files": []})
 
@@ -228,14 +226,14 @@ class TestTechDetector:
         assert data["primary_language"] == "Unknown"
         assert data["all_languages"] == []
 
-    def test_no_files_key(self, detector):
+    def test_no_files_key(self, detector: TechDetector) -> None:
         """Test with no files key in input."""
         result = detector.execute({})
 
         data = result.data
         assert data["primary_language"] == "Unknown"
 
-    def test_result_structure(self, detector):
+    def test_result_structure(self, detector: TechDetector) -> None:
         """Test result has required structure."""
         files = ["main.py", "app.js"]
         result = detector.execute({"files": files})
@@ -245,7 +243,7 @@ class TestTechDetector:
         assert "all_languages" in data
         assert "frameworks" in data
 
-    def test_framework_detection(self, detector):
+    def test_framework_detection(self, detector: TechDetector) -> None:
         """Test framework detection from files."""
         files = [
             "requirements.txt",  # Could indicate Python
@@ -253,11 +251,11 @@ class TestTechDetector:
             "main.py",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
         # Should detect frameworks
 
-    def test_unknown_extensions(self, detector):
+    def test_unknown_extensions(self, detector: TechDetector) -> None:
         """Test handling of unknown file extensions."""
         files = [
             "file.unknown",
@@ -272,7 +270,7 @@ class TestTechDetector:
         # Should still work with Python file present
         assert data["primary_language"] == "Python"
 
-    def test_case_insensitive_extension_matching(self, detector):
+    def test_case_insensitive_extension_matching(self, detector: TechDetector) -> None:
         """Test case-insensitive file extension matching."""
         files = [
             "Main.PY",
@@ -280,12 +278,11 @@ class TestTechDetector:
             "Index.JS",
         ]
 
-        result = detector.execute({"files": files})
+        detector.execute({"files": files})
 
-        data = result.data
         # Should still detect languages despite case
 
-    def test_multiple_extensions_same_file(self, detector):
+    def test_multiple_extensions_same_file(self, detector: TechDetector) -> None:
         """Test file with multiple dots in name."""
         files = [
             "my.test.py",
@@ -297,7 +294,7 @@ class TestTechDetector:
         data = result.data
         assert len(data["all_languages"]) > 0
 
-    def test_all_languages_sorted(self, detector):
+    def test_all_languages_sorted(self, detector: TechDetector) -> None:
         """Test that all_languages list is sorted."""
         files = [
             "main.rs",
@@ -312,7 +309,7 @@ class TestTechDetector:
         # Should be sorted
         assert data["all_languages"] == sorted(data["all_languages"])
 
-    def test_frameworks_sorted(self, detector):
+    def test_frameworks_sorted(self, detector: TechDetector) -> None:
         """Test that frameworks list is sorted."""
         files = [
             "requirements.txt",
@@ -327,7 +324,7 @@ class TestTechDetector:
         if len(data["frameworks"]) > 1:
             assert data["frameworks"] == sorted(data["frameworks"])
 
-    def test_ruby_detection(self, detector):
+    def test_ruby_detection(self, detector: TechDetector) -> None:
         """Test Ruby language detection."""
         files = [
             "main.rb",
@@ -339,7 +336,7 @@ class TestTechDetector:
         data = result.data
         assert "Ruby" in data["all_languages"]
 
-    def test_csharp_detection(self, detector):
+    def test_csharp_detection(self, detector: TechDetector) -> None:
         """Test C# language detection."""
         files = [
             "Program.cs",
@@ -351,7 +348,7 @@ class TestTechDetector:
         data = result.data
         assert "C#" in data["all_languages"]
 
-    def test_cpp_detection(self, detector):
+    def test_cpp_detection(self, detector: TechDetector) -> None:
         """Test C++ detection."""
         files = [
             "main.cpp",
@@ -359,7 +356,67 @@ class TestTechDetector:
             "header.h",
         ]
 
+        detector.execute({"files": files})
+
+        # Should detect C++ (from .cpp files)
+
+    def test_has_tests_detection(self, detector: TechDetector) -> None:
+        """Test has_tests is True when tests/ files and pytest.ini are present (#50)."""
+        files = [
+            "main.py",
+            "utils.py",
+            "tests/test_main.py",
+            "tests/test_utils.py",
+            "pytest.ini",
+        ]
+
         result = detector.execute({"files": files})
 
         data = result.data
-        # Should detect C++ (from .cpp files)
+        assert "has_tests" in data
+        assert data["has_tests"] is True
+
+    def test_has_tests_false_when_no_test_markers(self, detector: TechDetector) -> None:
+        """Test has_tests is False when no test directory/file markers exist."""
+        files = [
+            "main.py",
+            "utils.py",
+            "models.py",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["has_tests"] is False
+
+    def test_has_tests_ignores_similar_filenames(self, detector: TechDetector) -> None:
+        """Test filenames that merely contain "test" aren't false positives."""
+        files = [
+            "latest.py",
+            "contest.js",
+            "attestation.py",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["has_tests"] is False
+
+    def test_has_tests_case_insensitive(self, detector: TechDetector) -> None:
+        """Test has_tests detection is case-insensitive."""
+        files = [
+            "Main.py",
+            "TESTS/Test_Main.PY",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["has_tests"] is True
+
+    def test_has_tests_empty_file_list(self, detector: TechDetector) -> None:
+        """Test has_tests is False (not missing) on the empty-files early return."""
+        result = detector.execute({"files": []})
+
+        data = result.data
+        assert data["has_tests"] is False

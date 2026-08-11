@@ -1,6 +1,9 @@
 """Technology stack detector tool."""
 
+import re
+
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -56,6 +59,9 @@ class TechDetector(BaseTool):
         "cmake": ("CMake", "Build"),
     }
 
+    # Matches a test_*.py filename, e.g. "tests/test_main.py" or "test_utils.py"
+    TEST_FILENAME_PATTERN = re.compile(r"(^|/)test_[^/]+\.py$", re.IGNORECASE)
+
     def execute(self, input_data: dict) -> ToolResult:
         """Detect tech stack from files.
 
@@ -75,7 +81,8 @@ class TechDetector(BaseTool):
                     "primary_language": "Unknown",
                     "all_languages": [],
                     "frameworks": [],
-                }
+                    "has_tests": False,
+                },
             )
 
         try:
@@ -84,11 +91,7 @@ class TechDetector(BaseTool):
 
         except Exception as e:
             logger.error("tech_detector_error", error=str(e))
-            return ToolResult(
-                success=False,
-                data={},
-                error=str(e)
-            )
+            return ToolResult(success=False, data={}, error=str(e))
 
     def _detect_tech(self, files: list[str]) -> dict:
         """Detect technologies from file list.
@@ -100,10 +103,7 @@ class TechDetector(BaseTool):
             Dict with detected languages and frameworks
         """
         # Filter out vendor/build directories
-        filtered_files = [
-            f for f in files
-            if not self._should_skip_file(f)
-        ]
+        filtered_files = [f for f in files if not self._should_skip_file(f)]
 
         languages = set()
         frameworks = set()
@@ -130,15 +130,48 @@ class TechDetector(BaseTool):
 
         all_languages = sorted(languages)
         all_frameworks = sorted(frameworks)
+        has_tests = self._detect_has_tests(filtered_files)
 
-        logger.info("tech_detected", primary_lang=primary,
-                   languages_count=len(all_languages), frameworks_count=len(all_frameworks))
+        logger.info(
+            "tech_detected",
+            primary_lang=primary,
+            languages_count=len(all_languages),
+            frameworks_count=len(all_frameworks),
+        )
 
         return {
             "primary_language": primary,
             "all_languages": all_languages,
             "frameworks": all_frameworks,
+            "has_tests": has_tests,
         }
+
+    @classmethod
+    def _detect_has_tests(cls, files: list[str]) -> bool:
+        """Check if the repo has test infrastructure.
+
+        Looks for a tests/ or test/ directory segment, a pytest.ini file, or a
+        test_*.py filename (already-filtered files, so vendor/build noise is
+        excluded upstream).
+
+        Args:
+            files: List of (already-filtered) file paths
+
+        Returns:
+            True if any test marker is found
+        """
+        for filepath in files:
+            path_parts = filepath.lower().split("/")
+            basename = path_parts[-1]
+
+            if "tests" in path_parts[:-1] or "test" in path_parts[:-1]:
+                return True
+            if basename == "pytest.ini":
+                return True
+            if cls.TEST_FILENAME_PATTERN.search(filepath):
+                return True
+
+        return False
 
     @staticmethod
     def _should_skip_file(filepath: str) -> bool:
