@@ -48,7 +48,7 @@ Finish the PR description and submit the branch for review. Confirm whether the 
 
 ### Check-in 2 (end of week)
 
-**PR link:** none yet
+**PR link:** https://github.com/ascherj/pathreview/pull/938
 
 **Branch:** fix/163/Review-creation-does-not-verify-profile-ownership
 
@@ -61,3 +61,33 @@ Updated `tests/unit/test_review_service.py` to cover successful review creation 
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback had been received on PR #938 at the time of this final entry. The PR remains open, so I am still awaiting review.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The code change itself was small, but locating the correct ownership boundary took more investigation than I expected. The route already passed the authenticated user's ID into the service, yet `create_review()` accepted a `profile_id` without checking who owned it. I had to trace the request from `POST /reviews` through the route and service layers, compare nearby endpoint behavior, and decide whether an unauthorized profile should look like a `404` or a `403`. Verifying the change was also harder than expected because I needed focused tests and static checks to distinguish my change from unrelated repository-level test failures.
+
+**What did you learn about working in a large codebase?**
+In a larger codebase, the most important work often happens before editing: understanding existing conventions, data flow, and where a responsibility belongs. In my own project I might change a route directly and move on, but here I needed to preserve the separation between the API route and service layer, match the existing missing-resource behavior, and avoid starting background processing before authorization succeeds. Small changes can have effects in tests, type checking, and adjacent workflows, so reading surrounding code and making a narrowly scoped change matters as much as writing the new condition.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for quickly navigating the codebase, identifying the request path, and suggesting focused test cases for owned and unowned profiles. They also helped catch missing type annotations that mattered for `mypy`. They could not decide the intended security and API behavior from the issue alone, though. I still needed to inspect the surrounding endpoints, reason about information disclosure and consistency, run the checks, and make sure the final implementation fit this repository rather than merely looking plausible in isolation.
+
+**What would you do differently if you started over?**
+I would establish the expected error contract earlier by checking related routes and tests before writing the implementation. I would also run the focused test, lint, and type-check commands immediately after the first change instead of waiting until the end, then run the broader repository checks separately. That would make it easier to identify whether a failure came from my work or from the existing baseline and would make the PR description more precise from the beginning.
+
+**What are you most proud of from this module?**
+I am most proud that I treated a small authorization bug as a real security and correctness issue. The final change prevents reviews from being created for another user's profile, keeps the API response consistent with the existing codebase, and adds tests that prove both the allowed and rejected paths.
