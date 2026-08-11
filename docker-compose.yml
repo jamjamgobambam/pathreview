@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: pathreview
       POSTGRES_DB: pathreview_dev
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -36,18 +36,16 @@ services:
           memory: 256M
 
   vector-db:
-    image: chromadb/chroma:0.4.22
+    image: chromadb/chroma:1.5.9
     ports:
       - "8001:8000"
     volumes:
-      - chromadata:/chroma/chroma
+      - chromadata:/data
     environment:
       ANONYMIZED_TELEMETRY: "false"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    # NOTE: chromadb/chroma:1.5.9 is a minimal image with no curl/wget/python,
+    # so no in-container healthcheck is possible. Verify from the host with:
+    #   curl http://localhost:8001/api/v2/heartbeat
     deploy:
       resources:
         limits:
