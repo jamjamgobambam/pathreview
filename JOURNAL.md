@@ -11,18 +11,17 @@
 - Validation: Ran `C:/Python313/python.exe -m pytest tests/unit/test_pii_scrubber.py -q` and got `27 passed`.
 - Notes: The work focused on making the scrubber more reliable for common phone formats and on adding property-based coverage for non-PII preservation and PII redaction.
 
-## Week 8
+## Week 8 — Reproduction & solution planning
 
-- Goal: Reproduce the issue locally, finalize the solution plan, and produce a short Loom walkthrough that explains the fix.
-- Submission branch: https://github.com/amulya-asu/pathreview/tree/issue-111-pii-scrubber-tests
-- Reproduction commit: https://github.com/amulya-asu/pathreview/commit/01501ab
-- Branch URL: https://github.com/amulya-asu/pathreview/tree/issue-111-pii-scrubber-tests
-- Reproduction: verified PII scrubber behavior with `pytest tests/unit/test_pii_scrubber.py -q` and identified regex weaknesses for US phone formats and street address detection.
-- Problem summary: the current scrubber missed some sensitive phone/address patterns, risking PII exposure in generated text. The fix tightens regex detection and adds property-based tests to ensure PII is redacted while non-sensitive content is preserved.
-- Scope-fit reasoning: this change is a scoped issue fix that affects one sanitizer module and one test module, making it appropriate for a course submission and easy to review.
-- Plan document: added `PLAN.md` with issue summary, root cause, proposed fix, and test plan.
-- Walkthrough video: https://www.loom.com/share/f8fd846991ae41f8a55242c415eb5397
-- Next steps: implement any remaining cleanup, run `make check && make test-unit`, and record a ≤2 minute Loom walkthrough showing the issue, fix, and validation.
+**Reproduction commit link:** https://github.com/amulya-asu/pathreview/commit/01501ab
+
+**Reproduction summary:** Reproduced the issue by running the PII scrubber unit tests and observing that US phone and street address patterns were not being consistently redacted.
+
+**PLAN.md link:** https://github.com/amulya-asu/pathreview/blob/issue-111-pii-scrubber-tests/PLAN.md
+
+**Walkthrough video:** https://www.loom.com/share/f8fd846991ae41f8a55242c415eb5397
+
+**Blockers or open questions:** None at the moment.
 
 ## Week 9
 
