@@ -3,7 +3,7 @@
 **Issue:** #153 — Faithfulness checker crashes when a context chunk has `text: None`
 (https://github.com/ascherj/pathreview/issues/153)
 
-> _This is a living document — I'll update it in Week 9 as my understanding evolves._
+> _This is a living document that will be updated in Week 9 as my understanding evolves._
 
 ### Understand
 

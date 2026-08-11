@@ -85,3 +85,45 @@ have pre-existing findings repo-wide but my changed lines add none and `faithful
 type-checks cleanly. Details in the PR's "Notes for Reviewers".)_
 
 **Draft PR feedback received from:** none yet — draft PR shared in cohort Slack for peer review
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+There was no feedback provided. 
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+For me, working with a large code base where I am unfamiliar with the code was harder than expected. The ticket I chose did make it easier to find the bug as it was specific to the function, but I later found other bugs related to the same function. 
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+I learned that there are many ways to do one task and it's a good way to learn about different implementations/approaches. It was also difficult to get an understanding of how someone else structures their code. 
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+Claude helped me get a good understanding/overview of the code repo without me having to sift through everything. For this simple task, it didn't lack many skills and performed fairly well.
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+I would have chosen a slightly harder problem as I am already familiar with working on large code bases to give myself an extra challenge. 
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+I am proud of learning how to efficiently use AI to help me navigate an unfamiliar code repo. I think this is a valuable skill to have and makes me a faster developer. 
