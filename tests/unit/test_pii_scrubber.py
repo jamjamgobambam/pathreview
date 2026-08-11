@@ -190,6 +190,40 @@ class TestPIIScrubber:
 
         assert "[REDACTED]" in scrubbed
 
+    def test_parenthesized_phone_without_space(self, scrubber):
+        """Test parenthesized phone with no space after the area code."""
+        text = "Call (555)123-4567 anytime"
+        scrubbed = scrubber.scrub(text)
+
+        assert "[REDACTED]" in scrubbed
+        assert "(555)123-4567" not in scrubbed
+
+    def test_parenthesized_phone_after_punctuation(self, scrubber):
+        """Test parenthesized phone preceded directly by punctuation."""
+        text = "Phone:(555) 123-4567"
+        scrubbed = scrubber.scrub(text)
+
+        assert "[REDACTED]" in scrubbed
+        assert "(555) 123-4567" not in scrubbed
+
+    def test_both_phone_formats_in_one_string(self, scrubber):
+        """Test dashed and parenthesized numbers are both redacted."""
+        text = "Office: 555-123-4567, Cell: (555) 987-6543"
+        scrubbed = scrubber.scrub(text)
+
+        assert scrubbed.count("[REDACTED]") == 2
+        assert "555-123-4567" not in scrubbed
+        assert "(555) 987-6543" not in scrubbed
+
+    def test_detect_parenthesized_phone_position(self, scrubber):
+        """Test detect() reports accurate offsets for a parenthesized phone."""
+        text = "Reach me at (555) 123-4567 today"
+        detected = scrubber.detect(text)
+
+        phone = [d for d in detected if d["type"] == "phone_us"]
+        assert len(phone) == 1
+        assert text[phone[0]["start"] : phone[0]["end"]] == "(555) 123-4567"
+
     def test_address_variations(self, scrubber):
         """Test various street address formats."""
         addresses = [
