@@ -75,3 +75,30 @@ Added a top-level `partial_failure` boolean key to the output dictionary of `Orc
 - [x] `test_orchestrator.py` passes 100%.
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 Iteration & reflection
+
+### Reviewer feedback
+**Feedback received:** ( ) Yes (x) No - still awaiting review
+**Summary of feedback:**
+No review came in prior to submission window close.
+**How you responded:**
+N/A
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating an unfamiliar, production-grade codebase to isolate the true root cause was significantly harder than expected. Initially, the issue description suggested that tool exceptions were completely unlogged. However, upon reading through `agent/orchestrator.py`, `agent/error_handling.py`, and structured logs (`structlog`), I realized logging was already occurring. The real issue was a subtle architectural contract flaw: exception handling was swallowing tool errors internally and returning an outwardly successful payload dictionary without a top-level execution health flag. Dissecting the flow between logging, exception handling, and dictionary return contracts required a much deeper code audit than writing the actual logic fix.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's production codebase requires strict adherence to pre-existing patterns, contract safety, and scope discipline. When building your own project, you can easily change API contracts or rewrite functions at will. In a shared open-source codebase, you must preserve existing output structures so downstream consumers don't break. I learned the importance of reading pre-existing tests (`test_review_service.py`) to adopt the project's testing conventions (`pytest`, `unittest.mock`, and fixture patterns) and writing minimal, isolated interventions rather than refactoring healthy code.
+
+**How did AI tools help and where did they fall short?**
+AI tools were extremely valuable as an architectural sounding board during the planning phase (`PLAN.md`) and for diagnosing mock setup issues when designing reproduction tests. However, AI fell short when interpreting runtime test failures involving missing mocks for implicit tools (such as `market_analyzer` scheduled by `_build_plan()`), and when distinguishing between expected pre-existing linter failures in unrelated files (`test_tech_detector.py`) versus regression bugs in my changes. Human manual trace execution and inspecting full terminal logs were essential to bridge those gaps.
+
+**What would you do differently if you started over?**
+If I started over, I would run the entire repository's test suite (`make test-unit` and `make check`) on the clean `main` branch before writing any code. Doing so early on would have established a clear baseline of pre-existing linter and test warnings in unrelated modules, preventing initial confusion when running project-wide checks later during the verification phase.
+
+**What are you most proud of from this module?**
+I am most proud of writing a clean, deterministic reproduction unit test using `unittest.mock.Mock` to prove the silent failure bug before fixing it. Demonstrating test-driven bug reproduction—moving from a failing assertion (`assert "partial_failure" not in result`) to applying a minimal backend fix in `agent/orchestrator.py` and seeing the test suite pass green (`2 passed`)—was deeply satisfying and validated my skills as a backend software engineer.
