@@ -139,3 +139,86 @@ description.)
 **Draft PR feedback received from:** none — per this term's format there is
 no reviewer feedback loop; self-reviewed against the Week 9 "seven
 conditions for done" instead.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+Checked PR #984 (https://github.com/ascherj/pathreview/pull/984) as of
+2026-08-11: still open, no comments, no reviews, no assignees. Consistent
+with the Su26 note that reviewer feedback isn't part of this term's format.
+
+**How you responded:**
+N/A — nothing to respond to. Re-read my own PR description once more
+against `docs/CONTRIBUTING.md` to confirm it still accurately describes the
+change (it does: the fix, the two tightened/added tests, the 53→51 failure
+diff, and the alphabetical-`primary_language` note are all still current).
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Not the fix itself — `_should_skip_file` was a five-line change once I'd
+actually traced the bug. The hard part was staying honest about what
+*counted* as the fix. Two things kept trying to pull scope wider: the
+alphabetical-vs-frequency `primary_language` quirk I found while reading
+`_detect_tech` (PLAN.md Risks), and the six pre-existing tests in
+`test_tech_detector.py` that called `.execute()` with no `assert` at all.
+Both were legitimately adjacent to the bug I was fixing, and both were
+tempting to "just fix while I'm in here." Deciding where the line was —
+document the alphabetical quirk in the PR description but don't touch it;
+tighten the assertion-less tests because they directly covered the code
+path I was changing, but not touch unrelated failing test files — took more
+judgment than the actual code change did.
+
+**What did you learn about working in a large codebase?**
+That "tests pass" isn't a meaningful signal on its own in a codebase you
+don't own — you need a baseline. The full `pytest tests/unit -m unit` suite
+had 53 pre-existing failures before I touched anything, spread across
+modules I never went near (`test_review_service.py`, `test_resume_parser.py`,
+etc.). If I'd just run the suite after my change and seen "51 failed" I
+couldn't have told you whether that was progress or a new regression hiding
+behind an unrelated fixed flake. Recording the Week 8 baseline and diffing
+the actual failure *lists* (not just counts) after the fix was the only way
+to make a real claim in the PR description. I also learned to `grep` for
+every caller of a function before changing it (`_should_skip_file`,
+`TechDetector`) rather than trusting that a change confined to one function
+stays confined in its effects — in someone else's production code, "this
+looks self-contained" is a hypothesis to check, not a fact.
+
+**How did AI tools help — and where did they fall short?**
+Most useful for the mechanical, high-recall work: grepping the codebase for
+every reference to `_should_skip_file`/`TechDetector` to confirm blast
+radius, drafting the edge-case list in PLAN.md (nested vendor dirs, exact
+directory-name matches, path position), and keeping PLAN.md/JOURNAL.md
+consistent with each other as the branch moved forward. It fell short on
+the two judgment calls that mattered most: whether the alphabetical
+`primary_language` selection was in-scope for #150, and whether tightening
+the six weak tests counted as "fixing the issue" or "unrelated cleanup." AI
+suggestions leaned toward fixing everything adjacent that looked broken;
+the actual scoping decision — and the accompanying honesty in the PR
+description about what was *not* fixed — had to be mine.
+
+**What would you do differently if you started over?**
+I'd run the full-suite baseline diff in Week 7, at issue-selection time,
+instead of Week 8. Knowing upfront that the repo already had 53 unrelated
+failures would have saved a moment of doubt in Week 9 when my local run
+showed failures after my change — I had to go back and re-confirm against
+the Week 8 numbers instead of already having them in hand. I'd also timebox
+the `primary_language` tangent explicitly instead of open-endedly reading
+`_detect_tech` — it was worth the twenty minutes it took, but I got there by
+curiosity rather than a planned check.
+
+**What are you most proud of from this module?**
+Catching that the issue's own description was subtly wrong — it frames the
+bug as vendored files being over-*counted* by frequency, but `primary` was
+never frequency-based, it's `sorted(languages)[0]`. It would have been easy
+to accept the issue text at face value, ship a fix that made the two pinned
+tests pass, and move on without noticing the discrepancy. Reading the code
+closely enough to catch that, then choosing to document it rather than
+silently "fix" a second bug nobody asked for, is the part of this module I
+think best reflects how I'd want to work on a real team.
