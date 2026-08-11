@@ -1,15 +1,24 @@
-from uuid import UUID
-import structlog
+import inspect
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
+
+
+async def _resolve_result_method(value):
+    """Resolve sync or async SQLAlchemy/mock result accessors."""
+    if inspect.isawaitable(value):
+        return await value
+    return value
 
 
 async def create_review(
@@ -44,7 +53,8 @@ async def get_review(
         and_(Review.id == review_id, Profile.user_id == user_id)
     )
     result = await db.execute(stmt)
-    return result.scalars().first()
+    scalars = await _resolve_result_method(result.scalars())
+    return await _resolve_result_method(scalars.first())
 
 
 async def list_reviews(
@@ -62,7 +72,9 @@ async def list_reviews(
     # Get total count
     count_stmt = select(Review).join(Profile).where(Profile.user_id == user_id)
     count_result = await db.execute(count_stmt)
-    total = len(count_result.scalars().all())
+    count_scalars = await _resolve_result_method(count_result.scalars())
+    total_reviews = await _resolve_result_method(count_scalars.all())
+    total = len(total_reviews)
 
     # Get paginated results
     stmt = (
@@ -74,7 +86,8 @@ async def list_reviews(
         .limit(page_size)
     )
     result = await db.execute(stmt)
-    reviews = result.scalars().all()
+    scalars = await _resolve_result_method(result.scalars())
+    reviews = await _resolve_result_method(scalars.all())
 
     return reviews, total
 

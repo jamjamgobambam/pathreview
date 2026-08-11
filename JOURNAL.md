@@ -71,3 +71,33 @@ I expanded `BiasDetector` in `safety/bias_detector.py` so it recognizes more com
 `make check` still fails because of unrelated pre-existing repo-wide Ruff violations outside Issue #151. `make test-unit` still fails because of unrelated pre-existing unit test failures outside the bias detector work, but the targeted `tests/unit/test_bias_detector.py` run passed and the full unit run showed the bias detector tests passing.
 
 Feedback updated
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No
+
+**Summary of feedback:**
+No formal reviewer feedback has been received on PR #791 yet, so I do not have maintainer comments to summarize at this stage.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was expanding the regex coverage in `safety/bias_detector.py` without making the detector too broad. Issue #151 looked small at first, but the existing tests and the new regressions showed that a simple keyword expansion would not be enough: I had to cover phrasing like `coding bootcamp graduates can't write enterprise code`, `self-taught developers are not equal to university graduates`, and `Given their age, they likely cannot keep up with modern frameworks`, while still not flagging neutral statements such as `your resume shows bootcamp attendance` or positive ones like `your bootcamp training has given you a solid foundation`. The follow-up boundary fix for `insufficient` versus `insufficiently` also made it clear that even a minor regex change can create subtle false positives if I do not test the exact wording carefully.
+
+**What did you learn about working in a large codebase?**
+I learned that even a narrowly scoped fix needs to respect the codebase's existing interfaces, conventions, and repository-wide behavior. In this case, `BiasDetector.detect_bias()` already returned a specific `(bool, reason)` tuple and the tests depended on the existing public reason strings, so the safest approach was to change pattern coverage rather than redesign the detector. I also had to separate issue-specific verification from repository baseline problems: my branch history and Week 9 notes show that `tests/unit/test_bias_detector.py` was the reliable source of truth for Issue #151, while `make check` and `make test-unit` still had unrelated pre-existing failures. That forced me to be precise about scope and not over-claim what my contribution fixed.
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped most with speeding up pattern iteration and surfacing edge cases I should verify, especially around regex phrasing and boundary conditions. The branch history shows a follow-up commit, `92d75ff`, that addressed draft PR feedback, and the word-boundary regression for `insufficiently` is a good example of the kind of suggestion that was useful to investigate. But AI assistance was not enough on its own, because the real standard in this repository was the actual test file and the concrete branch history, not whether a pattern looked reasonable in isolation. I still needed to verify changes against `tests/unit/test_bias_detector.py`, confirm that neutral and positive phrases stayed unflagged, and avoid treating automated feedback as equivalent to formal reviewer approval.
+
+**What would you do differently if you started over?**
+If I started over, I would build a more explicit checklist from the failing and nearby test cases before editing the regexes, including positive, neutral, factual, and substring-regression cases. I eventually added that coverage in `tests/unit/test_bias_detector.py`, but doing it first would have made the implementation path clearer and probably reduced the need for follow-up refinement. I also would run the targeted bias-detector tests and record the repository baseline earlier in one place, because the unrelated `make check` and `make test-unit` failures mattered for how I interpreted later results and wrote the PR notes.
+
+**What are you most proud of from this module?**
+I am most proud that the final change stayed small and focused while still addressing the real gaps in Issue #151. Instead of broadening the detector indiscriminately, I expanded it in a way that matched the issue examples and common phrasings, added regression coverage for both biased and non-biased statements, and preserved the detector's existing interface and reason strings. The part that feels strongest to me is the combination of broader pattern support with guardrails like the `insufficiently` regression, because that shows I was not only trying to make more tests pass but also trying to keep the behavior responsible.

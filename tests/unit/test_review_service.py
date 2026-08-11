@@ -336,5 +336,5 @@ class TestReviewService:
 
         reviews, total = await list_reviews(mock_db_session, user_id)
 
-        # Should order by created_at descending
-        mock_db_session.execute.assert_called_once()
+        # Should execute count query and ordered data query
+        assert mock_db_session.execute.call_count == 2
