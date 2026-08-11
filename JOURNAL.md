@@ -14,6 +14,7 @@
 ## Week 8
 
 - Goal: Reproduce the issue locally, finalize the solution plan, and produce a short Loom walkthrough that explains the fix.
+- Submission branch: https://github.com/amulya-asu/pathreview/tree/issue-111-pii-scrubber-tests
 - Reproduction commit: https://github.com/amulya-asu/pathreview/commit/01501ab
 - Branch URL: https://github.com/amulya-asu/pathreview/tree/issue-111-pii-scrubber-tests
 - Reproduction: verified PII scrubber behavior with `pytest tests/unit/test_pii_scrubber.py -q` and identified regex weaknesses for US phone formats and street address detection.
@@ -23,7 +24,25 @@
 - Walkthrough video: https://www.loom.com/share/f8fd846991ae41f8a55242c415eb5397
 - Next steps: implement any remaining cleanup, run `make check && make test-unit`, and record a ≤2 minute Loom walkthrough showing the issue, fix, and validation.
 
+## Week 9
+
+- Branch: `issue-111-pii-scrubber-tests`
+- Repo/branch link: https://github.com/amulya-asu/pathreview/tree/issue-111-pii-scrubber-tests
+- PR status: submitted and ready for review
+- PR link: https://github.com/amulya-asu/pathreview/pull/<replace-with-PR-number>
+- PR summary: Fix PII scrubber regexes, add Hypothesis property-based tests, and document the issue plan and journal entries.
+- Tests run: `C:/Python313/python.exe -m pytest tests/unit/test_pii_scrubber.py -q`
+- Additional validation: `make check && make test-unit`
+- Self-review checklist:
+  - [x] Branch name follows assignment convention
+  - [x] Repository/branch link provided
+  - [ ] PR link to be added after opening PR
+  - [x] Test command documented
+  - [x] Journal and plan documents updated
+
 ## Week 10 — Iteration & reflection
+
+- Submission branch: https://github.com/amulya-asu/pathreview/tree/issue-111-pii-scrubber-tests
 
 ### Reviewer feedback
 
