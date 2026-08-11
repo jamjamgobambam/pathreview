@@ -98,8 +98,8 @@ class ResumeParser(BaseParser):
 
     def _strip_markdown(self, content: str) -> str:
         """Remove markdown syntax from content."""
-        # Remove markdown headers
-        text = re.sub(r"^#+\s+", "", content, flags=re.MULTILINE)
+        # Remove markdown headers (allow leading indentation from pasted/PDF text)
+        text = re.sub(r"^[ \t]*#+\s+", "", content, flags=re.MULTILINE)
 
         # Remove markdown links [text](url)
         text = re.sub(r"\[([^\]]+)\]\(([^\)]+)\)", r"\1", text)
@@ -125,22 +125,20 @@ class ResumeParser(BaseParser):
         return text.strip()
 
     def _detect_sections(self, text: str) -> list[str]:
-        """Detect common resume sections from text."""
+        """Detect common resume sections from text.
+
+        Section names may be indented with spaces or tabs (common after PDF
+        extraction and in pasted markdown). Patterns use ``[ \\t]`` rather than
+        ``\\s`` so matching cannot span newlines.
+        """
         detected = []
         text_lower = text.lower()
 
         for section in SECTION_HEADERS:
-            # Look for section header patterns
-            patterns = [
-                rf"^{re.escape(section)}\s*$",
-                rf"^{re.escape(section)}\s*[:|-]",
-                rf"\n{re.escape(section)}\s*$",
-                rf"\n{re.escape(section)}\s*[:|-]",
-            ]
-
-            for pattern in patterns:
-                if re.search(pattern, text_lower, re.MULTILINE):
-                    detected.append(section.title())
-                    break
+            # Line start, optional indent, section name, then end of line or
+            # a header delimiter (: | -). Collapses the previous four patterns.
+            pattern = rf"^[ \t]*{re.escape(section)}[ \t]*(?:$|[:|-])"
+            if re.search(pattern, text_lower, re.MULTILINE):
+                detected.append(section.title())
 
         return list(set(detected))  # Remove duplicates
