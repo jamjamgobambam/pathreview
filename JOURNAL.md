@@ -95,3 +95,83 @@ for review.
 None on the implementation. I don't have GitHub CLI auth in my current
 working environment, so opening the PR itself is a manual step I'll do
 outside this session.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/885
+
+**Branch:** `feat/129-migration-validation-ci`
+
+**What you built:**
+A CI step (`scripts/validate_migrations.sh`, wired into the `test-integration`
+job) that applies every Alembic migration to a fresh Postgres database and
+runs `alembic check` to confirm the resulting schema matches the SQLAlchemy
+models, so a broken or drifted migration fails the build instead of merging
+silently. Also fixed the real `uq_users_email` drift and a latent
+`DATABASE_URL` bug the new check surfaced.
+
+**Tests added or updated:**
+`tests/unit/test_user_model.py` — regression coverage for the
+`uq_users_email` constraint fix on the `User` model.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(pre-existing failures unrelated to this change are documented in the PR
+description and Check-in 1 above — my changes introduce no new failures)
+
+**Draft PR feedback received from:** none — no peer review channel available
+this cohort (Su26); PR opened directly as ready for review.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. Per Su26 cohort policy, reviewer feedback isn't provided
+this term, so this stayed at "none" through submission.
+
+**How you responded:**
+N/A — nothing to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Honestly, nothing. Going in, I expected friction from things like Git Bash
+on Windows, the branch/commit conventions, standing up Docker + a Python
+venv, or making sense of Alembic's `alembic check` output — but none of it
+actually slowed me down. Working with AI to handle the mechanical parts
+meant the process stayed smooth the whole way through.
+
+**What did you learn about working in a large codebase?**
+Not a lot, honestly. I work in large, unfamiliar codebases at my job
+regularly, so navigating PathReview's structure wasn't new territory. What
+was genuinely new to me was the specific domain — Alembic migrations and
+`alembic check` schema-drift detection, and structuring a validation step
+inside GitHub Actions — so there was still something worth learning here,
+just not the "large codebase" skill itself.
+
+**How did AI tools help — and where did they fall short?**
+AI got the tedious work out of the way — environment setup, drafting the
+validation script and CI changes, writing JOURNAL/PLAN scaffolding, and it
+even caught the `uq_users_email` schema drift before I would have noticed
+it myself. I wouldn't call it "falling short," but there were a handful of
+open-ended calls it deliberately left to me — like whether to fix that drift
+in the same PR or split it out. That's less a limitation and more just how
+working with AI on something like this actually goes: it clears everything
+up to the point of a real decision and hands that back.
+
+**What would you do differently if you started over?**
+Mostly my attitude. I went in annoyed that this module was a
+PR-contribution exercise instead of the MCP or RAG projects I actually
+wanted to be building, and that colored the first couple of weeks. If I
+started over I'd try to meet the exercise on its own terms instead of
+measuring it against the project I wished I were doing instead.
+
+**What are you most proud of from this module?**
+Finishing the course. I've enjoyed CodePath overall, and getting this
+module closed out is part of that.
