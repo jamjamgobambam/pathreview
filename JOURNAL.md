@@ -69,3 +69,39 @@ Added `tests/unit/test_dependency_audit_tool.py` to cover manifest parsing, the 
 - [x] `make test-unit` run — 53 pre-existing failures remain, while passing tests increased from 375 to 389 and all 14 new tests pass.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No maintainer or reviewer feedback has arrived on PR #1012 as of Week 10. I checked the PR for submitted reviews, inline review threads, and conversation comments.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was not writing the dependency parser itself, but understanding where the new tool belonged in an unfamiliar production codebase. I had to trace `BaseTool`, the orchestrator, existing agent tools, and the available repository data before realizing that filenames alone were not enough and that the audit needed a path to actual manifest contents.
+
+**What did you learn about working in a large codebase?**
+
+I learned that contributing to someone else's codebase is much more about understanding contracts and existing conventions than immediately writing code. The safest approach was to find analogous tools and tests, reproduce the missing behavior first, make a scoped plan, and compare my final results against a baseline so I could distinguish my changes from existing repository problems.
+
+**How did AI tools help — and where did they fall short?**
+
+AI was most useful for helping me navigate unfamiliar files, turn the issue into smaller implementation tasks, reason through version-parsing edge cases, and interpret test and lint output. It still required verification against the actual repository: for example, a new test initially ended up at the wrong indentation level and pytest interpreted `self` as a fixture, and AI assistance alone could not tell whether repo-wide failures were caused by my work without the baseline I had recorded.
+
+**What would you do differently if you started over?**
+
+I would trace the end-to-end data flow for repository contents earlier, before spending much time thinking about the parser in isolation. I would also establish the test and lint baseline immediately, run formatting before every commit attempt, and add the mocked GitHub-fetch path earlier instead of treating it as final hardening.
+
+**What are you most proud of from this module?**
+
+I am most proud that I took an issue in a codebase I initially understood only partially and turned it into a contribution I can actually explain from reproduction through implementation and testing. The repository still had the same 53 pre-existing unit-test failures at the end, while passing tests increased from 375 to 389, so all 14 tests added for my contribution passed without adding another repo-wide test failure.
