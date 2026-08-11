@@ -31,9 +31,7 @@ class FaithfulnessChecker:
             return 0.5  # Default to neutral if no extractable claims
 
         # Concatenate context text
-        context_text = " ".join([
-            chunk.get("text", "") for chunk in context_chunks
-        ])
+        context_text = " ".join(chunk.get("text") or "" for chunk in context_chunks)
 
         # Check each claim for support
         supported = 0
