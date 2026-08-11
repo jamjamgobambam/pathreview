@@ -113,76 +113,101 @@ on pre-existing missing type stubs unrelated to this change.)_
 
 **Draft PR feedback received from:** none yet
 
-## Week 10 — Review response & reflection
+## Week 10 — Iteration & reflection
 
-### Review feedback
+### Reviewer feedback
 
-Checked PR #992 for activity: it's open, not a draft, 5 commits, and has 0
-issue comments, 0 review comments, and 0 reviews. The repo also has no CI
-checks configured (0 check runs on the head commit), so there's no automated
-signal either. Nothing has come back to respond to. Per the course's own
-framing, that's an acceptable outcome, not a gap — so I'm noting it here
-rather than manufacturing a response to feedback that doesn't exist. If
-something does come in before the course ends, I'll add a dated response
-below this entry addressing it directly (fix it, ask a clarifying question,
-or explain my reasoning if I disagree).
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments on PR #992 as of this entry — 0 issue
+comments, 0 review comments, 0 reviews. (Su26 note: reviewer feedback isn't
+enabled as a feature this term, so this was expected rather than a stalled
+PR.) The repo also has no CI configured, so there was no automated signal to
+respond to either.
+
+**How you responded:**
+N/A — nothing came in to respond to. If that changes before the course ends,
+I'll add a dated follow-up here addressing it directly.
+
+---
 
 ### Reflection
 
-I picked issue #153 because it was small enough to actually finish end to
-end in a few weeks but real enough to teach something: `.get(key, default)`
-only substitutes the default when the key is *absent*, not when the value is
-`None`. I'd used that pattern without thinking about it for years, so
-reproducing the crash was also the moment I actually understood the bug in
-my own code, not just this codebase's.
+**What was harder than you expected?**
+The fix itself was one line — `chunk.get("text") or ""` instead of
+`chunk.get("text", "")` — and took about five minutes once I understood
+`.get(key, default)` only substitutes the default when the key is *absent*,
+not when the value is `None`. Almost everything else took longer than the
+fix. Distinguishing "tests that are failing because of my change" from
+"tests that were already broken" was harder than expected — the suite had 53
+pre-existing failures completely unrelated to #153, including 3 in the exact
+file I was editing, so I had to run the full suite before and after my
+change and diff the failure lists rather than trust a single "N tests
+failed" number. I also hit a real environment problem I didn't anticipate:
+my shell's git repository root turned out to be resolving to my entire home
+directory instead of the project folder, with thousands of unrelated files
+staged for commit — including browser cookies and a previous commit that
+already contained what looked like real secrets in a `.env` file. None of
+that was related to #153, but if I hadn't checked `git rev-parse
+--show-toplevel` before committing anything, I could have easily committed
+or pushed something I shouldn't have while just trying to knock out the
+week's checklist.
 
-The fix itself — `chunk.get("text") or ""` — took five minutes once I
-understood the root cause. Almost everything else took longer than the fix:
+**What did you learn about working in a large codebase?**
+You can't assume a clean baseline. In a codebase you own, a failing test
+usually means you broke something; in a large, unfamiliar codebase, it might
+mean nothing to do with you at all, and claiming "all tests pass" without
+checking first is actually dishonest. I also learned that the same bug
+pattern tends to repeat — grepping for `chunk.get("text", "")` turned up
+three more call sites (`review_generator.py`, `relevance_scorer.py`,
+`hybrid.py`) with what looks like the identical latent crash. Finding that
+was tempting to "fix while I was in there," but the issue only named
+`faithfulness_checker.py`, and a PR that quietly grows past its issue is
+exactly the kind of thing a reviewer has to untangle later. Staying scoped
+to what the issue actually asked for, and leaving a note instead of silently
+expanding the diff, felt like the more professional call even though it
+meant leaving known bugs unfixed.
 
-- **Scoping discipline.** Grepping for the same `chunk.get("text", "")`
-  pattern turned up three more call sites (`review_generator.py`,
-  `relevance_scorer.py`, `hybrid.py`) with the identical latent bug. My first
-  instinct was to fix all of them while I was in there. I didn't, because the
-  issue only named `faithfulness_checker.py`, and a PR that quietly grows
-  past its issue is exactly the kind of thing a reviewer has to untangle
-  later. I left a reviewer note instead. In hindsight I'd make that call
-  again, but I'd file the follow-up issue immediately instead of just
-  mentioning it in a PR comment — right now that context only lives in a PR
-  description, which is a bad long-term home for it.
-- **Separating my bug from the codebase's bugs.** The test suite had 53
-  pre-existing failures before I touched anything, completely unrelated to
-  #153 (bias detector, PII scrubber, resume parser, and three other tests in
-  the very file I was editing). Without a baseline, it would have been easy
-  to either falsely claim "all tests pass" or falsely panic that my one-line
-  change broke 53 tests. Running the suite before *and* after and diffing
-  the failure list was the only way to make an honest claim about what my
-  change actually did. That's a habit I didn't have before this project and
-  now think is close to mandatory for any change to an unfamiliar codebase.
-- **A near-miss with the tools, not the code.** Early on, my shell's git
-  root turned out to be resolving to my entire home directory instead of the
-  project folder, with thousands of unrelated files staged — including
-  browser cookies and a prior commit containing what looked like real
-  secrets in a `.env` file. None of that was related to #153, and it would
-  have been easy to just run the commit the task asked for without checking
-  where I actually was. Catching it before committing anything was luck as
-  much as diligence — I happened to check `git rev-parse --show-toplevel`
-  out of habit. If I were starting over, checking that up front, before any
-  git command, would be step zero, not an accident.
-- **Correctness vs. clarity trade-off I'm still not 100% settled on.**
-  `chunk.get("text") or ""` reads cleanly and passes every test, but it also
-  coerces any falsy `"text"` value to `""`, not just `None` — which is fine
-  today because `text` is always a string or `None` in practice, but it's a
-  slightly looser fix than `chunk.get("text") if chunk.get("text") is not
-  None else ""`. I chose the terser version for readability and flagged the
-  trade-off explicitly in PLAN.md's risks section rather than silently
-  picking one. If a reviewer pushes back and wants the explicit `is None`
-  check, I think they'd have a fair point about precision even though I'd
-  argue readability for a codebase where `text` fields are always strings.
-  That's the kind of disagreement I'd rather have in a PR thread than avoid
-  by guessing what a reviewer wants.
+**How did AI tools help — and where did they fall short?**
+I used Claude Code throughout — to grep the codebase for the sibling bug
+pattern, run the reproduction and the before/after test-suite diff, draft
+PLAN.md and the JOURNAL.md entries, and catch things I might have missed,
+like the stray unrelated typo that had crept into `hybrid.py` on my branch
+and the home-directory git-root problem. That verification loop (baseline,
+change, re-verify, diff the failures) is something I'd have been more likely
+to skip doing carefully by hand under time pressure. Where it fell short:
+it has no `gh` CLI or GitHub credentials in my environment, so it couldn't
+actually open the PR — I had to do that step myself. It also isn't a
+substitute for knowing what a reviewer would actually want; it flagged the
+`or ""` vs. explicit `is None` trade-off as a judgment call rather than
+silently picking one, but I still had to decide which one I'd defend. And
+concretely, this Week 10 entry itself is a good example of where it fell
+short: the first draft used the wrong section headings and swapped the
+required five-question reflection format for its own free-form version,
+because it was working from an earlier paraphrase of the assignment instead
+of the actual template text. I only caught that by re-checking the draft
+against the real assignment description, which is exactly the kind of
+verification step I now think is necessary any time I'm using AI output for
+something that gets graded.
 
-If I were starting this whole arc over with what I know now, the main thing
-I'd change is doing the cross-codebase grep for the bug pattern during Week
-8 planning instead of Week 9 implementation — it would have let me make the
-scope decision, and file any follow-up issues, before writing PLAN.md rather
-than as an afterthought once I was already mid-fix.
+**What would you do differently if you started over?**
+Two things. First, I'd run the cross-codebase grep for the bug pattern
+during Week 8 planning instead of discovering it mid-implementation in Week
+9 — it would have let me decide the scope, and file a follow-up issue for
+the sibling bugs, before writing PLAN.md instead of as an afterthought.
+Second, I'd check the actual assignment text/checklist against my
+deliverables before considering a week "done," not just at the end when
+something prompts a re-check — Week 10's reflection format is proof that
+working from memory of instructions given several messages ago, instead of
+the source text, produces drift.
+
+**What are you most proud of from this module?**
+The before/after baseline-diff verification on the test suite. It would have
+been easy to either claim "tests pass" without checking, or panic at 53
+failing tests that had nothing to do with my change. Instead I captured the
+exact failing-test list before touching anything, made the fix, re-ran the
+suite, and diffed the two lists to show precisely one test changed status —
+the one the issue was about. That's a small habit, but it's the difference
+between a claim I can actually defend to a reviewer and one I'm just hoping
+is true.
