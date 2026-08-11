@@ -106,3 +106,59 @@ was 53 failed / 375 passed; after my change it is 49 failed / 380 passed — the
 unrelated to this change and my edited lines are ruff/black/mypy-clean.)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+(Reviewer feedback is not provided in the Summer 2026 cohort.)
+
+**Summary of feedback:**
+No review came in. Reviewer feedback isn't a feature this cohort, and no
+maintainer comments arrived on PR #947 by the end of the week.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the environment running was much harder than the actual fix. Docker
+wasn't installed, Node was missing, and one container (ChromaDB) crash-looped on
+a NumPy 2.0 error that had nothing to do with my issue. Later, the pre-commit
+hooks blocked my commit entirely — not because of my code, but because the repo
+already had dozens of failing lint/type checks. Figuring out that the blocker was
+pre-existing (and using `--no-verify` plus documenting it) was the most confusing
+part.
+
+**What did you learn about working in a large codebase?**
+The actual fix was one line, but finding *where* to change it and understanding
+*why* it was broken took almost all the effort. I also learned that a real repo
+is messy: there were ~53 failing tests before I touched anything, so "passing"
+meant "I didn't make it worse," not "everything is green." Reading existing tests
+told me exactly what the correct behavior should be, which was more useful than
+reading the source.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for navigating an unfamiliar codebase quickly — locating the
+buggy regex, explaining what `\b`, `[-.\s]`, and lookarounds actually do, and
+diagnosing setup errors (Docker, Node, the pre-commit hooks). Where it fell short
+was the conceptual git model — I had to slow down and actually understand forks
+vs. branches vs. commit vs. push myself before the commands made sense; running
+them blindly wasn't enough.
+
+**What would you do differently if you started over?**
+I'd learn the basic git workflow (branch → add → commit → push, and how a PR
+compares two branches) *before* starting, so I wasn't learning the tools and the
+problem at the same time. I'd also run `make test-unit` to capture the baseline
+failures on day one, so I'd know from the start which failures were mine vs.
+pre-existing.
+
+**What are you most proud of from this module?**
+Ending with a clean, minimal PR — one intentional regex line plus one regression
+test — instead of a messy diff full of auto-formatter noise. Keeping the change
+small and well-documented felt like a real contribution, not just "make the tests
+pass."
