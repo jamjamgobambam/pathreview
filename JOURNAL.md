@@ -110,3 +110,85 @@ undocumented failures unrelated to this change, detailed in the PR's Notes for
 Reviewers)
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 ,Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No ,still awaiting review
+
+**Summary of feedback:**
+Two classmates reviewed my PR. ayc325 noted that several of my commit
+messages didn't follow the conventional commit format from CONTRIBUTING.md
+(a few got bundled together while I was working through pre-commit hook
+failures). DarrenBoyo caught a real correctness bug: in `log_event()`, I
+was storing each Redis sorted-set member as `str(now)` with `now` as the
+score ,but Redis sorted-set members must be unique, so two events logged
+at the exact same timestamp would collide and the second would silently
+overwrite the first, undercounting events.
+
+**How you responded:**
+For the commit message feedback, I acknowledged the inconsistency and
+explained I was leaving history as-is rather than rebasing mid-review,
+since force-pushing during active review makes the diff harder to follow —
+but committed to being more deliberate about atomic, conventional commits
+going forward. For the sorted-set collision bug, I agreed it was a real
+gap, fixed it by appending a UUID to the member string (keeping `now` as
+the score so the existing window-pruning logic didn't need to change),
+added a new test (`test_log_event_same_timestamp_does_not_overwrite`)
+confirming two same-timestamp events are both counted, and pushed the fix
+in commit `5f99ca4`.
+
+### Reflection
+
+**What was harder than you expected?**
+Environment setup ate far more time than I expected ,not the code
+itself, but Windows-specific issues unrelated to the actual bug I was
+fixing. `make` isn't native to Windows, Git flagged "dubious ownership"
+on my own cloned repo, and Postgres/Redis connections kept silently
+dying with WinError 10053 until I traced it to `localhost` resolving to
+IPv6 first on my machine ,switching to `127.0.0.1` fixed it. None of
+that was in my PLAN.md.
+
+**What did you learn about working in a large codebase?**
+That a codebase this size already has failures that have nothing to do
+with your change ,176 pre-existing lint errors, 53 failing tests ,and
+the professional move is proving your change didn't add to them, not
+panicking or trying to fix everything. I also learned that even a
+reviewed, tested PR can still have a real bug in it: Darren caught that
+my Redis sorted-set members (`str(now)`) weren't guaranteed unique, so
+simultaneous events could silently overwrite each other and undercount.
+I'd written 8 tests and none of them caught it, because I hadn't thought
+to test for timestamp collisions specifically ,a second set of eyes
+found something my own review missed.
+
+**How did AI tools help ,and where did they fall short?**
+Claude Code was most useful for fast, scoped investigation ,reading
+`safety/rate_limiter.py` to find an existing pattern I could copy for
+consistency instead of inventing my own approach, and later implementing
+the UUID-suffix fix precisely to spec once I knew what needed to change.
+It fell short on judgment calls that needed project context: deciding
+whether a bug like the `settings.redis_host` issue was in scope for my
+PR, or how to interpret "make check passes" honestly when the repo has
+pre-existing failures. AI could execute a fix quickly, but recognizing
+that Darren's comment described a real bug ,not just a style nitpick —
+was on me.
+
+**What would you do differently if you started over?**
+I'd write a test for concurrent/simultaneous events from the start,
+rather than only after a reviewer pointed out the gap. My original test
+suite covered valid/invalid event types and window pruning, but never
+asked "what happens if two events happen at literally the same instant" —
+which turned out to be exactly the bug Darren found. I'd also commit in
+smaller, more atomic pieces; a few of my Week 9 commits got bundled
+together while I was resolving pre-commit hook failures, which is what
+ayc325 flagged.
+
+**What are you most proud of from this module?**
+Actually fixing Darren's bug instead of just replying politely and
+moving on. It would have been easy to say "good point, I'll consider it"
+and leave it ,but it was a real correctness issue with a clear fix, so
+I implemented it, wrote a test proving the fix works, and pushed it
+before the module ended. That felt like the actual point of code review,
+not just a formality to get through.
