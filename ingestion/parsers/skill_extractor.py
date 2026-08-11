@@ -148,10 +148,11 @@ class SkillExtractor:
     ) -> None:
         """Detect programming languages."""
         text_lower = text.lower()
+        filename_lower = str(filename or "").lower()
 
         # Python detection
         python_evidence = []
-        if ".py" in str(filename or "").lower():
+        if ".py" in filename_lower:
             python_evidence.append("Python file extension (.py)")
         if re.search(r"\bimport\s+\w+", text):
             python_evidence.append("Python import statements")
@@ -170,25 +171,85 @@ class SkillExtractor:
                 evidence=python_evidence,
             )
 
-        # JavaScript/TypeScript detection
+        # --- JavaScript detection ---
+        # NOTE: previously this block only checked `filename` for ".js"/".ts"
+        # and a single narrow regex (`\b(import|require)\s+`) that required
+        # whitespace after the keyword, missing `require('fs')` style calls
+        # and never checking export/arrow-function/async-await syntax at all.
         js_evidence = []
-        if ".js" in str(filename or "").lower():
+
+        if ".js" in filename_lower:
             js_evidence.append("JavaScript file extension (.js)")
-        if ".ts" in str(filename or "").lower():
-            js_evidence.append("TypeScript file extension (.ts)")
-        if re.search(r"\b(import|require)\s+", text):
-            js_evidence.append("CommonJS or ES6 imports")
+
+        # import/require, with or without a space before the parenthesis
+        # e.g. `import x from 'y'` AND `require('fs')`
+        if re.search(r"\brequire\s*\(", text) or re.search(r"\bimport\s+.+\s+from\s+", text):
+            js_evidence.append("CommonJS or ES6 import/require")
+
+        # export statements
+        if re.search(r"\bexport\s+(default\s+)?(function|class|const|let|var)\b", text):
+            js_evidence.append("ES6 export statement")
+
+        # arrow function syntax, e.g. `const foo = (x) => x + 1` or `x => x + 1`
+        if re.search(r"(\([^()]*\)|\b\w+)\s*=>", text):
+            js_evidence.append("arrow function syntax")
+
+        # async/await usage
+        if re.search(r"\basync\s+function\b", text) or re.search(r"\basync\s*\(", text) \
+                or re.search(r"\bawait\s+\w+", text):
+            js_evidence.append("async/await syntax")
+
+        # literal mention of "javascript" in plain-text descriptions
+        if re.search(r"\bjavascript\b", text_lower):
+            js_evidence.append("literal mention of 'JavaScript'")
+
+        # .js/.jsx mentioned inline in descriptive text (not just filename)
+        if re.search(r"\.jsx?\b", text_lower):
+            js_evidence.append("mention of .js/.jsx file")
+
         if "package.json" in text_lower:
             js_evidence.append("package.json found")
 
         if js_evidence:
-            confidence = min(0.95, 0.6 + len(js_evidence) * 0.1)
-            lang = "TypeScript" if ".ts" in str(filename or "").lower() else "JavaScript"
-            skills_dict[lang] = SkillDetection(
-                name=lang,
+            skills_dict["JavaScript"] = SkillDetection(
+                name="JavaScript",
                 category="Language",
-                confidence=confidence,
+                confidence=min(0.95, 0.6 + len(js_evidence) * 0.1),
                 evidence=js_evidence,
+            )
+
+        # --- TypeScript detection (independent of JavaScript) ---
+        # Previously TypeScript was only ever assigned when ".ts" appeared
+        # in `filename`, so content-only TypeScript (no filename passed)
+        # was invisible, and JS/TS were mutually exclusive labels even
+        # though a .tsx file is legitimately both.
+        ts_evidence = []
+
+        if re.search(r"\.tsx?\b", filename_lower):
+            ts_evidence.append("TypeScript file extension (.ts/.tsx)")
+
+        # interface declarations, e.g. `interface Foo {`
+        if re.search(r"\binterface\s+\w+\s*\{", text):
+            ts_evidence.append("TypeScript interface declaration")
+
+        # type annotations, e.g. `: string`, `: number[]`, `: boolean`
+        if re.search(r":\s*(string|number|boolean|any|void|unknown)\b", text):
+            ts_evidence.append("TypeScript type annotation")
+
+        # literal mention of "typescript" in plain-text descriptions
+        if re.search(r"\btypescript\b", text_lower):
+            ts_evidence.append("literal mention of 'TypeScript'")
+
+        # .ts/.tsx mentioned inline in descriptive text (not just filename)
+        if re.search(r"\.tsx?\b", text_lower):
+            ts_evidence.append("mention of .ts/.tsx file")
+
+        if ts_evidence:
+            skills_dict["TypeScript"] = SkillDetection(
+                name="TypeScript",
+                category="Language",
+                confidence=min(0.95, 0.6 + len(ts_evidence) * 0.1),
+                evidence=ts_evidence,
             )
 
         # Other languages by extension
@@ -203,7 +264,6 @@ class SkillExtractor:
             ".swift": ("Swift", 0.95),
         }
 
-        filename_lower = str(filename or "").lower()
         for ext, (lang, confidence) in extension_langs.items():
             if ext in filename_lower:
                 skills_dict[lang] = SkillDetection(
