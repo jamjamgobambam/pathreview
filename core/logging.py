@@ -7,49 +7,41 @@ import structlog
 
 from core.config import settings
 
+_CONFIGURED = False
+
 
 def configure_logging() -> None:
-    """Configure structlog with appropriate renderers based on environment."""
-    if settings.app_env == "production":
-        # JSON renderer for production
-        processors = [
-            structlog.stdlib.filter_by_level,
-            structlog.stdlib.add_logger_name,
-            structlog.stdlib.add_log_level,
-            structlog.stdlib.PositionalArgumentsFormatter(),
-            structlog.processors.TimeStamper(fmt="iso"),
-            structlog.processors.StackInfoRenderer(),
-            structlog.processors.format_exc_info,
-            structlog.processors.UnicodeDecoder(),
-            structlog.processors.JSONRenderer(),
-        ]
-    else:
-        # Pretty renderer for development
-        processors = [
-            structlog.stdlib.filter_by_level,
-            structlog.stdlib.add_logger_name,
-            structlog.stdlib.add_log_level,
-            structlog.stdlib.PositionalArgumentsFormatter(),
-            structlog.processors.TimeStamper(fmt="iso"),
-            structlog.processors.StackInfoRenderer(),
-            structlog.processors.format_exc_info,
-            structlog.processors.UnicodeDecoder(),
-            structlog.dev.ConsoleRenderer(),
-        ]
+    """Configure structlog to emit through the standard logging pipeline."""
+    global _CONFIGURED
+
+    if _CONFIGURED:
+        return
 
     structlog.configure(
-        processors=processors,
+        processors=[
+            structlog.stdlib.filter_by_level,
+            structlog.stdlib.add_logger_name,
+            structlog.stdlib.add_log_level,
+            structlog.stdlib.PositionalArgumentsFormatter(),
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.processors.UnicodeDecoder(),
+            structlog.stdlib.render_to_log_kwargs,
+        ],
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=True,
     )
 
-    # Configure standard library logging
+    # Configure standard library logging so pytest caplog can capture structlog output.
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
         level=settings.log_level,
+        force=True,
     )
+    _CONFIGURED = True
 
 
 def get_logger(name: str) -> structlog.BoundLogger:
@@ -61,4 +53,8 @@ def get_logger(name: str) -> structlog.BoundLogger:
     Returns:
         Bound logger instance with context
     """
+    configure_logging()
     return structlog.get_logger(name)
+
+
+configure_logging()
