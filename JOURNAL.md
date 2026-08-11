@@ -140,6 +140,152 @@ here's what I measured:
   annotating all 29 functions in the file is unrelated to this issue. Flagging
   it in case the hook config is meant to match the Makefile.
 
-**Draft PR feedback received from:** Posted the draft PR for peer review in
-`#dts-su26-ai201-program-help-2a`. Will update here with the reviewer's name
-once someone picks it up.
+**Draft PR feedback received from:** @IGS1I, via
+`#dts-su26-ai201-program-help-2a`.
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [x] Yes  [ ] No — still awaiting review
+
+**Summary of feedback:**
+One peer review from @IGS1I on the PR. They said the description was solid,
+specifically that separating the regression tests (failing before, passing
+after) from the tests I added, and explaining why I added each one, made it
+easy to follow, and that they could tell from the description that `scrub()`
+and `detect()` were the functions doing the redacting. Two suggestions:
+
+1. Add pictures showing the changes or the pre-existing failures.
+2. Mention `PII_PATTERNS` and that that's where the change was made.
+
+No maintainer review yet, `reviewDecision` is still `REVIEW_REQUIRED`.
+
+**How you responded:**
+I thought about both and didn't end up making either change, so here's my
+reasoning rather than just "done."
+
+On the screenshots: the PR already has the before/after failure counts and a
+whole section on pre-existing failures. There's no UI to show for a regex fix,
+and a screenshot of a terminal is strictly worse than the text that's already
+there, since you can't search it, copy it, or read it with a screen reader, and
+it goes stale as soon as line numbers move. I think the thing they actually
+wanted, evidence that I didn't break anything, is already in the PR, just as
+text. If a reviewer had told me the evidence wasn't legible I'd have fixed the
+presentation, but that wasn't the note.
+
+On `PII_PATTERNS`: fair point in isolation, and it would have cost me nothing.
+I skipped it because the description already names the file, the specific
+`phone_us` key, and both call paths, and the diff in the Files tab shows the
+dict right there. Adding the class attribute name felt like it'd be words, not
+information.
+
+What I took from the review is honestly less about those two items and more
+that the part they called out as good, splitting regression tests from new
+tests and saying why each new one exists, is a habit worth keeping. That
+wasn't something I did deliberately at the time. I did it because the four
+failing tests came from the issue and the other four came from my own edge
+case list, so the split was just how the work happened. Good to know it reads
+well from the outside.
+
+I replied to the comment thanking them and explaining the above.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Trusting my own diagnosis less. I found the root cause fast and it was
+genuinely correct: the `phone_us` regex started with `\b`, and a word boundary
+can't match between a space and a `(` because neither side is a word
+character. That explained the bug perfectly. I wrote it up in PLAN.md, swapped
+the `\b` for a negative lookbehind, reran the test, and it still failed.
+
+The separators were `[-.]?`, which allows a dash, a dot, or nothing, and
+`(555) 123-4567` has a space after the closing paren. Two independent bugs on
+the same input, and the first one being real and well-explained is exactly why
+I almost stopped looking. If the tests hadn't been sitting right there I would
+have shipped a "fix" that fixed nothing and been confident about it.
+
+The other thing that was harder than expected was keeping the diff small.
+`make check` runs `make format`, so I ran it, and black reformatted 52 files
+across the repo. Technically it made the check pass. It also would have buried
+a 3 line fix in a 1,100 line diff that nobody could review. I reverted all of
+it and went back to fixing only the lint errors in the one file I was already
+touching. Making the tool happy and making the change reviewable turned out to
+be different goals.
+
+**What did you learn about working in a large codebase?**
+That "does it pass" is the wrong question, and the right one is "is it worse
+than before." I ran `make test-unit` expecting green and got 53 failures. My
+first instinct was that I'd broken something. They were all pre-existing, in
+modules I'd never opened.
+
+So I actually measured it instead of eyeballing whether the failures looked
+related to me: stashed my work, ran the suite, unstashed, ran it again, and
+compared. 53 failed / 375 passed before, 49 failed / 383 passed after. That
+number is the whole argument that my change is safe, and it's the thing I put
+in the PR.
+
+The related lesson is scope discipline. `test_mixed_pii_and_text` still fails
+in the exact file I edited, and it's a real bug: the `street_address` pattern
+has no trailing anchor, so its `[A-Za-z\s]+` group backtracks onto the letters
+`pl` inside the word "applications" and over-redacts. I found it, understood
+it, and deliberately left it, because a PR that fixes two unrelated things is
+harder to review and harder to revert than two PRs. On my own projects I'd
+have just fixed it. Here, leaving a known bug alone on purpose and documenting
+it was the more useful move.
+
+**How did AI tools help — and where did they fall short?**
+Most useful for orientation. I hadn't seen this codebase, and being able to
+ask where the phone regex lived, what else touched `PII_PATTERNS`, and what
+`make check` actually ran saved hours of reading. Testing regex variants
+quickly was also great, since I could try eight phone formats against a
+candidate pattern in one go and immediately see that `phone_intl` still
+claimed `+44 20 7946 0958` on its own.
+
+Where it fell short is more interesting. The plan I wrote with AI help said
+"replace the leading `\b` with a lookbehind," stated confidently, and it was
+incomplete. It never flagged that the separators were a second blocker. The
+diagnosis was right and the fix derived from it was wrong, which is a failure
+mode I now think is more dangerous than being obviously wrong, because there's
+nothing to catch. Running the test caught it. Nothing else would have.
+
+The `make format` thing was the other one. Running it was locally reasonable,
+"the check wants formatting, so format." It just optimized for the check
+passing rather than the diff staying reviewable, and I'm the one who has to
+know the difference. Same with `--no-verify`: I used it on the test commit
+because the pre-commit mypy hook wants type annotations on test functions
+while `make typecheck` scopes to `api/ core/ ingestion/ rag/ agent/ safety/`
+and skips `tests/` entirely, and no test file in this repo is annotated. That
+was a judgment call about repo convention versus tooling config, and I flagged
+it in the PR so a maintainer could overrule me. AI could tell me what the hook
+did. It couldn't tell me which of two conflicting configs reflected what the
+maintainers actually wanted.
+
+**What would you do differently if you started over?**
+Verify the fix before writing the plan, not after. I wrote a whole PLAN.md
+around a hypothesis I hadn't actually tested end to end, and the plan turned
+out to be partly wrong. Ten minutes in a Python REPL up front would have
+caught the separator issue and made the plan right the first time. I updated
+PLAN.md afterward with what actually happened, which the assignment explicitly
+allows, but I'd rather have gotten it right.
+
+I'd also read the Makefile before running anything in it. I ran `make check`
+without knowing it invoked `make format` on the entire repo, and cleaning that
+up cost me more time than the actual fix did.
+
+And I'd open the draft PR earlier. I opened it fairly late and got exactly one
+review. Useful, but if it had been up for a few more days there might have
+been more.
+
+**What are you most proud of from this module?**
+That I noticed the first fix didn't work instead of assuming it did. The `\b`
+explanation was correct, it was well written up, and I had every reason to
+believe I was done. The only reason I caught the second bug is that I reran
+the test and actually read the output rather than skimming for the word I
+wanted to see.
+
+The fix itself is three lines. The habit of not believing myself until the
+test agrees is the part I want to keep.
