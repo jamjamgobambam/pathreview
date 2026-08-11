@@ -102,3 +102,39 @@ without raising a `TypeError`.
 - [x] Black passes on the changed Python files
 - [ ] `make check` passes repository-wide — unrelated baseline errors remain
 - [ ] `make test-unit` passes repository-wide — baseline failures documented
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was provided during Summer 2026. My PR is still available for review, but I did not receive any comments requiring additional changes during this module.
+
+**How you responded:**
+No changes were required in response to reviewer feedback.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was determining whether failing tests were caused by my implementation or were already existing failures in the PathReview codebase. My change for Issue #153 was relatively small, but validating it safely required understanding the surrounding faithfulness-checking logic and the project's testing setup. When I initially ran the broader test suite, I saw many failures, so I had to compare the results from the upstream main branch with my feature branch rather than assuming that every failing test was caused by my code. This made testing and validation more involved than I originally expected.
+
+**What did you learn about working in a large codebase?**
+
+I learned that making a small change in a large codebase requires much more context than implementing the same functionality in a personal project. For Issue #153, the visible problem was that the faithfulness checker could crash when a context chunk contained `text: None`, but I still needed to understand where that value flowed through the system, how the existing code expected context chunks to behave, and which tests were relevant. I also learned the importance of minimizing the scope of a change. Instead of redesigning unrelated parts of the checker, I focused on handling the `None` case and adding regression coverage for that specific behavior.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools were most helpful for understanding unfamiliar sections of the codebase, interpreting test failures, reviewing possible implementations, and reasoning through Git and pull request workflows. They helped me narrow down where the `None` value needed to be handled and think through edge cases. However, AI could not replace actually running the repository's tests and examining the results. In particular, when the full test suite contained failures, I needed to compare the behavior of my branch against the upstream main branch to determine whether my change introduced regressions. The repository itself, its test output, and Git history were ultimately the source of truth.
+
+**What would you do differently if you started over?**
+
+If I started over, I would establish a baseline test result from the upstream main branch before making any implementation changes. That would have made it much easier to distinguish existing repository failures from failures introduced by my branch. I would also spend more time at the beginning tracing the affected execution path and identifying the smallest relevant test set before modifying the code. This would make the development and verification process more systematic and reduce time spent debugging unrelated failures.
+
+**What are you most proud of from this module?**
+
+I am most proud of learning how to approach an existing codebase like a contributor rather than treating it like one of my own projects. I took a real issue, reproduced and investigated the behavior, implemented a focused fix, added regression coverage for the `None` context case, tested the change, and submitted it through the pull request workflow. More importantly, I learned how to verify that my implementation improved the targeted behavior without assuming that unrelated failures in a large repository were caused by my changes.
