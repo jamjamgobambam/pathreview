@@ -113,3 +113,73 @@ description.)
 **Draft PR feedback received from:** none — opened directly as ready for review due to
 the submission deadline having passed; reaching out to the course team separately about
 the late submission.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — reviewer feedback is not provided this term (Su26)
+
+**Summary of feedback:**
+No reviewer feedback came in — per the course note this term, reviewer feedback isn't a
+feature in Summer 2026, so my PR (#990) remains open without comments as of this writing.
+
+**How you responded:**
+N/A — nothing to respond to. If feedback comes in after this entry, I'll update this
+section.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Honestly, the hardest part wasn't the code — it was making sure I stayed the one actually
+driving this instead of just letting Claude take over. It would generate the fix, write
+the tests, draft the PR description, and it was really easy to just say "okay, do that"
+without stopping to actually understand what had changed or why. A few times I caught
+myself about to run a command without really knowing what it did. I had to be intentional
+about slowing down — asking it to explain things, running commands myself instead of
+letting it run everything, actually reading the output before moving to the next step —
+especially during the environment setup debugging (the Python version mismatch, the
+Postgres port conflict), where it would've been easy to just follow instructions blindly
+and end up with a working setup I didn't actually understand.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was learning that "does my change work" and "does the whole test suite
+pass" are different questions in a real codebase. When I ran `make check` and
+`make test-unit` on this fork, I found 183 pre-existing lint errors, 100 pre-existing
+mypy errors, and 53 pre-existing failing tests — none of which had anything to do with my
+issue. I had to learn to isolate what I was responsible for: confirming my specific files
+introduced nothing new, documenting the baseline honestly, and not scope-creeping into
+fixing unrelated debt just because I happened to be in the neighborhood. I also learned to
+actually grep for other call sites of the pattern I was fixing before assuming my change
+was complete and isolated.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for fast triage — reading a stack trace or `lsof` output and
+immediately narrowing down "this is a port conflict, not a credentials issue," or spotting
+that a mypy failure I was staring at was pre-existing and unrelated to my diff. It was also
+useful for scaffolding tests that matched the existing repo's patterns (fixtures, markers,
+`AsyncMock` usage) instead of inventing my own style. Where it fell short was anything that
+depended on the actual state of my machine — it couldn't know my shell wasn't sourcing
+pyenv, or that a specific port was already taken, until I ran commands and reported back
+real output. It also couldn't make the judgment call on scope for me — deciding whether to
+fix the pre-existing mypy debt in `health.py` while I was already in that file was a
+tradeoff I had to reason through myself, not something to defer to a tool.
+
+**What would you do differently if you started over?**
+I'd set up pyenv and shell integration correctly before ever running `make setup`, instead
+of debugging it live once things broke. I'd also run `make check` and `make test-unit` as
+an immediate baseline right after setup — before touching any code — rather than
+discovering the pre-existing failure counts reactively in the middle of Week 9. And for
+issue selection, I'd weigh "how crowded is this issue" more heavily up front; #155 turned
+out to have 10+ claim comments and three other open PRs by the time I submitted mine,
+which didn't affect my grade but meant less room for original peer discussion around it.
+
+**What are you most proud of from this module?**
+Just finishing my first real open source contribution, honestly. Actually getting a PR up
+on someone else's repo, following their contribution standards, working through a
+codebase I didn't write and didn't fully understand going in — I wasn't sure at the start
+that I'd make it all the way to a submitted PR. Now that I've seen what the process
+actually looks like end to end, I'm genuinely looking forward to taking on more open
+source issues after this.
