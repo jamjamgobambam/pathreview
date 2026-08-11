@@ -1,0 +1,19 @@
+Identify skill gaps relative to job market demands.
+
+Portfolio Context:
+{context}
+
+GitHub Username: {github_username}
+Project Count: {project_count}
+
+Analyze:
+1. High-demand skills not demonstrated
+2. Underrepresented areas
+3. Market alignment
+4. Growth opportunities
+
+Format as JSON:
+- missing_high_demand_skills: list with market demand info
+- underrepresented_areas: areas with low portfolio coverage
+- market_alignment_score: 0-1
+- recommended_learning_areas: prioritized list

@@ -1,7 +1,10 @@
 """Tests for prompt_templates.py - Snapshot tests"""
 
-import pytest
 import hashlib
+import os
+from pathlib import Path
+
+import pytest
 
 from rag.generator.prompt_templates import PROMPT_TEMPLATES, get_template
 
@@ -52,7 +55,9 @@ class TestPromptTemplates:
         """Test each template contains {context} placeholder."""
         for template_name, versions in PROMPT_TEMPLATES.items():
             for version, template_text in versions.items():
-                assert "{context}" in template_text, f"{template_name} v{version} missing {{context}}"
+                assert (
+                    "{context}" in template_text
+                ), f"{template_name} v{version} missing {{context}}"
 
     def test_each_template_contains_github_username_placeholder(self):
         """Test each template contains {github_username} placeholder."""
@@ -151,19 +156,32 @@ class TestPromptTemplates:
         """Test gaps_feedback template mentions missing/gap concepts."""
         template = PROMPT_TEMPLATES["gaps_feedback"]["v1"]
 
-        assert "gap" in template.lower() or "missing" in template.lower() or "demand" in template.lower()
+        assert (
+            "gap" in template.lower()
+            or "missing" in template.lower()
+            or "demand" in template.lower()
+        )
 
     def test_presentation_feedback_mentions_readme(self):
         """Test presentation_feedback template mentions README or presentation."""
         template = PROMPT_TEMPLATES["presentation_feedback"]["v1"]
 
-        assert "readme" in template.lower() or "presentation" in template.lower() or "organization" in template.lower()
+        assert (
+            "readme" in template.lower()
+            or "presentation" in template.lower()
+            or "organization" in template.lower()
+        )
 
     def test_first_impression_is_concise(self):
         """Test first_impression template instructs concise output."""
         template = PROMPT_TEMPLATES["first_impression"]["v1"]
 
-        assert "2" in template or "3" in template or "sentence" in template.lower() or "summary" in template.lower()
+        assert (
+            "2" in template
+            or "3" in template
+            or "sentence" in template.lower()
+            or "summary" in template.lower()
+        )
 
     def test_get_template_default_version(self):
         """Test get_template() defaults to v1 when version not specified."""
@@ -184,8 +202,36 @@ class TestPromptTemplates:
 
         # Expected hash - update if templates intentionally change
         # This helps detect unintended changes to templates
-        assert isinstance(content_hash, str)
-        assert len(content_hash) == 32  # MD5 hash length
+        expected_hash = "3e79f974f8c1b6d8d1481dfc42e949ca"
+        assert content_hash == expected_hash, (
+            f"Global template content hash changed! Expected {expected_hash}, got {content_hash}.\n"
+            f"If this change was intentional, update the expected_hash in this test."
+        )
+
+    def test_template_snapshots(self):
+        """Verify that prompt templates match their saved snapshots on disk."""
+        snapshot_dir = Path(__file__).parent.parent / "snapshots" / "prompt_templates"
+        snapshot_dir.mkdir(parents=True, exist_ok=True)
+
+        update_snapshots = os.environ.get("UPDATE_SNAPSHOTS") == "1"
+
+        for name, versions in PROMPT_TEMPLATES.items():
+            for version, template_text in versions.items():
+                snapshot_file = snapshot_dir / f"{name}_{version}.txt"
+
+                # Normalize line endings to avoid OS-specific differences (LF vs CRLF)
+                normalized_text = template_text.replace("\r\n", "\n")
+
+                if update_snapshots or not snapshot_file.exists():
+                    snapshot_file.write_text(normalized_text, encoding="utf-8")
+
+                snapshot_content = snapshot_file.read_text(encoding="utf-8").replace("\r\n", "\n")
+
+                assert normalized_text == snapshot_content, (
+                    f"Snapshot mismatch for template '{name}' version '{version}'!\n"
+                    f"If intentional, run with UPDATE_SNAPSHOTS=1 to update the snapshots.\n"
+                    f"Otherwise, please revert your changes or bump the template version."
+                )
 
     def test_skills_feedback_requests_json_format(self):
         """Test skills_feedback requests JSON output."""
@@ -216,7 +262,11 @@ class TestPromptTemplates:
         template = PROMPT_TEMPLATES["first_impression"]["v1"]
 
         # Should specify format (JSON or plain text)
-        assert "json" in template.lower() or "text" in template.lower() or "summary" in template.lower()
+        assert (
+            "json" in template.lower()
+            or "text" in template.lower()
+            or "summary" in template.lower()
+        )
 
     def test_templates_have_portfolio_context(self):
         """Test templates mention portfolio or context."""
@@ -230,7 +280,8 @@ class TestPromptTemplates:
         # Import logger to verify it's used
         with pytest.MonkeyPatch.context() as mp:
             from unittest.mock import patch
-            with patch('rag.generator.prompt_templates.logger') as mock_logger:
+
+            with patch("rag.generator.prompt_templates.logger") as mock_logger:
                 get_template("skills_feedback")
                 # Should log template retrieval
 
@@ -267,7 +318,8 @@ class TestPromptTemplates:
             for version, template_text in versions.items():
                 # All placeholders should use {name} syntax
                 import re
-                placeholders = re.findall(r'\{(\w+)\}', template_text)
+
+                placeholders = re.findall(r"\{(\w+)\}", template_text)
                 assert "context" in placeholders
                 assert "github_username" in placeholders
                 assert "project_count" in placeholders

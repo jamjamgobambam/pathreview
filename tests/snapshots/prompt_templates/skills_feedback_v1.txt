@@ -1,0 +1,19 @@
+Analyze the skills demonstrated in the provided portfolio context.
+
+Portfolio Context:
+{context}
+
+GitHub Username: {github_username}
+Project Count: {project_count}
+
+Based on the portfolio evidence above, provide structured feedback on:
+1. Demonstrated technical skills (with specific examples from projects)
+2. Depth of expertise in key areas
+3. Programming language proficiency
+4. Framework and tool mastery
+
+Format your response as JSON with these fields:
+- key_skills: list of demonstrated skills with evidence
+- language_proficiency: dict mapping languages to proficiency level
+- framework_expertise: list of mastered frameworks
+- tool_proficiency: list of tools used effectively

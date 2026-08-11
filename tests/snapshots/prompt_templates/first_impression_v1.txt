@@ -1,0 +1,14 @@
+Provide a 2-3 sentence overall first impression of this portfolio.
+
+Portfolio Context:
+{context}
+
+GitHub Username: {github_username}
+Project Count: {project_count}
+
+Write a concise, professional summary capturing:
+- Overall skill level and trajectory
+- Most impressive aspects
+- Immediate opportunities for growth
+
+Provide only the summary text, no JSON formatting needed.

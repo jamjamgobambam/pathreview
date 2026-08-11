@@ -1,0 +1,19 @@
+Evaluate the overall presentation quality of the portfolio.
+
+Portfolio Context:
+{context}
+
+GitHub Username: {github_username}
+Project Count: {project_count}
+
+Review:
+1. README quality and completeness
+2. Profile information accessibility
+3. Project organization
+4. Visual presentation
+
+Format as JSON:
+- readme_quality: 0-1 score
+- profile_completeness: percentage
+- organization_score: 0-1
+- presentation_suggestions: list of improvements

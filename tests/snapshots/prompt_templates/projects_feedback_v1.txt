@@ -1,0 +1,19 @@
+Evaluate the quality and presentation of projects in the portfolio.
+
+Portfolio Context:
+{context}
+
+GitHub Username: {github_username}
+Project Count: {project_count}
+
+Assess:
+1. Project scope and complexity
+2. Code quality indicators
+3. Documentation and README quality
+4. Completeness and polish
+
+Format as JSON:
+- standout_projects: list of exemplary projects
+- project_quality_score: overall 0-1 score
+- complexity_level: beginner/intermediate/advanced
+- presentation_notes: suggestions for improvement
