@@ -125,7 +125,7 @@ changed lines pass ruff/black/mypy.
 
 ### Check-in 2 (end of week)
 
-**PR link:** _<add the opened PR URL here>_
+**PR link:** https://github.com/ascherj/pathreview/pull/850
 
 **Branch:** `fix/153-faithfulness-checker-none-text`
 
@@ -148,4 +148,101 @@ Note per the pre-existing-failures policy: this repo has documented pre-existing
 new failures — it removes one failure and adds three passing tests. See the
 baseline vs. after numbers in Check-in 1.
 
-**Draft PR feedback received from:** _<name or Slack handle, or "none">_
+**Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review comments came in on PR #850. Per the Summer 2026 cohort note,
+peer review is not a graded feature this term. The PR remained in draft status
+throughout the week with no maintainer or peer responses.
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating the repo's pre-existing tooling failures was the biggest surprise.
+Before I even touched a line of production code, `make check` reported 181 ruff
+errors and 5 mypy errors, and `make test-unit` had 53 failing tests — all
+completely unrelated to issue #153. The hard part wasn't the fix itself; it was
+understanding what "passes `make check`" actually means in that context, deciding
+how to document it convincingly, and figuring out that the pre-commit hooks would
+block a normal commit because they run repo-wide (not just on my changed files).
+Having to commit with `--no-verify` felt wrong at first, but the right move was
+to document why thoroughly rather than pretend the pre-existing failures weren't
+there.
+
+Also unexpected: finding PR #211 already open and claiming `Closes #153`. That
+required a real judgment call — not a technical one, but a project-coordination
+one. I had to decide whether my work was still worth submitting given a competing
+open PR, and make a principled argument for why a narrower, independently
+reviewable fix was better than a bundled rewrite. That kind of decision isn't
+covered by any tutorial.
+
+**What did you learn about working in a large codebase?**
+The most important thing: your change exists in a context you didn't create and
+can't fully control. A production codebase accumulates debt — failing tests,
+missing stubs, linting errors no one has fixed yet — and your contribution has to
+be evaluated relative to that existing baseline, not against an imagined clean
+slate. "No new failures" is a legitimate and meaningful standard; it just
+requires careful before/after documentation to be credible.
+
+I also learned that issue ownership is fuzzy. Two people can be working on the
+same bug from different angles, and neither approach is automatically wrong. The
+decision to stay on #153 with a minimal fix rather than cede to PR #211's larger
+rewrite required understanding the maintainer's perspective: a bundled PR is
+harder to review, harder to revert, and conflates two issues that might have
+different owners. Smaller, focused PRs are easier to merge even if they don't
+solve everything.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for three things: (1) reading the codebase fast —
+understanding `FaithfulnessChecker.check()` in context took minutes, not hours;
+(2) generating the edge-case test matrix systematically (mixed valid+None, all-None,
+non-string int) — I probably would have written just the one obvious case manually;
+and (3) drafting PR descriptions and JOURNAL entries against the template format,
+which saved significant mechanical writing time.
+
+Where it fell short: the tool couldn't actually open the PR — there was no `gh`
+installed and the PR had to be opened manually via the browser. More
+substantively, the AI couldn't make the judgment call about PR #211. It could
+surface the competing PR and lay out the tradeoffs, but the decision to proceed
+with a narrower fix — knowing it might be superseded or asked to close — was mine
+to own. That kind of ambiguous, coordination-heavy decision is exactly where
+AI-generated output needs to be read critically rather than accepted.
+
+**What would you do differently if you started over?**
+Two things. First, I'd open the draft PR immediately after the Week 8
+reproduction commit — not wait until Week 9. The assignment says "open a PR early
+in the week so you can get feedback before you finalize," and I treated that as
+"early in Week 9." Starting the PR at the end of Week 8 would have left more time
+for feedback and iteration.
+
+Second, I'd reconsider the walrus operator (`:=`) in the fix:
+```python
+text for chunk in context_chunks if isinstance(text := chunk.get("text"), str)
+```
+It's compact and correct, but it's an unusual pattern that a first-time reviewer
+might slow down on. A simple two-step (`text = chunk.get("text"); if isinstance(text, str)`)
+or a named helper function would be more immediately readable, even if slightly
+more verbose. Clever one-liners in a PR invite unnecessary review comments.
+
+**What are you most proud of from this module?**
+The baseline documentation. Before committing a single line of fix code, I ran
+the full test suite and recorded the exact numbers: 53 failed, 375 passed, with a
+breakdown of which failures were mine versus pre-existing. After the fix: 52 failed,
+379 passed. That discipline — making the before/after comparison concrete and
+undeniable — meant there was no ambiguity about whether the pre-existing failures
+were my fault. In a codebase with significant accumulated debt, that kind of
+paper trail is what separates a credible contribution from one that gets sent back
+with "why are there 52 failing tests?"
