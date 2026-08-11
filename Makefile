@@ -15,8 +15,18 @@ PYTEST := $(VENV_BIN)/pytest
 
 # ---- Setup ----
 
+ifeq ($(OS),Windows_NT)
+    VENV_BIN := .venv/Scripts
+    PYTHON := .venv/Scripts/python
+    PIP := .venv/Scripts/pip
+else
+    VENV_BIN := .venv/bin
+    PYTHON := .venv/bin/python
+    PIP := .venv/bin/pip
+endif
+
 setup: ## First-time setup: venv, deps, migrations, seed data
-	python -m venv .venv || python3 -m venv .venv
+	python -m venv .venv
 	$(PYTHON) -m pip install --upgrade pip setuptools wheel
 	$(PIP) install -e ".[dev]"
 	$(VENV_BIN)/pre-commit install
