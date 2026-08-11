@@ -64,3 +64,32 @@ Added `tests/unit/test_orchestrator.py` with 4 tests: tool executes on first rev
 (179 pre-existing lint errors and 53 pre-existing test failures remain, unrelated to this change and documented in the PR description; my changes introduce zero new failures/errors and add 4 new passing tests.)
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review has come in yet as of submission.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Environment setup took far longer than I expected, and it wasn't the "real" work of the issue at all. I hit a chain of small, unrelated blockers before I ever touched the bug: cloning the wrong repo, a nested clone-inside-a-clone from re-running commands in the wrong directory, missing `make` and Docker entirely on Windows. It was just a lot of small friction that ate time before I could start reasoning about the actual code. I underestimated how much of "contributing to a codebase" is actually tooling and environment plumbing. Otherwise, actually fixing the issue and pushing it was easier than I thought. 
+
+**What did you learn about working in a large codebase?**
+The biggest lesson was that the given explanation for a bug is not always right. The issue title and description pointed straight at `session_store.py`, and that file's code was actually correct. The real bug was one layer up, in `orchestrator.py`, in a completely different caching mechanism (`ContextManager`) that happened to produce the same symptom. I had to trace the actual call path (`grep` for where `SessionStore` was used, then read `orchestrator.py` line by line) instead of trusting the issue description's framing. I also learned that a large codebase comes with baggage you didn't create — 53 pre-existing failing tests and 179 pre-existing lint errors were there before I touched anything. Learning to document that clearly, rather than either ignoring it or trying to fix all of it, was its own skill.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for the mechanical, high-friction parts: diagnosing why a specific terminal command failed, explaining exactly what a `mypy`/`ruff` error meant and whether it was mine to fix, and turning my exploration (grep output, file contents) into a specific, falsifiable hypothesis about the root cause. It also helped me write a clean, isolated reproduction script instead of trying to trigger the bug through the full UI. Where it fell short was that I still had to be the one running commands, reading actual output, and catching when something didn't match — for example, when I edited `orchestrator.py` myself, the edit was inconsistent (some references still pointed at `self.context_manager`, which no longer existed), and only running the reproduction script surfaced that. AI could explain the fix, but couldn't verify my own hand-edit was applied correctly — that required actually running the code.
+
+**What would you do differently if you started over?**
+I'd invest a little time up front getting comfortable with my terminal (fixing the Git Bash paste issue, confirming `make`/Docker work) before starting the actual issue, rather than discovering each gap one at a time while trying to make forward progress. I'd also read the full call path of a bug before committing to a root-cause theory — my first instinct was to trust the issue title's framing (`session_store.py`) instead of verifying it against the actual code, which cost some time.
+
+**What are you most proud of from this module?**
+Writing `scripts/reproduce_43.py`. It's a small file, but it turned a vague, hard-to-verify bug report into something I could prove and disprove in under a second, and it made every later step — confirming the root cause, confirming the fix, writing the regression test — much more concrete and evidence-based instead of "I think this works."
