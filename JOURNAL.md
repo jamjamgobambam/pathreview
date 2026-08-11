@@ -133,3 +133,59 @@ Added `test_mixed_none_and_valid_context_chunk_text` to
   fixed here, so I left them for whoever picks up #152.
 
 **Draft PR feedback received from:** [PLACEHOLDER]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback — Summer 2026 cohort does not include this feature per instructor note.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Locating and confirming the actual bug was harder than expected. Without AI
+assistance, I'd have had to manually trace through the codebase file by
+file to find where `check()` built its context string and understand why
+a `None` value slipped past `chunk.get()`. Even with AI help, there was a
+confusing moment where I ran the test expecting it to fail and it passed —
+I had to stop and figure out whether the bug was already fixed, the test
+was wrong, or I was looking at the wrong thing, before moving forward.
+
+**What did you learn about working in a large codebase?**
+The biggest difference from my own projects (like Provenance Guard or
+TakeMeter) is that I don't have the codebase's structure memorized. When I
+build something myself, I know exactly where everything lives because I put
+it there. In `pathreview`, I had to actively search for where a class was
+defined, what fixtures a test file used, and how test classes were nested,
+instead of just knowing.
+
+**How did AI tools help — and where did they fall short?**
+AI was useful for almost every step — identifying the bug, explaining why
+`.get()` behaved the way it did, drafting the fix, and writing PLAN.md and
+JOURNAL.md content. But it fell short anywhere that required seeing my
+actual environment: it couldn't know my test was nested inside a class, or
+that `structlog` wasn't installed in my active conda environment, or that
+I'd already committed the fix from a previous week. Those things only
+became clear once I ran commands myself and reported back real output —
+AI could reason about the code, but I had to be the one debugging against
+reality.
+
+**What would you do differently if you started over?**
+I'd try to lean less on AI for the actual investigation and do more of the
+manual tracing myself first, even if slower, so I build the instinct for
+navigating an unfamiliar codebase without needing to ask for the answer.
+This module I leaned on AI heavily just to keep pace with the deadlines.
+
+**What are you most proud of from this module?**
+Successfully working through someone else's production codebase for the
+first time — end to end, from picking an issue to a fix that actually
+passes the existing tests. It's a different skill than building my own
+projects from scratch, and this was my first real experience with it.
