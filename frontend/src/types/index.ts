@@ -28,6 +28,7 @@ export interface Review {
   error_message?: string
   created_at: string
   updated_at: string
+  progress_pct?: number
 }
 
 export interface ReviewListResponse {
