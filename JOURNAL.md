@@ -41,7 +41,7 @@ Successfully reproduced Issue #64 by creating a unit test in `tests/unit/test_pr
 
 ### Check-in 2 — End-of-week check-in
 
-**Pull request link:** 
+**Pull request link:**  https://github.com/ascherj/pathreview/pull/1027
 
 - [x] Tests pass locally (`make test-unit` or `pytest`)
 - [x] Code passes linting/formatting (`make check` or `ruff`/`black`/`mypy`)
@@ -66,7 +66,33 @@ If I started over, I would run pre-commit hooks and linters (`ruff`, `black`, `m
 I am most proud of choosing a Tier 2 security-focused issue rather than a simpler Tier 1 task. Tackling prompt injection defense allowed me to dive into LLM safety guardrails, regex edge cases, and static analysis tools, resulting in a robust security fix that directly protects the RAG pipeline from context escalation attacks.
 
 
+## Week 10 — Iteration & reflection
 
-## Week 10 — Review & feedback
+### Reviewer feedback
 
-*Awaiting PR review feedback.*
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No maintainer feedback or peer code review comments came in by the end of the week.
+
+**How you responded:**
+N/A (No external reviewer comments were received prior to module closeout).
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating and satisfying the automated pre-commit hook pipeline (`ruff`, `black`, `mypy`) was much trickier than expected. Even when the core logic fix in Python was completely functional and passing unit tests, small formatting details—like line-length limits (`E501`) on regex strings, exact trailing newline alignments, and missing `-> None` return type hints on test functions—would stop git commits from completing. Learning how pre-commit stashes, modifies, and restores unstaged files when hooks fail was a big learning curve.
+
+**What did you learn about working in a large codebase?**
+I learned that in a real-world production codebase, writing working code is only half the battle. Reading existing architectural patterns, understanding where security guardrails fit into the broader pipeline (e.g. mapping `PromptDefense.sanitize()` into `IngestionPipeline`), maintaining strict backward compatibility for existing tests, and adhering to strict linting/typing standards are critical. You have to write code that looks like it was written by the original maintainers.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were incredibly effective at diagnosing static analysis failures (`mypy` type annotations and `ruff` line-length issues) and helping construct complex regex patterns for newline role-switching neutralization. However, they fell short when navigating local Git state and pre-commit stash behaviors, sometimes recommending commands that caused uncommitted changes to be stashed or overwritten. Manual intervention and direct inspection of `git status` and `git diff` were essential to ensure code diffs were actually tracked and pushed properly.
+
+**What would you do differently if you started over?**
+If I started over, I would set up and run my linting and typing checks (`make check`) after writing each individual line/function rather than waiting until the very end before running `git commit`. I would also spend more time up front inspecting the repository structure to verify all integration call sites before implementing unit-level fixes.
+
+**What are you most proud of from this module?**
+I am most proud of selecting and successfully resolving a Tier 2 security vulnerability (#64) instead of opting for a simpler Tier 1 issue. Successfully implementing prompt injection defense sanitization—and ensuring that legitimate resume content like job titles and markdown bullet points remain undamaged—gave me genuine confidence in working on real-world LLM safety guardrails.
