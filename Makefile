@@ -9,19 +9,25 @@ else
   VENV_BIN := .venv/bin
 endif
 
-PYTHON := $(VENV_BIN)/python
+PYTHON ?= /opt/homebrew/bin/python3.12
+VENV_PYTHON := $(VENV_BIN)/python
 PIP := $(VENV_BIN)/pip
 PYTEST := $(VENV_BIN)/pytest
 
 # ---- Setup ----
 
 setup: ## First-time setup: venv, deps, migrations, seed data
-	python -m venv .venv || python3 -m venv .venv
-	$(PYTHON) -m pip install --upgrade pip setuptools wheel
-	$(PIP) install -e ".[dev]"
+	rm -rf .venv
+	$(PYTHON) -m venv .venv
+	$(VENV_PYTHON) -m pip install --upgrade pip setuptools wheel
+	$(VENV_PYTHON) -m pip install -e ".[dev]"
+	@db_exists=$$(docker compose exec -T db psql -U pathreview -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = 'pathreview_dev'"); \
+	if [ -z "$$db_exists" ]; then \
+		docker compose exec -T db psql -U pathreview -d postgres -c "CREATE DATABASE pathreview_dev"; \
+	fi
 	$(VENV_BIN)/pre-commit install
 	$(VENV_BIN)/alembic upgrade head
-	$(PYTHON) scripts/seed_db.py
+	$(VENV_PYTHON) scripts/seed_db.py
 	cd frontend && npm install
 	@echo ""
 	@echo "Setup complete. Run 'make run' to start the application."
@@ -30,7 +36,7 @@ setup: ## First-time setup: venv, deps, migrations, seed data
 
 run: ## Start backend + frontend dev servers
 	@trap 'kill %1 %2 2>/dev/null' EXIT; \
-	source $(VENV_BIN)/activate && uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
+	source $(VENV_BIN)/activate && $(VENV_PYTHON) -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 & \
 	cd frontend && npm run dev & \
 	wait
 
@@ -64,13 +70,13 @@ migrate: ## Run pending database migrations
 	$(VENV_BIN)/alembic upgrade head
 
 seed: ## Re-seed the database with sample data
-	$(PYTHON) scripts/seed_db.py
+	$(VENV_PYTHON) scripts/seed_db.py
 
 reset-db: ## Drop and recreate the development database
 	docker compose exec db psql -U pathreview -d postgres -c "DROP DATABASE IF EXISTS pathreview_dev;"
 	docker compose exec db psql -U pathreview -d postgres -c "CREATE DATABASE pathreview_dev;"
 	$(VENV_BIN)/alembic upgrade head
-	$(PYTHON) scripts/seed_db.py
+	$(VENV_PYTHON) scripts/seed_db.py
 
 # ---- Evaluation ----
 

@@ -117,3 +117,28 @@ lookup degrading to `0` (not a 500), and Redis/Postgres-down still returning
 untouched by this change. No new failures introduced.)
 
 **Draft PR feedback received from:** none yet — PR just opened, reviewer requested: ascherj
+
+
+## Week 10 — Iteration & reflection
+
+### Reflection
+
+**What was harder than you expected?**
+the open source section is harder than I expected. reading the codebase, finding the 
+related section, and fixing the bugs is harder than I thought. 
+I learnt from the class that, it is common that fixing a bug and getting it integrated to the codebase takes a long time. 
+Under one bug, there are multiple people's comments and want to contribute to it. Knowing the issue, and getting familiar with the section of the codebase is important. It is a long term work.  
+
+**What did you learn about working in a large codebase?**
+I have experience of working in a large codebase during my internship too. understanding the structure, and knowing where to find the code, file, functions related to the issue is the key. Understanding the relationships between the files can help find the issues and solving the issues. 
+
+**How did AI tools help — and where did they fall short?**
+
+AI does help a lot. It has saved me lots of time to understand the code, and has given me the guidance, and helped me learn the things I didn't know and didn't understand. It is a good teacher and assistant.
+
+**What would you do differently if you started over?**
+I would have tried to understand the concepts from a high level first, and given me more time to dig more into different topics.
+
+**What are you most proud of from this module?**
+
+I keep learning new things, practicing, and be consistant. 
