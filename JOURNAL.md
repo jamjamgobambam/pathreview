@@ -59,3 +59,34 @@ Fixed an issue in `api/routes/health.py` where Redis health checks failed due to
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** None
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+N/A: No review came in.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating the project's strict pre-commit hooks (`ruff`, `black`, `mypy`) and type annotation requirements was harder than expected. A simple fix required making sure FastAPI dependency types and dictionary return types matched `mypy`'s strict standards.
+
+**What did you learn about working in a large codebase?**
+I learned that even minor fixes require understanding the existing environment configurations and conventions. Instead of modifying setup files like `conftest.py` or creating redundant settings, it's important to inspect how settings (like `redis_url`) are globally managed and write unit tests using mocks that align with established patterns.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were great for identifying the root cause of test failures from log traces and providing bits of code for `unittest.mock`. They fell short when initial suggestions assumed things about files that it might not have had access to, and instead assumed things as if they were fact.
+
+**What would you do differently if you started over?**
+I would run `make check` and review `core/config.py` upfront before writing test fixtures. Checking the application settings configuration earlier would have saved time debugging why `redis_host` was throwing an `AttributeError`.
+
+**What are you most proud of from this module?**
+I'm most proud of getting an end-to-end unit test passing cleanly with `pytest` while satisfying all pre-commit hooks (`ruff`, `black`, `mypy`) and submitting a fully validated PR ahead of schedule.
