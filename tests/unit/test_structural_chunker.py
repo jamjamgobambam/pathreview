@@ -34,6 +34,37 @@ class TestStructuralChunker:
         assert isinstance(result[0], Chunk)
         assert all(isinstance(c, Chunk) for c in result)
 
+    def test_no_heading_content_is_preserved(self, chunker):
+        """Test that a heading-less document's text is not dropped (issue #149)."""
+        text = "Alpha bravo charlie delta echo foxtrot."
+        result = chunker.chunk(text, {"source": "test"})
+
+        combined = " ".join(c.text for c in result)
+        assert "Alpha" in combined
+        assert "foxtrot" in combined
+
+    def test_content_before_first_heading_preserved(self, chunker):
+        """Test that content before the first heading is kept, not dropped."""
+        text = """Intro paragraph before any heading.
+
+# Title
+Body under the title.
+"""
+        result = chunker.chunk(text, {"source": "test"})
+
+        combined = " ".join(c.text for c in result)
+        assert "Intro paragraph before any heading." in combined
+        assert "Body under the title." in combined
+
+    def test_large_document_with_no_headings_sub_chunked(self, chunker):
+        """Test a large heading-less document is sub-chunked, not returned whole."""
+        text = "This is a sentence with several words in it. " * 300
+        result = chunker.chunk(text, {"source": "test"})
+
+        assert len(result) > 1
+        assert all(isinstance(c, Chunk) for c in result)
+        assert all(c.text.strip() for c in result)
+
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
         text = """# Main Title
