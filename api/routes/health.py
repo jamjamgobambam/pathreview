@@ -1,8 +1,13 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from datetime import datetime
+from typing import Annotated, Any
+
 import structlog
-from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from safety.monitoring import get_safety_events_last_hour
 
 log = structlog.get_logger()
 
@@ -10,12 +15,12 @@ router = APIRouter(prefix="/health", tags=["health"])
 
 
 @router.get("")
-async def health_check(db=Depends(get_db)):
+async def health_check(db: Annotated[AsyncSession, Depends(get_db)]) -> dict[str, Any]:
     """
     Check health of PostgreSQL, Redis, and Vector DB.
     Returns 200 if all healthy, 503 if any dependency is down.
     """
-    health_status = {
+    health_status: dict[str, Any] = {
         "status": "healthy",
         "dependencies": {
             "postgres": "unknown",
@@ -28,7 +33,7 @@ async def health_check(db=Depends(get_db)):
 
     try:
         # Check PostgreSQL
-        await db.execute("SELECT 1")
+        await db.execute(text("SELECT 1"))
         health_status["dependencies"]["postgres"] = "healthy"
         log.debug("postgres_health_check_passed")
     except Exception as exc:
@@ -39,14 +44,10 @@ async def health_check(db=Depends(get_db)):
     try:
         # Check Redis (if available)
         import redis
+
         from core.config import settings
 
-        r = redis.Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            db=0,
-            decode_responses=True,
-        )
+        r = redis.Redis.from_url(settings.redis_url, decode_responses=True)
         r.ping()
         health_status["dependencies"]["redis"] = "healthy"
         log.debug("redis_health_check_passed")
@@ -72,12 +73,13 @@ async def health_check(db=Depends(get_db)):
         health_status["dependencies"]["vector_db"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
-    # Count safety events in last hour (placeholder)
+    # Count safety events in last hour. A monitoring failure must not fail the
+    # health check, so the count degrades to null and the status is unchanged.
     try:
-        # This would be populated by actual safety event logging
-        health_status["safety_events_last_hour"] = 0
+        health_status["safety_events_last_hour"] = get_safety_events_last_hour()
     except Exception as exc:
         log.error("safety_events_check_failed", error=str(exc))
+        health_status["safety_events_last_hour"] = None
 
     # Return 503 if any critical dependency is down
     if health_status["status"] == "unhealthy":
