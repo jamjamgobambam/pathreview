@@ -107,3 +107,41 @@ The modified file passes Ruff and Black, and all three tests in `tests/unit/test
 **Draft PR feedback received from:**
 
 None
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+
+No reviewer or maintainer feedback was received during the module. Reviewer feedback is not being provided for the Summer 2026 cohort, so no additional changes were required based on review comments.
+
+**How you responded:**
+
+N/A — no reviewer feedback was received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was determining the actual expected behavior of the issue rather than immediately writing a test based on my initial assumption. At first, I interpreted a profile with no ingested documents as an error condition and expected the endpoint to reject the request. After tracing the `POST /reviews` route into the review service and examining the existing behavior, I realized that the endpoint intentionally creates a pending review and schedules background processing. Understanding that distinction was more important than simply getting a test to pass.
+
+**What did you learn about working in a large codebase?**
+
+I learned that contributing to an existing codebase requires understanding the surrounding behavior and conventions before making changes. In my own projects, I usually know why a function was designed a certain way, but here I had to trace the route, service layer, schemas, and existing tests to understand the intended behavior. I also learned not to treat every failing project-wide check as something caused by my contribution. The repository had pre-existing test and type-checking failures, so I had to isolate my changes and verify that I was not introducing new failures.
+
+**How did AI tools help — and where did they fall short?**
+
+AI was most useful for navigating the unfamiliar codebase, explaining how the FastAPI route and service layer interacted, helping interpret test failures, and identifying appropriate pytest mocking patterns. However, AI could not determine the intended behavior of the issue just from the issue title. My initial interpretation was that a documentless profile should return an error, but examining the actual implementation and project context showed otherwise. I still needed to validate suggestions against the repository rather than assuming generated guidance was correct.
+
+**What would you do differently if you started over?**
+
+I would spend more time tracing the existing implementation and looking at related tests before writing the first reproduction test. I initially made an assumption about the expected error behavior, which led me toward the wrong test. Starting with the route and service implementation would have made the intended behavior clearer earlier and reduced rework. I would also run the repository-wide checks earlier so I could distinguish pre-existing failures from failures introduced by my work from the beginning.
+
+**What are you most proud of from this module?**
+
+I am most proud that I corrected my initial understanding instead of forcing the implementation to match my assumption. I traced the behavior, revised my plan, and ended with three focused tests that verify pending review creation, background processing, and unexpected service failure handling. The process gave me a better understanding of how to make a small, scoped contribution to an unfamiliar codebase while preserving its existing behavior.
