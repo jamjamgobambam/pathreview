@@ -67,3 +67,34 @@ Ran `make check` and `make test-unit` on `main` before making any changes, then 
 - Conclusion: this change fixes the target test and introduces zero new lint or test failures; the pre-existing 52 test failures and 182 lint errors are unrelated to structlog/caplog and out of scope for this issue.
 
 **Draft PR feedback received from:** TF
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review or comments on PR #932 yet (confirmed via `gh pr view 932` — reviews and comments are both empty as of this writing). TF gave informal feedback pre-PR, but hadn't left anything on the PR itself by the time I checked.
+
+**How you responded:**
+N/A yet — nothing to respond to. Will update this section once a review comes in.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Confirming the fix was actually correct took more work than writing it. The repo already had 52 failing unit tests and 182 lint errors unrelated to this issue, so a naive "did the suite pass?" check would've been meaningless either way. I had to stash my change, capture a clean before/after run of `make test-unit` and `make check`, and diff the exact failure lists to prove my fix changed exactly one thing and nothing else. That habit — always get a before/after diff, not just a pass/fail — was the biggest process lesson.
+
+**What did you learn about working in a large codebase?**
+In your own project, a green test suite is a reasonable bar. In someone else's production codebase, "no new failures" is the actual bar, and you have to go prove that explicitly — you can't just point at `make check` failing and assume it's your fault, but you also can't wave it away without evidence. I also learned to trace a bug to its root cause before touching anything: the real issue wasn't in the test file at all, it was that `configure_logging()` in `core/logging.py` was never being called during tests, so structlog silently fell back to a default that bypassed `logging` entirely.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for the mechanical-but-tedious parts: reproducing the failure, tracing why `caplog` came up empty while stdout clearly showed the log line, and running the before/after diffs across two commands instead of eyeballing long test output. It also caught something I would've missed — the `mypy` pre-commit hook failing on a missing return type annotation on the fixture — and fixed it in one pass. Where it fell short was anything requiring my own judgment or memory: it couldn't tell me what TF's actual feedback was, or make the call about whether "82 pre-existing lint errors" was an acceptable baseline to build on top of — that's a decision I had to own.
+
+**What would you do differently if you started over?**
+I'd run the before/after `make check` / `make test-unit` baseline *before* writing any fix, not after — I ended up doing it retroactively to document pre-existing failures, but capturing it up front would have saved a step and given me a cleaner paper trail from the start.
+
+**What are you most proud of from this module?**
+Not the fix itself (it's a small, four-line fixture) — I'm proud of the rigor around it: diffing exact failure sets instead of trusting a pass/fail count, and being able to say with evidence, not just confidence, that the change doesn't make anything worse.
