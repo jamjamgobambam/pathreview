@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from typing import cast
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
 from core.database import get_db
+from core.models.user import User
 from core.services.review_service import (
     create_review,
     get_review,
@@ -18,38 +20,55 @@ log = structlog.get_logger()
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
+# Module-level dependency singletons (ruff B008: avoid calling Depends() in defaults)
+_current_user_dep = Depends(get_current_user)
+_db_dep = Depends(get_db)
+
 
 @router.post("", response_model=ReviewResponse)
 async def create_review_endpoint(
     data: ReviewCreate,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: User = _current_user_dep,
+    db: AsyncSession = _db_dep,
+) -> ReviewResponse:
     """
     Create a new review for a profile.
     Triggers ingestion pipeline and agent orchestration asynchronously.
     Returns review with status="pending" immediately.
     """
     try:
+        user_id = UUID(current_user.id)
+
         # Create review with status="pending"
         review = await create_review(
             db=db,
             profile_id=data.profile_id,
-            user_id=current_user.id,
+            user_id=user_id,
         )
 
+        if not review:
+            log.warning(
+                "review_create_profile_not_found",
+                profile_id=str(data.profile_id),
+                user_id=str(user_id),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found",
+            )
+
         # Add background task for processing
-        background_tasks.add_task(process_review, db, review.id, data.profile_id)
+        background_tasks.add_task(process_review, db, UUID(review.id), data.profile_id)
 
         log.info(
             "review_created",
             review_id=str(review.id),
             profile_id=str(data.profile_id),
-            user_id=str(current_user.id),
+            user_id=str(user_id),
         )
 
-        return ReviewResponse.model_validate(review)
+        return cast("ReviewResponse", ReviewResponse.model_validate(review))
 
     except HTTPException:
         raise
@@ -59,34 +78,35 @@ async def create_review_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create review",
-        )
+        ) from exc
 
 
 @router.get("/{review_id}", response_model=ReviewResponse)
 async def get_review_endpoint(
     review_id: UUID,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: User = _current_user_dep,
+    db: AsyncSession = _db_dep,
+) -> ReviewResponse:
     """
     Get a review by ID.
     Returns 404 if not found or not owned by current user.
     """
     try:
-        review = await get_review(db=db, review_id=review_id, user_id=current_user.id)
+        user_id = UUID(current_user.id)
+        review = await get_review(db=db, review_id=review_id, user_id=user_id)
 
         if not review:
             log.warning(
                 "review_not_found",
                 review_id=str(review_id),
-                user_id=str(current_user.id),
+                user_id=str(user_id),
             )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Review not found",
             )
 
-        return ReviewResponse.model_validate(review)
+        return cast("ReviewResponse", ReviewResponse.model_validate(review))
 
     except HTTPException:
         raise
@@ -95,16 +115,16 @@ async def get_review_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve review",
-        )
+        ) from exc
 
 
 @router.get("", response_model=ReviewListResponse)
 async def list_reviews_endpoint(
     page: int = 1,
     page_size: int = 20,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: User = _current_user_dep,
+    db: AsyncSession = _db_dep,
+) -> ReviewListResponse:
     """
     List reviews for current user with pagination.
     """
@@ -116,7 +136,7 @@ async def list_reviews_endpoint(
 
         reviews, total = await list_reviews(
             db=db,
-            user_id=current_user.id,
+            user_id=UUID(current_user.id),
             page=page,
             page_size=page_size,
         )
@@ -133,27 +153,28 @@ async def list_reviews_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to list reviews",
-        )
+        ) from exc
 
 
 @router.get("/{review_id}/status")
 async def get_review_status(
     review_id: UUID,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+    current_user: User = _current_user_dep,
+    db: AsyncSession = _db_dep,
+) -> dict[str, object]:
     """
     Get review status and progress.
     Returns {review_id, status, progress_pct}
     """
     try:
-        review = await get_review(db=db, review_id=review_id, user_id=current_user.id)
+        user_id = UUID(current_user.id)
+        review = await get_review(db=db, review_id=review_id, user_id=user_id)
 
         if not review:
             log.warning(
                 "review_not_found",
                 review_id=str(review_id),
-                user_id=str(current_user.id),
+                user_id=str(user_id),
             )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -173,4 +194,4 @@ async def get_review_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve review status",
-        )
+        ) from exc
