@@ -1,53 +1,57 @@
-## Week 7 — Issue selection
-**Issue link:** https://github.com/ascherj/pathreview/issues/146
-**Issue title:** PII scrubber fails to redact parenthesized US phone numbers
-**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
-**Problem summary:**
-The `phone_us` regex pattern in `safety/pii_scrubber.py` failed to match phone
-numbers in parenthesized format like `(555) 123-4567`. The bug was caused by
-a word boundary (`\b`) placed directly before the optional opening parenthesis,
-which never matches since `(` is not a word character. This meant `scrub()`
-left parenthesized numbers unredacted and `detect()` reported no PII for them,
-while dashed formats like `555-123-4567` worked fine. The fix moves the word
-boundary to sit before the digit group itself and allows whitespace as a
-separator so formats like `+1 555 123 4567` are also supported.
-**Branch name:** fix/146-parenthesized-us-phone-pii
-**Setup confirmation:** [x] App runs locally at localhost:5173
-**Cohort ledger:** [ ] Issue added to cohort ledger
-## Week 8 — Reproduction & solution planning
-**Reproduction commit link:** https://github.com/pclerveau2025/pathreview/commit/76eb5e2
-**Reproduction summary:**
-Reproduced the bug by testing the phone_us regex against parenthesized US phone numbers such as (555) 123-4567. Confirmed the word boundary placement before the optional parenthesis prevented a match, so the scrubber left the number unredacted while dashed formats worked correctly.
-**PLAN.md link:** https://github.com/pclerveau2025/pathreview/blob/fix/146-parenthesized-us-phone-pii/PLAN.md
-**Walkthrough video (recommended):** [none recorded]
-**Blockers or open questions:**
-None currently. Still need to verify no overlap/duplicate detection occurs between phone_us and phone_intl patterns once the fix is applied more broadly. ## Week 9 — Solution building & PR submission
+## Week 10 — Iteration & reflection
 
-### Check-in 1 (mid-week)
+### Reviewer feedback
 
-**Current progress:**
-Implemented the fix for issue #146 by updating the phone_us regex in safety/pii_scrubber.py to correctly match parenthesized US phone numbers.
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
 
-**Next steps:**
-Write Week 9 journal entry and submit PR.
+**Summary of feedback:**
+No reviewer comments came in during the week. Per the Su26 course note,
+reviewer feedback is not a feature this term.
 
-**Blockers:**
-Mac sent to Apple for repair — working from phone via GitHub web editor.
+**How you responded:**
+N/A — no feedback to address.
 
 ---
 
-### Check-in 2 (end of week)
+### Reflection
 
-**PR link:** https://github.com/ascherj/pathreview/pull/864
+**What was harder than you expected?**
+The environment setup was the biggest surprise. Before I could touch a
+single line of code, I had to get Homebrew, Node, Docker, and pre-commit
+all working on Apple Silicon — and the PATH issues for each one had to be
+debugged independently. I expected maybe 30 minutes of setup; it took
+multiple sessions. The actual regex fix was one line. The surrounding
+infrastructure to even run the linter and submit cleanly took far longer
+than the fix itself.
 
-**Branch:** fix/146-parenthesized-us-phone-pii
+**What did you learn about working in a large codebase?**
+The codebase has opinions about everything — commit message format,
+branch naming, hook checks, PR templates — and none of that is optional.
+In my own projects I skip all of it. Here, the process *is* part of the
+contribution. I also learned to read existing code defensively: the
+`pii_scrubber.py` file had a clear pattern I could follow, which made it
+easier to write a fix that fit in rather than one that just worked.
 
-**What you built:**
-Fixed the phone_us regex in safety/pii_scrubber.py to correctly detect and redact parenthesized US phone numbers like (555) 123-4567. The word boundary was moved to sit before the digit group instead of before the optional parenthesis.
+**How did AI tools help — and where did they fall short?**
+AI was most useful for understanding regex quickly — I could describe the
+phone format I needed to match and get a working pattern explained in
+context. It also helped me think through edge cases (parenthesized vs.
+dashed formats) before writing the fix. Where it fell short: it couldn't
+tell me that heredocs hang in my specific terminal setup, and it couldn't
+debug the Apple Silicon PATH issues without me feeding it the exact error
+output first. Anything environment-specific required trial and error on my
+end; AI could only react to what I reported.
 
-**Tests added or updated:**
-No new test files added. Fix verified manually against parenthesized and dashed phone number formats.
+**What would you do differently if you started over?**
+I'd pick an issue with a smaller blast radius. Issue #146 turned out to be
+straightforward once I understood it, but I didn't know that at the start —
+I just knew it was labeled "good first issue." Next time I'd spend more
+time reading the surrounding code and existing tests before committing to
+an issue, so I'm not discovering scope surprises mid-week.
 
-**Self-review confirmation:** [ ] make check passes  [x] make test-unit passes
-
-**Draft PR feedback received from:** none
+**What are you most proud of from this module?**
+Submitting the PR from my phone via GitHub's mobile web interface when my
+computer was unavailable. Everything up to that point had been CLI-based,
+and I'd never submitted a PR that way before. It worked, the branch was
+correct, and the commit history was clean. That felt like actually knowing
+what I was doing rather than just following steps.
