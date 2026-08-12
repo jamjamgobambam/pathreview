@@ -9,6 +9,7 @@ from core.services.review_service import (
     create_review,
     get_review,
     list_reviews,
+    process_review,
 )
 
 
@@ -338,3 +339,37 @@ class TestReviewService:
 
         # Should order by created_at descending
         mock_db_session.execute.assert_called_once()
+
+@pytest.mark.unit
+class TestProcessReviewNoIngestedDocuments:
+    """Regression test for Issue #88."""
+
+    @pytest.mark.asyncio
+    async def test_process_review_fails_when_profile_has_no_documents(self):
+        review = Mock()
+        review.id = uuid4()
+        review.status = "pending"
+        review.error_message = None
+
+        profile = Mock()
+        profile.id = uuid4()
+        profile.github_username = None
+        profile.portfolio_url = None
+        profile.resume_text = None
+
+        db = AsyncMock()
+        db.add = Mock()
+        db.commit = AsyncMock()
+
+        review_result = Mock()
+        review_result.scalars.return_value.first.return_value = review
+
+        profile_result = Mock()
+        profile_result.scalars.return_value.first.return_value = profile
+
+        db.execute = AsyncMock(side_effect=[review_result, profile_result])
+
+        await process_review(db, review.id, profile.id)
+
+        assert review.status == "failed"
+        assert review.error_message == "Profile has no ingested documents."
