@@ -15,37 +15,107 @@ class TestReadmeScorer:
         return ReadmeScorer()
 
     def test_readme_with_all_quality_signals(self, scorer):
-        """Test README with all quality signals returns high score."""
+        """Test README with all quality signals returns high score.
+
+        The fixture is intentionally >= 500 words so it lands in the
+        "comprehensive" word-count category it asserts against (see
+        ReadmeScorer._score_readme's thresholds), in addition to covering
+        every other quality signal (installation, usage, badges, demo
+        link, tech stack). Fixes #156.
+        """
         readme = """
         # Project Name
-        A comprehensive project description.
+
+        A comprehensive, production-ready project description that explains what
+        this project does, who it is for, and why it exists. This README is
+        intentionally written with enough detail to demonstrate every quality
+        signal the scorer checks for, including a thorough installation guide,
+        a usage walkthrough, a features list, a tech stack section, status
+        badges, and a link to a live demo environment.
 
         ## Installation
+
+        Follow these steps to get the project running on your local machine.
+        First clone the repository, then create a virtual environment, and
+        finally install the dependencies listed in the requirements file.
+
         ```bash
+        git clone https://example.com/project.git
+        cd project
+        python -m venv .venv
+        source .venv/bin/activate
         pip install package
         ```
 
+        Once installation completes, copy the example environment file and fill
+        in your own configuration values before starting the application. Make
+        sure you have a compatible database available locally, or use the
+        provided Docker Compose file to spin up all required services at once.
+
         ## Usage
+
+        After installation, you can import the package and start using it right
+        away. The example below shows the most common workflow, including how
+        to configure the client and run a basic task end to end.
+
         ```python
         import package
-        package.run()
+
+        client = package.Client(api_key="your-key")
+        result = client.run()
+        print(result)
         ```
 
+        See the docs directory for more advanced usage examples, including how
+        to customize behavior and integrate with other tools in your pipeline.
+        The client also supports asynchronous execution for high-throughput
+        workloads, batching multiple requests together to reduce overhead.
+
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+
+        - Feature 1: Fast and reliable processing of incoming requests.
+        - Feature 2: Configurable pipeline stages for custom workflows.
+        - Feature 3: Built-in caching layer to reduce redundant computation.
+        - Feature 4: Detailed logging and metrics for observability.
+        - Feature 5: Extensible plugin system for community contributions.
+        - Feature 6: First-class support for both synchronous and async usage.
 
         ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
+
+        This project is built with a modern, well-supported technology stack:
+
+        - Python 3.9 for the core application logic
+        - FastAPI for the HTTP API layer
+        - PostgreSQL for persistent storage
+        - Redis for caching and background job queues
+        - Docker for local development and deployment
+        - GitHub Actions for continuous integration and delivery
 
         ![Build Status](https://example.com/badge.svg)
         ![Coverage](https://example.com/coverage.svg)
+        ![License](https://example.com/license.svg)
 
         ## Live Demo
-        [Try it here](https://demo.example.com)
+
+        Want to see it in action before installing anything? [Try it here](https://demo.example.com)
+        for a hosted, live version of the application with sample data preloaded
+        so you can explore every feature without any local setup on your end.
+        The demo environment resets every hour so feel free to experiment freely.
+
+        ## Configuration
+
+        Configuration is handled through environment variables. Copy the
+        provided `.env.example` file to `.env` and adjust the values for your
+        environment, including database credentials, API keys, and feature
+        flags that control optional behavior like caching and rate limiting.
+
+        ## Contributing
+
+        Contributions are welcome. Please open an issue to discuss any large
+        changes before submitting a pull request, and make sure to add tests
+        for any new behavior you introduce. See the contributing guide for
+        details on branch naming, commit message conventions, and the review
+        process before your pull request can be merged into the main branch.
         """
 
         result = scorer.execute({"readme_content": readme})
@@ -157,9 +227,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
