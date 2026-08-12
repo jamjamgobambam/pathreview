@@ -8,6 +8,12 @@ Base URL: `http://localhost:8000`
 
 `GET /health` — Returns service status and dependency health.
 
+#### Example
+
+```bash
+curl http://localhost:8000/health
+```
+
 ### Authentication
 
 `POST /auth/register` — Create a new account.
