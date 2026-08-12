@@ -125,17 +125,30 @@ class ResumeParser(BaseParser):
         return text.strip()
 
     def _detect_sections(self, text: str) -> list[str]:
-        """Detect common resume sections from text."""
+        """Detect common resume sections from text.
+
+        Section headers are matched at the start of a line, tolerating any
+        leading spaces or tabs so that indented text (e.g. from PDF extraction)
+        is still recognized. See issue #147.
+
+        Args:
+            text: Extracted resume text, which may contain indented lines.
+
+        Returns:
+            A de-duplicated list of detected section names, title-cased.
+        """
         detected = []
         text_lower = text.lower()
 
         for section in SECTION_HEADERS:
-            # Look for section header patterns
+            # Look for section header patterns.
+            # `[ \t]*` after the line anchor lets headers be detected even when
+            # PDF text extraction preserves leading indentation (issue #147).
+            # `re.MULTILINE` makes `^` match the start of every line, so the
+            # previous `\n`-anchored patterns are redundant.
             patterns = [
-                rf"^{re.escape(section)}\s*$",
-                rf"^{re.escape(section)}\s*[:|-]",
-                rf"\n{re.escape(section)}\s*$",
-                rf"\n{re.escape(section)}\s*[:|-]",
+                rf"^[ \t]*{re.escape(section)}\s*$",
+                rf"^[ \t]*{re.escape(section)}\s*[:|-]",
             ]
 
             for pattern in patterns:
