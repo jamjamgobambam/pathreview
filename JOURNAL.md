@@ -131,3 +131,69 @@ before/after comparison.)
 (Note: as of this writing the PR is still in Draft and the Testing section above still needs
 the concrete manual-verification steps promised — this copy will be refreshed once those
 edits land on GitHub.)
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+No review came in.
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+no feedback
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+The fixture itself was trivial to write, but figuring out the *right* shape for it wasn't.
+Since no test or production code currently imports `basic_profile.json`, there was no
+existing schema to match — just a TODO comment and the issue's loose "GitHub username,
+resume, two repos" description. I initially guessed at field names, then realized partway
+through that I should reverse-engineer the shape from what `ResumeParser` and
+`RepoAnalyzer` actually consume (section headers, GitHub API-style repo fields) instead of
+inventing something arbitrary. That revision cost more time than the original write-up, and
+it surprised me that a "just add a missing file" issue turned out to be way more ambiguous than I expected
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+In my own projects I'd never think twice about picking field names for test data. 
+The names in the project are implicitly a contract with parsing code I didn't write and couldn't fully
+predict from the issue alone. I also got into the habit of leaning on make check / make test-unit as a baseline. Running them first showed there were already 53 test failures and 182 lint errors, so I could compare against that and know my changes weren’t adding anything new. It was a lot better than just eyeballing things and thinking they “looked fine.” That kind of before-and-after checking feels like a habit you really need in a large codebase, and I had to keep that habit  of checking pre-existing failures before touching any codes.
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+AI was most useful for the mechanical parts — scaffolding the JSON fixture, the
+`sample_profile_data` conftest fixture, and the test asserting on its shape once I knew what
+shape I wanted. It fell short on the actual judgment call of *what* that shape should be:
+figuring out that I needed to go read `ResumeParser.SECTION_HEADERS` and
+`RepoAnalyzer.parse()` directly, rather than trust a plausible-looking guess, was something I
+had to push for myself. It also didn't catch the `mypy` `disallow_untyped_defs` gap in my new
+test code — that only surfaced when the pre-commit hook ran at commit time, since `make
+check`'s typecheck target doesn't cover `tests/`.
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+I'd go straight to reading the parser code before writing the first draft of the fixture,
+instead of writing a plausible-looking version first and revising it once I realized it
+didn't match what was actually consumed downstream. I'd also open the draft PR and post to
+Slack earlier in the week rather than at the very end, since as of this reflection I'm still
+waiting on review and lost the chance to iterate on feedback within the module.
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+Catching that my `repos` shape didn't correspond 1:1 to the `IngestedSource` DB model and
+flagging it explicitly in both PLAN.md and the PR notes, instead of quietly shipping a
+mismatch. It would have been easy to call the fixture "done" once the JSON looked
+reasonable; verifying it against the actual parsing code and Calling out the one place where it still didn’t line up felt more honest.
