@@ -86,3 +86,52 @@ network access was unavailable. The focused null/missing-text tests pass, and th
 changed Python files pass focused Ruff, Black, and mypy checks.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was provided. Reviewer feedback is not part of the Summer
+2026 course process, so my pull request remains open without maintainer comments.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was separating problems caused by my change from failures that
+already existed in the repository. The full test suite contained unrelated
+scoring failures, lint errors, and tests that tried to download a tokenizer while
+the network was unavailable. I had to reproduce issue #153 directly and run
+focused tests to prove that my fix handled `None` without introducing a new
+failure.
+
+**What did you learn about working in a large codebase?**
+I learned that a small code change still requires understanding the surrounding
+data flow, existing tests, and project conventions. In my own projects I can
+change several components at once, but in someone else's codebase I need to keep
+the scope narrow and avoid fixing unrelated problems. Clear notes about the test
+baseline also make the contribution easier for a maintainer to evaluate.
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped me trace the `TypeError` to `str.join()`, compare possible fixes,
+and identify useful edge cases such as missing, null, and mixed chunk text. They
+also helped me organize the implementation plan and journal. However, AI could
+not decide whether a failure was pre-existing just from the error message. I
+still had to inspect the code, reproduce the bug, run the focused tests, and
+compare those results with the repository-wide test output.
+
+**What would you do differently if you started over?**
+I would run the full checks before changing any code so I had a clear baseline
+from the beginning. I would also submit the pull request earlier, leaving more
+time to review the final diff and respond if a maintainer commented.
+
+**What are you most proud of from this module?**
+I am most proud that I turned a specific crash into a small, tested fix without
+expanding the issue's scope. The added tests cover null, missing, and mixed text
+values, and the checker now returns a valid score instead of crashing.
