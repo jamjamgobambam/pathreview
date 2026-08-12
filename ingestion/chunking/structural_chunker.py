@@ -88,16 +88,15 @@ class StructuralChunker(BaseChunker):
             heading_match = re.match(r"^(#{1,6})\s+(.+)$", line)
 
             if heading_match:
-                # Save previous section if exists
+                # Save previous section if exists (may precede the first heading)
                 if current_section_lines:
-                    if heading_stack:
-                        sections.append(
-                            {
-                                "content": "\n".join(current_section_lines).strip(),
-                                "path": [h[1] for h in heading_stack],
-                                "level": heading_stack[-1][0] if heading_stack else 0,
-                            }
-                        )
+                    sections.append(
+                        {
+                            "content": "\n".join(current_section_lines).strip(),
+                            "path": [h[1] for h in heading_stack],
+                            "level": heading_stack[-1][0] if heading_stack else 0,
+                        }
+                    )
                     current_section_lines = []
 
                 # Process new heading
