@@ -49,7 +49,7 @@ class TestRelevanceScorer:
         query = "Python Django web framework"
         chunks = [
             {
-                "text": "Django is a Python web framework for rapid development"
+                "text": "Django is a Python backend toolkit for rapid development"
             },
         ]
 
@@ -57,7 +57,7 @@ class TestRelevanceScorer:
 
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
-        assert 0.3 < score < 0.9  # Partial overlap should be in middle range
+        assert score == 0.5  # Only "python" and "django" overlap with the query
 
     def test_empty_chunks_list_returns_zero(self, scorer):
         """Test empty chunks list returns 0.0."""
