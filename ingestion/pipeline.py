@@ -1,6 +1,8 @@
 import hashlib
 from dataclasses import dataclass
-from typing import Optional
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
 import structlog
 
@@ -10,7 +12,7 @@ from .embeddings.provider import EmbeddingProvider
 from .parsers.readme_parser import ReadmeParser
 from .parsers.repo_analyzer import RepoAnalyzer
 from .parsers.resume_parser import ResumeParser
-
+from .parsers.web_parser import WebParser
 
 logger = structlog.get_logger()
 
@@ -18,10 +20,11 @@ logger = structlog.get_logger()
 @dataclass
 class IngestResult:
     """Result of ingesting a source."""
+
     source_id: str
     chunk_count: int
     skipped: bool
-    skip_reason: Optional[str] = None
+    skip_reason: str | None = None
 
 
 class IngestionPipeline:
@@ -50,7 +53,142 @@ class IngestionPipeline:
         # Initialize parsers
         self.resume_parser = ResumeParser()
         self.readme_parser = ReadmeParser()
+        self.web_parser = WebParser()
         self.repo_analyzer = RepoAnalyzer()
+
+    def ingest_portfolio(
+        self,
+        profile_id: str,
+        portfolio_url: str,
+    ) -> IngestResult:
+        """
+        Fetch and ingest a portfolio website.
+
+        Args:
+            profile_id: ID of the profile owner
+            portfolio_url: URL of the portfolio website
+
+        Returns:
+            IngestResult with ingestion status
+
+        """
+
+        parsed_url = urlparse(portfolio_url)
+
+        if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
+            raise ValueError("Portfolio URL must be a valid HTTP or HTTPS URL.")
+
+        logger.info(
+            "Starting portfolio website ingestion",
+            profile_id=profile_id,
+            portfolio_url=portfolio_url,
+        )
+
+        try:
+            request = Request(
+                portfolio_url,
+                headers={
+                    "User-Agent": "PathReview/1.0",
+                    "Accept": "text/html",
+                },
+            )
+
+            with urlopen(request, timeout=10) as response:
+                content_type = response.headers.get_content_type()
+
+                if content_type != "text/html":
+                    raise ValueError(f"Portfolio URL must return HTML, received {content_type}")
+
+                html_content = response.read()
+
+        except HTTPError as exc:
+            logger.error(
+                "Portfolio request returned an HTTP error",
+                profile_id=profile_id,
+                portfolio_url=portfolio_url,
+                status_code=exc.code,
+            )
+            raise RuntimeError(f"Portfolio website returned HTTP status {exc.code}") from exc
+
+        except URLError as exc:
+            logger.error(
+                "Portfolio website could not be reached",
+                profile_id=profile_id,
+                portfolio_url=portfolio_url,
+                error=str(exc.reason),
+            )
+            raise RuntimeError("Portfolio website could not be reached") from exc
+
+        source_id = f"portfolio_{profile_id}_{self._hash_content(html_content)}"
+
+        skip_result = self._check_skip(source_id, "portfolio")
+        if skip_result:
+            return skip_result
+
+        try:
+            parse_result = self.web_parser.parse(html_content)
+
+            if not parse_result.text:
+                raise ValueError("Portfolio website contains no readable text")
+
+            logger.info(
+                "Portfolio website parsed successfully",
+                profile_id=profile_id,
+                portfolio_url=portfolio_url,
+                title=parse_result.metadata.get("title"),
+                word_count=parse_result.metadata.get("word_count"),
+            )
+
+            metadata = parse_result.metadata.copy()
+            metadata.update(
+                {
+                    "source_id": source_id,
+                    "profile_id": profile_id,
+                    "portfolio_url": portfolio_url,
+                    "source_type": "web",
+                }
+            )
+
+            chunks = self.strategy_selector.chunk(
+                parse_result.text,
+                metadata,
+            )
+
+            logger.info(
+                "Portfolio website chunked successfully",
+                profile_id=profile_id,
+                chunk_count=len(chunks),
+            )
+
+            self.batch_processor.process(chunks)
+
+            logger.info(
+                "Portfolio embeddings stored",
+                profile_id=profile_id,
+                chunk_count=len(chunks),
+            )
+
+            self._record_ingested_source(
+                source_id,
+                "portfolio",
+                profile_id,
+                len(chunks),
+            )
+
+            return IngestResult(
+                source_id=source_id,
+                chunk_count=len(chunks),
+                skipped=False,
+            )
+
+        except Exception as exc:
+            logger.error(
+                "Portfolio website ingestion failed",
+                profile_id=profile_id,
+                portfolio_url=portfolio_url,
+                error=str(exc),
+            )
+            raise
 
     def ingest_resume(
         self,
@@ -86,16 +224,21 @@ class IngestionPipeline:
         try:
             # Parse resume
             parse_result = self.resume_parser.parse(content)
-            logger.info("Resume parsed successfully", sections=parse_result.metadata.get("detected_sections"))
+            logger.info(
+                "Resume parsed successfully",
+                sections=parse_result.metadata.get("detected_sections"),
+            )
 
             # Prepare metadata
             metadata = parse_result.metadata.copy()
-            metadata.update({
-                "source_id": source_id,
-                "profile_id": profile_id,
-                "filename": filename,
-                "source_type": "resume",
-            })
+            metadata.update(
+                {
+                    "source_id": source_id,
+                    "profile_id": profile_id,
+                    "filename": filename,
+                    "source_type": "resume",
+                }
+            )
 
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
@@ -165,12 +308,14 @@ class IngestionPipeline:
 
             # Prepare metadata
             metadata = parse_result.metadata.copy()
-            metadata.update({
-                "source_id": source_id,
-                "profile_id": profile_id,
-                "repo_name": repo_name,
-                "source_type": "readme",
-            })
+            metadata.update(
+                {
+                    "source_id": source_id,
+                    "profile_id": profile_id,
+                    "repo_name": repo_name,
+                    "source_type": "readme",
+                }
+            )
 
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
@@ -239,11 +384,13 @@ class IngestionPipeline:
 
             # Prepare metadata
             metadata = parse_result.metadata.copy()
-            metadata.update({
-                "source_id": source_id,
-                "profile_id": profile_id,
-                "source_type": "repo",
-            })
+            metadata.update(
+                {
+                    "source_id": source_id,
+                    "profile_id": profile_id,
+                    "source_type": "repo",
+                }
+            )
 
             # Chunk the content
             chunks = self.strategy_selector.chunk(parse_result.text, metadata)
@@ -277,7 +424,7 @@ class IngestionPipeline:
             content = content.encode()
         return hashlib.sha256(content).hexdigest()[:16]
 
-    def _check_skip(self, source_id: str, source_type: str) -> Optional[IngestResult]:
+    def _check_skip(self, source_id: str, source_type: str) -> IngestResult | None:
         """
         Check if source has already been ingested.
 
@@ -286,9 +433,11 @@ class IngestionPipeline:
         try:
             # Query database for existing source
             # This assumes a table/model named IngestedSource
-            existing = self.db_session.query(
-                "IngestedSource"  # Placeholder - actual query depends on ORM
-            ).filter_by(source_id=source_id).first()
+            existing = (
+                self.db_session.query("IngestedSource")  # Placeholder - actual query depends on ORM
+                .filter_by(source_id=source_id)
+                .first()
+            )
 
             if existing:
                 logger.info("Source already ingested, skipping", source_id=source_id)
