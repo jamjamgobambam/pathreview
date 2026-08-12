@@ -212,6 +212,7 @@ class TestPromptDefense:
 
         assert sanitized_once == sanitized_twice
 
+    # new tests i created
     def test_complex_injection_attempt(self) -> None:
         """Test complex multi-pattern injection attempt."""
         complex_attack = (

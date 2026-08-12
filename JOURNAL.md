@@ -28,13 +28,31 @@ FAILED tests/unit/test_prompt_defense.py::TestPromptDefense::test_sanitize_newli
 
 ## Week 9 — Implementation & pull request
 
-**Pull request link:** [Insert your GitHub PR URL here]
+### Check-in 1 — Mid-week check-in
 
-**Implementation summary:**
-- Modified `safety/prompt_defense.py` to neutralize role-switching injections and fake section delimiters while keeping existing dangerous character stripping (`<`, `>`, `{`, `}`).
+- [x] Branch follows naming convention: `safety/64-newline-prompt-injection-sanitation-defense`
+- [x] Reproduction test added and failing: `tests/unit/test_prompt_defense.py::test_sanitize_newline_injection_reproduction`
+- [x] Initial fix implementation started in `safety/prompt_defense.py`
+
+**Mid-week status update:**
+Successfully reproduced Issue #64 by creating a unit test in `tests/unit/test_prompt_defense.py` that passes multi-line prompt injection payloads (e.g., `\nSystem:` and `\n---`) to `PromptDefense.sanitize()`. Confirmed the bug existed because `sanitize()` only stripped template brackets (`{{`, `}}`) and angle brackets (`<`, `>`), allowing newline role switches to survive. Implemented the core fix in `safety/prompt_defense.py` using regular expression substitutions to replace role-switch vectors with `[sanitized-role]:` and delimiter lines with `[sanitized-delimiter]`.
+
+---
+
+### Check-in 2 — End-of-week check-in
+
+**Pull request link:** 
+
+- [x] Tests pass locally (`make test-unit` or `pytest`)
+- [x] Code passes linting/formatting (`make check` or `ruff`/`black`/`mypy`)
+- [x] Changes committed and pushed to working branch
+- [x] Pull Request created with full PR description filled in
+
+**Implementation & Testing summary:**
+- Modified `safety/prompt_defense.py` to neutralize role-switching injections (`\nSystem:`, `\nHuman:`, `\nAssistant:`) and fake section delimiters (`\n---`, `\n===`) while keeping existing dangerous character stripping (`<`, `>`, `{`, `}`).
 - Added regex replacements using `re.IGNORECASE` to sanitize variations like `\n System :` without breaking legitimate job titles like "System Administrator".
-- Fixed all pre-commit hook failures (`ruff` line length rules, `black` auto-formatting, and `mypy` untyped function definition errors in `test_prompt_defense.py`).
-- Verified all 30 unit tests pass in `tests/unit/test_prompt_defense.py` and confirmed end-to-end compatibility with `ingestion/pipeline.py`.
+- Updated `tests/unit/test_prompt_defense.py` with 30 comprehensive unit test cases covering multi-line sanitization, regression checks for valid resume text, and strict `mypy` return type annotations (`-> None`).
+- Confirmed end-to-end integration with `ingestion/pipeline.py` so raw resume text is sanitized prior to chunking and embedding.
 
 ### Reflection & Learnings
 

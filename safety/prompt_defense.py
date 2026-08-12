@@ -23,7 +23,7 @@ class PromptDefense:
         r"(?:execute|run|eval)\s*\(",  # Code execution attempts
     ]
 
-    # Characters to strip from input
+    # Characters to strip from input.
     DANGEROUS_CHARS = {
         "<": "",
         ">": "",
