@@ -35,12 +35,16 @@ frontend/dist/
 .DS_Store
 Thumbs.db
 
+# Vector store (ChromaDB default persist dir)
+.chromadb/
+
 # Test / Coverage
 htmlcov/
 .coverage
 .coverage.*
 .pytest_cache/
 .mypy_cache/
+.benchmarks/
 
 # Build artifacts
 *.pyc

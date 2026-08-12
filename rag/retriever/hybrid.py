@@ -1,7 +1,7 @@
 """Hybrid retriever combining vector and keyword search."""
 
 import structlog
-from .vector_store import VectorStore
+from .vector_store import VectorStore, collection_name_for_profile
 from .keyword_search import KeywordSearcher
 
 logger = structlog.get_logger()
@@ -39,7 +39,7 @@ class HybridRetriever:
         Returns:
             List of dicts with blended scores
         """
-        collection_name = f"profile_{profile_id}"
+        collection_name = collection_name_for_profile(profile_id)
 
         # Vector search
         vector_results = self.vector_store.query(

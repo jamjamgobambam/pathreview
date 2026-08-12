@@ -7,6 +7,22 @@ import structlog
 logger = structlog.get_logger()
 
 
+def collection_name_for_profile(profile_id: object) -> str:
+    """Build the ChromaDB collection name that holds a profile's embeddings.
+
+    This is the single source of truth for the per-profile collection name.
+    Both the retrieval path and the profile-delete cleanup path must agree on
+    this format, so they both call this helper instead of hardcoding it.
+
+    Args:
+        profile_id: Profile identifier (UUID or str).
+
+    Returns:
+        The collection name, e.g. ``"profile_<id>"``.
+    """
+    return f"profile_{profile_id}"
+
+
 class VectorStore:
     """Wrapper around ChromaDB for vector similarity search."""
 
@@ -130,3 +146,23 @@ class VectorStore:
             collection.delete(ids=all_docs["ids"])
             logger.info("deleted_by_source", source_id=source_id,
                        count=len(all_docs["ids"]), collection=collection_name)
+
+    def delete_collection(self, name: str) -> None:
+        """Delete an entire collection and all embeddings it contains.
+
+        Used when a profile is deleted, to remove its per-profile collection so
+        no orphaned vectors are left behind (issue #80). The operation is
+        idempotent: deleting a collection that does not exist is treated as a
+        no-op rather than an error, so it is safe to call for profiles that
+        never had any embeddings ingested.
+
+        Args:
+            name: Name of the collection to delete.
+        """
+        try:
+            self.client.delete_collection(name=name)
+            logger.info("deleted_collection", collection_name=name)
+        except Exception:
+            # ChromaDB raises when the collection doesn't exist. That's a
+            # legitimate no-op here (profile had no embeddings), so swallow it.
+            logger.info("delete_collection_noop", collection_name=name)
