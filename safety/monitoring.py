@@ -1,8 +1,9 @@
 """Safety event monitoring."""
 
+import time
+
 import redis
 import structlog
-from datetime import datetime, timedelta
 
 logger = structlog.get_logger()
 
@@ -16,7 +17,7 @@ class SafetyMonitor:
         "injection_attempt",
         "content_filtered",
         "bias_detected",
-        "rate_limited"
+        "rate_limited",
     }
 
     def __init__(self, redis_client: redis.Redis):
@@ -30,6 +31,11 @@ class SafetyMonitor:
     def log_event(self, event_type: str, details: dict) -> None:
         """Log a safety event.
 
+        Each event is stored as a timestamped member in a Redis sorted set so
+        that counts can be computed over a rolling time window (mirroring
+        ``RateLimiter``). This lets multi-turn conversations that trip the
+        content filter across several turns be counted within a window.
+
         Args:
             event_type: Type of event (from VALID_EVENT_TYPES)
             details: Event details dict
@@ -38,36 +44,38 @@ class SafetyMonitor:
             logger.warning("unknown_event_type", event_type=event_type)
             return
 
-        timestamp = datetime.utcnow().isoformat()
-
         try:
             # Log to structlog
             logger.warning("safety_event", event_type=event_type, **details)
 
-            # Store count in Redis for monitoring
+            # Store a timestamped entry in a sorted set for windowed counting.
             key = f"safety:events:{event_type}"
-            self.redis.incr(key)
-            # Set expiry to 24 hours
+            now = time.time()
+            self.redis.zadd(key, {str(now): now})
+            # Expiry covers the largest window we query; the set self-trims.
             self.redis.expire(key, 86400)
 
         except Exception as e:
             logger.error("safety_monitor_error", error=str(e))
 
     def get_event_count(self, event_type: str, window_hours: int = 1) -> int:
-        """Get count of safety events.
+        """Get count of safety events within a rolling window.
 
         Args:
             event_type: Type of event
-            window_hours: Time window in hours (not enforced here; for reference)
+            window_hours: Rolling time window in hours
 
         Returns:
-            Count of events in the window
+            Count of events recorded within the last ``window_hours`` hours.
         """
         key = f"safety:events:{event_type}"
+        now = time.time()
+        window_start = now - window_hours * 3600
 
         try:
-            count = self.redis.get(key)
-            return int(count) if count else 0
+            # Drop events older than the window, then count what remains.
+            self.redis.zremrangebyscore(key, 0, window_start)
+            return self.redis.zcard(key)
 
         except Exception as e:
             logger.error("event_count_error", event_type=event_type, error=str(e))
