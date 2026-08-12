@@ -2,6 +2,7 @@
 
 import httpx
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -35,44 +36,30 @@ class GitHubTool(BaseTool):
         repo_name = input_data.get("repo_name")
 
         if not username or not repo_name:
-            return ToolResult(
-                success=False,
-                data={},
-                error="Missing github_username or repo_name"
-            )
+            return ToolResult(success=False, data={}, error="Missing github_username or repo_name")
 
         try:
             repo_data = self._fetch_repo_metadata(username, repo_name)
             return ToolResult(success=True, data=repo_data)
 
         except httpx.HTTPStatusError as e:
-            logger.error("github_request_failed", status=e.response.status_code,
-                        username=username, repo=repo_name)
+            logger.error(
+                "github_request_failed",
+                status=e.response.status_code,
+                username=username,
+                repo=repo_name,
+            )
             if e.response.status_code == 404:
-                return ToolResult(
-                    success=False,
-                    data={},
-                    error="Repository not found"
-                )
+                return ToolResult(success=False, data={}, error="Repository not found")
             elif e.response.status_code == 403:
-                return ToolResult(
-                    success=False,
-                    data={},
-                    error="Rate limited or access denied"
-                )
+                return ToolResult(success=False, data={}, error="Rate limited or access denied")
             return ToolResult(
-                success=False,
-                data={},
-                error=f"GitHub API error: {e.response.status_code}"
+                success=False, data={}, error=f"GitHub API error: {e.response.status_code}"
             )
 
         except Exception as e:
             logger.error("github_tool_error", error=str(e))
-            return ToolResult(
-                success=False,
-                data={},
-                error=str(e)
-            )
+            return ToolResult(success=False, data={}, error=str(e))
 
     def _fetch_repo_metadata(self, username: str, repo_name: str) -> dict:
         """Fetch repository metadata from GitHub API.
@@ -94,6 +81,7 @@ class GitHubTool(BaseTool):
         response.raise_for_status()
 
         repo_json = response.json()
+        repo_default_branch = repo_json.get("default_branch", "main")
 
         # Extract metadata, handling null values
         metadata = {
@@ -105,12 +93,18 @@ class GitHubTool(BaseTool):
             "open_issues_count": repo_json.get("open_issues_count", 0),
             "last_commit_date": repo_json.get("pushed_at", ""),
             "has_readme": self._has_readme(username, repo_name),
+            "has_tests": self._detect_tests(username, repo_name, repo_default_branch),
             "topics": repo_json.get("topics", []),
             "homepage": repo_json.get("homepage") or "",
         }
 
-        logger.info("github_repo_fetched", username=username, repo=repo_name,
-                   language=metadata["primary_language"], stars=metadata["star_count"])
+        logger.info(
+            "github_repo_fetched",
+            username=username,
+            repo=repo_name,
+            language=metadata["primary_language"],
+            stars=metadata["star_count"],
+        )
 
         return metadata
 
@@ -132,6 +126,47 @@ class GitHubTool(BaseTool):
 
         try:
             response = httpx.head(url, headers=headers, timeout=5.0)
-            return response.status_code == 200
+            return bool(response.status_code == 200)
+        except Exception:
+            return False
+
+    def _detect_tests(self, username: str, repo_name: str, repo_default_branch: str) -> bool:
+        """Check if repository has test coverage.
+
+        Args:
+            username: GitHub username
+            repo_name: Repository name
+            repo_default_branch: Repository default branch
+
+        Returns:
+            True if test files or directories are present
+        """
+        url = (
+            f"{self.base_url}/repos/{username}/{repo_name}"
+            f"/git/trees/{repo_default_branch}?recursive=1"
+        )
+
+        headers = {}
+        if self.api_token:
+            headers["Authorization"] = f"token {self.api_token}"
+
+        try:
+            response = httpx.get(url, headers=headers, timeout=5.0)
+            response.raise_for_status()
+            tree = response.json().get("tree", [])
+
+            for entry in tree:
+                path = str(entry.get("path", "")).lower()
+                segments = path.split("/")
+                filename = segments[-1]
+
+                if "tests" in segments or "test" in segments:
+                    return True
+                if filename == "pytest.ini":
+                    return True
+                if filename.startswith("test_") and filename.endswith(".py"):
+                    return True
+
+            return False
         except Exception:
             return False
