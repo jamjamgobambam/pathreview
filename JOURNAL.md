@@ -60,3 +60,24 @@ I created a new test file `tests/unit/test_llm_reranker.py`. It uses `unittest.m
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** N/A
+
+## Week 10 — Iteration & Reflection
+
+**Code Review Status:** 
+No review feedback was received prior to the deadline, so no iteration was necessary.
+
+**Final Project Reflection:**
+For my open-source contribution, I tackled Issue #34, which required implementing an LLM-based re-ranking step for the application's Retrieval-Augmented Generation (RAG) pipeline. The existing system relied entirely on vector similarity and keyword matching (BM25), which often struggled to surface the most conceptually relevant document chunks. 
+
+**What I Built & Why:**
+I built an `LLMReranker` class that intercepts the blended results from the `HybridRetriever`. Rather than altering the core math of the vector/keyword search, the reranker takes the top retrieved chunks, prompts OpenAI to evaluate their relevance against the user's query on a scale of 1-10, and then re-sorts them. 
+
+I specifically utilized **Dependency Injection** by passing the `LLMReranker` instance directly into the `HybridRetriever.__init__` method as an optional argument. I chose this design pattern because it decoupled the retrieval logic from the LLM configuration—the retriever doesn't need to know how to handle OpenAI API keys or manage timeouts. It simply asks, "If I have a reranker, use it." This made the codebase much easier to test and far more modular.
+
+**Challenges & Testing:**
+The most significant hurdle was ensuring my code met the project's strict continuous integration (CI) standards. I encountered failures from the `ruff` and `black` pre-commit hooks due to line-length limits (E501) and formatting inconsistencies. Fixing these forced me to pay much closer attention to Python styling conventions and how automated tools enforce them.
+
+When writing unit tests for the feature, I had to ensure the test suite ran quickly and didn't rack up OpenAI API costs. I solved this by utilizing `unittest.mock.Mock` to simulate deep API responses (e.g., `mock_client.chat.completions.create.side_effect`), mapping specific mock scores to specific fake chunks.
+
+**What I Would Do Differently:**
+With full context now, if I were to build this again, I would explore using a dedicated, smaller embeddings model (like `bge-reranker` or Cohere's Rerank API) instead of a general-purpose LLM like `gpt-3.5-turbo`. While the LLM approach works, a specialized reranking model would likely be much faster and cheaper at scale, while reducing the need to parse raw text output with regular expressions.
