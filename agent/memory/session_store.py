@@ -1,9 +1,9 @@
 """Redis-backed session store."""
 
-import redis
 import json
+
+import redis
 import structlog
-from typing import Optional
 
 logger = structlog.get_logger()
 
@@ -19,7 +19,7 @@ class SessionStore:
         """
         self.redis = redis_client
 
-    def get(self, session_id: str) -> Optional[dict]:
+    def get(self, session_id: str) -> dict | None:
         """Get session data.
 
         Args:
@@ -36,7 +36,7 @@ class SessionStore:
                 logger.info("session_not_found", session_id=session_id)
                 return None
 
-            parsed = json.loads(data)
+            parsed: dict = json.loads(data)
             logger.info("session_retrieved", session_id=session_id)
             return parsed
 

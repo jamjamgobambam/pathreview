@@ -1,4 +1,4 @@
-.PHONY: setup run test-unit test-integration test-all lint format typecheck check migrate seed reset-db eval clean
+.PHONY: setup run test-unit test-integration test-all test-baseline test-diff lint format typecheck check migrate seed reset-db eval clean
 
 SHELL := /bin/bash
 
@@ -45,6 +45,21 @@ test-integration: ## Run integration tests only
 test-all: ## Run full test suite
 	$(PYTEST) tests/ -v
 
+test-baseline: ## Record currently-failing unit tests to tests/baseline-failures.txt
+	@mkdir -p logs
+	@$(PYTEST) tests/unit -m unit -q --tb=no -rf > logs/baseline-run.txt 2>&1 || true
+	@grep '^FAILED' logs/baseline-run.txt | sort > tests/baseline-failures.txt || true
+	@echo "Baseline recorded: $$(wc -l < tests/baseline-failures.txt) failing tests"
+	@echo "Full output in logs/baseline-run.txt"
+
+test-diff: ## Compare current unit-test failures against the recorded baseline
+	@mkdir -p logs
+	@$(PYTEST) tests/unit -m unit -q --tb=no -rf > logs/current-run.txt 2>&1 || true
+	@grep '^FAILED' logs/current-run.txt | sort > logs/current-failures.txt || true
+	@echo "--- baseline vs current (< = fixed, > = NEWLY BROKEN) ---"
+	@diff tests/baseline-failures.txt logs/current-failures.txt \
+		&& echo "No change from baseline."
+
 # ---- Code Quality ----
 
 lint: ## Run ruff linter
@@ -56,7 +71,14 @@ format: ## Run black formatter
 typecheck: ## Run mypy type checker
 	$(VENV_BIN)/mypy api/ core/ ingestion/ rag/ agent/ safety/
 
-check: lint format typecheck ## Run lint + format + typecheck
+check: ## Run lint + format + typecheck, logging to logs/check.txt
+	@mkdir -p logs
+	@set -o pipefail; { \
+		$(VENV_BIN)/ruff check . ; \
+		$(VENV_BIN)/black . ; \
+		$(VENV_BIN)/mypy api/ core/ ingestion/ rag/ agent/ safety/ ; \
+	} 2>&1 | tee logs/check.txt
+	@echo "Full output saved to logs/check.txt"
 
 # ---- Database ----
 
