@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from .base import BaseParser, ParseResult
 
 
@@ -31,18 +29,20 @@ class RepoAnalyzer(BaseParser):
         Analyze GitHub repository metadata.
 
         Args:
-            content: Repository metadata dict (passed as JSON-serializable dict or bytes)
+            content: Repository metadata dict, JSON string, or JSON bytes.
 
         Returns:
-            ParseResult with analyzed repo metadata
+            ParseResult with analyzed repository metadata.
         """
         if isinstance(content, bytes):
             import json
+
             repo_data = json.loads(content.decode("utf-8"))
         elif isinstance(content, dict):
             repo_data = content
         elif isinstance(content, str):
             import json
+
             repo_data = json.loads(content)
         else:
             raise ValueError("Content must be a dict, JSON string, or JSON bytes")
@@ -65,7 +65,7 @@ class RepoAnalyzer(BaseParser):
         has_tests = self._detect_tests(repo_data)
 
         # Extract last commit date
-        last_commit_date = repo_data.get("pushed_at", None)
+        last_commit_date = repo_data.get("pushed_at")
 
         # Detect tech stack
         tech_stack = self._detect_tech_stack(repo_data)
@@ -110,25 +110,41 @@ class RepoAnalyzer(BaseParser):
 
     def _detect_ci(self, repo_data: dict) -> bool:
         """Check if repository has CI/CD configured."""
+        file_structure = str(repo_data.get("file_structure", "")).lower()
+
         ci_indicators = [
-            ".github/workflows" in str(repo_data.get("file_structure", "")),
-            ".travis.yml" in str(repo_data.get("file_structure", "")),
-            ".circleci" in str(repo_data.get("file_structure", "")),
-            "gitlab-ci" in str(repo_data.get("file_structure", "")),
+            ".github/workflows" in file_structure,
+            ".travis.yml" in file_structure,
+            ".circleci" in file_structure,
+            "gitlab-ci" in file_structure,
         ]
+
         return any(ci_indicators)
 
     def _detect_tests(self, repo_data: dict) -> bool:
         """Check if repository has test files or directories."""
-        file_structure = str(repo_data.get("file_structure", "")).lower()
-        test_indicators = [
-            "tests/" in file_structure or "test/" in file_structure,
-            "pytest.ini" in file_structure,
-            "test_" in file_structure,
-            "__tests__" in file_structure,
-            "spec/" in file_structure,
-        ]
-        return any(test_indicators)
+        file_structure = repo_data.get("file_structure", [])
+
+        if not isinstance(file_structure, list):
+            file_structure = [str(file_structure)]
+
+        for path in file_structure:
+            normalized_path = str(path).lower().replace("\\", "/")
+            filename = normalized_path.rsplit("/", 1)[-1]
+
+            if "tests/" in normalized_path or "test/" in normalized_path:
+                return True
+
+            if filename == "pytest.ini":
+                return True
+
+            if filename.startswith("test_") and filename.endswith(".py"):
+                return True
+
+            if "__tests__" in normalized_path or "spec/" in normalized_path:
+                return True
+
+        return False
 
     def _detect_tech_stack(self, repo_data: dict) -> list[str]:
         """Detect technologies from file extensions and config files."""
@@ -176,9 +192,11 @@ class RepoAnalyzer(BaseParser):
         # Check for React/Vue/Angular
         if "react" in file_structure or "jsx" in file_structure:
             tech_stack.add("React")
+
         if "vue" in file_structure or ".vue" in file_structure:
             tech_stack.add("Vue.js")
+
         if "angular" in file_structure or ".component.ts" in file_structure:
             tech_stack.add("Angular")
 
-        return sorted(list(tech_stack))
+        return sorted(tech_stack)
