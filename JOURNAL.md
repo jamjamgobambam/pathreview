@@ -99,7 +99,6 @@ Run the project tests, create the pull request, and submit the final branch URL.
 
 **Blockers:**
 None.
-
 ---
 
 ### Check-in 2 (end of week)
@@ -124,3 +123,34 @@ Note: The repository contains pre-existing unrelated test failures. My changes d
 
 **Draft PR feedback received from:**
 None
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**  
+I did not receive reviewer feedback on my pull request. For the Summer 2026 cohort, formal reviewer feedback was not part of the project process, so there were no requested changes or maintainer comments for me to address.
+
+**How you responded:**  
+No response or additional changes were necessary because I did not receive reviewer feedback.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**  
+The hardest part was navigating an issue whose original instructions no longer completely matched the current codebase. Issue #88 referenced `tests/unit/test_review_routes.py`, but that file was no longer present in the repository. I had to investigate the current project structure and determine that the relevant review tests were now in `tests/unit/test_review_service.py`. I also had to trace the review flow into `process_review()` and understand how ingestion results were handled before deciding where the missing-document case should be addressed. Debugging the local test environment was another unexpected challenge because `pytest-asyncio` initially was not being recognized.
+
+**What did you learn about working in a large codebase?**  
+I learned that working in an existing codebase requires much more investigation before making changes than building a project from scratch. An issue description may become outdated as the repository evolves, so I could not rely only on the file paths listed in the issue. I used searches through the repository to locate review-related files, traced functions across the API, service, model, and schema layers, and looked at existing tests before implementing anything. I also learned the importance of limiting a contribution to the scope of the issue instead of trying to fix unrelated problems in the repository.
+
+**How did AI tools help — and where did they fall short?**  
+AI tools were especially useful for helping me navigate unfamiliar code, understand the relationship between `api/routes/reviews.py`, `core/services/review_service.py`, and the existing unit tests, and interpret terminal and pytest errors. They also helped me reason through how to mock the database interactions needed for the regression test. However, AI could not simply assume that the issue description still represented the current repository. I had to verify suggestions by searching the actual codebase, examining `process_review()`, checking existing test patterns, and running the tests myself. This showed me that AI is useful for accelerating investigation, but its suggestions still need to be validated against the current code.
+
+**What would you do differently if you started over?**  
+I would investigate the repository structure and run the relevant test suite earlier, before writing a detailed implementation plan. Because the issue referenced a test file that no longer existed, identifying that mismatch immediately would have saved time later. I would also verify the development environment and project dependencies at the beginning so issues such as the missing `pytest-asyncio` plugin do not interrupt testing after the implementation is already written. Finally, I would open the draft pull request earlier so that the contribution workflow is visible throughout implementation instead of waiting until most of the work is complete.
+
+**What are you most proud of from this module?**  
+I am most proud that I was able to take an issue from selection through investigation, implementation, testing, and pull request submission even though the repository had changed since the issue was written. Instead of assuming the missing test file meant I could not complete the issue, I traced the current implementation, found the appropriate location for the regression test, added handling for profiles with no ingested documents, verified the new test passed, and submitted the contribution as PR #914. The experience gave me a much better understanding of what contributing to an existing open-source codebase actually involves.
