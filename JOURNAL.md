@@ -64,3 +64,23 @@ No new tests added — the existing test_javascript_detection, test_text_with_ty
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reflection
+
+**What was harder than you expected?**
+Honestly, the git/GitHub workflow caused more trouble than the actual code fix. I ended up with commits landing on main instead of my feature branch, a duplicate nested repo folder, and GitHub's browser editor silently stripping the indentation off a method I added, which turned it into a standalone function outside the class instead of a real method. None of that was a coding problem; it was all workflow stuff I had to untangle with git log, fetch, cherry-pick, and revert.
+
+**What did you learn about working in a large codebase?**
+I learned that a bug isn't always as contained as the issue title suggests. This was filed as "JavaScript and TypeScript detection," but two of the four failing tests were actually about Docker — turned out they shared the same underlying design flaw (keyword-only matching that couldn't handle real code/config syntax). I also learned to tell the difference between failures that are actually mine to fix versus pre-existing bugs unrelated to my change, instead of trying to fix everything I saw failing.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for tracing why something failed; reading a regex character by character to explain why require('fs') didn't match, or explaining a confusing git error in plain terms. Where it fell short: it couldn't see my actual files or terminal state directly, so I had to paste in outputs and file contents each time, and it couldn't catch the indentation bug until I showed it the exact committed code. It can reason well once it has the real data, but it can't observe my environment on its own.
+
+**What would you do differently if you started over?**
+Edit and commit locally in VS Code/terminal from the start instead of GitHub's web editor; that's what caused both the stripped indentation and the wrong-branch commit. I'd also check git branch --show-current before making any edit, every time, instead of assuming I was on the right branch.]
+
+**What are you most proud of from this module?**
+Actually tracing the real root cause instead of guessing, and I figured out that the Docker tests could never pass with keyword matching alone since real Dockerfiles never contain the literal word "docker," and confirming that with the actual test inputs rather than assuming.
