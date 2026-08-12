@@ -68,3 +68,34 @@ None currently.
 (Confirmed via `git stash` comparison: baseline on this branch before the fix was 32 failed/257 passed on `test-unit`, with 8 unrelated files failing to collect due to pre-existing missing dev dependencies — `numpy`, `sqlalchemy`, `jose`, `tiktoken`, `pypdf`, `rank_bm25` — and 175 pre-existing repo-wide ruff errors, none in the file I changed. After the fix: 31 failed/258 passed — only the reproduction test flipped, no new failures. `ruff`, `black`, and `mypy` all pass cleanly on `agent/orchestrator.py`.)
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review has come in yet on PR #935 as of this entry. I shared the draft PR link in the class Slack channel; will update this section if/when a reviewer comments before final submission.
+
+**How you responded:**
+N/A — no feedback to respond to yet.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Confirming the fix was actually safe took longer than writing the fix itself. `Orchestrator.run()`'s change was a two-line deletion, but I didn't trust that until I'd grepped every call site for `Orchestrator(` and `session_store.get(`/`set(` across the repo to make sure nothing outside the test suite depended on the old cumulative-merge behavior. Then I had to run `git stash` to get a real before/after baseline for `make test-unit` and `make lint`, because the repo already had 175 pre-existing ruff errors and 8 test files that fail to even collect (missing `numpy`, `sqlalchemy`, `jose`, `tiktoken`, `pypdf`, `rank_bm25` locally). Without that baseline comparison I couldn't have honestly claimed "my change doesn't introduce new failures" — I'd have just been guessing from a noisy `make check` output.
+
+**What did you learn about working in a large codebase?**
+The smallest correct fix is usually smaller than it feels like it should be. My first instinct from PLAN.md was that this needed a new per-review session ID threaded through the whole call chain (step 1 of the plan). Once I actually traced the callers, there weren't any outside the test file relying on cross-review accumulation, so the minimal fix — stop merging, persist only current results — fully resolved the bug without touching the `SessionStore` public contract. In a codebase you don't own, "prove no one depends on the old behavior" has to come before "assume the bigger refactor is necessary."
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was strongest for the mechanical, repeatable parts: tracing `Orchestrator.run()`'s data flow, writing the reproduction and companion tests in the existing file's style, and producing the before/after diff comparisons via `git stash`. It fell short on judgment calls that needed project-specific context I had to supply myself — deciding the minimal fix was sufficient (vs. the more elaborate session-ID scheme in PLAN.md) required grepping the actual codebase myself and reasoning about it, not just accepting a plausible-sounding suggestion. It also couldn't open the PR itself (no `gh` CLI in this environment), so the actual submission step was manual.
+
+**What would you do differently if you started over?**
+I'd run the `make check`/`make test-unit` baseline comparison via `git stash` at the very start of Week 8, before writing the reproduction test, rather than waiting until Week 9's self-review step. Having that baseline early would have let me write the PR's "Notes for Reviewers" section incrementally instead of reconstructing it after the fact.
+
+**What are you most proud of from this module?**
+Catching that the plan's proposed fix (a new per-review session ID) was more than the bug actually required, and being able to justify the narrower fix with concrete evidence (a repo-wide grep with zero other call sites) instead of just defaulting to the more "thorough-looking" solution.
