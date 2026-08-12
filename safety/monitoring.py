@@ -1,8 +1,10 @@
 """Safety event monitoring."""
 
+import time
+import uuid
+
 import redis
 import structlog
-from datetime import datetime, timedelta
 
 logger = structlog.get_logger()
 
@@ -10,13 +12,12 @@ logger = structlog.get_logger()
 class SafetyMonitor:
     """Monitor and log safety events."""
 
-    # Valid event types
     VALID_EVENT_TYPES = {
         "pii_detected",
         "injection_attempt",
         "content_filtered",
         "bias_detected",
-        "rate_limited"
+        "rate_limited",
     }
 
     def __init__(self, redis_client: redis.Redis):
@@ -31,44 +32,88 @@ class SafetyMonitor:
         """Log a safety event.
 
         Args:
-            event_type: Type of event (from VALID_EVENT_TYPES)
-            details: Event details dict
+            event_type: Type of event from VALID_EVENT_TYPES
+            details: Event details dictionary
         """
         if event_type not in self.VALID_EVENT_TYPES:
             logger.warning("unknown_event_type", event_type=event_type)
             return
 
-        timestamp = datetime.utcnow().isoformat()
-
         try:
-            # Log to structlog
-            logger.warning("safety_event", event_type=event_type, **details)
+            logger.warning(
+                "safety_event",
+                event_type=event_type,
+                **details,
+            )
 
-            # Store count in Redis for monitoring
-            key = f"safety:events:{event_type}"
-            self.redis.incr(key)
-            # Set expiry to 24 hours
+            # Store each event with its timestamp in a Redis sorted set.
+            key = f"safety:events:{event_type}:timeline"
+            timestamp = time.time()
+            event_id = str(uuid.uuid4())
+
+            self.redis.zadd(key, {event_id: timestamp})
+
+            # Keep only events from the last 24 hours.
+            twenty_four_hours_ago = timestamp - (24 * 60 * 60)
+            self.redis.zremrangebyscore(key, 0, twenty_four_hours_ago)
+
+            # Remove the Redis key after 24 hours without activity.
             self.redis.expire(key, 86400)
 
-        except Exception as e:
-            logger.error("safety_monitor_error", error=str(e))
+        except Exception as exc:
+            logger.error(
+                "safety_monitor_error",
+                event_type=event_type,
+                error=str(exc),
+            )
 
     def get_event_count(self, event_type: str, window_hours: int = 1) -> int:
-        """Get count of safety events.
+        """Get the number of events within a time window.
 
         Args:
-            event_type: Type of event
-            window_hours: Time window in hours (not enforced here; for reference)
+            event_type: Type of safety event
+            window_hours: Number of previous hours to include
 
         Returns:
-            Count of events in the window
+            Number of matching events in the requested time window
         """
-        key = f"safety:events:{event_type}"
+        if event_type not in self.VALID_EVENT_TYPES:
+            logger.warning("unknown_event_type", event_type=event_type)
+            return 0
+
+        if window_hours <= 0:
+            return 0
+
+        key = f"safety:events:{event_type}:timeline"
+        current_time = time.time()
+        cutoff_time = current_time - (window_hours * 60 * 60)
 
         try:
-            count = self.redis.get(key)
-            return int(count) if count else 0
+            return int(
+                self.redis.zcount(
+                    key,
+                    cutoff_time,
+                    current_time,
+                )
+            )
 
-        except Exception as e:
-            logger.error("event_count_error", event_type=event_type, error=str(e))
+        except Exception as exc:
+            logger.error(
+                "event_count_error",
+                event_type=event_type,
+                error=str(exc),
+            )
             return 0
+
+    def get_total_event_count(self, window_hours: int = 1) -> int:
+        """Get the total number of all safety events within a time window.
+
+        Args:
+            window_hours: Number of previous hours to include
+
+        Returns:
+            Total number of safety events in the requested time window
+        """
+        return sum(
+            self.get_event_count(event_type, window_hours) for event_type in self.VALID_EVENT_TYPES
+        )

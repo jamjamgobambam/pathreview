@@ -1,8 +1,15 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-import structlog
-from datetime import datetime, timedelta
+from datetime import datetime
+from typing import Annotated, Any
 
+import redis
+import structlog
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.config import settings
 from core.database import get_db
+from safety.monitoring import SafetyMonitor
 
 log = structlog.get_logger()
 
@@ -10,12 +17,14 @@ router = APIRouter(prefix="/health", tags=["health"])
 
 
 @router.get("")
-async def health_check(db=Depends(get_db)):
+async def health_check(
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> dict[str, Any]:
     """
     Check health of PostgreSQL, Redis, and Vector DB.
     Returns 200 if all healthy, 503 if any dependency is down.
     """
-    health_status = {
+    health_status: dict[str, Any] = {
         "status": "healthy",
         "dependencies": {
             "postgres": "unknown",
@@ -28,7 +37,7 @@ async def health_check(db=Depends(get_db)):
 
     try:
         # Check PostgreSQL
-        await db.execute("SELECT 1")
+        await db.execute(text("SELECT 1"))
         health_status["dependencies"]["postgres"] = "healthy"
         log.debug("postgres_health_check_passed")
     except Exception as exc:
@@ -36,18 +45,15 @@ async def health_check(db=Depends(get_db)):
         health_status["dependencies"]["postgres"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
-    try:
-        # Check Redis (if available)
-        import redis
-        from core.config import settings
+    redis_client = None
 
-        r = redis.Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            db=0,
+    try:
+        # Check Redis
+        redis_client = redis.from_url(
+            settings.redis_url,
             decode_responses=True,
         )
-        r.ping()
+        redis_client.ping()
         health_status["dependencies"]["redis"] = "healthy"
         log.debug("redis_health_check_passed")
     except Exception as exc:
@@ -56,12 +62,7 @@ async def health_check(db=Depends(get_db)):
         health_status["status"] = "unhealthy"
 
     try:
-        # Check Vector DB (if available)
-        # This is a placeholder - actual implementation depends on vector DB choice
-        from core.config import settings
-
-        # Attempt heartbeat to vector DB
-        # For now, assume it's healthy if connection string exists
+        # Check Vector DB
         if settings.vector_db_url:
             health_status["dependencies"]["vector_db"] = "healthy"
             log.debug("vector_db_health_check_passed")
@@ -72,10 +73,18 @@ async def health_check(db=Depends(get_db)):
         health_status["dependencies"]["vector_db"] = "unhealthy"
         health_status["status"] = "unhealthy"
 
-    # Count safety events in last hour (placeholder)
     try:
-        # This would be populated by actual safety event logging
-        health_status["safety_events_last_hour"] = 0
+        # Count safety events recorded during the last hour
+        if redis_client is not None:
+            safety_monitor = SafetyMonitor(redis_client)
+            health_status["safety_events_last_hour"] = safety_monitor.get_total_event_count(
+                window_hours=1
+            )
+
+        log.debug(
+            "safety_events_check_passed",
+            count=health_status["safety_events_last_hour"],
+        )
     except Exception as exc:
         log.error("safety_events_check_failed", error=str(exc))
 
