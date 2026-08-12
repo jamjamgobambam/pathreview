@@ -69,3 +69,32 @@ Added `tests/integration/test_sample_profile_fixture.py` covering that the resto
 
 **Draft PR feedback received from:** none
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback arrived on my PR during the review period. Because reviewer feedback is not provided for Summer 2026, I am documenting that outcome here and closing out the module based on my own validation and reflection.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was determining the exact shape of the missing `tests/fixtures/sample_profiles/basic_profile.json` fixture. The issue sounded like restoring a single file, but I needed to trace the expected fields through `api/schemas/profile.py`, `core/models/profile.py`, and the ingestion parsers before I could be confident that the fixture would be useful rather than just valid JSON. Writing `tests/integration/test_sample_profile_fixture.py` also made me think through which details should be protected by tests, such as the top-level profile keys and repository fields.
+
+**What did you learn about working in a large codebase?**
+I learned that even a small contribution has to fit conventions and dependencies that are spread across many files. In this repository, the missing fixture was referenced by tooling and tests, while the data it needed was defined by schemas and models elsewhere; changing only the obvious file would not have been enough. Working in someone else's codebase meant I had to first gather evidence about expected behavior instead of deciding the data format on my own.
+
+**How did AI tools help — and where did they fall short?**
+AI was useful for helping me search for references to `basic_profile.json` and `sample_profiles`, organize the investigation, and identify files that could define the expected profile structure. It was less useful as a source of truth: I still needed to inspect the actual schemas and parsers, choose realistic fake data, and run the targeted tests and project checks myself. The experience reinforced that AI can speed up exploration, but it cannot replace verification against the repository.
+
+**What would you do differently if you started over?**
+If I started over, I would begin by mapping every fixture reference and the exact test command earlier, before drafting the fixture content. That would make the planning stage more direct and reduce the need to revisit assumptions about required repository fields. I would also record the final validation results in one place sooner, so the journal's progress notes remain easier to reconcile as the work moves from investigation to submission.
+
+**What are you most proud of from this module?**
+I am most proud of turning a missing shared test asset into a regression-protected contribution rather than simply recreating a file. The restored `basic_profile.json` contains realistic fake portfolio data, and the integration test confirms both that it can be parsed and that its important structure remains available. That work leaves the test suite with a clearer, reusable fixture for future contributors.
