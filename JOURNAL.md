@@ -1,0 +1,115 @@
+## Week 7: Issue Selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/6
+
+**Issue title:** Duplicate embeddings generated when re-ingesting the same repository
+
+**Tier:** [x] Tier 2
+Touches both ingestion pipeline and database model layer, rather than simply one file. The estimated duration for the issue is 4-6 hours, which falls within the window of Weeks 7-9. I'd worked with SQLAlchemy models previously, so a cross-module problem seemed manageable.
+
+**Problem summary:**
+When you submit the same repository twice, PathReview doesn't recognize that it has previously been completed; instead, it repeats the whole embedding process. There is a safeguard for this: the 'IngestedSource' has an indexed 'content_hash' column. But it's broken in two places. Skip check never executes because `_check_skip()` in `ingestion/pipeline.py` accesses the database incorrectly and fails quietly, captured by a broad try/except. And even if the query was successful, there would be nothing to verify against because `_record_ingested_source()` merely records a message and never stores a row. As a result, each re-ingestion accumulates duplicate embeddings, skewing retrieval in favor of the duplicate. Fix: Make ingestion idempotent. Check the content hash, disregard everything that has already been consumed, still process what's new or changed.
+
+**Branch name:** `fix/6-duplicate-embeddings-reingest`
+
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+
+---
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/jl17500/pathreview/commit/3c400a53c9061d235847a6983e59e74c171c2b51
+
+**Reproduction summary:**
+Created a test that runs `ingest_resume()` twice with the same content after instantiating the real `IngestionPipeline` with a `db_session` mock spec'd to `AsyncSession` (the actual session type used in `core/database.py`). Because `AsyncSession` lacks a `.query()` function, it verifies that `_check_skip()` raises `AttributeError: 'Mock' object has no attribute 'query'`; the error is silently consumed, and `batch_processor.process` runs twice rather than once for identical input.
+
+**PLAN.md link:** https://github.com/jl17500/pathreview/blob/fix/6-duplicate-embeddings-reingest/PLAN.md
+
+**Walkthrough video (recommended):** [not recorded]
+
+**Blockers or open questions:**
+While mapping call sites, discovered a second unrelated error in 'core/services/review_service.py': '_run_ingestion_pipeline()' creates 'IngestedSource(..., raw_data=...)' with a kwarg that the model lacks, which is quietly swallowed by a broad unless. It's on a live path ('POST /reviews'), but it's not relevant to problem #6, which only focuses on the pipeline and model layer. Flagging it for a possible follow-up issue rather than fixing it now.
+
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the full fix from PLAN.md: rewrote `_check_skip()` to use a real
+async SQLAlchemy query (`select()` + `await db_session.execute()`) filtered
+on `profile_id`, `content_hash`, and `source_type`, instead of the broken
+sync `.query()` call that silently failed and always returned None.
+Rewrote `_record_ingested_source()` to actually persist an `IngestedSource`
+row (previously it only logged). Converted `ingest_resume`, `ingest_readme`,
+and `ingest_repo_metadata` to async to support both changes. Updated the
+Week 8 reproduction test to await the new async methods; it now passes.
+Added a new test file, `tests/unit/test_pipeline.py`, with 5 tests covering
+the dedup logic from both the helper level and the full `ingest_resume` flow.
+Ran the full `tests/unit` suite before and after the fix and confirmed the
+same 53 pre-existing failures remain unchanged (54 minus the one this PR
+fixes), with no new failures introduced.
+
+**Next steps:**
+Open a draft PR and request review from a classmate or mentor in Slack.
+Finalize the PR description (issue link, manual verification steps,
+pre-existing-failure documentation) and submit by Sunday.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/867
+
+**Branch:** `fix/6-duplicate-embeddings-reingest`
+
+**What you built:**
+Fixed duplicate embeddings on repository re-ingestion (issue #6). Two stacked bugs in `ingestion/pipeline.py`: `_check_skip()` called the old sync SQLAlchemy `.query()` API on an `AsyncSession` (which has no such method), so the resulting error was silently swallowed and the function always returned "proceed"; separately, `_record_ingested_source()` never wrote anything to the database. Rewrote both to use the real async ORM API, and converted the three `ingest_*` entry points to `async def` accordingly.
+
+**Tests added or updated:**
+Updated `tests/unit/test_pipeline_repro.py` (Week 8 reproduction test) to await the now-async methods and mock `db_session.execute()` instead of `.query()`, it now passes. Added `tests/unit/test_pipeline.py` with 5 new tests: `_check_skip` returns None/skip-result correctly in isolation, `_record_ingested_source` actually persists a row with correct fields, `ingest_resume` doesn't incorrectly skip when content changes between calls, and `ingest_resume` proceeds normally for a profile with no prior ingestions.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(Both pass in the sense the assignment defines for a codebase with documented pre-existing failures: my changes introduce zero new failures. Full suite before my fix: 54 failed/375 passed; after: 53 failed/381 passed. The only change is the repro test flipping from fail to pass, plus 5 new passing tests. mypy shows the same 12 pre-existing, unrelated type errors before and after. Full detail in the PR's "Notes for Reviewers.")
+
+**Draft PR feedback received from:** none
+
+---
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback has been received. Reviewer feedback is not an active feature for the Summer 2026 cohort, per the course note.
+
+**How you responded:**
+N/A, no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+What surprised me most was finding out the actual bug wasn't fully where the issue said it was. I assumed fixing the two broken functions in `pipeline.py` would be the whole story, but when I traced through the code, I found nothing in the app actually calls that file. The real risk was sitting in a totally different file, `review_service.py`, with its own separate bug. I also didn't expect basic tooling stuff to eat so much time, things like pre-commit checks failing on old errors I never touched, and the terminal mangling my commit messages halfway through. None of that showed up in my plan going in.
+
+**What did you learn about working in a large codebase?**
+Working in a codebase I didn't write meant I couldn't just trust what a comment or docstring said, I had to actually check. The plan I started with assumed certain things about the code (like which session type the database used, or what columns a table had), and almost every one of those assumptions turned out to need checking against the real files before I could trust it. I also learned that big codebases have dead ends, code that looks important but nothing actually calls it, and code that looks like a placeholder but is actually live. You can't tell which is which just by reading one file in isolation, you have to trace how things connect. And instead of solving problems my own way, I learned to look at how the rest of the codebase already handled similar situations (like how other files talked to the database) and match that style, instead of inventing something new.
+
+**How did AI tools help, and where did they fall short?**
+AI tools were most useful for writing things like test files and certain chunks of code once I already knew what needed to happen. They were much less reliable when it came to actually making decisions, like whether something was in scope or not, because they often didn't have the full picture and would treat a problem as smaller or simpler than it actually was. They also fell short on setup and environment stuff, a lot of the time they'd just point me somewhere else instead of actually walking me through getting something working locally.
+
+**What would you do differently if you started over?**
+If I started over, I'd trace where the code is actually called from much earlier, before writing most of the plan, not after. I spent time planning around one file before I found out it had no live callers, and the real risk was in a different file entirely. I'd also sort out my tooling setup earlier, get the pre-commit hooks and terminal situation stable before diving into the actual fix, instead of hitting that friction in the middle of trying to get real work done. Basically, more upfront investigation, less assuming the issue description already told me the full picture.
+
+**What are you most proud of from this module?**
+The thing I'm most proud of isn't the fix itself, it's catching that the bug wasn't fully where the issue description said it was before I started building. It would've been easy to just follow the plan I started with and fix the two functions in `pipeline.py` without ever checking whether anything actually called that file. Taking the time to trace that down, and to separate the real bug from a different bug I found along the way in `review_service.py`, is what made the plan (and the fix) actually correct instead of just plausible-sounding.
