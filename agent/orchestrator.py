@@ -7,6 +7,11 @@ from typing import Optional
 from .memory.session_store import SessionStore
 from .memory.context_manager import ContextManager
 from .error_handling import retry_with_backoff
+from .tools.tool_dependencies import (
+    PlanValidationError,
+    unmet_prerequisites,
+    validate_plan,
+)
 
 logger = structlog.get_logger()
 
@@ -43,23 +48,46 @@ class Orchestrator:
         # Build execution plan
         plan = self._build_plan(profile_data)
 
+        # Validate the plan against the tool dependency graph before running
+        # anything. Structural problems (a prerequisite ordered after its
+        # dependent, or a cyclic dependency graph) indicate a planning bug and
+        # fail fast.
+        validation_errors = validate_plan(plan)
+        if validation_errors:
+            logger.error("plan_validation_failed", errors=validation_errors)
+            raise PlanValidationError("; ".join(validation_errors))
+
         # Load previous session state if available
         session_state = {}
         if self.session_store:
             session_state = self.session_store.get(profile_id) or {}
 
-        # Execute plan
-        results = {}
+        # Execute plan, honoring tool prerequisites. A tool whose prerequisites
+        # did not complete successfully is skipped with a recorded reason rather
+        # than run on missing input.
+        results: dict = {}
+        succeeded: dict[str, bool] = {}
         for tool_name, tool_input in plan:
-            try:
-                result = self._execute_tool(tool_name, tool_input)
-                results[tool_name] = result.data if hasattr(result, 'data') else result
+            missing = unmet_prerequisites(tool_name, succeeded)
+            if missing:
+                reason = f"unmet_prerequisites: {missing}"
+                logger.warning("tool_skipped", tool=tool_name, reason=reason)
+                results[tool_name] = {"skipped": True, "success": False, "reason": reason}
+                succeeded[tool_name] = False
+                continue
 
-                logger.info("tool_executed", tool=tool_name, success=True)
+            resolved_input = self._resolve_inputs(tool_name, tool_input, results)
+            try:
+                result = self._execute_tool(tool_name, resolved_input)
+                results[tool_name] = result.data if hasattr(result, "data") else result
+                succeeded[tool_name] = bool(getattr(result, "success", True))
+
+                logger.info("tool_executed", tool=tool_name, success=succeeded[tool_name])
 
             except Exception as e:
                 logger.error("tool_execution_failed", tool=tool_name, error=str(e))
                 results[tool_name] = {"error": str(e), "success": False}
+                succeeded[tool_name] = False
 
         # Persist state
         if self.session_store:
@@ -132,6 +160,38 @@ class Orchestrator:
 
         logger.info("plan_built", plan_size=len(plan))
         return plan
+
+    def _resolve_inputs(self, tool_name: str, tool_input: dict, results: dict) -> dict:
+        """Inject a tool's prerequisite outputs into its input at run time.
+
+        The static plan cannot know a prerequisite's output ahead of time, so
+        dependent tools are wired to their upstream results here, just before
+        execution. This is what lets ``market_analyzer`` see the skills that
+        ``skill_extractor`` produced instead of an empty dict (issue #54).
+
+        Args:
+            tool_name: Tool about to run.
+            tool_input: The planned input for the tool.
+            results: Data produced by tools that already ran this session.
+
+        Returns:
+            A new input dict with dependency outputs injected where applicable.
+        """
+        resolved = dict(tool_input)
+
+        def usable(value: object) -> bool:
+            return isinstance(value, dict) and "error" not in value and "skipped" not in value
+
+        if tool_name == "market_analyzer":
+            skills = results.get("skill_extractor")
+            if usable(skills):
+                resolved["detected_skills"] = skills
+        elif tool_name == "skill_extractor":
+            repo_metadata = results.get("github_tool")
+            if usable(repo_metadata) and not resolved.get("repo_metadata"):
+                resolved["repo_metadata"] = repo_metadata
+
+        return resolved
 
     def _execute_tool(self, tool_name: str, tool_input: dict):
         """Execute a single tool with retry and memoization.
