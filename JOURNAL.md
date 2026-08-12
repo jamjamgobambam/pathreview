@@ -73,4 +73,43 @@ None right now. The main open question is still the "space vs. `[REMOVED]` vs. d
 
 _Note on pre-existing issues:_ `test_whitespace_variations_detected` was failing before my changes (feeds `"Content\n   System  :  ignore"` into `is_injection_attempt`, but the regex requires `:` immediately after `System` with no intervening whitespace). Two ruff findings on files I touched — `I001` on `safety/prompt_defense.py` and `F841` on an unrelated test — also predate this branch. All three are documented in the PR body, and my changes don't touch the code paths that produce them.
 
-**Draft PR feedback received from:** _to be added once feedback comes in_
+**Draft PR feedback received from:** none — reviewer feedback isn't a feature in the Summer 2026 cohort (per Week 10 course notes).
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No comments or reviews on PR #795 as of submission. The Su26 course notes call out that reviewer feedback isn't part of this cohort, so this was expected.
+
+**How you responded:**
+N/A — nothing to respond to. I left the PR open with the full body so a maintainer can still pick it up later; if that happens I'll follow up outside the course timeline.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Picking the right issue. I originally reached for #66 (a Tier 3 safety monitoring feature) because it sounded interesting, and I only realized after digging around the codebase that the classes it referenced weren't wired up anywhere — I'd have been inventing infrastructure before I could even start on the "real" fix. Pivoting to #64 wasn't hard in itself, but it cost me most of Week 7. The lesson was that "sounds like the biggest impact" and "actually shippable in four weeks with the pieces already in place" are very different filters, and I should apply the second one first.
+
+The other unexpectedly-hard part was disciplining myself on reproduction. My instinct was to look at the bug, understand it, and start writing the fix. The Week 8 "reproduce first with a failing test" step felt slow, but doing it caught something useful — I found that the two methods disagreed not just for the one example in the issue, but for every pattern in `INJECTION_PATTERNS`. That reframed the fix from "add a few `re.sub` calls" to "share one canonical list between both methods," which is a smaller and safer change.
+
+**What did you learn about working in a large codebase?**
+You spend way more time reading than writing. Before I edited a single line of `sanitize()` I'd already read `prompt_defense.py` end to end, skimmed the neighboring `content_filter.py`, grepped for every caller of `PromptDefense` (there are none — that itself became a note in the PR body), and read `CONTRIBUTING.md` and the `Makefile` so I knew what "passes checks" actually meant here. In my own projects I'd have just started typing.
+
+I also learned to respect pre-existing state. There's one test in `test_prompt_defense.py` (`test_whitespace_variations_detected`) that's been failing on `main` before I touched anything, and two ruff findings on files I edited that also predate me. The instinct is to "just fix it while you're in there," but that would have blown up the diff, dragged the review into unrelated debates, and made it harder to see the actual #64 fix. I documented all three in the PR body instead. That felt like a real "contribution etiquette" moment.
+
+**How did AI tools help — and where did they fall short?**
+Where AI helped most: navigating an unfamiliar codebase quickly (grepping for callers, reading multiple files in parallel, summarizing convention docs), and catching stylistic mismatches between what I'd write in a personal project and what this repo actually uses (Google-style docstrings, conventional commits, the specific scope names in `CONTRIBUTING.md`). It also helped me structure the JOURNAL and PLAN entries under time pressure — I could focus on the substance and let it handle the scaffolding.
+
+Where it fell short: judgment calls. AI kept nudging me toward "just implement the fix now" when the assignment specifically wanted a failing reproduction test first, and it wanted to bundle in cleanup of the pre-existing lint findings when the right move was to leave them alone and document them. It's also a little too eager to produce polished-sounding writing, which in a student journal reads as fake — I had to explicitly ask for a rewrite in a more human voice, and even then I'd catch tells (em-dashes, over-structured bullet lists, "byte-for-byte") and edit them out. AI is a good drafter; it's not a good voice.
+
+**What would you do differently if you started over?**
+Start Week 7 by grepping for callers of whatever class the issue mentions, before I fall in love with the issue. If nothing calls it, that's a signal about scope. I spent a real chunk of the module cycle on the pivot I could have avoided with fifteen minutes of upfront exploration.
+
+I'd also open the PR earlier as a draft. I ended up opening it fairly late in Week 9 because I wanted everything polished first. In a real contribution flow, opening a draft on day one and letting the CI and (in a normal cohort) reviewers see it as it evolves would be smarter — the assignment prompt actually says as much, and I ignored it.
+
+**What are you most proud of from this module?**
+The pattern-iteration test (`test_sanitize_covers_every_injection_pattern`). The obvious fix for #64 was to hand-write a `re.sub` for each of the six known patterns, but that would have the same drift problem the bug itself was about — the next person adding a pattern would have to remember to add it to both methods. Iterating `INJECTION_PATTERNS` inside both `sanitize()` and the test means the two methods stay in sync automatically, and the test will start failing the moment they don't. That's the piece of the fix that made me feel like I'd actually understood the bug, not just patched it.
