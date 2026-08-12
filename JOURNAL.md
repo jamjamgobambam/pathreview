@@ -56,7 +56,39 @@ Updated the four regex patterns in `_detect_sections` (`ingestion/parsers/resume
 **Tests added or updated:**
 No new tests added — the existing `test_detect_sections` in `tests/unit/test_resume_parser.py` already covered indented headers and was failing before the fix; it now passes, along with two other tests failing for the same root cause (`test_parse_single_column_resume_text`, `test_parse_resume_no_work_experience`).
 
-**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 Neither passes clean, but confirmed via `git stash` that all failures are pre-existing across the repo and unrelated to this change (53 unit test failures and 182 lint errors before my change vs. 50 and 180 after — the delta is exactly the 3 tests/2 lint issues this fix resolved). `ingestion/parsers/resume_parser.py` itself passes ruff, black, and mypy individually.
 
 **Draft PR feedback received from:** none yet
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]- no feedback recieved
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.] - no feedback recieved
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest thing, was deciding how I was gong to fix the problem
+
+**What did you learn about working in a large codebase?**
+Working in a large codebase, you need to first understand the general strcute of the codebase and this takes time as opposed to you rown codebase where you know where every function is kept. 
+
+**How did AI tools help — and where did they fall short?**
+I asked the AI models to look for where exactly the problem was coming from
+
+**What would you do differently if you started over?**
+Try to understand the codebase in depth first rather than just rushing in. 
+
+**What are you most proud of from this module?**
+I found a problem, and fixed it, and I am most proud of that. I am growing in my SWE journey.
