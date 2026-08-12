@@ -60,3 +60,35 @@ No tests were added or updated because this was a documentation-only change and 
 `make test-unit` currently reports 375 passed, 53 failed, and 1 warning. The failures are in unrelated existing modules and are not caused by this documentation-only change. This PR only modifies `docs/ARCHITECTURE.md`.
 
 **Draft PR feedback received from:** None for right now
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was provided. For Summer 2026, reviewer feedback is not part of the contribution process, so I did not receive any comments or requested changes on my PR.
+
+**How you responded:**
+No response or additional changes were needed because no reviewer feedback was received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was understanding how the existing codebase worked before making my contribution. My issue sounded simple because I only needed to document the hybrid retrieval scoring formula, but I still had to trace the implementation in `rag/hybrid.py` and make sure the documentation matched the actual code. I also found the Git and pull request workflow more complicated than expected, especially keeping track of my branch, commits, tests, and the required journal check-ins.
+
+**What did you learn about working in a large codebase?**
+I learned that contributing to an existing codebase requires more investigation before making changes. In my own projects, I usually already know why the code was written a certain way, but in someone else's project I had to read nearby files and understand the existing structure before changing anything. I also learned that even a documentation issue should be based directly on the implementation. For example, I verified that hybrid retrieval uses a default weight of 0.7 for vector similarity and 0.3 for keyword relevance before documenting the formula and example.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were most useful for helping me understand unfamiliar code, break the issue into smaller steps, explain Git commands, and review the wording of my documentation. They also helped me understand how the hybrid scoring calculation worked. However, I still had to inspect the actual repository and run the commands and tests myself. AI could suggest what the code probably did or what command I should use, but I needed to verify that those suggestions matched my specific repository and the assignment requirements.
+
+**What would you do differently if you started over?**
+If I started over, I would organize the contribution process more carefully from the beginning. I would keep `JOURNAL.md` updated after every major step instead of returning to it later, and I would record my branch name, test results, commit information, and PR link as soon as I created them. I would also spend more time reading the relevant implementation before writing my plan so that I could understand the issue and edge cases earlier.
+
+**What are you most proud of from this module?**
+I am most proud that I was able to take a small issue in an unfamiliar repository, trace the actual implementation, and turn it into clearer documentation. I documented the hybrid retrieval scoring formula, the default 0.7 vector and 0.3 keyword weights, and included a numerical example so that future readers can understand how the final retrieval score is calculated.
