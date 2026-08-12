@@ -90,4 +90,35 @@ gh pr create --title "fix(orchestrator): avoid loading previous session state un
 
 If `gh` is not available, push the branch and open a PR on GitHub via the web interface; then add the PR link above.
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review arrived on the PR by the end of Week 10. Summer 2026 course structure does not provide reviewer feedback for this assignment, so I documented that here.
+
+**How you responded:**
+I noted the lack of feedback in `JOURNAL.md`, kept the PR open for future reviewer comments, and prepared the branch for any requested follow-up changes.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Working in this repository was harder than I expected because there were many pre-existing lint, type, and test issues outside the exact fix I was making. I spent extra time isolating the core change in `agent/orchestrator.py` from unrelated failures in files like `ingestion/parsers/skill_extractor.py`, `agent/tools/tech_detector.py`, and `ingestion/parsers/resume_parser.py`.
+
+**What did you learn about working in a large codebase?**
+I learned that a shared codebase requires clear scope control and documentation of what is intentional versus what is pre-existing. In this project, I had to keep my PR focused on stale session state while also noting broader repository issues, which is very different from building my own small project.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were helpful for drafting and refining code changes and for writing the journal entry with the right structure and wording. They fell short when it came to actual local execution and git workflow validation, so I still had to manually confirm branch state, manage stashes, and handle the `.venv`/`pytest` environment.
+
+**What would you do differently if you started over?**
+If I started over, I would choose an issue with a narrower scope and fewer existing repo-wide failures so I could deliver a cleaner PR more quickly. I would also set up the local test environment earlier and document the exact `make test-unit` results as I went.
+
+**What are you most proud of from this module?**
+I am most proud that I submitted a real PR branch and documented the entire process in `JOURNAL.md`, including issue selection, reproduction, solution planning, and reflection. I kept the branch ready for review and completed Week 10 with a thoughtful reflection on what I learned.
+
 

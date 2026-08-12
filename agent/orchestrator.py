@@ -110,6 +110,7 @@ class Orchestrator:
 
         # README scorer
         if profile_data.get("readme_content"):
+
             plan.append(("readme_scorer", {"readme_content": profile_data["readme_content"]}))
 
         # Skill extractor
