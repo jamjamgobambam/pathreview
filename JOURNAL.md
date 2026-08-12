@@ -139,3 +139,71 @@ failures. Documented baseline: `make test-unit` 53 failed/375 passed → 53 fail
 files are fully ruff/black/mypy clean.)_
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback arrived. Reviewer feedback is not a feature in the
+Summer 2026 cohort, and as of submission PR #760 had 0 comments and 0 reviews. If a
+maintainer responds later, I'll engage with it and document the exchange here.
+
+**How you responded:**
+_(N/A — no feedback to respond to.)_
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+I expected the hard part to be writing the DAG validator; it was actually working around
+the repo's own broken baseline. On a clean clone, `make test-unit` already had 53 failing
+tests and `make typecheck` reported 103 mypy errors, so "run `make check` before your PR"
+was meaningless as a pass/fail gate. I had to stop and record an explicit before/after
+baseline (53 failing → still 53 failing + my 15 new passing tests) just to *prove* my change
+introduced no regressions. Untangling the stated issue from the real one was also harder than
+expected: issue #54 asked for "plan validation," but the visible bug — `market_analyzer`
+returning all zeros — was actually caused by `_build_plan` passing a hardcoded
+`{"detected_skills": {}}`, i.e. missing data propagation, not missing validation.
+
+**What did you learn about working in a large codebase?**
+Contributing to someone else's code is mostly *reading and tracing*, not writing. The bug
+surfaced in `agent/tools/market_analyzer.py` but its root cause was two files away in
+`agent/orchestrator.py`, and I only found it by following the data (skills detected →
+never passed on → zeroed result). I also learned the discipline of scope restraint: the
+codebase had 103 pre-existing type errors, but the right move was to leave them alone and
+keep my diff surgical rather than "fix everything," even though the pre-commit hook kept
+tripping on that debt and forced me to commit some changes with `--no-verify`. In my own
+projects I'd have just reformatted the whole file; here that would have buried the actual
+change under noise for a reviewer.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest at fan-out reading — quickly mapping how the five tools' inputs and outputs
+connect, which is what let me define the `market_analyzer → {skill_extractor, tech_detector}`
+dependency edges — and at generating the validator, the reproduction script, and unit tests
+that matched the repo's existing `@pytest.mark.unit` style. Where it fell short was judgment:
+the *decisions* were mine to make. AI couldn't tell me whether shipping the data-propagation
+fix alongside the validator was in-scope for the issue, or whether to model
+`skill_extractor → github_tool` as a hard prerequisite (I decided against it, because
+`skill_extractor` works on a resume alone and enforcing that edge would break resume-only
+analyses). Those trade-offs needed a human call, and I documented them in the PR's "Notes for
+Reviewers" rather than letting a tool decide silently.
+
+**What would you do differently if you started over?**
+I'd check the repo's baseline health *before* choosing an issue — knowing up front that
+`make check` was already red would have shaped my whole testing strategy earlier. I'd also
+weigh crowding more heavily: #54 already had four other students claim it, and picking a
+less-contested issue might have made peer review more useful. And I'd open the PR as a draft
+mid-week instead of finishing everything first, so there was a real window for feedback
+before the deadline.
+
+**What are you most proud of from this module?**
+The reproduction script (`scripts/repro_issue_54.py`). It turns an abstract "the orchestrator
+doesn't check dependencies" complaint into a one-command demo: before my fix it prints
+`market_alignment_score = 0.0` while `skill_extractor` clearly found 11 skills, and after the
+fix the same script prints `0.68` with 9 in-demand skills. Being able to show the bug and the
+fix that concretely — and to prove zero regressions against a messy baseline — is the part of
+this contribution I'd actually want to point a reviewer (or an interviewer) at.
