@@ -1,8 +1,9 @@
 """Safety event monitoring."""
 
+import time
+
 import redis
 import structlog
-from datetime import datetime, timedelta
 
 logger = structlog.get_logger()
 
@@ -16,7 +17,7 @@ class SafetyMonitor:
         "injection_attempt",
         "content_filtered",
         "bias_detected",
-        "rate_limited"
+        "rate_limited",
     }
 
     def __init__(self, redis_client: redis.Redis):
@@ -38,37 +39,54 @@ class SafetyMonitor:
             logger.warning("unknown_event_type", event_type=event_type)
             return
 
-        timestamp = datetime.utcnow().isoformat()
+        now = time.time()
 
         try:
             # Log to structlog
             logger.warning("safety_event", event_type=event_type, **details)
 
-            # Store count in Redis for monitoring
+            # Record event in a rolling window sorted set, scored by timestamp
             key = f"safety:events:{event_type}"
-            self.redis.incr(key)
-            # Set expiry to 24 hours
+            self.redis.zadd(key, {str(now): now})
+            # Set expiry comfortably above the largest window we query
             self.redis.expire(key, 86400)
 
         except Exception as e:
             logger.error("safety_monitor_error", error=str(e))
 
-    def get_event_count(self, event_type: str, window_hours: int = 1) -> int:
-        """Get count of safety events.
+    def get_event_count(self, event_type: str, window_hours: float = 1) -> int:
+        """Get count of safety events within a rolling time window.
 
         Args:
             event_type: Type of event
-            window_hours: Time window in hours (not enforced here; for reference)
+            window_hours: Time window in hours
 
         Returns:
             Count of events in the window
         """
         key = f"safety:events:{event_type}"
+        now = time.time()
+        window_start = now - (window_hours * 3600)
 
         try:
-            count = self.redis.get(key)
-            return int(count) if count else 0
+            # Evict entries that have fallen outside the window
+            self.redis.zremrangebyscore(key, 0, window_start)
+            return self.redis.zcount(key, window_start, now)
 
         except Exception as e:
             logger.error("event_count_error", event_type=event_type, error=str(e))
             return 0
+
+    def get_total_event_count(self, window_hours: float = 1) -> int:
+        """Get total count of safety events across all event types.
+
+        Args:
+            window_hours: Time window in hours
+
+        Returns:
+            Sum of event counts across all VALID_EVENT_TYPES in the window
+        """
+        return sum(
+            self.get_event_count(event_type, window_hours=window_hours)
+            for event_type in self.VALID_EVENT_TYPES
+        )

@@ -25,7 +25,7 @@ cd pathreview
 cp .env.example .env
 
 # Start backing services — must be running before make setup
-docker compose up -d
+docker compose up
 
 # Run first-time setup (installs deps, runs migrations, seeds DB, installs frontend)
 make setup
