@@ -195,3 +195,50 @@ The new tests verify:
 **Draft PR Feedback Received From:**
 
 None.
+
+
+## Week 10 — Iteration & Reflection
+
+### Reviewer Feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+
+No reviewer or maintainer feedback was received on my pull request before completing my Week 10 reflection. For Summer 2026, reviewer feedback is not a required feature, so I am documenting that PathReview PR #926 is still awaiting review.
+
+**How you responded:**
+
+N/A — no reviewer feedback was received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+Working on Issue #71 was harder than I expected because I had to understand someone else's codebase while also learning the open-source contribution workflow. I had challenges setting up the Python virtual environment and dependencies, designing the red-team tests, organizing the attack and benign JSON fixtures, and debugging errors such as the UTF-8 BOM issue and an indentation error in `tests/security/test_prompt_injection.py`. I also had to learn how Ruff, Black, pytest, GitHub Actions, branches, commits, and pull requests work together, but solving each problem helped me understand what a real software development and security-testing workflow looks like.
+
+**What did you learn about working in a large codebase?**
+
+I learned that working in a large codebase requires understanding the existing structure before changing anything. Before implementing Issue #71, I inspected files such as `safety/prompt_defense.py`, `tests/unit/test_prompt_defense.py`, `tests/conftest.py`, `pyproject.toml`, the `Makefile`, and the existing GitHub Actions workflows so I could understand how the project was organized and how my contribution should fit into it. I also learned that following existing naming conventions, test patterns, and project structure is just as important as making the code work because other developers need to be able to understand and maintain the contribution.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools helped me throughout this project by acting more like a tutor while I worked through an unfamiliar open-source codebase. Instead of only asking AI to give me complete answers, I learned that I got better results when I provided detailed context, showed the actual terminal output or code, and asked AI to explain why something worked before moving to the next step. For example, I used AI to help me understand concepts such as CI, GitHub Actions, `pytest.mark.xfail`, JSON fixtures, Ruff, Black, Python virtual environments, and how the different parts of the PathReview testing structure connected together.
+
+AI was especially useful when I encountered errors because I could provide the exact error message, discuss possible causes, try a solution, and then return with the new result. However, I also learned that AI cannot automatically know everything about a repository or whether a suggested solution will actually work in my local environment. I still had to inspect the real PathReview files, run the commands myself, read the test results, and verify the changes. I also found that the quality of the AI's response depended heavily on the quality of my prompt. Giving AI the actual code, terminal output, project requirements, and asking it to act as a tutor produced much more useful explanations than simply asking for an answer.
+
+**What would you do differently if you started over?**
+
+If I started this contribution over, I would run the project's full testing and quality-check workflow much earlier instead of waiting until I had already implemented most of my solution. I verified my new `tests/security/test_prompt_injection.py` file with pytest, Ruff, and Black, but based on my Week 9 feedback, I learned that I should also run the project's complete `make check` and `make test-unit` commands to make sure my contribution does not cause regressions elsewhere in the codebase. If those commands contain pre-existing failures, I would document them separately so reviewers can distinguish existing problems from problems introduced by my changes.
+
+I would also ask a peer or mentor to review my draft pull request before finalizing it. Because Issue #71 involves AI security and prompt injection, another developer could notice an attack scenario, false positive, or assumption that I overlooked. Starting the testing and peer-review process earlier would make my contribution more efficient and closer to the workflow I would follow on a professional software engineering or cybersecurity team.
+
+**What are you most proud of from this module?**
+
+I am most proud that I completed my first real open-source contribution from beginning to end. As a first-generation student, this experience meant a lot to me because before this module I had never gone through a complete GitHub contribution workflow like this, including creating a branch, making commits, working with an upstream repository, testing my code, using CI, and submitting a pull request to someone else's project. Seeing all of my work come together in **PathReview PR #926** made me realize how much I learned and how much more confident I have become working with GitHub and a real codebase.
+
+I am also proud that I did more than just get the code working. I built a red-team prompt injection security test suite with reusable attack and benign fixtures, documented known security bypasses, and added GitHub Actions automation. There were many moments when I ran into errors or did not understand what a command or tool was doing, but I kept asking questions, troubleshooting the problems, and learning why each part worked. I can now look at my commit history and explain what I changed, why I changed it, and how I tested it.
+
+I am especially grateful to **CodePath** for giving me the opportunity to participate in this program. AI201 gave me the chance to work on projects that went beyond a normal classroom assignment and experience tools and workflows that developers use in real software projects. As a first-generation student beginning my career in technology, having access to programs like this means a lot to me, and I am proud of how far I have come during the program.
