@@ -1,0 +1,187 @@
+## Week 7 — Issue selection
+
+**Issue link:** https://github.com/ascherj/pathreview/issues/154
+
+**Issue title:** Health check DB probe passes a raw SQL string, which fails under SQLAlchemy 2.x
+
+**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
+
+**Problem summary:**
+The database health check in `api/routes/health.py` calls
+`db.execute("SELECT 1")` with a bare SQL string. SQLAlchemy 2.x requires
+literal SQL to be explicitly wrapped in `sqlalchemy.text()` before
+execution, so this call raises an `ArgumentError` instead of running the
+query. As a result, the `/health` endpoint reports the database as
+unhealthy even when Postgres is fully reachable, which is misleading for
+anyone or any monitoring tool relying on that endpoint. A successful fix
+imports `text` from `sqlalchemy` and wraps the query string, so the probe
+executes correctly and `/health` reflects the database's true status.
+
+**Selection notes:**
+I chose Tier 1 since this is my first time contributing to a large,
+unfamiliar codebase. I confirmed the bug directly by opening
+`api/routes/health.py` and reading the `health_check()` function in full:
+the Postgres check calls `db.execute("SELECT 1")` with no `text` import
+anywhere in the file, matching the issue exactly. No `test_health.py`
+exists yet in `tests/unit/`, so I'll be writing the first test for this
+route, modeled on the test conventions used elsewhere in the project. I
+also noticed this same file contains a second, unrelated known bug
+(#155, an invalid `settings.redis_host` reference in the Redis check
+block) — I'm not touching that, but it confirms I read the whole
+function, not just the one line I'm fixing. The fix itself is a one-line
+change plus one new test, comfortably within the 3–6 hour Tier 1 estimate
+for Weeks 8–9. No blockers or open dependencies were found on the issue.
+
+
+**Branch name:** fix/154-health-check-sqlalchemy-text
+
+**Setup confirmation:** [x] App runs locally at localhost:5173
+
+**Cohort ledger:** [x] Issue added to cohort ledger
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction summary:**
+Ran the app locally with `make run` (Postgres and Redis containers
+confirmed healthy via `docker compose ps`). Called `GET /health` via
+curl and observed a 503 response with `"postgres":"unhealthy"`. Server
+logs confirmed the exact root cause:
+`error="Textual SQL expression 'SELECT 1' should be explicitly declared
+as text('SELECT 1')"`. The logs also show a separate, unrelated error
+(`'Settings' object has no attribute 'redis_host'`, issue #155) in the
+Redis check — confirming my issue is isolated to the Postgres check only.
+**Reproduction commit link:** https://github.com/laurale31/pathreview/commit/a57447b
+
+**PLAN.md link:** https://github.com/laurale31/pathreview/blob/fix/154-health-check-sqlalchemy-text/PLAN.md
+
+**Blockers or open questions:**
+No route-level test conventions exist yet in this project (tests/integration/
+exists but is empty, and tests/unit/ has no test_health.py). Planning to
+model my Week 9 test on test_review_service.py's AsyncMock db-session
+fixture pattern instead, calling health_check() directly rather than
+through an HTTP client.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Completed PLAN.md sub-tasks 1–3: added the `text` import to
+`api/routes/health.py` and wrapped the `SELECT 1` query in `text()`.
+Verified via curl that `/health` now reports `"postgres": "healthy"`
+instead of raising the SQLAlchemy `ArgumentError`. Confirmed via a
+`git stash` comparison that existing ruff/mypy issues in `health.py`
+(1 ruff error, 11 mypy errors) predate my change and aren't something
+I introduced.
+
+**Next steps:**
+Writing `tests/unit/test_health.py` (sub-task 4), modeled on
+`test_review_service.py`'s `AsyncMock` fixture pattern. Then running
+the full `make check` and `make test-unit` suite to document the
+pre-existing failure baseline before opening the PR.
+
+**Blockers:**
+None currently — the Redis check in the same function has a separate,
+known bug (#155) that always fails, so my test needs to account for
+`health_check()` always raising `HTTPException` regardless of my fix.
+Not a blocker, just something to design the test around.
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/446
+
+**Branch:** fix/154-health-check-sqlalchemy-text
+
+**What you built:**
+Fixed the `/health` endpoint's Postgres probe, which was passing a raw
+SQL string to `execute()` — incompatible with SQLAlchemy 2.x. Wrapped
+the query in `text()` so the health check correctly reports Postgres as
+healthy when it's reachable, instead of always failing.
+
+**Tests added or updated:**
+Added `tests/unit/test_health.py` with two tests: one confirming the
+Postgres check reports "healthy" when `execute()` succeeds, and one
+confirming it reports "unhealthy" when `execute()` raises an exception.
+Both tests account for `health_check()` still raising `HTTPException`
+overall due to the separate, pre-existing Redis bug (#155), verifying
+the Postgres field specifically is correctly isolated from that failure.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+(both confirmed to introduce no new failures beyond the documented
+pre-existing baseline — see PR #446 description for full details)
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review has come in. Per the course note, reviewer feedback is not a
+feature in Summer 2026 — this section is left as-is per instructions.
+
+**How you responded:**
+N/A — no feedback received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Environment setup ate way more time than I expected, and not because
+of the actual bug I was fixing. I accidentally cloned the repo a second
+time while already inside my first clone, which created two nested
+folders both named `pathreview`. I didn't notice for almost two weeks —
+I'd been running Docker, installing dependencies, and testing my fix
+inside the wrong copy, while all my git commits were landing in the
+other one. Since both folders had the exact same name, my terminal
+prompt gave me zero visual signal I was in the wrong place. I only
+caught it when `docker compose ps` and `git log` gave inconsistent
+answers about what was actually running. It taught me to always run
+`pwd` when something feels "off," instead of assuming my last `cd`
+worked the way I thought it did.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was realizing a codebase can have multiple, unrelated
+bugs living in the same function. My issue (#154) and issue #155 were
+both inside the same `health_check()` function, but I had to be
+disciplined about touching only my bug and explicitly documenting that
+I saw the other one without fixing it. I also learned that "does the
+test suite pass" isn't a yes/no question in a real project — I ran
+`make test-unit` and got 53 failing tests that had nothing to do with
+my change. Instead of panicking, I had to prove (via a `git stash`
+comparison of before/after) that none of those failures were caused by
+me, then document that clearly for a reviewer instead of just hoping
+nobody would notice.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for pattern-matching — helping me find an existing
+test file (`test_review_service.py`) to model my new test on, and for
+walking through what a SQLAlchemy 2.x `text()` error actually means
+that first time I saw it in a traceback. It also caught things I
+missed, like when my PLAN.md claimed `tests/integration/` didn't exist
+when it actually did (just empty) — a factual error I would have
+otherwise committed and had graded as-is.
+
+Where it fell short: it couldn't run my terminal for me or notice I
+was in the wrong directory — I had to actually run `pwd` and paste the
+output before either of us could diagnose the double-clone problem. It
+also couldn't tell me whether my test's mocking approach was "correct"
+in some abstract sense — I had to actually run `pytest` and read the
+real pass/fail output myself to know if it worked.
+
+**What would you do differently if you started over?**
+I'd run `pwd` immediately after every `cd` and `git clone` for the
+first few sessions, until I trusted my mental model of the folder
+structure. I'd also run the full `make check`/`make test-unit` baseline
+on the untouched codebase on day one, before writing any code — I did
+this eventually, but doing it first would have saved me from wondering
+whether failures I saw later were my fault.
+
+**What are you most proud of from this module?**
+Catching the tests/integration/ mistake in my own PLAN.md before it
+got graded. It would have been easy to leave that inaccurate claim in
+since it "sounded right" from partial exploration — going back and
+actually running `ls tests/integration/` to verify it, and correcting
+the document, felt like the most "real engineering" moment of the
+whole module.
