@@ -34,6 +34,16 @@ class TestStructuralChunker:
         assert isinstance(result[0], Chunk)
         assert all(isinstance(c, Chunk) for c in result)
 
+        # Content is preserved, not silently dropped
+        assert result[0].text == text.strip()
+
+        # Source metadata is carried through
+        assert result[0].metadata["source"] == "test"
+
+        # Heading-less sections fall back to an empty path at level 0
+        assert result[0].metadata["heading_path"] == ""
+        assert result[0].metadata["heading_level"] == 0
+
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
         text = """# Main Title
