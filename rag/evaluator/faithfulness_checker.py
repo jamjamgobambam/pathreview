@@ -15,7 +15,8 @@ class FaithfulnessChecker:
 
         Args:
             feedback: Generated feedback text
-            context_chunks: Retrieved context chunks
+            context_chunks: Retrieved context chunks. A chunk whose "text" is
+                missing, None, or not a string contributes no context.
 
         Returns:
             Faithfulness score 0.0-1.0 (ratio of supported claims)
@@ -34,13 +35,14 @@ class FaithfulnessChecker:
             logger.info("faithfulness_no_claims_extracted")
             return 0.5  # Default to neutral if no extractable claims
 
-        # Concatenate context text
-        # BUG (issue #153, reproduced): dict.get's default only applies when the
-        # key is MISSING. A chunk of {"text": None} returns None here, so " ".join
-        # raises TypeError: sequence item 0: expected str instance, NoneType found.
-        # Repro: FaithfulnessChecker().check("Knows Python.", [{"text": None}])
-        # Failing test: tests/unit/test_faithfulness_checker.py::test_none_context_chunk_text
-        context_text = " ".join([chunk.get("text", "") for chunk in context_chunks])
+        # Concatenate context text, skipping chunks without usable text.
+        # dict.get's default only applies when the key is MISSING, so a chunk of
+        # {"text": None} yields None and would reach " ".join and raise TypeError.
+        chunk_texts = [chunk.get("text") for chunk in context_chunks]
+        context_text = " ".join(text for text in chunk_texts if isinstance(text, str))
+
+        if not context_text.strip():
+            logger.info("faithfulness_empty_context", chunks_count=len(context_chunks))
 
         # Check each claim for support
         supported = 0
