@@ -142,3 +142,47 @@ maintainer.
 
 **Status: submitted.** Branch URL and PR link both point to the completed work.
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+No Review Came In
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+
+Not really. Forking and contributing to a different repo was a little difficult and especially the diving in and figuring out whats happening was as well. But it was pretty satisfying overall. 
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+
+I feel like sometimes there are decisions someone else makes and you don't always know why or there intention which I think is always interesting to learn about. Like why was it done this way. Its also something you cant really document either. 
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+
+AI tools really helped me focus more on the design, implmentation and like bigger details rather than getting stuck on the smaller hows of coding. It also sped up my delivering and helped me with bugs and quickly able to gain context to make a decision. 
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+I think I wish I had the time to contribute more or like really have a back and forth with a reviewer and like maybe change my approach because I think the code review process is really where you learn the most
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+Honestly just making it to the end. I'm very busy overall so I was doubting it. 
