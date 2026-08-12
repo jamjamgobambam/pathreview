@@ -1,14 +1,17 @@
 """Retry logic with exponential backoff."""
 
-import time
 import functools
+import time
+from collections.abc import Callable
+
 import structlog
 
 logger = structlog.get_logger()
 
 
-def retry_with_backoff(max_retries: int = 3, backoff_factor: float = 2.0,
-                       exceptions: tuple = (Exception,)):
+def retry_with_backoff(
+    max_retries: int = 3, backoff_factor: float = 2.0, exceptions: tuple = (Exception,)
+) -> Callable:
     """Decorator for retry logic with exponential backoff.
 
     Args:
@@ -19,9 +22,10 @@ def retry_with_backoff(max_retries: int = 3, backoff_factor: float = 2.0,
     Returns:
         Decorated function
     """
-    def decorator(func):
+
+    def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: object, **kwargs: object) -> object:
             attempt = 0
             last_exception = None
 
@@ -36,26 +40,39 @@ def retry_with_backoff(max_retries: int = 3, backoff_factor: float = 2.0,
 
                     if attempt < max_retries:
                         wait_time = backoff_factor ** (attempt - 1)
-                        logger.warning("retry_attempt", func=func.__name__,
-                                     attempt=attempt, max_retries=max_retries,
-                                     wait_seconds=wait_time, error=str(e))
+                        logger.warning(
+                            "retry_attempt",
+                            func=func.__name__,
+                            attempt=attempt,
+                            max_retries=max_retries,
+                            wait_seconds=wait_time,
+                            error=str(e),
+                        )
                         time.sleep(wait_time)
                     else:
-                        logger.error("retry_exhausted", func=func.__name__,
-                                   max_retries=max_retries, error=str(e))
+                        logger.error(
+                            "retry_exhausted",
+                            func=func.__name__,
+                            max_retries=max_retries,
+                            error=str(e),
+                        )
 
             if last_exception:
                 raise last_exception
 
+            return None
+
         return wrapper
+
     return decorator
 
 
 class RetryContext:
     """Context manager for retry logic with exponential backoff."""
 
-    def __init__(self, max_retries: int = 3, backoff_factor: float = 2.0,
-                 exceptions: tuple = (Exception,)):
+    def __init__(
+        self, max_retries: int = 3, backoff_factor: float = 2.0, exceptions: tuple = (Exception,)
+    ) -> None:
         """Initialize retry context.
 
         Args:
@@ -67,13 +84,15 @@ class RetryContext:
         self.backoff_factor = backoff_factor
         self.exceptions = exceptions
         self.attempt = 0
-        self.last_exception = None
+        self.last_exception: BaseException | None = None
 
-    def __enter__(self):
+    def __enter__(self) -> "RetryContext":
         """Enter context."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: object
+    ) -> bool:
         """Exit context and handle retries."""
         if exc_type is None:
             return False
@@ -86,12 +105,20 @@ class RetryContext:
 
         if self.attempt < self.max_retries:
             wait_time = self.backoff_factor ** (self.attempt - 1)
-            logger.warning("retry_context_attempt", attempt=self.attempt,
-                         max_retries=self.max_retries, wait_seconds=wait_time,
-                         error=str(exc_val))
+            logger.warning(
+                "retry_context_attempt",
+                attempt=self.attempt,
+                max_retries=self.max_retries,
+                wait_seconds=wait_time,
+                error=str(exc_val),
+            )
             time.sleep(wait_time)
             return True  # Suppress exception and retry
 
-        logger.error("retry_context_exhausted", attempt=self.attempt,
-                   max_retries=self.max_retries, error=str(exc_val))
+        logger.error(
+            "retry_context_exhausted",
+            attempt=self.attempt,
+            max_retries=self.max_retries,
+            error=str(exc_val),
+        )
         return False  # Re-raise exception

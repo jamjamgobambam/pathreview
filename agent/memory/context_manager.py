@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+
 import structlog
 
 logger = structlog.get_logger()
@@ -10,12 +11,11 @@ logger = structlog.get_logger()
 class ContextManager:
     """In-memory context manager for within-session memoization."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize context manager."""
-        self.results = {}
+        self.results: dict = {}
 
-    def store_tool_result(self, tool_name: str, input_hash: str,
-                         result) -> None:
+    def store_tool_result(self, tool_name: str, input_hash: str, result: object) -> None:
         """Store tool execution result.
 
         Args:
@@ -27,7 +27,7 @@ class ContextManager:
         self.results[key] = result
         logger.info("tool_result_stored", tool=tool_name, key=key)
 
-    def get_tool_result(self, tool_name: str, input_hash: str):
+    def get_tool_result(self, tool_name: str, input_hash: str) -> object:
         """Get cached tool result.
 
         Args:
