@@ -88,3 +88,41 @@ The tests verify:
 The repository currently contains pre-existing linting and unit test failures unrelated to Issue #68. I verified that my new unit tests pass independently and that my changes did not introduce additional failures.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+
+No reviewer feedback was provided during Summer 2026. My pull request remains open, so I did not have any maintainer comments or requested changes to respond to.
+
+**How you responded:**
+
+No changes were needed in response to reviewer feedback because no review was received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was navigating an unfamiliar codebase and understanding how different parts of the application worked together. The actual implementation for Issue #68 was fairly straightforward once I understood the problem, but setting up the environment, tracing the health endpoint and safety monitoring code, and dealing with existing linting and test failures took more time than I expected. I also learned that getting code to work locally is only one part of making a contribution ready for a pull request.
+
+**What did you learn about working in a large codebase?**
+
+I learned that working in someone else's codebase requires much more investigation before making changes. For Issue #68, I had to understand how `api/routes/health.py` interacted with `safety/monitoring.py`, Redis, PostgreSQL, and the existing project structure before deciding how to implement the safety event count. I also learned the importance of limiting changes to the scope of the issue and following the project's existing formatting, typing, testing, and Git conventions.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools were especially helpful when I was navigating unfamiliar code, interpreting errors, and understanding tools such as Redis sorted sets, SQLAlchemy, pre-commit, Ruff, Black, and mypy. For example, AI helped me understand why `db.execute("SELECT 1")` needed to use SQLAlchemy's `text("SELECT 1")` and helped me work through the type-checking errors that appeared when I tried to commit my changes. However, I still needed to run the application and tests myself and compare AI suggestions against the actual PathReview codebase because suggestions that looked correct did not always match the project's existing configuration or conventions.
+
+**What would you do differently if you started over?**
+
+If I started over, I would spend more time evaluating the available issues before choosing one. Issue #68 was a good introduction to contributing to an unfamiliar open-source project, but because it was a Tier 1 issue, I realized later that I probably could have challenged myself with a more complex issue. I would also reproduce the issue and write the tests before implementing the solution instead of beginning some of the implementation work before completing the formal reproduction and planning stages.
+
+**What are you most proud of from this module?**
+
+I am most proud that I completed the full process of making an open-source contribution rather than only getting a piece of code to work. I reproduced Issue #68, created a solution plan, changed the Redis safety monitoring implementation to support time-based event counts, connected it to the `/health` endpoint, added `tests/unit/test_safety_monitoring.py`, and submitted the changes through a pull request. Going through the entire process gave me more confidence navigating an unfamiliar codebase and contributing code that someone else would have to review and maintain.
