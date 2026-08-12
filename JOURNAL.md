@@ -74,9 +74,10 @@ Note: the repository still has many pre-existing unrelated failures in `tests/un
 **Feedback received:** [ ] Yes  [x] No - still awaiting review
 
 **Summary of feedback:**
-No maintainer or reviewer feedback has come in yet for [PR #718](https://github.com/ascherj/pathreview/pull/718). This also matches the Summer 2026 course note that reviewer feedback is not expected for this term.
+No formal maintainer or reviewer feedback has come in yet for [PR #718](https://github.com/ascherj/pathreview/pull/718). That matches the Summer 2026 course note that reviewer feedback is not expected this term. The main guidance I worked from instead was the issue description, the existing test suite, and the contribution standards around keeping a fix narrowly scoped and clearly documenting verification.
 
 **How you responded:**
+I kept the change limited to the failing relevance scorer test fixture, verified the focused test file locally, and documented the unrelated repository-wide failures separately so I would not overstate what my change fixed.
 
 ---
 
