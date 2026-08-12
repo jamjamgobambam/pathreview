@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import redis  # <-- Added the base redis library
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
 from core.database import get_db
+from core.models.user import User
 from core.services.review_service import (
     create_review,
     get_review,
@@ -32,6 +33,16 @@ async def create_review_endpoint(
     Returns review with status="pending" immediately.
     """
     try:
+        # --- FIX FOR ISSUE #43: Clear previous agent session state ---
+        # Direct Redis connection to bypass import path issues
+        try:
+            r = redis.Redis(host="localhost", port=6379, db=0)
+            r.delete(f"session:{current_user.id}")
+            log.info("session_cleared_for_new_review", user_id=str(current_user.id))
+        except Exception as e:
+            log.warning("redis_cleanup_failed", error=str(e))
+        # -------------------------------------------------------------
+
         # Create review with status="pending"
         review = await create_review(
             db=db,
