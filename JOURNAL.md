@@ -81,3 +81,35 @@ Updated `tests/unit/test_pipeline_repro.py` (Week 8 reproduction test) to await 
 (Both pass in the sense the assignment defines for a codebase with documented pre-existing failures: my changes introduce zero new failures. Full suite before my fix: 54 failed/375 passed; after: 53 failed/381 passed. The only change is the repro test flipping from fail to pass, plus 5 new passing tests. mypy shows the same 12 pre-existing, unrelated type errors before and after. Full detail in the PR's "Notes for Reviewers.")
 
 **Draft PR feedback received from:** none
+
+---
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback has been received. Reviewer feedback is not an active feature for the Summer 2026 cohort, per the course note.
+
+**How you responded:**
+N/A, no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+What surprised me most was finding out the actual bug wasn't fully where the issue said it was. I assumed fixing the two broken functions in `pipeline.py` would be the whole story, but when I traced through the code, I found nothing in the app actually calls that file. The real risk was sitting in a totally different file, `review_service.py`, with its own separate bug. I also didn't expect basic tooling stuff to eat so much time, things like pre-commit checks failing on old errors I never touched, and the terminal mangling my commit messages halfway through. None of that showed up in my plan going in.
+
+**What did you learn about working in a large codebase?**
+Working in a codebase I didn't write meant I couldn't just trust what a comment or docstring said, I had to actually check. The plan I started with assumed certain things about the code (like which session type the database used, or what columns a table had), and almost every one of those assumptions turned out to need checking against the real files before I could trust it. I also learned that big codebases have dead ends, code that looks important but nothing actually calls it, and code that looks like a placeholder but is actually live. You can't tell which is which just by reading one file in isolation, you have to trace how things connect. And instead of solving problems my own way, I learned to look at how the rest of the codebase already handled similar situations (like how other files talked to the database) and match that style, instead of inventing something new.
+
+**How did AI tools help, and where did they fall short?**
+AI tools were most useful for writing things like test files and certain chunks of code once I already knew what needed to happen. They were much less reliable when it came to actually making decisions, like whether something was in scope or not, because they often didn't have the full picture and would treat a problem as smaller or simpler than it actually was. They also fell short on setup and environment stuff, a lot of the time they'd just point me somewhere else instead of actually walking me through getting something working locally.
+
+**What would you do differently if you started over?**
+If I started over, I'd trace where the code is actually called from much earlier, before writing most of the plan, not after. I spent time planning around one file before I found out it had no live callers, and the real risk was in a different file entirely. I'd also sort out my tooling setup earlier, get the pre-commit hooks and terminal situation stable before diving into the actual fix, instead of hitting that friction in the middle of trying to get real work done. Basically, more upfront investigation, less assuming the issue description already told me the full picture.
+
+**What are you most proud of from this module?**
+The thing I'm most proud of isn't the fix itself, it's catching that the bug wasn't fully where the issue description said it was before I started building. It would've been easy to just follow the plan I started with and fix the two functions in `pipeline.py` without ever checking whether anything actually called that file. Taking the time to trace that down, and to separate the real bug from a different bug I found along the way in `review_service.py`, is what made the plan (and the fix) actually correct instead of just plausible-sounding.
