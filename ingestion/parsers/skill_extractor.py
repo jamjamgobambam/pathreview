@@ -116,7 +116,7 @@ class SkillExtractor:
         Returns:
             List of detected skills with confidence scores
         """
-        detected_skills = {}
+        detected_skills: dict[str, SkillDetection] = {}
 
         # Detect languages first
         self._detect_languages(text, filename, detected_skills)
