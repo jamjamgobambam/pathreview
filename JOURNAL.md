@@ -52,3 +52,34 @@ I reproduced the issue by running the existing unit test for StructuralChunker a
 [None at this time.]
 
 ---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix for issue #149. Updated the structural chunker so documents without markdown headings are no longer silently dropped and can produce a chunk. The reproduction test for heading-less documents now passes.
+
+**Next steps:**
+Finish the final testing/checks, review the changes, update the PR, and complete the PR submission.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [(https://github.com/ascherj/pathreview/pull/1032)]
+
+**Branch:** `fix/149-structural-chunker-fallback`
+
+**What you built:**
+Fixed issue #149 by updating the structural chunker so heading-less documents are captured instead of causing `StructuralChunker.chunk()` to return an empty list. This prevents documents without markdown headings from being silently dropped during ingestion.
+
+**Tests added or updated:**
+Updated the structural chunker test for documents without headings in `tests/unit/test_structural_chunker.py`. The test verifies that a document without markdown headings produces at least one chunk instead of an empty result.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+**Draft PR feedback received from:** none
