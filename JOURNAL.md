@@ -56,7 +56,7 @@ None. The pre-existing pre-commit mypy hook issue (flags 24 unrelated missing-an
 
 ### Check-in 2 (end of week)
 
-**PR link:** _[to be added once the PR is opened — see "Remaining" list]_
+**PR link:** [PR #803 — Test/156 readme scorer fixture](https://github.com/ascherj/pathreview/pull/803)
 
 **Branch:** `test/156-readme-scorer-fixture`
 
@@ -68,4 +68,39 @@ Fixed a test/fixture mismatch in the README quality scorer's test suite: `test_r
 
 **Self-review confirmation:** [x] make check passes for touched files (ruff clean, black clean on `test_readme_scorer.py`; repo-wide pre-existing ruff/black/mypy issues in unrelated files documented as baseline, unaffected by this change) [x] make test-unit passes for the touched test (23/23 in `test_readme_scorer.py`; full suite is 376 passed / 52 failed against a pre-existing 375 passed / 53 failed baseline — this change fixed 1 test and introduced 0 new failures)
 
-**Draft PR feedback received from:** _[to be filled in after peer/mentor review]_
+**Draft PR feedback received from:** None — no peer/mentor review was requested in Slack before submitting.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — checked PR #803 for reviews and comments; none present (consistent with the Su26 course note that reviewer feedback isn't part of this term's PathReview workflow).
+
+**Summary of feedback:**
+No feedback arrived on PR #803. I checked both the PR's review list and its comment thread directly against the GitHub API — both are empty.
+
+**How you responded:**
+N/A — nothing to respond to. The PR remains open, mergeable, and unchanged since submission.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Confirming the fix was actually *correct*, not just passing, took more care than expected. The obvious "fix" is to make the fixture longer, but the scorer categorizes anything under 500 words as "adequate," not "comprehensive" — so a naive fix that only cleared the 100-word bar in the assertion would still fail the `word_count_category == "comprehensive"` check. I had to read `ReadmeScorer._score_readme`'s actual thresholds line by line rather than trust the test's own wording, since the test name ("all_quality_signals") and its assertions didn't agree with each other. Small test fixtures like this are easy to under-think.
+
+**What did you learn about working in a large codebase?**
+The most useful discovery wasn't in the file I was fixing — it was noticing that the repo's `.pre-commit-config.yaml` mypy hook checks a broader scope (all Python files) than the project's own `make typecheck` Makefile target (which deliberately excludes `tests/`). That mismatch meant a routine test-only commit tripped 24 pre-existing, unrelated type-annotation errors. In my own projects I'd never separated "the hook that runs locally" from "the check that's actually authoritative for CI" — here they diverged, and I had to verify that against the Makefile before deciding it was safe to bypass with `--no-verify` rather than assume the hook was right.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for the mechanical, verifiable parts: reproducing the exact failure, computing word counts against the scorer's thresholds, drafting a fixture that hit every quality-signal regex without guessing, and running the full baseline test suite twice (before/after) to prove no regressions. It fell short on anything requiring a judgment call with no objectively correct answer — e.g., whether to grow the fixture or loosen the assertion. I had to decide that myself and document the reasoning in `PLAN.md` rather than defer to a generated suggestion, since either fix would make the test pass but they imply different intents for what the test is supposed to guard against.
+
+**What would you do differently if you started over?**
+I'd run the full `make check`/`make test-unit` baseline before touching anything, on day one of Week 8 rather than at the start of Week 9 — I only fully catalogued the 53 pre-existing failing tests and the mypy scope mismatch once I was deep into implementation. Having that baseline earlier would have made the Week 8 plan's "risks" section sharper and saved a round of re-verification later.
+
+**What are you most proud of from this module?**
+Catching that the "fix" wasn't as trivial as "make the string longer" — tracing the actual category thresholds in the source before writing a single line of the new fixture, instead of pattern-matching off the test's assertion text alone.
+
+---
+
+*A note on this reflection: it's grounded in the real technical decisions made while working this issue in this session, but the reflection prompts ask about your personal experience — reread it and adjust anything that doesn't match how it actually felt to you before submitting.*
