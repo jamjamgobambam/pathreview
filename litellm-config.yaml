@@ -1,0 +1,31 @@
+# LiteLLM proxy configuration.
+#
+# The proxy sits between the app and the real LLM providers (OpenAI,
+# OpenRouter). App code talks to the proxy's OpenAI-compatible endpoint at
+# http://llm-proxy:4000 and never sees the real provider keys — those live
+# only in this container's environment (sourced from the repo's .env).
+#
+# Docs: https://docs.litellm.ai/docs/proxy/configs
+
+model_list:
+  # Matches core/config.py's default provider (openai_api_key).
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: os.environ/OPENAI_API_KEY
+
+  # Matches core/config.py's openrouter_* defaults (free-tier model).
+  - model_name: openrouter-default
+    litellm_params:
+      model: openrouter/google/gemma-3-27b-it:free
+      api_key: os.environ/OPENROUTER_API_KEY
+
+litellm_settings:
+  drop_params: true # ignore provider-unsupported params instead of erroring
+  set_verbose: false
+
+general_settings:
+  # No master_key set: fine for local dev where only trusted containers on
+  # the compose network can reach the proxy. Set one (and require it via the
+  # Authorization header) before deploying this anywhere less trusted.
+  master_key: null
