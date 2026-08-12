@@ -57,3 +57,33 @@ Wrote `tests/unit/test_github_tool.py` into a mocked, network-free unit suite of
 Ensuring that no changes have been made to previous passes after adding new code
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+no review came in
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+I didn't expect to be so stumped working on an easy issue and that there are so many varied issues to work on. From the title of adding a boolean, it sounded easy but then actually looking into the codebase was overwhelming and the fix didn't stand out to me as clearly as I thought it would've been. The addition of present has_test boolean in a relevant file made it seem like the issue was already fixed but it was the other file that needed the logic added.
+
+**What did you learn about working in a large codebase?**
+That there are a lot of steps to working in a large codebase before, during, and after coding the actual issue. For example, I learned to look for a CONTRIBUTING.md file and other reading files to understand the structure of the codebase and knowing what the conventions are, whereas the self projects I've worked on didn't have that documentation.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful in helping me navigate my confusion throughout the issue in that I didn't know initally what repo analysis output was and how the relevant files given were related to each other. I needed to do more searching on my own between the issue description and checking the codebase to further understand what AI was giving me because it wasn't clear at first, and then I was able to break down the AI explanation to get its responses to reflect ny thoughts.
+
+**What would you do differently if you started over?**
+If I had more time, I probably would've chosen a different issue because the issue I worked on wasn't necessarily the most interesting to me. It didn't dive into the codebase as much as I would've liked because it was mostly a standalone file I was working on.
+
+**What are you most proud of from this module?**
+I am proud of figuring out the issue and understanding the fix for it. I dedicated time to go through an unfamiliar codebase and learned to be patient and address my confusion better with AI to get the explanations I needed.
