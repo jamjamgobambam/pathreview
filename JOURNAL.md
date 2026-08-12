@@ -240,3 +240,46 @@ make: *** [Makefile:40: test-unit] Error 1
 
 **Draft PR feedback received from:** [name or Slack handle, or "none"]
 TF Esha Mehta reviewed my PR. 
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+
+I didn't expect how long it would take to me to understand the codebase and how 
+the authentication workflow is working. 
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+
+There are components built that you may not understand it's meaning and why they are set 
+the way they are. The file organizations has a reason and it took me time to understand that. 
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+
+The AI tool helped tremendously in navigating the codebase and understand
+how the components interact. I needed to understand the scope of my work and 
+plan it well because AI was suggesting making changes to files that was 
+out of my scope of issue. Also, AI did recognize the pattern, but it did not
+always follow the pattern that's suitable for the tests I needed to create. 
+I had to look at the pre-existing code myself and instruct AI accordingly. 
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+
+I think I spent enough time planning and desiging before diving into the code.
+I wouldn't change much of the process. I did made mistakes like 
+not understanding the role of each of files related to auth. I suppose I could
+ask more specific questions to AI to have a clear understanding. 
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+
+Understanding the authentication flow at a deeper level and knowing
+what the tests are actually doing and being able to explain why my
+code does what it does. 
