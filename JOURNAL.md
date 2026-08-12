@@ -65,3 +65,34 @@ Fixed the misconfigured async mocks in `tests/unit/test_review_service.py`: the 
 _(Documented pre-existing failures: on `main`/at baseline `make test-unit` = 53 failed / 375 passed and `make check` fails on pre-existing ruff + mypy issues. After this change `make test-unit` = 40 failed / 388 passed — exactly the 13 target tests fixed, **0 new failures** — and ruff/format on the changed file are unchanged (8 pre-existing errors, none introduced). Per the module's pre-existing-failures guidance, "passes" here means this change introduces no new failures.)_
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer comments arrived on PR #904 during the week. (Per the Summer 2026 course note, reviewer feedback is not a feature this cohort; checked the PR on GitHub and it had 0 reviews and 0 comments, review status `REVIEW_REQUIRED`.)
+
+**How you responded:**
+N/A — no feedback to respond to.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The coding was the easy part — swapping `AsyncMock` for `MagicMock` was almost trivial once I understood that SQLAlchemy's async result API is synchronous after the `await`. What was genuinely hard was the stuff no test could answer for me. The suite was already red with 53 pre-existing failures, the pre-commit hook blocked my commit on mypy errors scattered across files I never touched, and I had to decide things like whether committing with `--no-verify` was acceptable and whether I could honestly check the "make check passes" box when the whole codebase doesn't pass. Nothing prints the right answer for those — I had to reason from the module's "no new failures" guidance and make a defensible call. The other hard part came earlier: trusting my own diagnosis. It took some nerve to conclude the production code was correct and the bug lived entirely in the test mocks, and then to stop second-guessing it.
+
+**What did you learn about working in a large codebase?**
+That you inherit the whole repo's baggage whether you like it or not. I came in to fix one test file and immediately hit missing dependencies, a hostile pre-commit hook, and 182 lint errors I didn't create. In my own projects, if something's broken it's mine to fix; here, most of what was broken was explicitly not my job, and the real discipline was leaving it alone. I kept wanting to "just also fix" the unused imports and formatting the linter flagged, but every unrelated change would have bloated the diff and made the PR harder to review. Keeping the change to 16 lines that did exactly one thing — and documenting everything else as pre-existing instead of touching it — was the actual skill.
+
+**How did AI tools help — and where did they fall short?**
+AI was strong at the mechanical, verifiable work: reproducing the failure, running the before/after numbers (53→40 failures), confirming my change added zero new lint errors, and catching a second latent bug I'd probably have missed — a test asserting `execute` was called once when `list_reviews` actually runs two queries. Where it fell short was exactly where this module was hardest: the judgment calls. It could lay out the tradeoffs of `--no-verify`, or minimal-swap versus a shared helper, but it couldn't decide for me whether those were the right, honest choices to submit under my name — and it flatly refused to write this reflection for me. That was the correct boundary. The other honest shortfall is on me, not the tool: I leaned on it heavily this module, and I want to do more of the hands-on work myself next time.
+
+**What would you do differently if you started over?**
+Two things. First, I'd pick a meatier issue. I chose #158 partly because it was low-contention (15 "I'll take this" comments versus 30–47 on others) and safely scoped to one test file — a smart hedge for a first PR, but ultimately a test-only fix that never touched production logic. Having been through the full cycle once, I'd now reach for something with more architectural depth. Second, I'd do more of the implementation by hand. AI moved me fast, but "fast" meant I delegated work I'd have learned more from by struggling through myself. Next time I'd use it to unblock and verify, not to drive.
+
+**What are you most proud of from this module?**
+Honestly, finishing the whole cycle. Four weeks ago I'd never contributed to a codebase this size, and the prospect was intimidating. Taking a real issue all the way through — selecting it deliberately, reproducing the failure, writing a plan, implementing the fix, getting the target tests green, and opening a clean, fully-documented PR against someone else's production repo — and having each step actually hold together is what I'm proud of. The fix itself was small, but doing the complete loop end to end, without skipping the unglamorous parts like documenting pre-existing failures, is what makes it feel like a real contribution instead of a homework exercise.
