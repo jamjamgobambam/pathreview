@@ -2,8 +2,8 @@
 
 import pytest
 
-from ingestion.chunking.structural_chunker import StructuralChunker
 from ingestion.chunking.base import Chunk
+from ingestion.chunking.structural_chunker import StructuralChunker
 
 
 @pytest.mark.unit
@@ -26,13 +26,64 @@ class TestStructuralChunker:
         assert result == []
 
     def test_document_with_no_headings(self, chunker):
-        """Test document with no headings returns single chunk."""
+        """Test document with no headings returns a chunk containing the text.
+
+        Regression test for #149: a headingless document used to be
+        silently dropped (chunk() returned []) instead of being chunked.
+        """
         text = "This is plain text without any markdown headings. " * 20
         result = chunker.chunk(text, {"source": "test"})
 
         assert len(result) >= 1
         assert isinstance(result[0], Chunk)
         assert all(isinstance(c, Chunk) for c in result)
+        # The original content must actually reach the output, not just
+        # a non-empty placeholder
+        assert "plain text without any markdown headings" in "".join(c.text for c in result)
+        # No heading was found, so there's nothing to report a path for
+        assert all("heading_path" not in c.metadata for c in result)
+
+    def test_large_headingless_document_is_sub_chunked(self, chunker):
+        """Test a headingless document over the section token limit is
+        still split into multiple chunks via the semantic sub-chunker,
+        the same way an oversized section under a heading already is.
+        """
+        text = "This is a paragraph with lots of content in it. " * 200
+        result = chunker.chunk(text, {"source": "test"})
+
+        assert len(result) > 1
+        assert all(isinstance(c, Chunk) for c in result)
+        assert all(c.text.strip() for c in result)
+
+    def test_preamble_before_first_heading_is_not_dropped(self, chunker):
+        """Test that content appearing before the first heading is kept.
+
+        Related to #149: the same guard that dropped entire headingless
+        documents also dropped a document's preamble when it did have
+        headings later on.
+        """
+        text = (
+            "Intro paragraph before any heading.\n\n"
+            "# First Heading\nContent under the heading.\n"
+        )
+        result = chunker.chunk(text, {})
+
+        all_text = " ".join(c.text for c in result)
+        assert "Intro paragraph before any heading" in all_text
+        assert "Content under the heading" in all_text
+
+        preamble_chunks = [c for c in result if "heading_path" not in c.metadata]
+        assert len(preamble_chunks) >= 1
+        assert "Intro paragraph" in preamble_chunks[0].text
+
+    def test_heading_with_no_body_produces_no_chunk_for_it(self, chunker):
+        """Test a heading followed by no content doesn't crash and simply
+        produces no chunk for that empty section (nothing to index).
+        """
+        text = "# Heading With No Content\n"
+        result = chunker.chunk(text, {})
+
+        assert result == []
 
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
@@ -74,13 +125,11 @@ Content under grandchild.
 """
         result = chunker.chunk(text, {})
 
-        found_path = False
         for chunk in result:
             if "heading_path" in chunk.metadata:
                 path = chunk.metadata["heading_path"]
                 if "Child" in path:
                     # Should have " > " as separator if it has parent
-                    found_path = True
                     assert isinstance(path, str)
 
     def test_large_section_sub_chunked(self, chunker):
@@ -165,13 +214,18 @@ Content here.
 """
         result = chunker.chunk(text, {})
 
-        found_full_path = False
-        for chunk in result:
-            if "heading_path" in chunk.metadata:
-                path = chunk.metadata["heading_path"]
-                # Should contain the hierarchy
-                if "Installation" in path or "Prerequisites" in path:
-                    found_full_path = True
+        paths_with_hierarchy = [
+            chunk.metadata["heading_path"]
+            for chunk in result
+            if "heading_path" in chunk.metadata
+            and (
+                "Installation" in chunk.metadata["heading_path"]
+                or "Prerequisites" in chunk.metadata["heading_path"]
+            )
+        ]
+        assert (
+            paths_with_hierarchy
+        ), "expected at least one chunk with Installation/Prerequisites in its heading_path"
 
     def test_chunks_have_text_content(self, chunker):
         """Test that all chunks have text content."""
