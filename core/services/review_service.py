@@ -124,13 +124,27 @@ async def process_review(
 
         log.info("review_processing_started", review_id=str(review_id), profile_id=str(profile_id))
 
-        # Step 2: Run ingestion pipeline
+    # Step 2: Run ingestion pipeline
         ingestion_results = await _run_ingestion_pipeline(db, profile)
         log.info(
             "ingestion_pipeline_completed",
             review_id=str(review_id),
             sources_count=len(ingestion_results),
         )
+
+        # Guard: if no sources were ingested, there's nothing to review.
+        # Mark the review as failed rather than fabricating placeholder feedback.
+        if not ingestion_results:
+            log.warning(
+                "review_processing_no_ingested_sources",
+                review_id=str(review_id),
+                profile_id=str(profile_id),
+            )
+            review.status = "failed"
+            review.updated_at = datetime.utcnow()
+            db.add(review)
+            await db.commit()
+            return
 
         # Step 3: Run agent orchestration
         agent_output = await _run_agent_orchestration(profile, ingestion_results)
