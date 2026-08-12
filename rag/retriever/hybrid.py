@@ -1,8 +1,10 @@
 """Hybrid retriever combining vector and keyword search."""
 
 import structlog
-from .vector_store import VectorStore
+
 from .keyword_search import KeywordSearcher
+from .llm_reranker import LLMReranker
+from .vector_store import VectorStore
 
 logger = structlog.get_logger()
 
@@ -10,8 +12,14 @@ logger = structlog.get_logger()
 class HybridRetriever:
     """Combines vector similarity and BM25 keyword search."""
 
-    def __init__(self, vector_store: VectorStore, keyword_searcher: KeywordSearcher,
-                 vector_weight: float = 0.7, keyword_weight: float = 0.3):
+    def __init__(
+        self,
+        vector_store: VectorStore,
+        keyword_searcher: KeywordSearcher,
+        vector_weight: float = 0.7,
+        keyword_weight: float = 0.3,
+        llm_reranker: LLMReranker | None = None,
+    ):
         """Initialize hybrid retriever.
 
         Args:
@@ -24,9 +32,16 @@ class HybridRetriever:
         self.keyword_searcher = keyword_searcher
         self.vector_weight = vector_weight
         self.keyword_weight = keyword_weight
+        self.llm_reranker = llm_reranker
 
-    def retrieve(self, query: str, profile_id: str, query_embedding: list[float],
-                 max_chunks: int = 10, min_score: float = 0.3) -> list[dict]:
+    def retrieve(
+        self,
+        query: str,
+        profile_id: str,
+        query_embedding: list[float],
+        max_chunks: int = 10,
+        min_score: float = 0.3,
+    ) -> list[dict]:
         """Retrieve chunks using hybrid approach.
 
         Args:
@@ -47,7 +62,7 @@ class HybridRetriever:
         )
 
         # Keyword search - need to fetch all chunks first
-        all_chunks = self._get_all_chunks(collection_name)
+        _all_chunks = self._get_all_chunks(collection_name)
         keyword_results = self.keyword_searcher.search(query, top_k=max_chunks * 2)
 
         # Create id-to-chunk mapping for both approaches
@@ -67,18 +82,23 @@ class HybridRetriever:
             keyword_score = 0.0
 
             if chunk_id in vector_map:
-                vector_score = (vector_map[chunk_id]["score"] / vector_scores_max) if vector_scores_max > 0 else 0
+                vector_score = (
+                    (vector_map[chunk_id]["score"] / vector_scores_max)
+                    if vector_scores_max > 0
+                    else 0
+                )
                 base_chunk = vector_map[chunk_id]
             else:
                 base_chunk = keyword_map[chunk_id]
 
             if chunk_id in keyword_map:
-                keyword_score = (keyword_map[chunk_id].get("bm25_score", 0) / keyword_scores_max) if keyword_scores_max > 0 else 0
+                keyword_score = (
+                    (keyword_map[chunk_id].get("bm25_score", 0) / keyword_scores_max)
+                    if keyword_scores_max > 0
+                    else 0
+                )
 
-            blended_score = (
-                self.vector_weight * vector_score +
-                self.keyword_weight * keyword_score
-            )
+            blended_score = self.vector_weight * vector_score + self.keyword_weight * keyword_score
 
             blended[chunk_id] = {
                 "id": chunk_id,
@@ -86,7 +106,7 @@ class HybridRetriever:
                 "metadata": base_chunk.get("metadata", {}),
                 "score": blended_score,
                 "vector_score": vector_score,
-                "keyword_score": keyword_score
+                "keyword_score": keyword_score,
             }
 
         # Filter by min_score and sort
@@ -96,11 +116,21 @@ class HybridRetriever:
         # Return top max_chunks
         final_results = results[:max_chunks]
 
-        logger.info("hybrid_retrieval_complete", query_len=len(query),
-                   vector_results=len(vector_results), keyword_results=len(keyword_results),
-                   blended_count=len(blended), filtered_count=len(results),
-                   final_count=len(final_results))
+        logger.info(
+            "hybrid_retrieval_complete",
+            query_len=len(query),
+            vector_results=len(vector_results),
+            keyword_results=len(keyword_results),
+            blended_count=len(blended),
+            filtered_count=len(results),
+            final_count=len(final_results),
+        )
 
+        # TODO (Issue #34): We currently just return final_results here.
+        # We need to pass final_results to an LLM to score them, sort them
+        # based on the LLM score, and THEN return them.
+        if self.llm_reranker:
+            final_results = self.llm_reranker.rerank(query, final_results)
         return final_results
 
     def _get_all_chunks(self, collection_name: str) -> list[dict]:
@@ -117,13 +147,7 @@ class HybridRetriever:
 
         chunks = []
         for doc_id, text, metadata in zip(
-            all_docs["ids"],
-            all_docs["documents"],
-            all_docs["metadatas"]
+            all_docs["ids"], all_docs["documents"], all_docs["metadatas"], strict=False
         ):
-            chunks.append({
-                "id": doc_id,
-                "text": text,
-                "metadata": metadata
-            })
+            chunks.append({"id": doc_id, "text": text, "metadata": metadata})
         return chunks
