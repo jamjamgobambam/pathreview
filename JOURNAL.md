@@ -32,9 +32,9 @@ Double-check the commands against the actual routes, run the project
 checks, and get the PR ready to submit.
 
 **Blockers:**
-`make check` and `make test-unit` already fail in this repo. My change is
-docs-only so I'm not touching those files, but it makes the checkboxes
-awkward.
+`make check` and `make test-unit` already fail in this repo (lint in
+Python files, failing unit tests). My change is docs-only, so fixing
+those isn't part of #117.
 
 ---
 
@@ -55,8 +55,12 @@ files and ran `zsh -n` on the bash blocks so they at least parse.
 
 **Self-review confirmation:** [x] `make check` introduces no new failures  [x] `make test-unit` introduces no new failures
 
-`make check` still has 35 lint/type errors and `make test-unit` has 89
-failures — all in other files, not from this docs change.
+I re-ran both locally. `make check` dies in `ruff` on a pile of existing
+Python issues (unused imports/vars, etc. — ~182 findings). `make test-unit`
+was 53 failed / 375 passed. None of that is in files I changed. This branch
+only touches `docs/API.md`, `JOURNAL.md`, and `PLAN.md`, so fixing those
+failures would be out of scope for #117 (a docs issue). I left them alone
+on purpose.
 
 **Draft PR feedback received from:** none
 
@@ -84,9 +88,11 @@ the app running at localhost:5173 fine, but `/health` kept saying
 Postgres and Redis were down even though they weren't — turns out the
 health check code itself is buggy. Also `make check` / `make test-unit`
 fail all over the place for stuff I didn't touch, so I couldn't just
-rely on "all green." And I thought login would be JSON like register,
-but it's form data with `username`/`password`. Had to read the route
-files to figure that out.
+rely on "all green." I looked into fixing them for Week 10, but they're
+in Python modules and unit tests unrelated to API.md, so they weren't
+in scope for this issue. And I thought login would be JSON like
+register, but it's form data with `username`/`password`. Had to read
+the route files to figure that out.
 
 **What did you learn about working in a large codebase?**
 When it's your own project you already know how things work. Here I had
