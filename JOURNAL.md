@@ -168,4 +168,85 @@ produces_single_level0_chunk`, `test_long_no_heading_doc_sub_chunked`,
 >   numpy stub (`Type statement is only supported in Python 3.12+`) before
 >   reaching my file. None of these are caused by or affected by my change.
 
-**Draft PR feedback received from:** _(to be added)_
+**Draft PR feedback received from:** No peer feedback came in on the draft PR
+before I marked it ready for review. Per the Summer 2026 course note that
+maintainer review is not a guaranteed feature, I did not block on it — see the
+Week 10 "Reviewer feedback" section below.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No maintainer or reviewer comments came in on
+[PR #907](https://github.com/ascherj/pathreview/pull/907) by the end of the
+week. This matches the course note that reviewer feedback is not a feature in
+Summer 2026, so I did not expect a review and none arrived. The PR remains open
+against `ascherj/pathreview` with the fix and five tests.
+
+**How you responded:**
+No changes were warranted since no feedback arrived. I re-read my own diff one
+more time to confirm the fix still reads cleanly and that the `flush_section()`
+comments explain *why* the level-0 emission exists (the `#149` rationale), so a
+future reviewer can understand the change without needing the issue open beside
+them.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The fix itself was small — the hard part was working out what "done" and "passing"
+even meant against a repo that was already red. When I first ran `make test-unit`
+I got **53 failed / 375 passed**, and `make check` flagged `black` wanting to
+reformat 52 files plus a `mypy` crash inside a numpy stub. None of it was mine.
+Figuring out that the honest bar was "introduce zero *new* failures" — and then
+proving it by capturing a before/after baseline (53→52 failing, my acceptance
+test flipping fail→pass) — took longer than writing the actual code. Resisting
+the urge to "helpfully" run `black` across the whole repo, which would have
+buried a one-file fix under 52 unrelated files, was also harder than expected;
+the disciplined move was to match the file's existing committed style instead.
+
+**What did you learn about working in a large codebase?**
+That you can't safely change a line until you know who reads its output. The real
+work wasn't in `_extract_sections` — it was tracing *downstream* to
+`ingestion/embeddings/batch_processor.py` to confirm that emitting a chunk with
+`heading_path=""` and `heading_level=0` wouldn't break the indexer (it reads
+`source_id`/`chunk_index` via `.get()` with defaults and never requires a
+non-empty heading path). In my own projects I hold the whole system in my head;
+here the existing tests and the consumer code *were* the spec, and I had to read
+them to learn the contract rather than invent one. I also learned to fix the root
+cause (the collection guard in `_extract_sections`) rather than bolt a special
+fallback branch onto `chunk()` — the smaller, more surgical change is the one a
+maintainer can actually trust.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for orientation and tracing: quickly locating the guards in
+`_extract_sections`, following the chunk metadata to its only real consumer, and
+sanity-checking that an empty `heading_path` was safe downstream. That collapsed
+hours of code-reading into minutes. Where it fell short was judgment against a
+*messy* real-world baseline — an assistant will happily suggest "just make the
+tests pass" or "run the formatter," and neither is right when 52 failures and a
+formatter-version drift are pre-existing. Deciding scope (emit preamble content
+now vs. defer it), deciding what to *not* touch, and deciding how to
+truthfully document a partially-broken baseline were calls I had to make myself.
+
+**What would you do differently if you started over?**
+I'd finish environment setup before committing to the issue. I picked the issue
+in Week 7 but was still missing Docker/`make`, which meant I couldn't run the
+full stack and had to lean entirely on the unit test to define "done." It worked
+out because the fix was genuinely isolated, but I got lucky — a slightly wider
+bug would have blocked me. I'd also capture the failing baseline on day one
+rather than reconstructing it at PR time, so "did I break anything?" is a diff I
+can check continuously instead of a claim I assemble at the end.
+
+**What are you most proud of?**
+Not the code — the honesty of the write-up. It would have been easy to write
+"`make check` passes" and move on. Instead I measured and documented the exact
+baseline (53→52 failures, which tests, and *why* each remaining failure is
+unrelated), and matched the file's existing style rather than reformatting the
+world. Contributing to someone else's codebase is as much about being a
+trustworthy, low-noise collaborator as it is about the fix, and I think this PR
+reads that way.
