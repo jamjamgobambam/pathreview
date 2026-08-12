@@ -67,3 +67,33 @@ Fixed `/health`'s Redis probe to build its client from `settings.redis_url` via 
 (Both pass in the sense required by the Week 9 pre-existing-failures guidance: this change introduces zero new `ruff`/`mypy`/`test-unit` failures, confirmed by diffing before/after runs. The repo has pre-existing `mypy`/`ruff` issues in `health.py` and 53 pre-existing `test-unit` failures elsewhere, all unrelated to and unchanged by this PR — documented in the PR description.)
 
 **Draft PR feedback received from:** none — opened the PR and moved straight to marking it ready for review due to time constraints this week, so it did not go through peer/mentor review before finalizing.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in. Reviewer feedback for PR wasn't available for SU26 students this module.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Actually reproducing the bug took longer than I thought it would for a "tier 1" issue. Getting the local environment stood up — Docker Desktop, the three docker-compose services, the Python venv, migrations — took a full pass before I could even hit `/health` and see the failure. I also didn't expect a one-line bug (wrong Settings attribute) to have a subtle twist: the `AttributeError` was already being caught by the endpoint's own exception handler, so the real bug wasn't a crash, it was a silent false negative (Redis always reported "unhealthy" even when it was fine). I had to actually read the code instead of trusting the issue title to get that right.
+
+**What did you learn about working in a large codebase?**
+The hardest part wasn't writing the fix, it was scoping it. Before I could safely change how the Redis client gets built, I had to grep the rest of the codebase (`agent/memory/session_store.py`, `safety/rate_limiter.py`, `safety/monitoring.py`) to check whether anything else constructed a `redis.Redis` client the same way, so my change wouldn't create an inconsistency somewhere I couldn't see from the issue alone. I also had to learn to tell the difference between failures I caused and failures that were already there — the repo has pre-existing `mypy`/`ruff` issues and dozens of pre-existing failing tests unrelated to my fix, and part of the job was documenting that clearly instead of either ignoring it or trying to fix all of it.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for the parts that are normally slow by hand: tracing the bug through `health.py` and `core/config.py`, drafting `PLAN.md` and the PR description in the project's expected structure, and running the "did I break anything else" comparisons (diffing `mypy`/test output before and after my change) so I could state confidently that nothing new broke. It fell short anywhere it couldn't just run something and see the real result — e.g. it couldn't tell me the vector-db container would fail to boot on my machine (a numpy 2.0 incompatibility in that chromadb image version) or that the Redis fix was safe until I actually ran it against the live Docker container myself. Verifying against reality was still on me.
+
+**What would you do differently if you started over?**
+I'd stand up the full local environment (Docker, venv, migrations) in Week 7 before picking an issue, instead of after, so environment problems don't eat into the week meant for understanding the bug. I'd also write the manual verification steps into `PLAN.md` from the start rather than adding them to the PR description at the end — thinking through "how would someone else confirm this is fixed" earlier would have shaped the tests I wrote, not just the write-up.
+
+**What are you most proud of from this module?**
+Catching that the bug wasn't really "the health check crashes" but "the health check silently lies about Redis being down." That distinction came from actually reading `api/routes/health.py` line by line instead of taking the issue title at face value, and it changed both what I tested (a negative-path test that Redis-down still reports correctly, not just Redis-up) and what I wrote in the PLAN and PR — I think that's the difference between patching a symptom and actually understanding the bug.
