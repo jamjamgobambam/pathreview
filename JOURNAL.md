@@ -40,3 +40,33 @@ Added a `safety_events_last_hour` metric to the `/health` endpoint response. Imp
 Added `tests/unit/test_monitoring.py` and `tests/unit/test_health.py` to cover rolling-window, edge boundaries, failure, and response formatting.
 
 **Self-review confirmation:** Make check and make unit-test passes. Verified that pre-existing failures observed count as 176 in make check and 53 in make test-unit. New implementation and unit tests introduced no new failures. 
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** No
+
+**Summary of feedback:**
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Setting up the project to work in my local environment was a lot more tedious than I had expected it to be. Setup took as much if not more time than it took to actually implement the feature/bugfix into the codebase. 
+
+**What did you learn about working in a large codebase?**
+There is a lot more to the process of working in a large codebase than just writing and uploading code, I had to refactor and re-evaluate my implementation to make sure it met contribution guidelines, as well as passing the linter and other evaluations to greenlight the push to the branch before I could even make a pull request. 
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped a lot during the implementation of the bugfix for both understanding overarching concepts of how the repository functioned, understanding the functions I was interacting with to implement the fix, and understanding errors in my code that were being caught in the linter. 
+
+**What would you do differently if you started over?**
+I would take more time to learn about the specific linting and evaluation metrics for git so that my implementation doesn't get interrrupted by me spending a lot of time trying to rewrite code to pass evaluation when I could have written the code while being more aware of how the linter would evaluate it from the start.
+
+**What are you most proud of from this module?**
+I am the most proud of experiencing something new and learning about the processes of git, as well as the nature of open source contributions. 
