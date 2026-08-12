@@ -144,4 +144,105 @@ two tests require different score bands, so separating them needs term weighting
 semantic similarity rather than token counts. That's a redesign of the scoring
 layer, outside the scope of #152.*
  
-**Draft PR feedback received from:** TODO — Slack handle of whoever reviews it, or "none"
+
+
+
+## Week 10 — Iteration & reflection
+ 
+### Reviewer feedback
+ 
+**Feedback received:** [x] No — still awaiting review
+ 
+**Summary of feedback:**
+No reviewer or maintainer comments came in on the PR before the end of the week.
+  
+---
+ 
+### Reflection
+ 
+**What was harder than you expected?**
+ 
+Deciding what not to fix. I went in assuming the hard part would be writing the
+patch.
+ 
+The clearest example was `test_partial_support_returns_middle_score`, which I had
+listed in `PLAN.md` as one of the failing tests related to 152. I assumed my fix
+would make it pass. It didn't, and once I worked through why, it turned out it
+couldn't. Its input feedback is a single sentence, so `_extract_claims()` returns
+one claim, and since `check()` computes `supported / len(claims)` over a
+boolean, the only reachable scores are 0.0 and 1.0 while the test asserts a value
+strictly between 0.2 and 0.8. No change confined to `_is_supported()` can satisfy
+it. I spent real time trying graded-scoring designs before noticing that the claim
+in that test is numerically identical to the one in
+`test_feedback_with_no_support_in_context` under token overlap, six meaningful
+tokens, one overlapping, seven-token context, while the two tests demand different
+score bands. Separating them needs term weighting or semantic similarity, not a
+better threshold.
+ 
+Working that out and then choosing to write it up rather than fix it felt wrong
+at first. 
+ 
+The same thing happened with 153. It's a `TypeError` in the same file, in the
+method directly calling the one I was fixing, and it's a one-line change,
+`chunk.get("text", "")` returns `None` when the key exists with a `None` value.
+Everything about it invited me to just fix it while I was in there. Keeping the PR
+to one issue was a deliberate choice I had to keep re-making.
+ 
+**What did you learn about working in a large codebase?**
+ 
+That "the tests pass" doesn't mean what it means on a personal project. When I ran
+`make test-unit` on this repo I got 51 failures across files I'd never opened. I first had to
+establish a *baseline*: capture the failure list on `main`, capture it on my branch,
+and diff them, so I could demonstrate that my two remaining failures predated me
+and that nothing new appeared. The standard isn't "everything is green," it's
+"you didn't make it worse," and proving the second one is its own piece of work.
+ 
+The other thing I didn't anticipate was how much the tooling enforces conventions
+that the code itself doesn't follow. I added five tests to
+`tests/unit/test_faithfulness_checker.py` and pre-commit refused the commit with 30
+mypy errors and a ruff `F841` — almost all of them in tests written long before I
+touched the file, which had never been type-annotated. Pre-commit only checks files
+you've changed, so touching one file made me responsible for its entire backlog.
+I hadn't considered that the cost of a change includes the accumulated debt of
+whatever you happen to touch.
+ 
+**How did AI tools help — and where did they fall short?**
+ 
+Most useful for orientation and for pressure-testing my reasoning. Getting oriented
+in `rag/evaluator/` and understanding what `_is_supported()` was actually doing went
+much faster. It was also good at generating the first draft of the
+regression tests and at articulating the design tradeoff. Where it fell short: it
+can't tell you whether something is *true of your repo*. It confidently described
+what my test results would be, and the actual numbers were different. 
+I had 51 repo-wide failures, not the handful predicted. Anything
+grounded in the real state of the codebase had to come from
+running the commands myself. The turning point on the
+`test_partial_support_returns_middle_score` question only came from reconstructing
+the module and running it, not from reasoning about it.
+ 
+It was also least useful on the parts that weren't code. I didn't know how to open
+a pull request, and that's not a knowledge gap AI closed for me quickly. It's a
+sequence of specific actions in a specific UI, where knowing that the base repository
+dropdown has to say `ascherj/pathreview` and not my own fork matters more than
+anything about the patch. I lost more time to workflow mechanics than to the bug.
+ 
+**What would you do differently if you started over?**
+ 
+Learn the submission mechanics in Week 7, not Week 9. I lost the full 20 points on
+last week's deliverable, and it wasn't because the fix was wrong — the fix was
+committed and pushed. It was because I didn't have `JOURNAL.md` check-ins written
+and I didn't understand that the PR was accessible by way of link.
+The engineering was the part I was most worried about and the part that went
+fine. The process was the part I messed up on.
+ 
+I'd also run `make test-unit` and `make check` on `main` on day one and write the
+output down. I ran them for the first time when I was ready to commit, which meant
+I couldn't immediately tell which failures were mine. Ten minutes of baseline
+capture at the start would have saved an hour of uncertainty at the end.
+  
+**What are you most proud of from this module?**
+ 
+I'm most proud of managing this codebase and figuring out what exactly this issue is
+revolving around and how to go about solving it. 
+I got a lot of experience in engineering a solution. Writing unit tests also requires a deep
+understanding of the possibilities, which required great focus. 
