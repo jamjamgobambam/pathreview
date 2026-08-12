@@ -118,3 +118,81 @@ pre-existing unrelated lint errors documented in PR description)
 unrelated failures documented in PR description)
 
 **Draft PR feedback received from:** [pending -- update once received]
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No -- still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback came in on PR #944. I also posted in Slack for
+peer/mentor feedback ahead of finalizing, but did not receive a response
+before the Week 9 deadline. Per the Su26 note, maintainer review is not a
+feature this term.
+
+**How you responded:**
+N/A -- no feedback received. Proceeded with self-review (make check,
+make test-unit) as the basis for marking the PR ready for review.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Environment setup ate more time than the actual bug fix. I hit npm not
+being installed, then a Postgres connection refusal at backend startup
+that I never fully resolved -- I ended up working around it since the
+faithfulness checker module didn't actually need the full app stack
+running to test. I also lost time to small terminal mistakes that had
+nothing to do with the logic of the fix: a branch name with spaces in it
+that git tried to parse as separate arguments, and a case-sensitive
+filename mismatch (journal.md vs JOURNAL.md) that made an entire commit
+go through empty without me noticing until I checked git show --stat.
+None of that was hard in a "hard problem" sense, but it was a real
+reminder that a big share of real development time goes to environment
+and tooling friction, not writing code.
+
+**What did you learn about working in a large codebase?**
+My first fix attempt was wrong, and it took running the actual test suite
+to find out. I initially just scaled the "require 2 overlapping tokens"
+threshold down based on the claim's own length, but that didn't hold up
+against the real test cases -- "Knows Python" still failed because it has
+2 meaningful tokens even though only 1 of them appears in context. I only
+caught this by tracing through the actual existing test file, not by
+reasoning about the bug in isolation. That was the biggest lesson: in a
+codebase with existing tests, the tests define correct behavior more
+precisely than the issue description does, and you have to run them, not
+just read them, to know if you're actually done. I also learned that
+"passing" doesn't mean "the whole test suite is green" -- make test-unit
+showed 49 pre-existing failures completely unrelated to my change, and
+the actual bar was "did I introduce any new failures," not "is everything
+passing."
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for quickly writing boilerplate (the reproduction
+script, the PLAN.md structure, the PR description) and for helping me
+understand git/terminal errors I didn't recognize, like the branch-name
+parsing failure or the pre-commit hook segfault. Where it fell short: my
+first proposed fix was plausible-sounding but wrong, because it was
+reasoned from the issue description and one example rather than the
+actual test suite. It only got corrected once I ran the real tests and
+fed the failures back in. That's a pattern I want to remember -- AI
+suggestions on logic fixes need to be verified against real test runs, not
+accepted because the explanation sounds right.
+
+**What would you do differently if you started over?**
+I'd read the actual source file in full before writing PLAN.md, rather
+than filling in "[confirm]" placeholders based on the issue description
+alone -- I ended up doing this anyway once I had the real file, but doing
+it earlier would have saved a revision pass. I'd also try to resolve the
+Postgres setup issue directly instead of routing around it, since I never
+confirmed whether it would have mattered for a different issue that
+actually touched the API/DB layer.
+
+**What are you most proud of from this module?**
+Catching my own wrong fix. The first version looked reasonable and even
+matched my mental model of the bug, but running the real test suite
+proved it incomplete, and I was able to diagnose exactly why (claim token
+count vs. actual context overlap) and land a version that passed all 22
+tests instead of just patching it until the one repro case worked.
