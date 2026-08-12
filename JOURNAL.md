@@ -59,3 +59,33 @@ None — no test files were touched. Verified manually by running `docker compos
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
 **Draft PR feedback received from:** none 
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** No feedbacck received
+
+**Summary of feedback:** NA
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hard part was not having clarity about whether to add llm proxy service or not. because, the code did not have any to begin with.
+
+**What did you learn about working in a large codebase?**
+It is difficult to navigate a large codebase. But with the help of AI it's easier to locate where the code changes goes and why.
+
+**How did AI tools help — and where did they fall short?**
+AI tools helped me with integration of LiteLLM as a proxy service with the rest of the application.
+
+**What would you do differently if you started over?**
+I would work on multiple open source issues to gain more understanding of the entire project.
+
+**What are you most proud of from this module?**
+This project helped me gain confidence to contribute to actual open source repos.
