@@ -34,6 +34,54 @@ class TestStructuralChunker:
         assert isinstance(result[0], Chunk)
         assert all(isinstance(c, Chunk) for c in result)
 
+    def test_short_no_heading_doc_produces_single_level0_chunk(self, chunker):
+        """Short heading-less text yields exactly one level-0 chunk (#149)."""
+        text = "This is a single short line of plain text without headings."
+        result = chunker.chunk(text, {})
+
+        assert len(result) == 1
+        chunk = result[0]
+        assert chunk.text.strip()
+        # Heading-less content is emitted with an empty path at level 0.
+        assert chunk.metadata["heading_path"] == ""
+        assert chunk.metadata["heading_level"] == 0
+
+    def test_long_no_heading_doc_sub_chunked(self, chunker):
+        """Long heading-less text (> 800 tokens) is sub-chunked (#149)."""
+        # ~14 tokens per repetition * 100 (~1300 tokens) > 800 token limit.
+        text = "This is a paragraph with a fair amount of content in it. " * 100
+        result = chunker.chunk(text, {})
+
+        assert len(result) > 1
+        assert all(isinstance(c, Chunk) for c in result)
+        assert all(c.text.strip() for c in result)
+
+    def test_no_heading_doc_preserves_source_metadata(self, chunker):
+        """Source metadata is preserved on the heading-less path (#149)."""
+        text = "Plain text without any markdown headings. " * 20
+        result = chunker.chunk(text, {"source": "notes", "version": 2})
+
+        assert len(result) >= 1
+        for chunk in result:
+            assert chunk.metadata["source"] == "notes"
+            assert chunk.metadata["version"] == 2
+
+    def test_preamble_before_first_heading_not_dropped(self, chunker):
+        """Content before the first heading is retained, not dropped (#149)."""
+        text = """Preamble text that appears before any heading.
+
+# First Heading
+Content under the first heading.
+"""
+        result = chunker.chunk(text, {})
+
+        assert len(result) >= 2
+        # A level-0 (empty heading_path) section carries the preamble.
+        assert any(c.metadata["heading_path"] == "" for c in result)
+        assert any("Preamble" in c.text for c in result)
+        # The heading section is still present and unchanged.
+        assert any(c.metadata.get("heading_path") == "First Heading" for c in result)
+
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
         text = """# Main Title
