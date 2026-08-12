@@ -2,8 +2,8 @@
 
 import pytest
 
-from ingestion.chunking.structural_chunker import StructuralChunker
 from ingestion.chunking.base import Chunk
+from ingestion.chunking.structural_chunker import StructuralChunker
 
 
 @pytest.mark.unit
@@ -33,6 +33,50 @@ class TestStructuralChunker:
         assert len(result) >= 1
         assert isinstance(result[0], Chunk)
         assert all(isinstance(c, Chunk) for c in result)
+
+    def test_headingless_doc_over_token_limit(self, chunker):
+        """Headingless text over the section token limit is sub-chunked, not dropped."""
+        # ~200 repetitions is comfortably over SECTION_TOKEN_LIMIT (800 tokens).
+        text = "This is plain text without any markdown headings. " * 200
+        result = chunker.chunk(text, {"source": "test"})
+
+        # A single headingless section larger than the limit routes through the
+        # semantic chunker and yields multiple chunks, none of them empty.
+        assert len(result) >= 2
+        assert all(isinstance(c, Chunk) for c in result)
+        assert all(c.text.strip() for c in result)
+
+    def test_preamble_before_first_heading_preserved(self, chunker):
+        """Content before the first heading is kept as its own chunk, not dropped."""
+        text = """Intro paragraph before any heading.
+# First Heading
+Body under the first heading.
+"""
+        result = chunker.chunk(text, {"source": "test"})
+
+        # The preamble must survive as its own headingless chunk...
+        preamble = next(c for c in result if "Intro paragraph before any heading." in c.text)
+        assert preamble.metadata.get("heading_path") == ""
+        # ...while the heading section is still produced normally.
+        assert any(c.metadata.get("heading_path") == "First Heading" for c in result)
+
+    def test_whitespace_only_preamble_emits_no_empty_chunk(self, chunker):
+        """Whitespace-only content before the first heading must not create a chunk."""
+        text = "\n\n   \n# Heading\nBody under the heading.\n"
+        result = chunker.chunk(text, {"source": "test"})
+
+        # No empty/whitespace-only chunks, and no chunk with an empty heading_path
+        # (the blank preamble should be dropped, not emitted as a headingless chunk).
+        assert all(c.text.strip() for c in result)
+        assert all(c.metadata.get("heading_path") != "" for c in result)
+
+    def test_single_heading_no_body(self, chunker):
+        """A lone heading with no body does not crash or emit an empty chunk."""
+        result = chunker.chunk("# Heading Only", {"source": "test"})
+
+        assert isinstance(result, list)
+        # No chunk should have empty/whitespace-only text.
+        assert all(c.text.strip() for c in result)
 
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
@@ -82,6 +126,8 @@ Content under grandchild.
                     # Should have " > " as separator if it has parent
                     found_path = True
                     assert isinstance(path, str)
+
+        assert found_path
 
     def test_large_section_sub_chunked(self, chunker):
         """Test large section (> 800 tokens) gets sub-chunked."""
@@ -172,6 +218,8 @@ Content here.
                 # Should contain the hierarchy
                 if "Installation" in path or "Prerequisites" in path:
                     found_full_path = True
+
+        assert found_full_path
 
     def test_chunks_have_text_content(self, chunker):
         """Test that all chunks have text content."""
