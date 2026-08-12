@@ -97,3 +97,64 @@ stale Redis keys are dropped, within-run memoization still works, and
 `make check` / `make test-unit` still report many pre-existing failures in
 unrelated modules (bias detector, resume parser, tech detector, etc.); this
 change does not introduce new failures in those areas.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No maintainer or peer review comments on
+https://github.com/ascherj/pathreview/pull/954 as of Week 10 (Su26: reviewer
+feedback is not provided this term). PR remains open with empty review/comment
+threads.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Local setup took longer than the bug itself. Getting Docker Desktop installed
+and Postgres/Redis healthy blocked `make setup` / `make run` early in Week 7,
+so I spent hours on environment plumbing before I could even confirm the app at
+localhost:5173. On the code side, the issue looked like a simple Redis clear in
+`session_store.py`, but reproduction showed a second layer: `ContextManager`
+memoization on a long-lived `Orchestrator`. Tracing both caches and deciding
+what to clear vs. keep (within-run memoization) was subtler than the issue title
+suggested.
+
+**What did you learn about working in a large codebase?**
+In a personal project you control every call site; here I had to map how
+`Orchestrator.run()`, `ContextManager`, and `SessionStore` interact without
+breaking intentional behavior. Grepping for callers, reading existing comments
+in `orchestrator.py`, and turning Week 8 reproduction tests into regressions
+mattered more than jumping straight to a one-line fix. Full-repo `make check` /
+`make test-unit` also had many pre-existing failures unrelated to my change,
+so I learned to scope verification to the files I touched and document that
+honestly in the PR.
+
+**How did AI tools help — and where did they fall short?**
+AI was strongest for navigating unfamiliar modules, drafting PLAN.md /
+JOURNAL.md structure, scaffolding unit tests with a fake session store, and
+keeping Conventional Commit / PR template conventions consistent. It fell short
+on environment setup that needed my password and Docker Desktop UI, and it
+could oversimplify the bug as “just delete Redis” until I verified both cache
+layers myself. I still had to read the orchestrator cache path and decide the
+safe clear-at-start-of-`run()` approach.
+
+**What would you do differently if you started over?**
+I’d install and verify Docker/`make run` on day one before claiming an issue,
+and I’d spend more time in Week 7 confirming whether the API shares one
+`Orchestrator` instance per process (that open question from Week 8). I’d also
+pick an issue with fewer competing claims so review/merge odds were clearer,
+even though the Tier 1 scope of #43 was a good fit for learning.
+
+**What are you most proud of from this module?**
+Turning a failing reproduction into a small, intentional fix: clear context +
+delete session at the start of each review, persist only current-run results,
+and keep within-run memoization — with four focused regression tests that prove
+the second review actually re-runs tools.
