@@ -68,3 +68,35 @@ Note: There are pre-existing failures in unit tests before the fix of this issue
 - `.venv/Scripts/mypy.exe agent/tools/github_tool.py`
 
 **Draft PR feedback received from:** none
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Passing the checks was the most surprising piece. I did not expect to encounter type check error during committing. I got an error that was "returning any from function declared to return "bool" from the `github_tool.py`. Even though I didn't touch the production code in that file, but the type error was still caught. Everything else went smoother than expected. 
+
+**What did you learn about working in a large codebase?**
+If one thing I learned, I would say reading the docs before working on the code. Especially, the doc on architecture helped understanding how directories are organized in the codebase, which helped me understand what parts of the codebase might be relevant to the issue. This is different from my own project, because for my own projects I know how things are organized and where to look for things. In a large codebase that has many files, I think understanding the organization of the directories is part of understanding the architecture.
+
+**How did AI tools help — and where did they fall short?**
+AI was the most useful when there are errors show up, particularly when involving the `make` commands (the setup and `make check`) and in general anything with the command lines. I also personally find AI to be useful when "double checking" the work. Sometimes I manually implemented or wrote things, then asked AI what could be alternatives or what were things not covered, I found AI very useful, even sometimes more useful than generating things from zero. I think AI does a good job implementing things based on existing plan, but when I tried to use it for the planning phase, I found myself often need to modify manually or go through many rounds back and forth.
+
+**What would you do differently if you started over?**
+I think I might choose an issue that is not about writing tests, but actually fix some logic or implement some features - something that is slightly less isolated with the existing code. 
+
+**What are you most proud of from this module?**
+Getting through the whole workflow was great, and organizing the commit history to be clean to look at was very satisfying.
