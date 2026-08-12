@@ -129,3 +129,103 @@ and (2) that CONTRIBUTING.md's "squash fixup commits" guidance applies to
 superficial/debugging commits, not to real work commits, so my three conventional
 commits should stay separate. Both points are reflected in the submitted PR.
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No maintainer review has arrived on
+[PR #771](https://github.com/ascherj/pathreview/pull/771) as of the end of Week 10.
+The PR is open and marked ready for review with zero reviews submitted, no
+reviewers assigned, and no review comments. The only pre-submission feedback I
+received was the draft review from my cohort's tech fellows and my Week 9 breakout
+room group, which I documented in Check-in 2 and acted on before submitting.
+
+**How you responded:**
+Nothing to respond to yet. If a maintainer does comment, the two things I already
+flagged for them in Notes for Reviewers are where I expect it to land: the choice
+of `heading_path=""` / `heading_level=0` as the metadata for a headingless chunk
+(I offered a `"(no heading)"` alternative as a one-line change in `_build_section`),
+and whether the supporting files — `PLAN.md`, `FAILING_TESTS.md`, `JOURNAL.md`, and
+the `Makefile` `services` target — belong in the diff or should be stripped so the
+PR touches only `ingestion/` and `tests/`. I'd make either change on request.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Getting the environment running, by a wide margin — I lost more time to setup than
+to the actual bug. Docker Desktop failed on me, and my attempt to fix it by deleting
+and reinstalling the app turned into its own problem, so I was stuck debugging a
+container runtime instead of a chunker. I eventually switched to Colima
+(`brew install colima docker docker-compose`, `colima start`, then
+`docker compose up`), which suited me better anyway since I prefer working in the
+terminal over running a desktop app, and because Colima provides the same daemon
+socket `docker compose` talks to, `docker-compose.yml` worked unchanged. I hadn't
+expected "get the app running locally" to be the hardest part of contributing to
+someone else's project, but none of the issue work could start until it was solved.
+A distant second was the pre-existing test noise: `make test-unit` on `main` returns
+53 failures and `make check` returns 178 ruff errors, so before touching any code I
+had to triage them into FAILING_TESTS.md — the largest cluster being 13 failures in
+`test_review_service.py` from an `execute()` coroutine never being awaited in
+`core/services/review_service.py`, none of it related to chunking.
+
+**What did you learn about working in a large codebase?**
+The cost of a change isn't the diff size, it's the blast radius, and you can't see
+the blast radius from the file you're editing. My actual code change was small, but
+the decision that took the longest was what metadata a headingless chunk should
+carry: I had to grep every consumer of `heading_path` across `rag/` and the frontend
+before I could be confident that an empty string wouldn't render as something broken
+downstream. In my own projects I'd have just picked something and fixed the fallout
+later. The other thing that surprised me is that a green test suite doesn't mean the
+behavior is pinned — `test_heading_path_format` and `test_heading_path_breadcrumb`
+both computed a `found_path` flag and then never asserted it, so they would have
+passed even if `heading_path` had vanished entirely. I only noticed because I was
+reading them to copy their patterns.
+
+**How did AI tools help — and where did they fall short?**
+AI was genuinely fast at the tracing work: pointing me at the three interlocking
+conditions in `_extract_sections` that together caused the drop — the
+`if heading_stack or current_section_lines` guard on the content branch, the
+final-save requiring `current_section_lines and heading_stack`, and `heading_stack`
+only ever being populated inside the `if heading_match:` branch — would have taken
+me much longer alone. It was also good at drafting structure, like the PLAN.md
+sections and the PR description skeleton. Where it fell short was judgment about
+scope and conventions. It generated a `Makefile` change that wired `setup`, `run`,
+`migrate`, and `test-all` to a Colima `services` target, which solved my local
+problem but would hard-fail for any contributor who doesn't have Colima installed —
+that's a change I had to recognize as scope creep on a chunking PR, and I still had
+to disclose it rather than pretend it belonged. It also couldn't tell me whether
+`PLAN.md` and `JOURNAL.md` should be in an upstream PR or whether to squash my
+commits; both answers came from the tech fellows, who knew what this project's
+maintainers actually want. Early on it also floated a `text.split("\n")` explanation
+for the bug that I had to disprove by hand — a single line with no newline still
+yields a one-element list, so the loop runs fine and the drop is entirely about the
+missing heading match. I wrote that into PLAN.md specifically so I wouldn't
+re-litigate it.
+
+**What would you do differently if you started over?**
+Two things. First, I'd capture the failing-test and lint baseline in Week 7 when I
+picked the issue, not in Week 8 — I spent time second-guessing whether I'd broken
+something before I had a baseline to compare against, and that anxiety was entirely
+self-inflicted. Second, I'd keep the branch strictly scoped: the Colima `Makefile`
+work was real and useful, but it belonged on its own branch or its own issue, not
+committed alongside the #149 fix where it now sits in the diff needing a paragraph
+of explanation. I'd also open the draft PR on Monday or Tuesday instead of near the
+deadline — I got useful feedback from the tech fellows, but late enough that acting
+on anything substantial would have been a scramble.
+
+**What are you most proud of from this module?**
+`test_whitespace_only_preamble_emits_no_empty_chunk`. The fix works by removing a
+guard so content is always collected, and the failure mode that introduces is the
+opposite of the original bug — the fallback firing when it shouldn't and emitting
+empty chunks for blank preambles. Writing a test for the way my own fix could go
+wrong, rather than only for the behavior the issue asked for, is the part of this
+that felt like actual engineering instead of just making a red test green. The two
+dead assertions I found in the existing tests are a close second, because they were
+the moment I stopped reading the codebase as an authority and started reading it as
+something written by people under deadline pressure, same as me.
+
