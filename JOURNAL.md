@@ -110,4 +110,78 @@ the Postgres field specifically is correctly isolated from that failure.
 (both confirmed to introduce no new failures beyond the documented
 pre-existing baseline — see PR #446 description for full details)
 
-**Draft PR feedback received from:** none yet — posted in Slack for review
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review has come in. Per the course note, reviewer feedback is not a
+feature in Summer 2026 — this section is left as-is per instructions.
+
+**How you responded:**
+N/A — no feedback received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Environment setup ate way more time than I expected, and not because
+of the actual bug I was fixing. I accidentally cloned the repo a second
+time while already inside my first clone, which created two nested
+folders both named `pathreview`. I didn't notice for almost two weeks —
+I'd been running Docker, installing dependencies, and testing my fix
+inside the wrong copy, while all my git commits were landing in the
+other one. Since both folders had the exact same name, my terminal
+prompt gave me zero visual signal I was in the wrong place. I only
+caught it when `docker compose ps` and `git log` gave inconsistent
+answers about what was actually running. It taught me to always run
+`pwd` when something feels "off," instead of assuming my last `cd`
+worked the way I thought it did.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was realizing a codebase can have multiple, unrelated
+bugs living in the same function. My issue (#154) and issue #155 were
+both inside the same `health_check()` function, but I had to be
+disciplined about touching only my bug and explicitly documenting that
+I saw the other one without fixing it. I also learned that "does the
+test suite pass" isn't a yes/no question in a real project — I ran
+`make test-unit` and got 53 failing tests that had nothing to do with
+my change. Instead of panicking, I had to prove (via a `git stash`
+comparison of before/after) that none of those failures were caused by
+me, then document that clearly for a reviewer instead of just hoping
+nobody would notice.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for pattern-matching — helping me find an existing
+test file (`test_review_service.py`) to model my new test on, and for
+walking through what a SQLAlchemy 2.x `text()` error actually means
+that first time I saw it in a traceback. It also caught things I
+missed, like when my PLAN.md claimed `tests/integration/` didn't exist
+when it actually did (just empty) — a factual error I would have
+otherwise committed and had graded as-is.
+
+Where it fell short: it couldn't run my terminal for me or notice I
+was in the wrong directory — I had to actually run `pwd` and paste the
+output before either of us could diagnose the double-clone problem. It
+also couldn't tell me whether my test's mocking approach was "correct"
+in some abstract sense — I had to actually run `pytest` and read the
+real pass/fail output myself to know if it worked.
+
+**What would you do differently if you started over?**
+I'd run `pwd` immediately after every `cd` and `git clone` for the
+first few sessions, until I trusted my mental model of the folder
+structure. I'd also run the full `make check`/`make test-unit` baseline
+on the untouched codebase on day one, before writing any code — I did
+this eventually, but doing it first would have saved me from wondering
+whether failures I saw later were my fault.
+
+**What are you most proud of from this module?**
+Catching the tests/integration/ mistake in my own PLAN.md before it
+got graded. It would have been easy to leave that inaccurate claim in
+since it "sounded right" from partial exploration — going back and
+actually running `ls tests/integration/` to verify it, and correcting
+the document, felt like the most "real engineering" moment of the
+whole module.
