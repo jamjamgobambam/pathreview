@@ -18,33 +18,82 @@ class TestReadmeScorer:
         """Test README with all quality signals returns high score."""
         readme = """
         # Project Name
-        A comprehensive project description.
+
+        [![Build Status](https://example.com/badge.svg)](https://example.com/build)
+        [![Coverage](https://example.com/coverage.svg)](https://example.com/coverage)
+
+        A comprehensive project description that explains what this project does,
+        who it is for, and why it exists. This library helps developers analyze
+        portfolio repositories and generate structured, actionable feedback about
+        code quality, documentation, and overall presentation. It is designed to be
+        fast, dependency light, and easy to embed inside a larger review pipeline or
+        a continuous integration workflow that runs on every push.
+
+        ## Overview
+
+        PathReview inspects a repository and produces a set of quality signals that
+        reviewers can use to give consistent feedback. Instead of relying only on
+        subjective first impressions, the tool measures concrete attributes of a
+        project such as the presence of installation instructions, usage examples,
+        status badges, a described technology stack, and a live demo link. Each of
+        these signals contributes to an overall score between zero and one so that
+        projects can be compared fairly and improvements can be tracked over time as
+        a candidate iterates on their work and responds to review comments.
 
         ## Installation
+
+        Install the package from PyPI using pip. The project supports all currently
+        maintained versions of Python and has no heavy native dependencies, so
+        installation should complete in only a few seconds on most machines.
+
         ```bash
         pip install package
         ```
 
         ## Usage
+
+        Import the package and call the run function to score a README. The public
+        interface is intentionally small so that new users can become productive
+        quickly without first reading many pages of dense documentation.
+
         ```python
         import package
         package.run()
         ```
 
+        The scorer returns a dictionary of results that you can serialize to JSON,
+        store in a database, or render directly inside a web dashboard. Every field
+        is documented in the reference guide, and the return shape is stable across
+        minor releases so that you can safely depend on it in production code.
+
         ## Features
-        - Feature 1
-        - Feature 2
-        - Feature 3
+        - Feature 1: measures documentation completeness across many quality signals
+        - Feature 2: produces a single normalized overall score for easy comparison
+        - Feature 3: runs quickly and integrates cleanly with existing review tools
+        - Feature 4: exposes a simple, well documented, and stable return structure
+        - Feature 5: ships with an extensive suite of unit tests for confidence
 
         ## Tech Stack
-        - Python 3.9
-        - FastAPI
-        - PostgreSQL
+        - Python 3.9 and newer for the core scoring library and its command line
+        - FastAPI for the optional web service layer and its automatic documentation
+        - PostgreSQL for durable storage of historical review results over time
+        - Redis for caching expensive computations between repeated scoring runs
+        - Docker and Docker Compose for reproducible local development environments
 
-        ![Build Status](https://example.com/badge.svg)
-        ![Coverage](https://example.com/coverage.svg)
+        ## Contributing
+
+        Contributions are welcome and genuinely appreciated. Please read the
+        contributing guide before opening a pull request, run the linter and the
+        full test suite locally, and follow the conventional commit format for your
+        messages so that the changelog can be generated automatically from history.
 
         ## Live Demo
+
+        A hosted instance is available so that you can try the tool without having
+        to install anything at all on your own machine. Explore the demo, upload a
+        sample repository, and watch how the scoring works from end to end before
+        you commit to a full local setup and configuration of your own.
+
         [Try it here](https://demo.example.com)
         """
 
@@ -157,9 +206,10 @@ class TestReadmeScorer:
 
         result = scorer.execute({"readme_content": readme})
         # "Getting Started" matches the pattern
-        assert result.data["has_installation_section"] is True or result.data[
-            "has_usage_section"
-        ] is True
+        assert (
+            result.data["has_installation_section"] is True
+            or result.data["has_usage_section"] is True
+        )
 
     def test_quickstart_counts_as_usage(self, scorer):
         """Test that 'quickstart' counts as usage."""
@@ -218,7 +268,8 @@ class TestReadmeScorer:
 
     def test_overall_score_calculation(self, scorer):
         """Test that overall score aggregates components."""
-        readme = """
+        readme = (
+            """
         # Good README
 
         ## Installation
@@ -233,7 +284,9 @@ class TestReadmeScorer:
         ![Build](https://example.com/build.svg)
 
         This readme has lots of content here.
-        """ * 3  # Make it comprehensive
+        """
+            * 3
+        )  # Make it comprehensive
 
         result = scorer.execute({"readme_content": readme})
 
