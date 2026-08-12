@@ -2,8 +2,8 @@
 
 import pytest
 
-from ingestion.chunking.structural_chunker import StructuralChunker
 from ingestion.chunking.base import Chunk
+from ingestion.chunking.structural_chunker import StructuralChunker
 
 
 @pytest.mark.unit
@@ -11,43 +11,48 @@ class TestStructuralChunker:
     """Test suite for StructuralChunker."""
 
     @pytest.fixture
-    def chunker(self):
+    def chunker(self) -> StructuralChunker:
         """Create a StructuralChunker instance."""
         return StructuralChunker()
 
-    def test_empty_input_returns_empty_list(self, chunker):
+    def test_empty_input_returns_empty_list(self, chunker: StructuralChunker) -> None:
         """Test that empty input returns empty list."""
         result = chunker.chunk("", {})
         assert result == []
 
-    def test_whitespace_only_input(self, chunker):
+    def test_whitespace_only_input(self, chunker: StructuralChunker) -> None:
         """Test that whitespace-only input returns empty list."""
         result = chunker.chunk("   \n\n  ", {})
         assert result == []
 
-    def test_document_with_no_headings(self, chunker):
+    def test_document_with_no_headings(self, chunker: StructuralChunker) -> None:
         """Test document with no headings returns single chunk."""
         text = "This is plain text without any markdown headings. " * 20
         result = chunker.chunk(text, {"source": "test"})
 
         assert len(result) >= 1
         assert isinstance(result[0], Chunk)
+        # Verify that the heading-less document produces a chunk.
+        assert result[0].text == text.strip()
+        assert result[0].metadata["heading_path"] == ""
+        assert result[0].metadata["heading_level"] == 0
+        assert result[0].metadata["source"] == "test"
         assert all(isinstance(c, Chunk) for c in result)
 
-    def test_document_with_nested_headings(self, chunker):
+    def test_document_with_nested_headings(self, chunker: StructuralChunker) -> None:
         """Test document with nested headings preserves heading_path."""
         text = """# Main Title
-Content for main.
+        Content for main.
 
-## Subsection
-Content for subsection.
+        ## Subsection
+        Content for subsection.
 
-### Sub-subsection
-Content for sub-subsection.
+        ### Sub-subsection
+        Content for sub-subsection.
 
-## Another Section
-Content for another section.
-"""
+        ## Another Section
+        Content for another section.
+        """
         result = chunker.chunk(text, {"source": "test"})
 
         assert len(result) > 0
@@ -61,7 +66,7 @@ Content for another section.
                     parts = heading_path.split(" > ")
                     assert len(parts) > 0
 
-    def test_heading_path_format(self, chunker):
+    def test_heading_path_format(self, chunker: StructuralChunker) -> None:
         """Test heading_path format is Parent > Child."""
         text = """# Parent
 Content
@@ -74,27 +79,28 @@ Content under grandchild.
 """
         result = chunker.chunk(text, {})
 
-        found_path = False
         for chunk in result:
             if "heading_path" in chunk.metadata:
                 path = chunk.metadata["heading_path"]
                 if "Child" in path:
                     # Should have " > " as separator if it has parent
-                    found_path = True
                     assert isinstance(path, str)
 
-    def test_large_section_sub_chunked(self, chunker):
+    def test_large_section_sub_chunked(self, chunker: StructuralChunker) -> None:
         """Test large section (> 800 tokens) gets sub-chunked."""
         # Create a large section
-        large_section = """# Large Section
-""" + "This is a paragraph with lots of content. " * 50
+        large_section = (
+            """# Large Section
+"""
+            + "This is a paragraph with lots of content. " * 50
+        )
 
         result = chunker.chunk(large_section, {})
 
         # Should be chunked into multiple pieces
         assert len(result) > 0
 
-    def test_chunk_metadata_includes_heading_level(self, chunker):
+    def test_chunk_metadata_includes_heading_level(self, chunker: StructuralChunker) -> None:
         """Test that chunk metadata includes heading_level."""
         text = """# Level 1
 Content 1
@@ -116,7 +122,7 @@ Content 3
 
         assert has_heading_level
 
-    def test_chunk_metadata_structure(self, chunker):
+    def test_chunk_metadata_structure(self, chunker: StructuralChunker) -> None:
         """Test chunk metadata has required fields."""
         text = """# Title
 Content here.
@@ -131,7 +137,7 @@ More content.
             if "heading_path" in chunk.metadata:
                 assert isinstance(chunk.metadata["heading_path"], str)
 
-    def test_preserve_source_metadata(self, chunker):
+    def test_preserve_source_metadata(self, chunker: StructuralChunker) -> None:
         """Test that source metadata is preserved."""
         text = "# Title\nContent"
         original_metadata = {"source": "readme", "version": 1}
@@ -141,7 +147,7 @@ More content.
             assert chunk.metadata["source"] == "readme"
             assert chunk.metadata["version"] == 1
 
-    def test_multiple_h1_headings(self, chunker):
+    def test_multiple_h1_headings(self, chunker: StructuralChunker) -> None:
         """Test document with multiple H1 headings."""
         text = """# First H1
 Content for first.
@@ -156,7 +162,7 @@ Content for third.
 
         assert len(result) >= 3
 
-    def test_heading_path_breadcrumb(self, chunker):
+    def test_heading_path_breadcrumb(self, chunker: StructuralChunker) -> None:
         """Test heading path shows full breadcrumb."""
         text = """# Documentation
 ## Installation
@@ -165,29 +171,29 @@ Content here.
 """
         result = chunker.chunk(text, {})
 
-        found_full_path = False
         for chunk in result:
             if "heading_path" in chunk.metadata:
                 path = chunk.metadata["heading_path"]
                 # Should contain the hierarchy
                 if "Installation" in path or "Prerequisites" in path:
-                    found_full_path = True
+                    assert "Documentation" in path
+                    assert " > " in path  # Breadcrumb separator
 
-    def test_chunks_have_text_content(self, chunker):
+    def test_chunks_have_text_content(self, chunker: StructuralChunker) -> None:
         """Test that all chunks have text content."""
         text = """# Title
-Content paragraph 1.
+        Content paragraph 1.
 
-## Section
-Content paragraph 2.
-"""
+        ## Section
+        # Content paragraph 2.
+        # """
         result = chunker.chunk(text, {})
 
         for chunk in result:
             assert chunk.text
             assert chunk.text.strip()
 
-    def test_section_extraction_with_multiple_levels(self, chunker):
+    def test_section_extraction_with_multiple_levels(self, chunker: StructuralChunker) -> None:
         """Test section extraction with complex nesting."""
         text = """# Level 1A
 Content 1A
@@ -209,7 +215,7 @@ Content 1B
         assert len(result) > 0
         # Should handle all nesting levels
 
-    def test_heading_not_in_middle_of_content(self, chunker):
+    def test_heading_not_in_middle_of_content(self, chunker: StructuralChunker) -> None:
         """Test that headings are properly delimited from content."""
         text = """# Main Heading
 Some content goes here.
@@ -224,7 +230,7 @@ Sub content here.
             # Chunk should either start with heading content or regular content
             assert chunk.text.strip()
 
-    def test_empty_sections_handled(self, chunker):
+    def test_empty_sections_handled(self, chunker: StructuralChunker) -> None:
         """Test handling of empty sections (heading without content)."""
         text = """# Heading 1
 Content for 1
