@@ -69,3 +69,34 @@ Fixed the `/health` endpoint's false-negative Postgres probe by wrapping the raw
 Both commands surfaced pre-existing failures unrelated to this change (53 `test-unit` failures in modules like `test_review_service.py`, `test_pii_scrubber.py`, `test_resume_parser.py`; 183 pre-existing `ruff` errors; 11 pre-existing `mypy` errors, including the separate Redis config bug noted in Week 8). Confirmed via `git stash` that the exact same failure counts exist on the base commit, so none of these were introduced by this change — documented in the PR description.
 
 **Draft PR feedback received from:** none yet — PR opened as draft, requesting peer/mentor review before finalizing.
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No comments or reviews on PR #805 as of this entry (confirmed via `gh pr view 805 --json comments,reviews` — both empty, state still `OPEN`). Per the course note, reviewer feedback isn't a feature this term, so this is expected rather than a sign the PR was overlooked.
+
+**How you responded:**
+N/A — no feedback to respond to. I did not make any additional changes to the PR this week beyond the Week 9 submission.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Verifying the fix without a real Postgres instance was the persistent friction point. My dev environment didn't have the Docker/Postgres stack running, so both the reproduction test and the fix verification were against an in-memory SQLite `AsyncSession` instead of the actual asyncpg driver the bug lived in. `sqlalchemy.text()` behaves consistently across dialects for a trivial `SELECT 1`, so I'm fairly confident the fix is correct, but I never got to watch the exact failure-then-fix cycle against the real database the issue was filed against. That gap between "verified in a substitute environment" and "verified in production conditions" is a distinction I didn't think much about before this module — in my own projects I usually just have the one environment, so there was no substitute to reason about.
+
+**What did you learn about working in a large codebase?**
+The biggest lesson was that a one-line bug fix is rarely actually one line of work. The real effort went into: confirming the bug reproduces before touching anything (Week 8), reading `core/config.py` and `core/database.py` to make sure nothing downstream depended on the old (broken) return value of `db.execute()`, and — critically — running the full check suite and diffing the failure counts against the base commit via `git stash` to prove I wasn't responsible for the 53 pre-existing `test-unit` failures or 183 pre-existing `ruff` errors. In my own projects a failing test suite means something I broke; in this codebase it could just as easily be pre-existing debt, and the only way to tell the difference is to check the baseline. I also learned to draw a hard scope boundary — finding the Redis `settings.redis_host`/`redis_port` bug while reading the Postgres probe was tempting to just fix inline, but bundling an unrelated bug into a titled, single-purpose issue would have made the PR harder to review and muddied the blame trail if either fix needed to be reverted later.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for the mechanical, well-defined parts: tracing the exception path through the `try/except Exception` block to explain *why* the ArgumentError got silently converted into a misleading "unhealthy" status, and quickly cross-referencing SQLAlchemy 1.x vs 2.x behavior for textual SQL so I could write an accurate root-cause summary instead of just pattern-matching a fix. It fell short on anything that required actually running code against the real stack — I still had to be the one to notice the Docker/Postgres gap, decide the SQLite substitution was an acceptable risk to document rather than a blocker, and make the judgment call to flag the Redis bug separately instead of fixing it. Those are exactly the kinds of scope and risk decisions that need a human anchored in the actual constraints of the environment and the review process, not just the code.
+
+**What would you do differently if you started over?**
+I'd try harder in Week 7-8 to get the Docker/Postgres stack running locally before committing to the issue, even if it meant losing time up front, so the reproduction and fix verification in the PR wouldn't carry an asterisk. I'd also open the PR as non-draft (or at least ping for review) earlier in Week 9 rather than waiting until the fix, tests, and self-review were all fully polished — since reviewer feedback wasn't guaranteed this term anyway, there was no real cost to getting eyes on it sooner, and in a real team setting an earlier draft often surfaces exactly the kind of environment-gap issue I hit.
+
+**What are you most proud of from this module?**
+Catching and correctly triaging the Redis config bug. It would have been easy to either miss it entirely (it's not what the issue title mentions) or to scope-creep the PR by silently fixing it alongside the Postgres change. Instead I documented it clearly in Week 8's journal entry and PLAN.md's risks section, and made a deliberate, explained call to keep it out of this PR's scope — which is the kind of judgment call that separates "made the tests pass" from "understood the system well enough to know what shouldn't change."
