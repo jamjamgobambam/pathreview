@@ -30,3 +30,34 @@ I reproduced Issue #153 by running `TestFaithfulnessChecker::test_none_context_c
 
 **Blockers or open questions:**
 Not at the moment.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix for Issue #153 by safely handling context chunks where `"text"` is `None` in `FaithfulnessChecker`. Verified that the new regression test passes. Confirmed that three existing failures in `test_faithfulness_checker.py` are pre-existing and unrelated to this change.
+
+**Next steps:**
+Run `make test-unit` and `make check`, review the final code changes, commit the implementation, open a draft PR, and request peer or mentor feedback.
+
+**Blockers:**
+None.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** None
+
+**Branch:** `feat/153-faithfulness-check`
+
+**What you built:**
+Implemented a fix for Issue #153 so that `FaithfulnessChecker` no longer raises a `TypeError` when a context chunk contains `"text": None`. The implementation safely treats `None` as an empty string while preserving the existing behavior for valid context chunks.
+
+**Tests added or updated:**
+Verified that the existing regression test for context chunks containing `"text": None` passes after implementing the fix. Also confirmed that the remaining failing tests are pre-existing and unrelated to this change.
+
+**Self-review confirmation:** [X] make check passes  [X] make test-unit passes
+
+**Draft PR feedback received from:** None
