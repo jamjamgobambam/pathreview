@@ -57,3 +57,22 @@ Wired `ToneChecker` into `ReviewGenerator.generate_section()` — the original g
 **Self-review confirmation:** [x] tests for this issue (`test_content_filter.py`, `test_review_generator_tone_check.py`) pass — 8/8  [x] no new lint or test failures introduced vs. `main`
 
 **Draft PR feedback received from:** None
+
+## Week 10 — Iteration & reflection
+
+**PR link:** https://github.com/ascherj/pathreview/pull/1013
+
+**Review feedback status:** No reviews or comments have been left on the PR as of this writing. Nothing to respond to yet.
+
+**Reflection:**
+
+I chose issue #69 (feedback tone check) because it was scoped enough to understand in an afternoon but still touched two modules, safety/ and rag/generator/, which forced me to actually trace how a feature moves through the codebase instead of just patching one file in isolation.
+
+The most useful moment was writing the reproduction test before touching any implementation. It made the vague issue description concrete: I could point to the exact line in ContentFilter.filter() where harsh-but-not-harmful feedback slipped through, instead of just describing the problem abstractly. That test also became the backbone for my later tests, since I extended the same file instead of starting from scratch.
+
+The trickiest design decision was the retry logic in generate_section(). My first instinct was to just flag failing sections and move on, but that would let bad tone reach users anyway. I ended up capping retries at 2 and falling back to the last attempt with a lowered confidence score and a logged warning, rather than looping forever or silently failing. I'm still not fully confident the tone classification prompt is tuned correctly (too strict could reject valid critical feedback, too lenient defeats the purpose), which is the open question I left on the PR.
+
+If I were starting over with what I know now, I'd write the retry/fallback test cases before writing the retry logic itself, rather than after. I found the edge cases (empty content, repeated failures) while implementing, not while planning, and PLAN.md would have been stronger if I'd thought through those cases up front instead of discovering them mid-build.
+
+**Blockers or open questions:**
+Waiting on maintainer review, no feedback received yet at time of submission.
