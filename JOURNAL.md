@@ -154,3 +154,28 @@ sections.
 *(Scoped to files touched by this PR: `ruff check`, `black --check`, and `mypy` all pass clean on `ingestion/parsers/resume_parser.py` and `tests/unit/test_resume_parser.py`. The repo has pre-existing, unrelated failures in both `make test-unit` — 50 failing tests across ~15 other modules — and `make typecheck` — 5 errors from missing/incompatible type stubs — that predate this PR and are unaffected by it; documented in the PR description. Ran individual check-mode commands rather than literal `make check`, since its `format` step runs bare `black .` — no `--check` — which would have reformatted unrelated files repo-wide.)*
 
 **Draft PR feedback received from:** [none yet — PR was moved from draft to ready for review from my own account after peer/mentor feedback was requested in Slack and no one reviewed it]
+
+## Week 10 — Iteration & Reflection
+
+**Reviewer feedback received:** [ ] Yes  [x] No
+
+**Feedback summary / response:**
+[No review arrived on PR #401 (https://github.com/ascherj/pathreview/pull/401) before the course ended. I checked the PR directly today (Aug 13): it's open, not draft, mergeable, with zero reviews and zero comments — same state it's been in since I marked it ready for review in Week 9. I'd requested peer/mentor review in Slack but no one picked it up in the window available. Nothing to respond to, so I'm noting it and moving on, per the Week 10 instructions.]
+
+### Reflection
+
+**1. What was harder than you expected?**
+[Telling the difference between "my bug" and "a bug that happens to be sitting next to my bug" was harder than I expected. While fixing `_detect_sections()`, I found that `test_parse_markdown_resume` and `test_strip_markdown_syntax` were failing for a related reason — the same category of anchoring issue, but in `_strip_markdown()`'s header regex, not in the function my issue was actually about. It was tempting to just fix it since I was already in the file, but issue #147 was scoped to section detection, so I documented it in the PR description instead. I also didn't expect to have to reverse-engineer the Makefile: `make check`'s format step runs bare `black .` with no `--check`, which would have reformatted the entire repo instead of just the two files I touched, so I had to run `ruff`, `black --check`, and `mypy` individually, scoped to my files, instead of trusting the documented command.]
+
+**2. What did you learn about working in a large codebase?**
+[A clean-looking local fix isn't enough evidence on its own — I had to run the full `tests/unit` suite before and after my change (53 failed/375 passed → 50 failed/383 passed) to actually show the fix worked and introduced zero regressions, rather than just pointing at the 3 tests I already knew about. I also learned to respect the boundary of a single-issue PR: this repo has 130 open issues across tier-1/2/3, and it would be easy to let a fix sprawl into "also fixed while I was here." Scoping the change to exactly `_detect_sections()` in `ingestion/parsers/resume_parser.py`, and writing the adjacent `_strip_markdown()` bug down instead of touching it, felt like the actual skill being tested — not the regex itself.]
+
+**3. How did AI tools help — and where did they fall short?**
+[AI tools were most useful for stress-testing the regex change before I wrote it — walking through why `[ \t]*` (not `\s*`) was the right anchor, since `\s*` matches newlines and could let the pattern skip a blank line and falsely anchor to a header several lines down. That reasoning is what shaped the "Risks & unknowns" and "Edge cases" sections in my PLAN.md, and it's why I added the false-positive test (`test_detect_sections_ignores_indented_body_text`) before touching the implementation. Where it fell short: it couldn't tell me how `pypdf`'s `extract_text()` actually represents indentation across different real-world PDF producers — that's an empirical question about a specific library's behavior, not something reasoning alone resolves — so I left it flagged as an open unknown in PLAN.md rather than assuming my test coverage was complete.]
+
+**4. What would you do differently if you started over?**
+[I'd open the draft PR by Check-in 1 instead of waiting until right before Check-in 2. Doing it that way meant there was almost no real calendar time left for anyone to actually review it before I had to move it to ready-for-review myself — the review cycle never really got a chance to happen. I'd also check upfront whether a repo's documented `make check` command is safe to run as-is (vs. reformatting unrelated files) before relying on it, instead of discovering the `black .` issue mid-task.]
+
+**5. What are you most proud of?**
+[Holding the fix to exactly what issue #147 asked for, even after finding a second, related bug I could have folded in. Documenting it instead of fixing the second bug, and backing the PR description with real before/after numbers (53/375 → 50/383) instead of just asserting "tests pass," is the kind of evidence-over-assertion habit I want interviewers to see when they ask about this project.]
+
