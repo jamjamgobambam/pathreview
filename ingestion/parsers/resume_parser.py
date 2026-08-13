@@ -5,7 +5,6 @@ from pypdf import PdfReader
 
 from .base import BaseParser, ParseResult
 
-
 SECTION_HEADERS = {
     "experience",
     "education",
@@ -75,7 +74,7 @@ class ResumeParser(BaseParser):
                 source_type="resume",
             )
         except Exception as e:
-            raise ValueError(f"Failed to parse PDF: {str(e)}")
+            raise ValueError(f"Failed to parse PDF: {str(e)}") from e
 
     def _parse_markdown(self, content: str) -> ParseResult:
         """Extract text from markdown resume, stripping markdown syntax."""
@@ -96,10 +95,45 @@ class ResumeParser(BaseParser):
             source_type="resume",
         )
 
+    def extract_sections(self, text: str) -> dict[str, list[str]]:
+        """
+        Extract content for detected resume sections into a mapping.
+
+        Returns:
+            Dict mapping lower-cased section headers to lists of line strings.
+            Guarantees default empty lists for all standard section headers to prevent
+            KeyError/IndexError.
+        """
+        sections: dict[str, list[str]] = {header: [] for header in SECTION_HEADERS}
+        current_section = None
+
+        for line in text.split("\n"):
+            clean_line = line.strip().lower()
+            # Strip markdown headers if present
+            clean_line = re.sub(r"^#+\s*", "", clean_line).strip()
+
+            # Check if line matches a known section header
+            matched_header = None
+            for header in SECTION_HEADERS:
+                if (
+                    clean_line == header
+                    or clean_line.startswith(f"{header}:")
+                    or clean_line.startswith(f"{header}-")
+                ):
+                    matched_header = header
+                    break
+
+            if matched_header:
+                current_section = matched_header
+            elif current_section and line.strip():
+                sections[current_section].append(line.strip())
+
+        return sections
+
     def _strip_markdown(self, content: str) -> str:
         """Remove markdown syntax from content."""
-        # Remove markdown headers
-        text = re.sub(r"^#+\s+", "", content, flags=re.MULTILINE)
+        # Remove markdown headers (handling leading whitespace)
+        text = re.sub(r"^\s*#+\s*", "", content, flags=re.MULTILINE)
 
         # Remove markdown links [text](url)
         text = re.sub(r"\[([^\]]+)\]\(([^\)]+)\)", r"\1", text)
@@ -130,12 +164,15 @@ class ResumeParser(BaseParser):
         text_lower = text.lower()
 
         for section in SECTION_HEADERS:
-            # Look for section header patterns
+            # Look for section header patterns (with optional leading whitespace
+            # or markdown heading markers)
             patterns = [
-                rf"^{re.escape(section)}\s*$",
-                rf"^{re.escape(section)}\s*[:|-]",
-                rf"\n{re.escape(section)}\s*$",
-                rf"\n{re.escape(section)}\s*[:|-]",
+                rf"^\s*{re.escape(section)}\s*$",
+                rf"^\s*{re.escape(section)}\s*[:|-]",
+                rf"\n\s*{re.escape(section)}\s*$",
+                rf"\n\s*{re.escape(section)}\s*[:|-]",
+                rf"^\s*#+\s*{re.escape(section)}",
+                rf"\n\s*#+\s*{re.escape(section)}",
             ]
 
             for pattern in patterns:

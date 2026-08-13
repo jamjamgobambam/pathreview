@@ -1,11 +1,11 @@
 """Tests for resume_parser.py"""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
+from unittest.mock import Mock, patch
 
-from ingestion.parsers.resume_parser import ResumeParser
+import pytest
+
 from ingestion.parsers.base import ParseResult
+from ingestion.parsers.resume_parser import ResumeParser
 
 
 @pytest.mark.unit
@@ -181,3 +181,15 @@ class TestResumeParser:
         assert "John Doe" in result.text
         assert "Software Engineer" in result.text
         assert "Python" in result.text
+
+    def test_extract_sections_no_experience(self, parser):
+        """Test extract_sections handles missing experience section without IndexError."""
+        resume_text = """
+        Jane Doe
+        Education:
+        - BS in CS
+        """
+        sections = parser.extract_sections(resume_text)
+        assert "experience" in sections
+        assert isinstance(sections["experience"], list)
+        assert len(sections["experience"]) == 0
