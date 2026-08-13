@@ -61,3 +61,35 @@ Verified that the existing regression test for context chunks containing `"text"
 **Self-review confirmation:** [X] make check passes  [X] make test-unit passes
 
 **Draft PR feedback received from:** None
+
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback received yet.
+
+**How you responded:**
+None.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Working with Git and GitHub was harder than I expected. I ran into several issues with staging, committing, pushing, and creating a pull request, and relied on AI to help me troubleshoot the workflow step by step.
+
+**What did you learn about working in a large codebase?**
+I learned that contributing to a large codebase is very different from working on a personal project. There are many existing issues to choose from, and contributions are expected to be small, focused, and reviewed by others before they are merged.
+
+**How did AI tools help — and where did they fall short?**
+AI was very helpful for understanding the issue, navigating the repository, explaining Git workflows, and debugging environment and tooling problems. However, it could not reliably determine whether project-wide test failures were pre-existing or caused by my changes without me verifying the results manually.
+
+**What would you do differently if you started over?**
+I would choose a different issue, possibly from another tier, to experience a different type of contribution. I would also spend more time becoming familiar with the repository and Git workflow before starting implementation.
+
+**What are you most proud of from this module?**
+I'm most proud of becoming comfortable with the overall GitHub contribution workflow—from reproducing an issue and implementing a fix to creating a pull request and participating in the open-source review process.
