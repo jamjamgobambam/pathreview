@@ -48,7 +48,7 @@ None.
 
 ### Check-in 2 (end of week)
 
-**PR link:** None
+**PR link:** https://github.com/ascherj/pathreview/pull/1033 
 
 **Branch:** `feat/153-faithfulness-check`
 
