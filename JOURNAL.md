@@ -60,4 +60,35 @@ Added `test_extract_sections_no_experience` to `tests/unit/test_resume_parser.py
 
 **Draft PR feedback received from:** none
 
+---
 
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was received by the end of the week.
+
+**How you responded:**
+N/A — awaiting maintainer review.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Navigating edge cases in text parsing and regular expression section matching across heterogeneous resume layouts was harder than anticipated. Ensuring section header detection didn't accidentally misclassify custom headings (like "Projects" or "Volunteer Experience") while robustly handling resumes completely missing standard sections required careful regex tuning and boundary testing.
+
+**What did you learn about working in a large codebase?**
+I learned the critical importance of defensive programming and preserving strict public API contracts in production codebases. In a larger project, small assumptions like expecting a dictionary key or list index `0` to always exist can cascade into unexpected runtime failures downstream in ingestion pipelines. Reading architectural docs, writing targeted unit tests, and adhering to established project standards ensure contributions integrate smoothly without regressions.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were exceptionally useful for rapid code exploration, generating boilerplate unit test cases for missing sections, and structuring step-by-step reproduction plans. However, AI fell short in identifying subtle domain-specific edge cases, such as handling malformed markdown headers with leading whitespace or trailing punctuation, requiring manual code inspection, debugging, and verification against actual test payloads.
+
+**What would you do differently if you started over?**
+If starting over, I would invest more time up front creating a broader suite of edge-case test payloads—including totally blank documents, unconventional heading titles, and non-standard markdown—before implementing the fix. Having an exhaustive reproduction test suite early in the cycle makes refining regex patterns and fallback structures much faster and safer.
+
+**What are you most proud of from this module?**
+I am most proud of taking an open-ended bug report (`IndexError` on missing work experience) and delivering a clean, fully tested, and resilient fix backed by thorough documentation and passing unit tests.
