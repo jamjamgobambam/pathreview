@@ -1,13 +1,14 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
@@ -40,8 +41,8 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
     return result.scalars().first()
@@ -133,7 +134,11 @@ async def process_review(
         )
 
         # Step 3: Run agent orchestration
-        agent_output = await _run_agent_orchestration(profile, ingestion_results)
+        agent_output = await _run_agent_orchestration(
+            profile,
+            ingestion_results,
+            review_id,
+        )
         log.info(
             "agent_orchestration_completed",
             review_id=str(review_id),
@@ -279,9 +284,19 @@ async def _run_ingestion_pipeline(db, profile: Profile) -> list[dict]:
     return sources
 
 
-async def _run_agent_orchestration(profile: Profile, ingestion_results: list[dict]) -> dict:
+async def _run_agent_orchestration(
+    profile: Profile,
+    ingestion_results: list[dict],
+    review_id: UUID,
+) -> dict:
     """
-    Run agent orchestration to analyze ingested data.
+    Run agent orchestration to analyze ingested data for one review.
+
+    Args:
+        profile: Profile being reviewed.
+        ingestion_results: Data extracted from the profile's sources.
+        review_id: Review identifier used to isolate persisted agent state.
+
     Returns agent output with initial analysis.
     """
     # Placeholder: actual agent orchestration logic
