@@ -83,3 +83,31 @@ Added `tests/unit/test_review_routes.py` with 8 tests covering an empty profile 
 Both commands fail on `main` for reasons unrelated to this issue, and my changes introduce no new failures. `make check` reported 182 ruff errors before and 181 after — one lower because I removed an unused `Review` import from the file I edited. `make test-unit` reported 53 failed / 376 passed before and 53 failed / 383 passed after: the same 53 failures, plus my 8 new tests, minus the removed reproduction test.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [*] No — still awaiting review
+
+**Summary of feedback:**
+No Review yet still pending.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Choosing the right method to implement the fix without disturbing/ causing issues in the rest of the codebase was the most difficult part.Within my fix i had the choice that i could make changes at any one of the layers in the pipeline and my fix would be implemented the choice i made revolved around what would add minimum overhead to the codebase.
+**What did you learn about working in a large codebase?**
+I learnt about the formal notations, file formating.storage strategies, naming conventions and learnt how to use git better. overall it helped me improve my profeciency in dealing with production level codebases.
+**How did AI tools help — and where did they fall short?**
+One big issue i noticed was AI has a large knowledge bank and it can solve the problem i give it too but there were situations in which if it did not have enough relevant context, it used totally different tools/modules/strategies than the format of the codebase.
+**What would you do differently if you started over?**
+i would have myself write down the codebase natigation step. i noticed that my fix depended heavily on how good i knew the workings of the review ingestion pipeline, so next time i wouuld create a small diagram or chart on my notebook noting down key processes and data elements, i believe this would help me a lot.
+
+**What are you most proud of from this module?**
+It was my firt time dealing with Pr and an actual non-personal codebase it was something that i was scared of because the whole process was foreign. 
