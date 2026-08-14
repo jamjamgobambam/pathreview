@@ -63,3 +63,34 @@ Updated `tests/unit/test_session_state_reproduction.py`, added `tests/unit/test_
 The repository retains documented baseline failures; issue-specific tests pass and no new failures were introduced.
 
 **Draft PR feedback received from:** pending
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer or maintainer feedback came in during Summer 2026. The course note says reviewer feedback is not provided this term, so there were no comments to address before the module deadline.
+
+**How you responded:**
+
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was tracing the session identifier through the application instead of treating the Redis key as an isolated bug. The reproduction was straightforward: two reviews for `profile-42` wrote to the same `session:profile-42` key. The more subtle work was finding the boundary where `review_id` was available, confirming that the service path actually passed it to orchestration, and preserving compatibility for existing callers of `Orchestrator.run()`. The repository's baseline lint, type-check, test, and offline model-download failures also made it harder to distinguish issue-specific regressions from unrelated problems.
+
+**What did you learn about working in a large codebase?**
+In someone else's production code, the correct fix is defined by existing boundaries and contracts, not just by what makes one failing test pass. A profile is the subject of a review, but it is not necessarily the right namespace for state produced by that review. I had to understand the relationship between `process_review()`, `Orchestrator.run()`, `SessionStore`, and the tests before changing the keying behavior. I also learned that documenting baseline failures and testing at multiple boundaries is part of the contribution: it gives maintainers confidence that the change is intentional and that unrelated repository issues were not silently attributed to the PR.
+
+**How did AI tools help — and where did they fall short?**
+AI assistance was most useful for quickly mapping the repository, identifying the likely propagation path, suggesting focused regression cases, and helping compare the implementation against the reproduction. It helped me move from the symptom—stale state—to a testable invariant: two reviews for one profile must produce two review-specific session keys. It fell short of replacing judgment about the codebase's actual contracts. I still had to inspect the real call sites, notice the placeholder orchestration path, decide how to handle backward compatibility, interpret pre-existing failures, and verify that the tests exercised the production boundary rather than only a mocked helper. AI-generated suggestions were useful starting points, but they were not evidence that the whole repository was healthy.
+
+**What would you do differently if you started over?**
+I would trace the complete production call path and run the narrowest relevant tests earlier, before spending as much time on broad repository checks. I would also define the review-scoped session invariant in the initial plan with an explicit table of inputs and Redis keys, then use that table to guide both implementation and tests. Finally, I would reserve time to inspect the final diff and working tree more deliberately; unrelated generated or dependency-lock changes can create noise in a contribution even when they are not part of the fix.
+
+**What are you most proud of from this module?**
+I am most proud of turning a vague state-isolation concern into a reproducible failure and then carrying the same behavior through the service, orchestrator, persistence, and regression tests. The final change is small, but it addresses a real cross-review data-isolation bug and makes the intended ownership of session state explicit: the review identifier, rather than the profile identifier, owns the persisted agent state.
