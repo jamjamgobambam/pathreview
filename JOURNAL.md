@@ -128,3 +128,36 @@ I updated `tests/unit/test_review_service.py` to add a regression test for unaut
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review feedback received by the end of the week.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Understanding the codebase structure was more challenging than I anticipated. The project has many interconnected files and components, and I had to trace dependencies across the `core/services/`, `api/routes/`, and test directories to fully understand where the vulnerability existed and how my fix would affect the system. Writing tests that covered both the happy path and edge cases—like ensuring that `create_review()` correctly rejects cross-user requests—required careful thought about what scenarios to test. Fixing the edge case where the ownership validation needed to integrate cleanly with existing error handling was also trickier than expected.
+
+**What did you learn about working in a large codebase?**
+I learned that large codebases are deeply interconnected—every component depends on others toward a common goal. This means that even a small change (like adding ownership validation) can have ripple effects across tests, error handling, and possibly other services. I realized that changing just one line or one function signature could inadvertently break the entire system if I didn't understand the full dependency chain. It reinforced the importance of reading related code carefully, tracing how data flows through services and routes, and writing regression tests to catch unintended side effects.
+
+**How did AI tools help — and where did they fall short?**
+AI was most helpful for understanding the overall codebase structure and breaking down what the vulnerability was. It helped me navigate the files, understand the problem statement, and think through the solution approach. However, AI tools struggled with the nuanced decision-making required to actually solve the problem—like deciding whether to return 404 vs 403, understanding the security implications of each choice, and ensuring my fix didn't break existing workflows. I had to research security best practices and trace the code flow myself to make those decisions confidently.
+
+**What would you do differently if you started over?**
+I would spend more time on issue selection and planning upfront. Looking back, I'd want to choose an issue that gave me clearer scope boundaries or one where the fix was more straightforward. I'd also plan out the entire solution—including all the tests and edge cases—before diving into the code. This would have reduced the back-and-forth of discovering new dependencies or realizing I needed to handle edge cases I hadn't anticipated.
+
+**What are you most proud of from this module?**
+I'm proud that I was able to complete the full contribution cycle from issue selection through PR submission. Despite the complexity of the codebase and the challenges understanding all the moving parts, I successfully identified a real security vulnerability, reproduced it, fixed it, added proper tests, and followed best practices in submitting my work. The fact that I persisted through the confusion of understanding a large unfamiliar codebase and delivered a working fix is something I can point to.
