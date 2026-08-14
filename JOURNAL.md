@@ -132,9 +132,9 @@ commits on this branch.
 **Feedback received:** [ ] Yes  [x] No — still awaiting review
 
 **Summary of feedback:**
-As of August 4, 2026, [PR #548](https://github.com/ascherj/pathreview/pull/548) is open
-and marked as requiring review, with no reviews or comments. No review came in before I
-completed this reflection.
+As of August 14, 2026, [PR #548](https://github.com/ascherj/pathreview/pull/548) is open
+and marked as requiring review, with no reviews or comments. Reviewer feedback is not
+provided in Summer 2026, so no review came in by the end of the week.
 
 **How you responded:**
 
