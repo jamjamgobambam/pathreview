@@ -23,7 +23,9 @@ class TestReviewService:
         session.add = Mock()
         session.commit = AsyncMock()
         session.refresh = AsyncMock()
-        session.execute = AsyncMock()
+        result = Mock()
+        result.scalars.return_value.first.return_value = Mock()
+        session.execute = AsyncMock(return_value=result)
         return session
 
     @pytest.fixture
@@ -67,6 +69,31 @@ class TestReviewService:
             MockReview.assert_called()
             call_kwargs = MockReview.call_args[1]
             assert call_kwargs['status'] == "pending"
+            mock_db_session.execute.assert_awaited_once()
+
+    @pytest.mark.security
+    @pytest.mark.asyncio
+    async def test_create_review_rejects_profile_owned_by_another_user(
+        self, mock_db_session
+    ):
+        """Reproduce #163: callers must not create reviews for another user's profile."""
+        another_users_profile_id = uuid4()
+        current_user_id = uuid4()
+
+        # An ownership-scoped profile lookup returns no profile for the current user.
+        mock_result = Mock()
+        mock_result.scalars.return_value.first.return_value = None
+        mock_db_session.execute = AsyncMock(return_value=mock_result)
+
+        result = await create_review(
+            mock_db_session,
+            another_users_profile_id,
+            current_user_id,
+        )
+
+        assert result is None
+        mock_db_session.add.assert_not_called()
+        mock_db_session.commit.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_get_review_returns_review_for_correct_owner(self, mock_db_session):
