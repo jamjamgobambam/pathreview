@@ -77,7 +77,7 @@ None. (Local Postgres wasn't running so I verified the migration is linear
 
 ### Check-in 2 (end of week)
 
-**PR link:** <!-- TODO: paste the PR URL after opening it against ascherj/pathreview -->
+**PR link:** https://github.com/ascherj/pathreview/compare/main...sujalusa:pathreview:feat/32-portfolio-query-cache?expand=1
 
 **Branch:** `feat/32-portfolio-query-cache`
 
@@ -101,3 +101,77 @@ files are ruff/black clean and my new functions are mypy-clean; test-unit stays 
 53 pre-existing failures with 6 new passing tests. -->
 
 **Draft PR feedback received from:** none yet (draft PR to be shared in Slack)
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was provided this term (Summer 2026 does not include peer/
+mentor PR review). The PR was opened against the upstream repo and submitted; no
+comments came in to respond to.
+
+**How you responded:**
+N/A — no feedback to address. If I were iterating, the first thing I'd revisit
+from my own self-review is adding an integration test that applies migration
+`003` and exercises the cache hit path against a real Postgres session, since my
+unit tests mock the DB.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Proving my change didn't make things worse in an already-broken codebase was far
+harder than writing the fix itself. When I ran the baseline, `main` was deeply
+red: 182 ruff errors, 52 files unformatted, mypy failing, and 53 failing unit
+tests. So "does it pass?" became "does it pass *relative to baseline?*". Concretely,
+my new cache tests ran alongside 13 failures in `test_review_service.py`, and I
+had to `git stash` my source changes and re-run that file against the original
+code to confirm those 13 were pre-existing and not mine. That verification loop —
+not the caching logic — ate most of my time. The pre-commit `mypy` hook also
+blocked commits on pre-existing type debt, so I had to consciously `SKIP=mypy`
+and document why, rather than "fixing" errors that weren't mine.
+
+**What did you learn about working in a large codebase?**
+The biggest shift from my own projects is that I don't get to trust the ground I'm
+standing on. In my own code, green means green; here, the existing tests were
+themselves broken (the async DB mocks raised "coroutine was never awaited"), so I
+couldn't just copy the nearest test pattern — I had to build a cleaner stateful
+mock and patch `_find_cached_review` directly instead of faking opaque SQLAlchemy
+statements. I also learned to respect boundaries: the disciplined move was to make
+*only* my touched files clean and leave the repo-wide debt alone, because a PR
+that also reformats 52 unrelated files is unreviewable. Matching conventions
+(commit scopes, the `002` migration pattern, Google-style docstrings) mattered
+more than being clever.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for orientation and mechanical correctness: quickly reading
+`review_service.py` + the models + the migration pattern to locate the exact root
+cause (`process_review` unconditionally re-running the pipeline), and scaffolding
+the migration, hash helper, and test boilerplate in the house style. It fell short
+on judgment calls that depended on *this* assignment's rules — e.g., deciding that
+53 pre-existing test failures were acceptable to leave, or that the compare/PR
+step needed a human because `gh` wasn't installed and auth is interactive. It also
+couldn't close the runtime loop: the local Postgres container was down, so neither
+I nor the tooling could actually apply migration `003` end-to-end — that gap is
+real and only a running environment (or an integration test) fixes it.
+
+**What would you do differently if you started over?**
+I'd run `make check` and `make test-unit` on day one of Week 7, before reproduction,
+so I'd know the baseline was red going in instead of discovering it mid-implementation
+in Week 9 — it would have reshaped how I framed "passing" from the start. I'd also
+open the draft PR earlier (Week 8, right after the reproduction) to get eyes on the
+approach before building, and I'd stand up the Postgres container so I could apply
+the migration and add one integration test rather than relying entirely on mocked
+DB sessions.
+
+**What are you most proud of from this module?**
+The reproduction-first discipline. In Week 8 I wrote an `xfail(strict=True)` test
+that pinned the exact gap and stayed green in CI; in Week 9 that same test flipped
+to passing the moment the cache landed, giving me an objective before/after proof
+that the fix does what the issue asked. Pairing that with a documented baseline so
+I could honestly claim "zero new failures" in a broken repo felt like real
+engineering, not just getting code to run.
