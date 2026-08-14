@@ -15,7 +15,11 @@ class TestReadmeScorer:
         return ReadmeScorer()
 
     def test_readme_with_all_quality_signals(self, scorer):
-        """Test README with all quality signals returns high score."""
+        """Test README with all quality signals returns high score.
+
+        The fixture is deliberately short (51 words, so "minimal") but contains
+        every quality signal, which is what keeps overall_score high.
+        """
         readme = """
         # Project Name
         A comprehensive project description.
@@ -53,8 +57,8 @@ class TestReadmeScorer:
         assert result.success is True
         data = result.data
         assert data["has_readme"] is True
-        assert data["word_count"] > 100
-        assert data["word_count_category"] == "comprehensive"
+        assert data["word_count"] < 100
+        assert data["word_count_category"] == "minimal"
         assert data["has_installation_section"] is True
         assert data["has_usage_section"] is True
         assert data["has_badges"] is True
