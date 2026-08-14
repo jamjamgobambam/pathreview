@@ -214,3 +214,57 @@ both are ticked because they "introduce no new failures" as per the instructions
   so it collects 0 tests and exits 5. all documented in the PR.
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [X] No — still awaiting review
+
+**Summary of feedback:**
+[What did reviewers comment on? Or note that no review came in.]
+
+N/A
+
+**How you responded:**
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
+
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+[Be specific — what part of the process, codebase, or workflow
+surprised you?]
+
+Setting the project up was harder than expected. Following someone else's setup instructions is very different from bootstrapping a project of my own. And most of my early debugging was environment work rather than issue work.
+
+**What did you learn about working in a large codebase?**
+[What's different about contributing to someone else's production code
+vs. building your own project?]
+
+I learned that existing conventions outrank my own preferences, so the first thing to read is the documentation the maintainers wrote for contributors: `README.md`, `CONTRIBUTING.md`, `PULL_REQUEST_TEMPLATE.md` and the issue templates. I also learned to scope tightly. In my own project I would have "just fixed" the failing test however seemed quickest; here I had to establish which side was actually wrong, and reading `agent/tools/readme_scorer.py` showed the two assertions were mutually unsatisfiable (`> 100` words is still "adequate" until 500), which meant the test was buggy and the scorer was correct. Changing the fixture would have hidden that.
+
+The other difference is that a large codebase is not green. 52 unit tests were already failing across 15 unrelated files, so instead of checking for a passing test suite, I had to check that my changes did not change anything other than the intended tests instead. I ran the suite before and after and diffed the failure sets to show this. In my own project I would never have needed that distinction.
+
+**How did AI tools help — and where did they fall short?**
+[Where was AI assistance most useful this module? Where did you need
+to go beyond what AI could give you?]
+
+AI was most useful at the two ends of the work: unblocking me during environment setup, where the errors were unfamiliar and largely mechanical, and sketching candidate solutions once I had already framed the problem. 
+
+**What would you do differently if you started over?**
+[Issue selection, planning, implementation, or process — anything
+you'd change?]
+
+Two things, in order. First, read the contributor documentation and the tooling config end to end before writing any code. Second, capture a full baseline test run before touching anything, so "pre-existing failure" is a recorded fact rather than something I have to reconstruct later.
+
+On process, I would also start the reproduction earlier in the week. The fix itself was two lines; nearly all the real time went into setup, verification and writing up the pre-existing failures, and I under-budgeted for that.
+
+**What are you most proud of from this module?**
+[One thing — it doesn't have to be the PR itself.]
+
+I navigated the codebase and located the files in scope for issue #156 on my own, without AI. That mattered more than the size of the diff: it meant I could read `readme_scorer.py` closely enough to see that the two assertions could never both hold, and therefore argue that the test was wrong rather than the fixture. Being able to get up to speed in someone else's codebase and reason about intent from the code itself is the skill I most wanted from this module.
