@@ -1,24 +1,38 @@
-# Contribution Journal - PathReview
+## Week 7 - Issue Selection
 
-## Week 7 - Issue Selection & Problem Understanding
+**Issue link:** https://github.com/ascherj/pathreview/issues/146
 
-### Issue Selected
+**Issue title:** PII scrubber fails to redact parenthesized US phone numbers
 
-- **Issue:** [#146 - PII scrubber fails to redact parenthesized US phone numbers](https://github.com/ascherj/pathreview/issues/146)
-- **Tier:** Tier 1, labeled `good first issue`
-- **Labels:** `bug`, `safety`, `tier-1`, `good first issue`
-- **Subsystem:** Safety layer
-- **Primary file:** `safety/pii_scrubber.py`
-- **Test file:** `tests/unit/test_pii_scrubber.py`
-- **Branch name:** `fix/146-pii-parenthesized-phone`
+**Tier:** [x] Tier 1  [ ] Tier 2  [ ] Tier 3
 
-### Problem Summary
+**Labels:** `bug`, `safety`, `tier-1`, `good first issue`
 
-PathReview has a safety component called `PIIScrubber` that is supposed to redact personally identifiable information from text. The bug I chose is that the scrubber catches some US phone-number formats, such as `555-123-4567`, but misses the very common parenthesized format `(555) 123-4567`. That means `scrub()` can return text that still contains a phone number, and `detect()` can report no PII even though a phone number is present. A successful fix should make parenthesized US phone numbers redact and detect consistently without breaking already-supported phone formats or causing false positives on unrelated numbers.
+**Subsystem:** Safety layer
+
+**Primary file:** `safety/pii_scrubber.py`
+
+**Test file:** `tests/unit/test_pii_scrubber.py`
+
+**Problem summary:**
+PathReview has a safety component called `PIIScrubber` that is supposed to redact personally identifiable information from text before the text moves through the rest of the app. The bug I chose is that the scrubber catches some US phone-number formats, such as `555-123-4567`, but misses the very common parenthesized format `(555) 123-4567`. The broken behavior is that `scrub()` can return text that still contains a phone number, and `detect()` can report no PII even though a valid phone number is present. A successful fix should make parenthesized US phone numbers redact and detect consistently while preserving already-supported formats and avoiding false positives on unrelated numbers.
+
+**Branch name:** `fix/146-pii-parenthesized-phone`
+
+**Setup confirmation:** [x] App/repo environment set up locally and Python tests runnable. The focused PII scrubber test command was run locally, and the failing reproduction output was committed in `docs/repro-146.txt`.
+
+**Cohort ledger:** [x] Issue selected for my Module 3 PathReview work; if the course ledger requires manual entry, this is the issue/branch to record.
 
 ### Why This Issue Is a Good Fit
 
-This is a good Tier 1 issue because it is important but tightly scoped. The bug affects privacy/safety behavior, so the outcome matters, but the likely implementation is contained to one regex in `safety/pii_scrubber.py` plus focused tests in `tests/unit/test_pii_scrubber.py`. The issue also has a clear reproduction and objective success criteria: the existing phone tests should pass after the fix.
+I chose a Tier 1 issue because this was my first contribution cycle in the PathReview codebase, so I wanted an issue with a small code surface and a clear way to verify success. This issue is important but tightly scoped: it affects privacy/safety behavior, but the likely implementation is contained to one regex in `safety/pii_scrubber.py` plus focused tests in `tests/unit/test_pii_scrubber.py`. It also has a clear reproduction and objective success criteria, because the existing phone tests show the parenthesized-number failure and should pass after the fix.
+
+### Issue Fit Checklist
+
+- **Scoped enough for a first contribution:** Yes. The code target is the `phone_us` regex in `PIIScrubber.PII_PATTERNS`, not a cross-system feature.
+- **Understandable behavior:** Yes. The current behavior misses `(555) 123-4567`; the correct behavior is to redact and detect that full phone number.
+- **Testable definition of done:** Yes. The focused tests in `tests/unit/test_pii_scrubber.py` provide a direct way to prove the bug exists and later prove it is fixed.
+- **Main risk identified:** Yes. The fix must not make the regex so broad that it starts matching SSNs, version numbers, or long numeric identifiers.
 
 ### Setup Confirmation
 
@@ -26,7 +40,7 @@ This is a good Tier 1 issue because it is important but tightly scoped. The bug 
 - Working branch: `fix/146-pii-parenthesized-phone`
 - Local environment: repository cloned and Python test environment available
 - Setup evidence: the focused PII scrubber tests were run locally and their failing output was committed in `docs/repro-146.txt`
-
+- Student-authored setup/progress commits are visible on this branch, including `14e5fb0` for the failing reproduction and later journal/planning commits.
 ## Week 8 - Reproduction & Solution Planning
 
 **Reproduction commit link:** [14e5fb0 - test: capture failing phone-redaction tests reproducing #146](https://github.com/somtizle/pathreview/commit/14e5fb0ee94ba2621dee5d5ed2c952c8643957d4)
