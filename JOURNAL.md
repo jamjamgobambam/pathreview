@@ -75,11 +75,9 @@ With that decided, steps 1–4 of my PLAN.md are done:
 
 ### Check-in 2 (end of week)
 
-**PR link:** [link to your submitted pull request]
+**PR link:** https://github.com/ascherj/pathreview/pull/1034
 
 **Branch:** `feat/129-ci-migration-validation`
-
-> **One blank left:** the PR link above. Delete this note once it's filled in.
 
 **What you built:**
 A `validate-migrations` CI job that runs every migration against a fresh, empty Postgres and then checks the resulting schema against the SQLAlchemy models, so drifted or broken migrations fail the PR instead of getting found by hand later. It also fixes the one piece of drift that was already in the repo: the `User` model now declares the `uq_users_email` constraint that migration 001 has been creating all along.
