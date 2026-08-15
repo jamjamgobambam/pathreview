@@ -145,14 +145,32 @@ Then step 5 of my plan — confirming it actually goes red, not just green:
 
 ---
 
-### Still unverified (must confirm before I submit)
+### CI verification (dry-run PR in my own fork)
 
-Local runs can't prove any of these. Each one is a way the Actions run could fail on
-the first push, which is the risk I already flagged in Week 7:
+Rather than find out on the real PR, I opened a PR from my branch into my own fork's
+`main`, which fires the identical workflow on GitHub's runners without touching
+upstream. Checking off the list of things local runs couldn't prove:
 
-- [ ] The workflow YAML parses and the `validate-migrations` job actually appears in the PR checks.
-- [ ] The Postgres **service container** comes up and the health check passes. Locally I used the already-running compose database on port 5433; CI starts its own on 5432. That port and the container wiring are untested.
-- [ ] `pip install -e ".[dev]"` succeeds on CI's **Python 3.11**. I ran everything on 3.12 locally, with newer versions of alembic, ruff and black than CI resolves.
-- [ ] `scripts/validate_migrations.sh` is **executable in the checkout**. It's `+x` on my machine, but if git records it as mode `100644` the step dies with "permission denied".
-- [ ] The job **fails the PR** when a migration is bad. I proved the script exits non-zero locally; I haven't seen GitHub turn that into a red check.
+- [x] The workflow YAML parses and `validate-migrations` appears in the checks list.
+- [x] The Postgres **service container** comes up and passes its health check (`postgres service is healthy` after ~6s). Locally I used the compose database on port 5433; CI started its own on 5432.
+- [x] `pip install -e ".[dev]"` succeeds on **Python 3.11.15** (I'd only built on 3.12), including asyncpg 0.31.0 and alembic 1.19.1.
+- [x] `scripts/validate_migrations.sh` is **executable in the checkout** — the `100755` mode survived, the step ran rather than dying on "permission denied".
+- [x] Both migrations applied to the fresh CI database and `alembic check` reported **"No new upgrade operations detected."** The whole job took 1m 1s.
+- [ ] The job **fails the PR** when a migration is bad. Still only proven locally (exit 255 on injected drift); I haven't watched GitHub turn that into a red check.
 - [ ] `make check` / `make test-unit` run as the graders will run them (needs a populated `.venv`).
+
+**The overall run is red, but not because of my changes.** Five other jobs fail, and
+I checked each log for my three files:
+
+| Job | Result | Mine? |
+|---|---|---|
+| `validate-migrations` | ✅ passed | — |
+| `lint` | ❌ 182 ruff errors | No — same 182 as my baseline, and neither `core/models/user.py` nor `tests/unit/test_migrations.py` appears anywhere in the output |
+| `typecheck` | ❌ 99 mypy errors in 25 files | No — `core/models/user.py` is not among them |
+| `test-unit` | ❌ 53 failed / 383 passed | No — exactly my baseline, and all 8 of my new tests **passed on CI** |
+| `test-integration` | ❌ exit code 5 | No — `collected 0 items`, "no tests ran"; the integration directory has no tests to run |
+| `frontend` | ❌ 2 suites | No — a missing `@testing-library/user-event` dependency and a `ReviewSection` assertion |
+
+This is the strongest version of the "no new failures" claim: not "it looks the same on
+my laptop" but "the same jobs fail in the same way on CI, and none of the failures name
+a file I touched."

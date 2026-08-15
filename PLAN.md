@@ -42,8 +42,26 @@ Output: a CI job that passes when the migrations apply cleanly and match the mod
 - New migrations that other people add later. The job runs the whole chain up to `head`, not a fixed revision.
 - Things autogenerate can miss, like some server defaults or check constraints. `alembic check` catches the common drift but not everything, which is worth knowing.
 
-### Update (Week 9)
+### Update (Week 9) — Step 3 decision
 
-Step 3 decided: I updated the `User` model rather than adding a drop-constraint migration. The migration is what every existing database already has, so declaring the constraint in `__table_args__` matches reality without changing anyone's schema, and keeps this a CI-only PR.
+Week 8 feedback pointed out that I left step 3 as an open question instead of committing to a direction. Writing it up properly as a decision:
 
-One thing I didn't plan for: the repo has its own `alembic/` package directory, which shadows the installed `alembic` when the repo root is on `sys.path`. That doesn't affect the script or the CI job (the `alembic` CLI is fine), but it meant my unit tests had to read the migration files with `ast` instead of importing them.
+**The two options:**
+
+| | Update the model | Add a drop-constraint migration |
+|---|---|---|
+| What it does | Declares `uq_users_email` in `__table_args__` so the model matches what migration 001 builds | Adds a migration dropping the constraint so the database matches the current model |
+| Effect on existing databases | None — the constraint is already there | Real schema change, runs against production data |
+| Effect on email uniqueness | Unchanged; the column's `unique=True, index=True` still makes a unique index | Unchanged, for the same reason |
+| Cost | One slightly redundant declaration (constraint *and* unique index) | A migration to review, plus a rollback path |
+| Scope | Keeps this a CI-only PR | Turns a CI PR into a data-layer PR |
+
+**Decision: update the model.** The constraint already exists in every database the migrations have touched, so declaring it makes the model describe reality. The alternative changes real schemas to satisfy a check I'm adding in the same PR, which is a lot of blast radius for a tooling change. Reviewers looking at a CI issue won't be expecting a production schema change, and the smallest honest fix keeps the diff on topic.
+
+**What would make me revisit it:** if a reviewer says the redundancy (a named unique constraint plus a unique index on the same column) is worse than the migration, I'd switch — the fix is roughly the same size either way, and they know the deployment story better than I do. I'd also revisit if it turned out some environment had the migrations applied *without* the constraint, since then the model would be describing something that isn't universally true.
+
+**Trade-off I'm accepting:** Postgres now has two overlapping guarantees on `users.email`. That's mild redundancy, not a correctness problem, and it's the state the database has been in the whole time — I'm making the model honest about it rather than introducing it.
+
+### Update (Week 9) — unplanned discovery
+
+The repo has its own `alembic/` package directory, which shadows the installed `alembic` when the repo root is on `sys.path`. That doesn't affect the script or the CI job (the `alembic` CLI is fine), but it meant my unit tests had to read the migration files with `ast` instead of importing them.
