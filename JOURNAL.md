@@ -79,10 +79,7 @@ With that decided, steps 1–4 of my PLAN.md are done:
 
 **Branch:** `feat/129-ci-migration-validation`
 
-> **Two blanks left before submitting:** the PR link above, and the peer-review
-> name at the bottom. Everything else in this entry is verified — the job has
-> run on GitHub Actions and been confirmed both green and red (see the CI
-> verification section below). Delete this note once those two are filled in.
+> **One blank left:** the PR link above. Delete this note once it's filled in.
 
 **What you built:**
 A `validate-migrations` CI job that runs every migration against a fresh, empty Postgres and then checks the resulting schema against the SQLAlchemy models, so drifted or broken migrations fail the PR instead of getting found by hand later. It also fixes the one piece of drift that was already in the repo: the `User` model now declares the `uq_users_email` constraint that migration 001 has been creating all along.
@@ -122,7 +119,7 @@ This repo already fails its lint and unit-test checks on `main`, so I recorded a
 
 The 53 failures are the same test ids before and after, and the +8 passing are my new tests. `ruff` and `black` are clean on the two files I touched. My changes introduce no new failures.
 
-**Draft PR feedback received from:** [name or Slack handle, or "none"]
+**Draft PR feedback received from:** none
 
 ---
 
