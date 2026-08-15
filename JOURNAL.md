@@ -105,9 +105,34 @@ to this issue. My changes introduce no new failures — the count is 53 before a
 after, my 10 new tests all pass, and mypy/ruff/black are clean on every file I
 touched (enforced by the pre-commit hook)._
 
-**Draft PR feedback received from:** none yet (draft opened for peer review in Slack)
+**Draft PR feedback received from:** none yet (draft opened for peer review )
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [•] No — still awaiting review
+
+**Summary of feedback:**
+No review came in
+
+[What changes did you make, or what did you reply? If no feedback,
+leave blank.]
 
 ---
 
-## Week 10 — Reflection
-(To be completed)
+### Reflection
+
+**What was harder than you expected?**
+The complexity of the architecture and how different pieces each play a different role. II had to study each file to understand the logic and that took some time 
+
+**What did you learn about working in a large codebase?**
+It’s so much fun working in a codebase because the organization of logic is really fascinating and collaboration itself is enjoyable
+
+**How did AI tools help — and where did they fall short?**
+I used Claude Code to deeply understand the codebase and how each piece fits into the puzzle. I also used it for debugging and understanding error messages
+
+**What would you do differently if you started over?**
+I wouldn’t change anything. The experience itself, to me, was very fruitful. 
+**What are you most proud of from this module?**
+It was my first time navigating through a monolithic codebase and so, having to contribute in a manner like I would in an industry setting was very fulfilling for me.
