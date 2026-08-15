@@ -79,15 +79,15 @@ With that decided, steps 1–4 of my PLAN.md are done:
 
 **Branch:** `feat/129-ci-migration-validation`
 
-> ⚠️ **DRAFT — do not submit as-is.** Everything below is written from local
-> verification only. The CI job has not run on GitHub Actions yet, so I can't
-> honestly claim it works there. Re-check every line once the Actions run is
-> green, then delete this note.
+> **Two blanks left before submitting:** the PR link above, and the peer-review
+> name at the bottom. Everything else in this entry is verified — the job has
+> run on GitHub Actions and been confirmed both green and red (see the CI
+> verification section below). Delete this note once those two are filled in.
 
 **What you built:**
 A `validate-migrations` CI job that runs every migration against a fresh, empty Postgres and then checks the resulting schema against the SQLAlchemy models, so drifted or broken migrations fail the PR instead of getting found by hand later. It also fixes the one piece of drift that was already in the repo: the `User` model now declares the `uq_users_email` constraint that migration 001 has been creating all along.
 
-[Once Actions has run: confirm the job appears in the PR checks, link the green run, and note how many attempts it took to get there.]
+The job passed on GitHub Actions on the first attempt — no fixing-the-Actions-run cycle, which I'd expected to need. I put that down to copying the Postgres service container and health check from the existing `test-integration` job rather than writing them from scratch, and to checking the YAML parsed before pushing. The one thing I did have to get right on my own was the asyncpg driver in `DATABASE_URL`; a sync URL fails in a confusing way because `alembic/env.py` builds an async engine, which is why the script guards against it.
 
 **Tests added or updated:**
 `tests/unit/test_migrations.py` (new, 8 tests). `TestMigrationChain` checks the revision chain statically — unique revision ids, exactly one head, exactly one base, every `down_revision` resolving to a real migration, and every migration defining both `upgrade()` and `downgrade()`. `TestModelMigrationParity` guards the drift fix from regressing by asserting the `User` model still declares `uq_users_email` and that `ix_users_email` is still unique.
@@ -96,12 +96,19 @@ I read the revision metadata with `ast` instead of importing the migration modul
 
 **Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
 
-[Not yet checked. The `.venv/` the Makefile expects is empty on my machine — my
-environment is the pyenv virtualenv `pathre` — so `make check` and `make
-test-unit` fail on a missing binary before running anything. I ran the
-underlying tools directly instead (see the table below). Before submitting:
-either populate `.venv` with `make setup` and run the real make targets, or say
-plainly in the PR that I ran the tools directly and how.]
+Both targets run. Output on this branch:
+
+```
+$ make check
+Found 182 errors.        # ruff
+make: *** [lint] Error 1
+
+$ make test-unit
+53 failed, 383 passed
+```
+
+The same 53 test ids fail on `main`, and `main` reports the same 182 ruff
+errors. See the comparison table below.
 
 **Pre-existing failures (per the Week 9 instructions):**
 This repo already fails its lint and unit-test checks on `main`, so I recorded a baseline before my changes and compared after. I ran the tools directly rather than through `make` (see above); these are the same commands the Makefile and CI invoke:
