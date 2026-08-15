@@ -363,3 +363,44 @@ class TestTechDetector:
 
         data = result.data
         # Should detect C++ (from .cpp files)
+
+    def test_node_modules_lookalike_filename_not_excluded(self, detector:TechDetector) -> None:
+        """Test a filename that merely contains 'node_modules' as a
+        substring (not a real directory segment) is NOT excluded."""
+        files = [
+            "src/node_modules_helper.py",
+            "utils.py",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        # This file should be COUNTED, not skipped, since "node_modules"
+        # here is part of the filename, not a real directory.
+        assert data["primary_language"] == "Python"
+
+    def test_build_vendor_file_excluded(self, detector:TechDetector) -> None:
+        """Test a file directly inside build/ (e.g. build/vendor.js) is
+        excluded, matching the issue's reproduction example."""
+        files = [
+            "main.py",
+            "build/vendor.js",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"
+
+    def test_windows_backslash_paths_excluded(self, detector:TechDetector) -> None:
+        """Test that vendored directories are still excluded when the
+        path uses Windows-style backslashes instead of forward slashes."""
+        files = [
+            "src\\main.py",
+            "node_modules\\lib\\index.js",
+        ]
+
+        result = detector.execute({"files": files})
+
+        data = result.data
+        assert data["primary_language"] == "Python"

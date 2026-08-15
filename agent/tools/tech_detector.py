@@ -1,6 +1,7 @@
 """Technology stack detector tool."""
 
 import structlog
+
 from .base import BaseTool, ToolResult
 
 logger = structlog.get_logger()
@@ -75,7 +76,7 @@ class TechDetector(BaseTool):
                     "primary_language": "Unknown",
                     "all_languages": [],
                     "frameworks": [],
-                }
+                },
             )
 
         try:
@@ -84,11 +85,7 @@ class TechDetector(BaseTool):
 
         except Exception as e:
             logger.error("tech_detector_error", error=str(e))
-            return ToolResult(
-                success=False,
-                data={},
-                error=str(e)
-            )
+            return ToolResult(success=False, data={}, error=str(e))
 
     def _detect_tech(self, files: list[str]) -> dict:
         """Detect technologies from file list.
@@ -100,10 +97,7 @@ class TechDetector(BaseTool):
             Dict with detected languages and frameworks
         """
         # Filter out vendor/build directories
-        filtered_files = [
-            f for f in files
-            if not self._should_skip_file(f)
-        ]
+        filtered_files = [f for f in files if not self._should_skip_file(f)]
 
         languages = set()
         frameworks = set()
@@ -131,8 +125,12 @@ class TechDetector(BaseTool):
         all_languages = sorted(languages)
         all_frameworks = sorted(frameworks)
 
-        logger.info("tech_detected", primary_lang=primary,
-                   languages_count=len(all_languages), frameworks_count=len(all_frameworks))
+        logger.info(
+            "tech_detected",
+            primary_lang=primary,
+            languages_count=len(all_languages),
+            frameworks_count=len(all_frameworks),
+        )
 
         return {
             "primary_language": primary,
@@ -150,15 +148,23 @@ class TechDetector(BaseTool):
         Returns:
             True if file should be skipped
         """
-        skip_patterns = [
-            "/node_modules/",
-            "/vendor/",
-            "/dist/",
-            "/build/",
-            "/.git/",
-            "/__pycache__/",
-            "/.venv/",
-            "/venv/",
-        ]
-
-        return any(pattern in filepath for pattern in skip_patterns)
+        # Fix for issue #150: compare whole path segments instead of raw
+        # substrings, so vendored/build directories are excluded whether or
+        # not the path has a leading slash (e.g. both "node_modules/x.js" and
+        # "/node_modules/x.js" are skipped), while avoiding false positives
+        # like "src/node_modules_helper.py" (a filename that merely contains
+        # the substring, not a real directory segment).
+        skip_dirs = {
+            "node_modules",
+            "vendor",
+            "dist",
+            "build",
+            ".git",
+            "__pycache__",
+            ".venv",
+            "venv",
+        }
+        parts = filepath.replace("\\", "/").split("/")
+        # Exclude the last part (the filename itself) — only directory
+        # segments should trigger a skip.
+        return any(part in skip_dirs for part in parts[:-1])
