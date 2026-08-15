@@ -156,7 +156,17 @@ upstream. Checking off the list of things local runs couldn't prove:
 - [x] `pip install -e ".[dev]"` succeeds on **Python 3.11.15** (I'd only built on 3.12), including asyncpg 0.31.0 and alembic 1.19.1.
 - [x] `scripts/validate_migrations.sh` is **executable in the checkout** — the `100755` mode survived, the step ran rather than dying on "permission denied".
 - [x] Both migrations applied to the fresh CI database and `alembic check` reported **"No new upgrade operations detected."** The whole job took 1m 1s.
-- [ ] The job **fails the PR** when a migration is bad. Still only proven locally (exit 255 on injected drift); I haven't watched GitHub turn that into a red check.
+- [x] The job **fails the PR** when a migration is bad. I pushed a commit adding a `drift_probe` column to the `Profile` model with no migration behind it, watched `validate-migrations` go red, then removed the commit from the branch. The log:
+
+      ```
+      INFO  [alembic.autogenerate.compare.tables] Detected added column 'profiles.drift_probe'
+      ERROR [alembic.util.messaging] New upgrade operations detected:
+        [('add_column', None, 'profiles', Column('drift_probe', String(length=50), table=<profiles>))]
+      ##[error]Process completed with exit code 255.
+      ```
+
+      Two things I checked in that run. The migrations still applied cleanly first, so the failure came from `alembic check` (drift) rather than a broken migration — the job tells those apart. And `lint`, `typecheck` and `test-unit` returned exactly the same numbers as before the drift: 182, 99, and 53/383. **Only `validate-migrations` changed state.** A well-typed column with no migration is invisible to ruff, black and mypy — the pre-commit hooks passed on that commit too. That gap is what this issue is filling.
+
 - [ ] `make check` / `make test-unit` run as the graders will run them (needs a populated `.venv`).
 
 **The overall run is red, but not because of my changes.** Five other jobs fail, and
