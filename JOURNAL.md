@@ -28,7 +28,7 @@ I wanted to work on a skill I have never done to challenge myself. I currently h
 **Reproduction commit link:** https://github.com/kelp-Shake/pathreview/commit/dcdfc6d8ecc50e45773baae34f567c2bb5b3bcfe
 
 **Reproduction summary:**
-I brought up the local stack (`colima start`, `docker compose up -d`) and ran the two migration commands against a fresh Postgres. `alembic upgrade head` applied all migrations cleanly, but `alembic check` failed with a drift error — it detected a `remove_constraint` operation for `uq_users_email`. That means the database built by the migrations has a unique constraint on `users.email` that the current `User` model no longer declares (the model only sets `unique=True, index=True`, which produces a unique index, not a named constraint). This is exactly the kind of drift issue #129's CI check is meant to catch automatically.
+I brought the local stack up (`colima start`, then `docker compose up -d`) and ran the two migration commands against a fresh Postgres. `alembic upgrade head` applied all the migrations fine, but `alembic check` failed with a drift error. It found a `remove_constraint` for `uq_users_email`, which means the database the migrations build has a unique constraint on `users.email` that the current `User` model doesn't declare anymore. The model just uses `unique=True, index=True`, which makes a unique index instead of a named constraint. This is the kind of drift that is the CI check is supposed to catch on its own.
 
 Reproduction steps and observed output:
 
@@ -45,7 +45,114 @@ ERROR [alembic.util.messaging] New upgrade operations detected: [('remove_constr
 
 **PLAN.md link:** https://github.com/kelp-Shake/pathreview/blob/feat/129-ci-migration-validation/PLAN.md
 
-**Walkthrough video (recommended):** N/A — not recorded (optional, not graded)
+**Walkthrough video (recommended):** N/A, not recorded (optional, not graded)
 
 **Blockers or open questions:**
-My main open question is how to resolve the existing `uq_users_email` drift — either update the `User` model to declare the constraint, or add a new migration that drops it. Both fix the drift, so I need to decide which one to use in Week 9 before the CI check can pass.
+My main open question is how to fix the existing `uq_users_email` drift. I can either update the `User` model to declare the constraint, or add a new migration that drops it. Both fix the drift, so I need to pick one in Week 9 before the CI check can pass.
+
+---
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+I answered the Week 8 open question first and went with updating the `User` model instead of adding a drop-constraint migration. The migration is what every existing database already has, so declaring `UniqueConstraint("email", name="uq_users_email")` in `__table_args__` makes the model match reality without changing anyone's schema. Adding a migration would have turned a CI-only PR into a data-layer one.
+
+With that decided, steps 1–4 of my PLAN.md are done:
+- `scripts/validate_migrations.sh`  runs `alembic upgrade head` then `alembic check` under `set -euo pipefail`, and refuses to run if `DATABASE_URL` is missing or isn't using the asyncpg driver (`alembic/env.py` builds an async engine, so a sync URL fails with a confusing error).
+- `validate-migrations` job in `.github/workflows/ci.yml` Postgres 16 service container copied from the existing `test-integration` job, pointed at its own empty `pathreview_migrations` database.
+- `tests/unit/test_migrations.py` 8 unit tests covering the parts of migration health that don't need a database.
+- Tested locally against the compose Postgres, including step 5's on-purpose drift check.
+
+**Next steps:**
+[Push the branch and get the Actions run green, open the draft PR, ask for peer review]
+
+**Blockers:**
+[Anything slowing you down? Or leave blank.]
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** [link to your submitted pull request]
+
+**Branch:** `feat/129-ci-migration-validation`
+
+> ⚠️ **DRAFT — do not submit as-is.** Everything below is written from local
+> verification only. The CI job has not run on GitHub Actions yet, so I can't
+> honestly claim it works there. Re-check every line once the Actions run is
+> green, then delete this note.
+
+**What you built:**
+A `validate-migrations` CI job that runs every migration against a fresh, empty Postgres and then checks the resulting schema against the SQLAlchemy models, so drifted or broken migrations fail the PR instead of getting found by hand later. It also fixes the one piece of drift that was already in the repo: the `User` model now declares the `uq_users_email` constraint that migration 001 has been creating all along.
+
+[Once Actions has run: confirm the job appears in the PR checks, link the green run, and note how many attempts it took to get there.]
+
+**Tests added or updated:**
+`tests/unit/test_migrations.py` (new, 8 tests). `TestMigrationChain` checks the revision chain statically — unique revision ids, exactly one head, exactly one base, every `down_revision` resolving to a real migration, and every migration defining both `upgrade()` and `downgrade()`. `TestModelMigrationParity` guards the drift fix from regressing by asserting the `User` model still declares `uq_users_email` and that `ix_users_email` is still unique.
+
+I read the revision metadata with `ast` instead of importing the migration modules, because the repo has its own `alembic/` package directory that shadows the installed `alembic` once the repo root is on `sys.path` — so `from alembic import op` fails at pytest collection time.
+
+**Self-review confirmation:** [ ] make check passes  [ ] make test-unit passes
+
+[Not yet checked. The `.venv/` the Makefile expects is empty on my machine — my
+environment is the pyenv virtualenv `pathre` — so `make check` and `make
+test-unit` fail on a missing binary before running anything. I ran the
+underlying tools directly instead (see the table below). Before submitting:
+either populate `.venv` with `make setup` and run the real make targets, or say
+plainly in the PR that I ran the tools directly and how.]
+
+**Pre-existing failures (per the Week 9 instructions):**
+This repo already fails its lint and unit-test checks on `main`, so I recorded a baseline before my changes and compared after. I ran the tools directly rather than through `make` (see above); these are the same commands the Makefile and CI invoke:
+
+| Check | Baseline (unmodified) | With my changes |
+|---|---|---|
+| `ruff check .` | 182 errors | 182 errors (identical per-file) |
+| `black --check .` | 52 files | 52 files (identical) |
+| `mypy` | 1 error (numpy stub, local env) | same |
+| `pytest tests/unit -m unit` | 53 failed, 375 passed | 53 failed, 383 passed |
+
+The 53 failures are the same test ids before and after, and the +8 passing are my new tests. `ruff` and `black` are clean on the two files I touched. My changes introduce no new failures.
+
+**Draft PR feedback received from:** [name or Slack handle, or "none"]
+
+---
+
+### Verification notes
+
+**Scope:** everything below is the script run **by hand on my machine**, against the
+`docker compose` Postgres. It shows that the two Alembic commands behave correctly and
+that the drift fix is what makes them pass. It does **not** show that the GitHub Actions
+job works — that's still unverified (see the list at the end).
+
+```
+$ DATABASE_URL=postgresql+asyncpg://pathreview:pathreview@localhost:5433/pathreview_migrations \
+    ./scripts/validate_migrations.sh
+==> Applying all migrations to a fresh database
+INFO  [alembic.runtime.migration] Running upgrade  -> 001, Initial schema creation...
+INFO  [alembic.runtime.migration] Running upgrade 001 -> 002, Add error_message column to reviews table.
+==> Comparing the migrated schema against the models
+No new upgrade operations detected.
+==> Migrations apply cleanly and match the models
+```
+
+Then step 5 of my plan — confirming it actually goes red, not just green:
+
+1. **Without my model fix** (reverted `core/models/user.py`): fails with the same `remove_constraint uq_users_email` error from my Week 8 reproduction. So the fix is what makes the check pass.
+2. **With drift added on purpose** (a `fake_drift_column` on the `Profile` model with no migration): fails with `add_column ... fake_drift_column`, exit code 255, which is what fails the CI job. Reverted afterwards.
+3. **Guard clauses**: unset `DATABASE_URL` and a sync `postgresql://` URL both exit 1 with an explanatory message instead of a confusing async-engine traceback.
+
+---
+
+### Still unverified (must confirm before I submit)
+
+Local runs can't prove any of these. Each one is a way the Actions run could fail on
+the first push, which is the risk I already flagged in Week 7:
+
+- [ ] The workflow YAML parses and the `validate-migrations` job actually appears in the PR checks.
+- [ ] The Postgres **service container** comes up and the health check passes. Locally I used the already-running compose database on port 5433; CI starts its own on 5432. That port and the container wiring are untested.
+- [ ] `pip install -e ".[dev]"` succeeds on CI's **Python 3.11**. I ran everything on 3.12 locally, with newer versions of alembic, ruff and black than CI resolves.
+- [ ] `scripts/validate_migrations.sh` is **executable in the checkout**. It's `+x` on my machine, but if git records it as mode `100644` the step dies with "permission denied".
+- [ ] The job **fails the PR** when a migration is bad. I proved the script exits non-zero locally; I haven't seen GitHub turn that into a red check.
+- [ ] `make check` / `make test-unit` run as the graders will run them (needs a populated `.venv`).
