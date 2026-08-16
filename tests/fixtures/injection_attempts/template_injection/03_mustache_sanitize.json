@@ -1,0 +1,7 @@
+{
+  "id": "03_mustache_sanitize",
+  "category": "template_injection",
+  "expected_blocked": true,
+  "mechanism": "sanitize",
+  "note": "Verifies sanitize() strips the {{ }} delimiters so the raw marker no longer appears in the output."
+}

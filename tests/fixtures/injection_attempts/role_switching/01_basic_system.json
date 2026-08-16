@@ -1,0 +1,7 @@
+{
+  "id": "01_basic_system",
+  "category": "role_switching",
+  "expected_blocked": true,
+  "mechanism": "detect",
+  "note": "Canonical System: role-switch, preceded by a newline so it matches the role-switching pattern directly."
+}

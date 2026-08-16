@@ -44,3 +44,6 @@ htmlcov/
 
 # Build artifacts
 *.pyc
+
+# Agents
+AGENTS.md

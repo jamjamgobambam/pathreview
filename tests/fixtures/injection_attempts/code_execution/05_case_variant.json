@@ -1,0 +1,7 @@
+{
+  "id": "05_case_variant",
+  "category": "code_execution",
+  "expected_blocked": true,
+  "mechanism": "detect",
+  "note": "Uppercase EXECUTE, exercising re.IGNORECASE."
+}

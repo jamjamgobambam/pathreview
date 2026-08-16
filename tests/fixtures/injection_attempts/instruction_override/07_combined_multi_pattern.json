@@ -1,0 +1,7 @@
+{
+  "id": "07_combined_multi_pattern",
+  "category": "instruction_override",
+  "expected_blocked": true,
+  "mechanism": "detect",
+  "note": "Curated equivalent of tests/unit/test_prompt_defense.py::test_complex_injection_attempt -- combines role-switching, instruction-override, template-injection, and code-execution patterns in one payload."
+}

@@ -17,17 +17,20 @@ PathReview analyzes GitHub profiles, resumes, and project repositories to genera
 > **Windows users:** Use [Git Bash](https://git-scm.com/download/win) to run these commands, not PowerShell. See [docs/SETUP.md](docs/SETUP.md) for Windows-specific setup including installing `make`.
 
 ```bash
-# Clone and enter the repo
-git clone https://github.com/ascherj/pathreview.git
+# Clone your fork (not the upstream README URL)
+git clone https://github.com/<your-username>/pathreview.git
 cd pathreview
+git remote add upstream https://github.com/ascherj/pathreview.git
 
-# Configure environment (add your OPENROUTER_API_KEY to .env)
+# Configure environment
 cp .env.example .env
 
-# Start backing services — must be running before make setup
+# Start backing services — must be running before setup
 docker compose up -d
 
-# Run first-time setup (installs deps, runs migrations, seeds DB, installs frontend)
+# First-time setup — pick ONE:
+#   A) make setup          # needs python3 ≥ 3.11 on PATH
+#   B) uv path (macOS / system Python 3.9): see docs/SETUP.md#alternative-setup-with-uv
 make setup
 
 # Start the application
@@ -36,7 +39,7 @@ make run
 
 Then open http://localhost:5173 in your browser.
 
-For detailed setup instructions including platform-specific notes, see [docs/SETUP.md](docs/SETUP.md).
+**macOS note:** if `make setup` fails with `3.9.x not in '>=3.11'`, use the [uv setup path](docs/SETUP.md#alternative-setup-with-uv) in [docs/SETUP.md](docs/SETUP.md) instead of re-running `make setup`.
 
 ## Architecture
 

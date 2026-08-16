@@ -1,0 +1,7 @@
+{
+  "id": "02_long_dash_with_spaces",
+  "category": "separators",
+  "expected_blocked": true,
+  "mechanism": "detect",
+  "note": "Longer dash run with surrounding whitespace, exercising the +/\\s* parts of the pattern."
+}

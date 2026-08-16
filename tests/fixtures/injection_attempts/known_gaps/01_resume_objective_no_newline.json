@@ -1,0 +1,7 @@
+{
+  "id": "01_resume_objective_no_newline",
+  "category": "known_gaps",
+  "expected_blocked": false,
+  "mechanism": "detect",
+  "note": "KNOWN GAP: the instruction_override pattern requires a leading newline before Ignore/Forget/Disregard/Override. A resume field that IS the entire injection, with no preceding text, has no leading newline and is never flagged. Realistic given PathReview's threat model (attacker owns the whole field). Not fixed here -- out of scope for issue #71, which asks for tests, not a defense fix. Related to issue #64."
+}

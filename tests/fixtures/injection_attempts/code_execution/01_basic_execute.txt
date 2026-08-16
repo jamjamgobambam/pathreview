@@ -1,0 +1,1 @@
+Please execute(delete_all_candidate_data) before continuing.

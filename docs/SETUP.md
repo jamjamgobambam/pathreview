@@ -5,18 +5,23 @@
 | Requirement | Minimum | Check command |
 |---|---|---|
 | Git | 2.39 | `git --version` |
-| Python | 3.11 | `python --version` |
+| Python | 3.11 | `python3 --version` (must be ≥3.11 — macOS system Python is often 3.9) |
 | Node.js | 18 | `node --version` |
 | npm | 9 | `npm --version` |
 | Docker | 24 | `docker --version` |
 | Docker Compose | 2.20 | `docker compose version` |
+| [uv](https://docs.astral.sh/uv/) (recommended) | latest | `uv --version` |
 | RAM | 8 GB | — |
 | Free disk | 20 GB | — |
+
+Install uv if you don't have it: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
 ### Platform-Specific Notes
 
 **macOS (Apple Silicon / M1-M3):**
 Ensure Rosetta 2 is installed: `softwareupdate --install-rosetta`. Docker Desktop should be set to use the Apple Silicon build. The `make setup` command handles `ARCHFLAGS` automatically.
+
+**Prefer the [uv setup path](#alternative-setup-with-uv) on macOS.** Apple’s default `/usr/bin/python3` is often **3.9.x**. `make setup` falls back to that interpreter, creates a 3.9 venv, and then fails because this project requires `>=3.11`. `uv` installs a modern Python and creates the venv for you.
 
 **Windows:**
 Use **Git Bash** (included with [Git for Windows](https://git-scm.com/download/win)) to run all commands in this guide. PowerShell and Command Prompt will not work for most commands.
@@ -54,15 +59,46 @@ docker compose up -d
 docker compose ps
 
 # 4. Run first-time setup
+#    Prefer "Alternative: setup with uv" below if `python3 --version` is < 3.11
 make setup
 
 # 5. Start the application
 make run
 ```
 
+### Alternative: setup with uv
+
+Use this when system Python is too old (common on macOS) or you already manage projects with `uv`. This replaces step 4 (`make setup`) only — still do steps 1–3 first (clone, `.env`, `docker compose up -d`).
+
+```bash
+# Remove a failed/partial venv if one exists (e.g. after make setup with Python 3.9)
+rm -rf .venv
+
+# Create a venv with Python ≥3.11 (uv downloads it if needed)
+# Note: `uv venv` does not install pip — use `uv pip` for packages
+uv venv --python 3.12
+
+# Install the project + dev extras into .venv
+uv pip install -e ".[dev]"
+
+# Same post-install steps make setup runs
+.venv/bin/pre-commit install
+.venv/bin/alembic upgrade head
+.venv/bin/python scripts/seed_db.py
+cd frontend && npm install && cd ..
+```
+
+Then start the app as usual:
+
+```bash
+make run
+```
+
+`make run`, `make test-unit`, and other Make targets only need `.venv/bin/*` — they work the same whether the venv was created by `make setup` or `uv`.
+
 Open http://localhost:5173 in your browser. The API is at http://localhost:8000 (Swagger docs at /docs).
 
-`make setup` seeds the database with three test accounts you can use immediately:
+Setup seeds the database with three test accounts you can use immediately:
 
 | Email | Password |
 |---|---|
@@ -101,8 +137,12 @@ If you have PostgreSQL installed natively on Windows (e.g. from a previous proje
 **Node version too old:**
 - Use `nvm` to install Node 18+: `nvm install 18 && nvm use 18`
 
-**Python version too old:**
-- Use `pyenv` to install Python 3.11+: `pyenv install 3.11 && pyenv local 3.11`
+**Python version too old / `Package 'pathreview' requires a different Python: 3.9.x not in '>=3.11'`:**
+- `make setup` used system Python 3.9. Do **not** re-run `make setup` (it will recreate the 3.9 venv). Follow [Alternative: setup with uv](#alternative-setup-with-uv) instead.
+- Or use `pyenv`: `pyenv install 3.12 && pyenv local 3.12`, delete `.venv`, then `make setup`.
+
+**`No module named pip` after `uv venv`:**
+- Expected. `uv venv` does not ship pip. Install deps with `uv pip install -e ".[dev]"`, not `.venv/bin/pip`.
 
 **Windows: `make` not found after installing GnuWin32:**
 - The GnuWin32 bin directory may not be on your PATH. Add it manually in Git Bash:
@@ -120,4 +160,4 @@ If you have PostgreSQL installed natively on Windows (e.g. from a previous proje
 - Check that your `DATABASE_URL` in `.env` uses the `postgresql+asyncpg://` scheme, not plain `postgresql://`.
 
 **`alembic upgrade head` fails with "No module named asyncpg":**
-- Run: `.venv/Scripts/pip install asyncpg` (Windows) or `.venv/bin/pip install asyncpg` (Mac/Linux).
+- Re-run the project install: `uv pip install -e ".[dev]"` (or `.venv/bin/pip install asyncpg` if your venv was created with standard `pip`).

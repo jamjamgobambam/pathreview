@@ -1,0 +1,7 @@
+{
+  "id": "05_nested_in_bio",
+  "category": "template_injection",
+  "expected_blocked": true,
+  "mechanism": "detect",
+  "note": "Threat-model-driven: mustache injection nested inside a GitHub bio field."
+}

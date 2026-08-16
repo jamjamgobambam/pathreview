@@ -1,0 +1,7 @@
+{
+  "id": "03_separator_no_newline",
+  "category": "known_gaps",
+  "expected_blocked": false,
+  "mechanism": "detect",
+  "note": "KNOWN GAP: same leading-newline requirement bypasses the separator pattern when the --- line opens the entire field. Not fixed here -- see the note on 01_resume_objective_no_newline. Related to issue #64."
+}

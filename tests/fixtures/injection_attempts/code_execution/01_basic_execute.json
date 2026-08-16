@@ -1,0 +1,7 @@
+{
+  "id": "01_basic_execute",
+  "category": "code_execution",
+  "expected_blocked": true,
+  "mechanism": "detect",
+  "note": "Canonical execute(...) call pattern."
+}

@@ -1,0 +1,7 @@
+{
+  "id": "02_eval_with_space",
+  "category": "code_execution",
+  "expected_blocked": true,
+  "mechanism": "detect",
+  "note": "eval with a space before the parenthesis, exercising the \\s* in the pattern."
+}

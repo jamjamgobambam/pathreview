@@ -1,0 +1,7 @@
+{
+  "id": "04_case_and_whitespace_variant",
+  "category": "role_switching",
+  "expected_blocked": true,
+  "mechanism": "detect",
+  "note": "Uppercase role marker with leading indentation before the colon; regex is case-insensitive and allows \\s* before the word, so this still matches. No space is allowed between the word and colon by the pattern, so this fixture keeps the colon tight against SYSTEM."
+}

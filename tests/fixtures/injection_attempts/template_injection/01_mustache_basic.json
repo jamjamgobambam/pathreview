@@ -1,0 +1,7 @@
+{
+  "id": "01_mustache_basic",
+  "category": "template_injection",
+  "expected_blocked": true,
+  "mechanism": "detect",
+  "note": "Canonical {{ }} mustache-style template injection."
+}

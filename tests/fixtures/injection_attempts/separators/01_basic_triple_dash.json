@@ -1,0 +1,7 @@
+{
+  "id": "01_basic_triple_dash",
+  "category": "separators",
+  "expected_blocked": true,
+  "mechanism": "detect",
+  "note": "Canonical --- separator line preceded and followed by a newline."
+}
