@@ -2,8 +2,8 @@
 
 import pytest
 
-from ingestion.chunking.structural_chunker import StructuralChunker
 from ingestion.chunking.base import Chunk
+from ingestion.chunking.structural_chunker import StructuralChunker
 
 
 @pytest.mark.unit
@@ -26,13 +26,34 @@ class TestStructuralChunker:
         assert result == []
 
     def test_document_with_no_headings(self, chunker):
-        """Test document with no headings returns single chunk."""
+        """Test document with no headings returns a level-zero chunk."""
         text = "This is plain text without any markdown headings. " * 20
         result = chunker.chunk(text, {"source": "test"})
 
-        assert len(result) >= 1
-        assert isinstance(result[0], Chunk)
-        assert all(isinstance(c, Chunk) for c in result)
+        assert len(result) == 1
+        assert result[0] == Chunk(
+            text=text.strip(),
+            metadata={
+                "source": "test",
+                "heading_path": "",
+                "heading_level": 0,
+                "chunk_index": 0,
+                "char_start": 0,
+                "char_end": len(text.strip()),
+            },
+        )
+
+    def test_large_document_with_no_headings_preserves_fallback_metadata(self, chunker):
+        """Test large plain text is sub-chunked without losing fallback metadata."""
+        text = "A plain-text sentence without a heading. " * 500
+        result = chunker.chunk(text, {"source": "test"})
+
+        assert len(result) > 1
+        assert all(isinstance(chunk, Chunk) for chunk in result)
+        assert all(chunk.text.strip() for chunk in result)
+        assert all(chunk.metadata["source"] == "test" for chunk in result)
+        assert all(chunk.metadata["heading_path"] == "" for chunk in result)
+        assert all(chunk.metadata["heading_level"] == 0 for chunk in result)
 
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
@@ -83,11 +104,16 @@ Content under grandchild.
                     found_path = True
                     assert isinstance(path, str)
 
+        assert found_path
+
     def test_large_section_sub_chunked(self, chunker):
         """Test large section (> 800 tokens) gets sub-chunked."""
         # Create a large section
-        large_section = """# Large Section
-""" + "This is a paragraph with lots of content. " * 50
+        large_section = (
+            """# Large Section
+"""
+            + "This is a paragraph with lots of content. " * 50
+        )
 
         result = chunker.chunk(large_section, {})
 
@@ -172,6 +198,8 @@ Content here.
                 # Should contain the hierarchy
                 if "Installation" in path or "Prerequisites" in path:
                     found_full_path = True
+
+        assert found_full_path
 
     def test_chunks_have_text_content(self, chunker):
         """Test that all chunks have text content."""
