@@ -77,7 +77,7 @@ None. (Local Postgres wasn't running so I verified the migration is linear
 
 ### Check-in 2 (end of week)
 
-**PR link:** https://github.com/ascherj/pathreview/compare/main...sujalusa:pathreview:feat/32-portfolio-query-cache?expand=1
+**PR link:** https://github.com/ascherj/pathreview/pull/1035
 
 **Branch:** `feat/32-portfolio-query-cache`
 
