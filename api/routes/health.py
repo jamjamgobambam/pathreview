@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from datetime import datetime
+
 import structlog
-from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from core.database import get_db
 
@@ -10,7 +11,7 @@ router = APIRouter(prefix="/health", tags=["health"])
 
 
 @router.get("")
-async def health_check(db=Depends(get_db)):
+async def health_check(db=Depends(get_db)):  # noqa: B008
     """
     Check health of PostgreSQL, Redis, and Vector DB.
     Returns 200 if all healthy, 503 if any dependency is down.
@@ -39,14 +40,10 @@ async def health_check(db=Depends(get_db)):
     try:
         # Check Redis (if available)
         import redis
+
         from core.config import settings
 
-        r = redis.Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            db=0,
-            decode_responses=True,
-        )
+        r = redis.from_url(settings.redis_url, decode_responses=True)
         r.ping()
         health_status["dependencies"]["redis"] = "healthy"
         log.debug("redis_health_check_passed")

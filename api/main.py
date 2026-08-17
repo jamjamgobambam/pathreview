@@ -1,11 +1,13 @@
+import redis as redis_lib
+import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
-import structlog
+from fastapi.responses import JSONResponse
 
 from api.middleware.request_id import RequestIDMiddleware
-from api.routes import auth, profiles, reviews, health
+from api.routes import auth, health, profiles, reviews
+from core.config import settings
 from core.database import init_db
 
 log = structlog.get_logger()
@@ -30,9 +32,7 @@ def custom_openapi():
         routes=app.routes,
     )
 
-    openapi_schema["info"]["x-logo"] = {
-        "url": "https://pathreview.example.com/logo.png"
-    }
+    openapi_schema["info"]["x-logo"] = {"url": "https://pathreview.example.com/logo.png"}
 
     app.openapi_schema = openapi_schema
     return app.openapi_schema
@@ -85,13 +85,21 @@ app.include_router(health.router)
 # Startup event
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database on startup."""
+    """Initialize database and Redis on startup."""
     try:
         await init_db()
+        app.state.redis = redis_lib.from_url(settings.redis_url)
         log.info("application_startup_completed")
     except Exception as exc:
         log.error("application_startup_failed", error=str(exc))
         raise
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Close Redis connection on shutdown."""
+    if hasattr(app.state, "redis"):
+        app.state.redis.close()
 
 
 # Root endpoint
