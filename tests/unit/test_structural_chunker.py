@@ -34,6 +34,39 @@ class TestStructuralChunker:
         assert isinstance(result[0], Chunk)
         assert all(isinstance(c, Chunk) for c in result)
 
+        # Content is preserved, not silently dropped
+        assert result[0].text == text.strip()
+
+        # Source metadata is carried through
+        assert result[0].metadata["source"] == "test"
+
+        # Heading-less sections fall back to an empty path at level 0
+        assert result[0].metadata["heading_path"] == ""
+        assert result[0].metadata["heading_level"] == 0
+
+    def test_text_before_first_heading_is_preserved(self, chunker):
+        """Test content before the first heading becomes its own section."""
+        text = """Introductory text before the heading.
+
+# Main Heading
+
+Body text under the heading.
+"""
+        result = chunker.chunk(text, {"source": "test"})
+
+        assert len(result) == 2
+
+        # Pre-heading content is not dropped
+        assert "Introductory text before the heading." in result[0].text
+        assert result[0].metadata["heading_path"] == ""
+        assert result[0].metadata["heading_level"] == 0
+        assert result[0].metadata["source"] == "test"
+
+        # Normal heading-based chunking still works
+        assert "Body text under the heading." in result[1].text
+        assert result[1].metadata["heading_path"] == "Main Heading"
+        assert result[1].metadata["heading_level"] == 1
+
     def test_document_with_nested_headings(self, chunker):
         """Test document with nested headings preserves heading_path."""
         text = """# Main Title
