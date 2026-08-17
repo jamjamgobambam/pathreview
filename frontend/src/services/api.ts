@@ -1,4 +1,4 @@
-import { AuthResponse, Profile, Review, ReviewListResponse } from '../types'
+import { AuthResponse, Profile, Review, ReviewListResponse, ReviewStatusResponse } from '../types'
 
 const API_BASE = '/api'
 
@@ -103,7 +103,7 @@ class ApiClient {
     return this.request(`/reviews/${id}`)
   }
 
-  async getReviewStatus(id: string): Promise<Review> {
+  async getReviewStatus(id: string): Promise<ReviewStatusResponse> {
     return this.request(`/reviews/${id}/status`)
   }
 

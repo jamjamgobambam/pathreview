@@ -23,11 +23,18 @@ export interface Review {
   id: string
   profile_id: string
   status: 'pending' | 'processing' | 'complete' | 'failed'
+  progress_pct?: number
   overall_score?: number
   sections?: FeedbackSection[]
   error_message?: string
   created_at: string
   updated_at: string
+}
+
+export interface ReviewStatusResponse {
+  review_id: string
+  status: 'pending' | 'processing' | 'complete' | 'failed'
+  progress_pct: number
 }
 
 export interface ReviewListResponse {
@@ -41,3 +48,4 @@ export interface AuthResponse {
   access_token: string
   token_type: string
 }
+

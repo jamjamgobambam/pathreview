@@ -94,7 +94,18 @@ ${section.suggestions.map((s) => `- ${s}`).join('\n')}
         {isPolling && (
           <div className="mb-12 p-8 bg-white rounded-lg shadow text-center">
             <Loader className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-900 font-semibold">Analyzing your portfolio...</p>
+            <p className="text-gray-900 font-semibold mb-4">Analyzing your portfolio...</p>
+            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden mb-2 max-w-md mx-auto">
+              <div
+                className="h-full bg-blue-600 transition-all duration-500 ease-out"
+                style={{ width: `${currentReview?.progress_pct ?? 0}%` }}
+                role="progressbar"
+                aria-valuenow={currentReview?.progress_pct ?? 0}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              ></div>
+            </div>
+            <p className="text-blue-600 font-bold text-lg">{currentReview?.progress_pct ?? 0}%</p>
             <p className="text-gray-600 text-sm mt-2">This may take a few moments</p>
           </div>
         )}

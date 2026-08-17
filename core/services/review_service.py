@@ -1,13 +1,14 @@
-from uuid import UUID
-import structlog
 import json
 from datetime import datetime
-from sqlalchemy import select, and_
+from uuid import UUID
 
-from core.models.review import Review
-from core.models.profile import Profile
-from core.models.ingested_source import IngestedSource
+import structlog
+from sqlalchemy import and_, select
+
 from api.schemas.review import FeedbackSection
+from core.models.ingested_source import IngestedSource
+from core.models.profile import Profile
+from core.models.review import Review
 
 log = structlog.get_logger()
 
@@ -23,6 +24,7 @@ async def create_review(
     review = Review(
         profile_id=profile_id,
         status="pending",
+        progress_pct=0,
         sections=None,
         overall_score=None,
     )
@@ -40,8 +42,8 @@ async def get_review(
     """
     Get a review by ID, checking that it belongs to the user's profile.
     """
-    stmt = select(Review).join(Profile).where(
-        and_(Review.id == review_id, Profile.user_id == user_id)
+    stmt = (
+        select(Review).join(Profile).where(and_(Review.id == review_id, Profile.user_id == user_id))
     )
     result = await db.execute(stmt)
     return result.scalars().first()
@@ -119,6 +121,7 @@ async def process_review(
 
         # Step 1: Set status to processing
         review.status = "processing"
+        review.progress_pct = 10
         db.add(review)
         await db.commit()
 
@@ -126,6 +129,9 @@ async def process_review(
 
         # Step 2: Run ingestion pipeline
         ingestion_results = await _run_ingestion_pipeline(db, profile)
+        review.progress_pct = 30
+        db.add(review)
+        await db.commit()
         log.info(
             "ingestion_pipeline_completed",
             review_id=str(review_id),
@@ -134,6 +140,9 @@ async def process_review(
 
         # Step 3: Run agent orchestration
         agent_output = await _run_agent_orchestration(profile, ingestion_results)
+        review.progress_pct = 60
+        db.add(review)
+        await db.commit()
         log.info(
             "agent_orchestration_completed",
             review_id=str(review_id),
@@ -142,6 +151,9 @@ async def process_review(
 
         # Step 4: Run RAG retrieval + generation
         rag_output = await _run_rag_retrieval_generation(profile, ingestion_results, agent_output)
+        review.progress_pct = 90
+        db.add(review)
+        await db.commit()
         log.info("rag_retrieval_completed", review_id=str(review_id))
 
         # Step 5: Run safety checks
@@ -166,6 +178,7 @@ async def process_review(
         ]
 
         review.status = "complete"
+        review.progress_pct = 100
         review.sections = [s.model_dump() for s in sections]
         review.overall_score = rag_output.get("overall_score", None)
         review.updated_at = datetime.utcnow()

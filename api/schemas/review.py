@@ -19,6 +19,7 @@ class ReviewResponse(BaseModel):
     id: UUID
     profile_id: UUID
     status: str
+    progress_pct: int | None = 0
     sections: list[FeedbackSection] | None
     overall_score: float | None
     error_message: str | None = None
@@ -33,3 +34,9 @@ class ReviewListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class ReviewStatusResponse(BaseModel):
+    review_id: UUID
+    status: str
+    progress_pct: int

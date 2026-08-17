@@ -1,12 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from uuid import UUID
-import structlog
 
-from api.schemas.review import ReviewCreate, ReviewResponse, ReviewListResponse
+import structlog
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+
 from api.middleware.auth import get_current_user
-from core.models.user import User
-from core.models.review import Review
+from api.schemas.review import (
+    ReviewCreate,
+    ReviewListResponse,
+    ReviewResponse,
+    ReviewStatusResponse,
+)
 from core.database import get_db
+from core.models.user import User
 from core.services.review_service import (
     create_review,
     get_review,
@@ -136,7 +141,7 @@ async def list_reviews_endpoint(
         )
 
 
-@router.get("/{review_id}/status")
+@router.get("/{review_id}/status", response_model=ReviewStatusResponse)
 async def get_review_status(
     review_id: UUID,
     current_user: User = Depends(get_current_user),
@@ -160,11 +165,11 @@ async def get_review_status(
                 detail="Review not found",
             )
 
-        return {
-            "review_id": str(review.id),
-            "status": review.status,
-            "progress_pct": getattr(review, "progress_pct", 0),
-        }
+        return ReviewStatusResponse(
+            review_id=review.id,
+            status=review.status,
+            progress_pct=review.progress_pct,
+        )
 
     except HTTPException:
         raise

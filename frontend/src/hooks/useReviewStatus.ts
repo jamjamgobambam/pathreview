@@ -19,7 +19,14 @@ export function useReviewStatus(reviewId: string): UseReviewStatusReturn {
     const fetchStatus = async () => {
       try {
         const data = await apiClient.getReviewStatus(reviewId)
-        setReview(data)
+        setReview({
+          id: data.review_id,
+          profile_id: '',
+          status: data.status,
+          progress_pct: data.progress_pct,
+          created_at: '',
+          updated_at: '',
+        })
         setError(null)
 
         if (data.status === 'complete' || data.status === 'failed') {
