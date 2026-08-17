@@ -186,3 +186,34 @@ I checked each log for my three files:
 This is the strongest version of the "no new failures" claim: not "it looks the same on
 my laptop" but "the same jobs fail in the same way on CI, and none of the failures name
 a file I touched."
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No feedback
+
+**How you responded:**
+no feedback
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The pre-existing `uq_users_email` drift took more time than the CI job itself. I had to actually understand what `alembic check` was comparing before I could decide how to fix it. The `alembic/` package name collision in my test file was also a bit of a rabbit hole; parsing migrations with `ast` instead of importing them was the workaround.
+
+**What did you learn about working in a large codebase?**
+"Does this pass" wasn't the right question, since `main` already fails lint, mypy, and 53 unit tests. I had to record a baseline and compare counts and test ids before and after instead.
+
+**How did AI tools help, and where did they fall short?**
+Helpful for the CI YAML, mostly by pattern matching the existing `test-integration` job for the Postgres service container. Less helpful for the async driver `DATABASE_URL` failure and the import shadowing. Those needed reading the actual traceback myself.
+
+**What would you do differently if you started over?**
+Maybe open the dry-run fork PR earlier rather than saving all the verification for the end of Week 9. A few things (the CI Python version, the executable bit surviving checkout) only showed up there. I'd also try to spot the model and migration drift during Week 8's reproduction step rather than treating it as a side quest once I was already into the fix.
+
+**What are you most proud of from this module?**
+That the CI job caught a real pre-existing drift bug (`uq_users_email`) rather than only a synthetic example I made up to demonstrate the check working. It also passed on GitHub Actions on the first attempt, which I hadn't expected given how new I am to Actions.
