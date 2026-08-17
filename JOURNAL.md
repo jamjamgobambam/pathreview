@@ -83,3 +83,37 @@ Updated the structural chunker test for documents without headings in `tests/uni
 **Self-review confirmation:** [x] make check passes  [x] make test-unit passes
 
 **Draft PR feedback received from:** none
+
+---
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review came in.
+
+**How you responded:**
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was figuring out where the bug was actually coming from. The issue sounded pretty simple at first because the StructuralChunker was just returning an empty list when a document had no headings. Howevever, I had to spend time understanding how the ingestion pipeline worked and tracing how the document got to the chunker. What surprised me was that nothing crashed. The code ran normally, but the document was basically lost because no chunks were created. That made the problem harder to notice and understand.
+
+**What did you learn about working in a large codebase?**
+I learned that working in someone else's codebase takes more time to understand before you can safely make a change. When I work on my own projects, I already know how everything is organized and why I wrote the code a certain way. With PathReview, I had to figure out how different parts of the project worked together before deciding what to change. I also learned that the issue description doesn't always tell you exactly where the problem is. I had to use the tests and follow the code to figure that out.
+
+**How did AI tools help — and where did they fall short?**
+AI was really helpful for understanding parts of the codebase that I wasn't familiar with. It helped me break down the ingestion pipeline, understand the StructuralChunker, think about the root cause, and come up with possible tests. It also helped me with some of the GitHub and PR process, which I was still getting used to.
+
+At the same time, I learned that I can't just trust what AI tells me. I still had to run the tests, reproduce the bug myself, and look at the actual code. AI could suggest a solution, but I needed to verify that it actually worked in the project.
+
+**What would you do differently if you started over?**
+If I started over, I would spend more time understanding the codebase before thinking about the fix. I would trace how the data moves through the ingestion pipeline, read the related code and tests, and form my own idea of the root cause first. I would still use AI, but more as a second opinion instead of relying on it to explain everything to me. I would also focus on making the smallest change that fixes the actual problem rather than immediately thinking about what code needs to be added. I think this would make me more confident and independent when working in an unfamiliar codebase. At the end of the day, I know more practice will build good habits and make navigating and fixing code easier.
+
+**What are you most proud of from this module?**
+I am most proud that I was able to take an issue I didn't fully understand at first and work through it until I had a working solution and PR. This was my first open source contribution. I reproduced the bug, figured out why the StructuralChunker was dropping documents without headings, made the fix, tested it, and documented the process. More than just fixing the bug, I feel like I got more comfortable working in a codebase that I didn't create myself.
