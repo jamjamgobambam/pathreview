@@ -80,7 +80,7 @@ None
 **Feedback received:** [ ] Yes  [x] No — still awaiting review
 
 **Summary of feedback:**
-No reviewer feedback was received during Summer 2026. The PR was submitted successfully, but no review comments were provided.
+No reviewer feedback was received. The PR was submitted successfully, but no review comments came in during the Summer 2026 review process.
 
 **How you responded:**
 N/A
@@ -90,16 +90,16 @@ N/A
 ### Reflection
 
 **What was harder than you expected?**
-Working with an unfamiliar codebase was harder than I expected, especially figuring out where the issue actually came from instead of immediately changing the code. I had to trace the health check through the configuration files and understand how Redis was being configured before making the fix. The Git and PR workflow was also something I had to become more comfortable with throughout the process.
+The hardest part was understanding an unfamiliar codebase well enough to make a change without breaking something else. For Issue #155, I had to trace the health check in `api/routes/health.py` and compare it with the configuration in `core/config.py` to understand why `settings.redis_host` and `settings.redis_port` were causing the problem. I also ran into some Git workflow issues during the project, including getting stuck in a rebase editor, which took some time to figure out.
 
 **What did you learn about working in a large codebase?**
-I learned that contributing to someone else's codebase requires more investigation and caution than working on my own projects. I had to follow the existing project structure, conventions, and configuration instead of simply implementing the solution in the way I preferred. I also learned that not every existing error in a repository is related to the issue I am working on, so it is important to distinguish pre-existing problems from problems caused by my changes.
+I learned that working in someone else's codebase requires more investigation before making a change than working on my own projects. With this issue, the correct solution was not to add new Redis settings, but to recognize that the project already had `settings.redis_url` and use the existing configuration. I also learned to pay attention to pre-existing test and lint failures so I could distinguish them from problems caused by my own changes.
 
 **How did AI tools help — and where did they fall short?**
-AI tools were useful for helping me navigate the codebase, understand unfamiliar files, and figure out where the health check and Redis configuration were connected. They also helped me understand Git commands and the project's workflow when I ran into issues. However, I still had to verify the suggestions myself and test the changes because AI could not always know which failures were pre-existing or how the repository was specifically configured.
+AI tools were useful for helping me understand the structure of the PathReview codebase and trace how the health check interacted with the Redis configuration. They also helped me understand Git commands and troubleshoot issues when I got confused during the branch and rebase process. However, I still needed to verify the suggested changes myself by looking at the actual files and running the project, since AI could not automatically distinguish every pre-existing repository failure from an issue caused by my changes.
 
 **What would you do differently if you started over?**
-I would start documenting my work more consistently from the beginning. I had to spend time figuring out where my JOURNAL.md had gone and reconstructing parts of my Week 7 and Week 8 work. I would also open my PR earlier and get more familiar with the review process sooner, even though no peer review was ultimately provided this session.
+I would spend more time organizing my work and documenting each week's progress as I went instead of having to figure out what happened to my `JOURNAL.md` later. I would also open my PR earlier and try to get the review process started sooner, even though no peer review was ultimately provided for Summer 2026. On the technical side, I would run and document the relevant checks earlier so I had a clearer baseline for the pre-existing failures.
 
 **What are you most proud of from this module?**
-I am most proud of successfully taking an issue from selection and reproduction through planning and implementation in an unfamiliar codebase. I was able to identify the configuration problem, make the fix, document my process, and submit a PR to the original repository.
+I am most proud of taking Issue #155 from selecting and understanding the issue all the way through reproduction, planning, implementation, and submitting a PR. I was able to identify that the health check was referencing configuration values that did not exist and change it to use the existing `redis_url` configuration. Completing that process in an unfamiliar codebase gave me a better understanding of what contributing to a real project actually looks like.
