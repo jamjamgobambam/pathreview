@@ -72,3 +72,34 @@ No tests were modified because this change only updates the Redis client initial
 
 **Draft PR feedback received from:**
 None
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback was received during Summer 2026. The PR was submitted successfully, but no review comments were provided.
+
+**How you responded:**
+N/A
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+Working with an unfamiliar codebase was harder than I expected, especially figuring out where the issue actually came from instead of immediately changing the code. I had to trace the health check through the configuration files and understand how Redis was being configured before making the fix. The Git and PR workflow was also something I had to become more comfortable with throughout the process.
+
+**What did you learn about working in a large codebase?**
+I learned that contributing to someone else's codebase requires more investigation and caution than working on my own projects. I had to follow the existing project structure, conventions, and configuration instead of simply implementing the solution in the way I preferred. I also learned that not every existing error in a repository is related to the issue I am working on, so it is important to distinguish pre-existing problems from problems caused by my changes.
+
+**How did AI tools help — and where did they fall short?**
+AI tools were useful for helping me navigate the codebase, understand unfamiliar files, and figure out where the health check and Redis configuration were connected. They also helped me understand Git commands and the project's workflow when I ran into issues. However, I still had to verify the suggestions myself and test the changes because AI could not always know which failures were pre-existing or how the repository was specifically configured.
+
+**What would you do differently if you started over?**
+I would start documenting my work more consistently from the beginning. I had to spend time figuring out where my JOURNAL.md had gone and reconstructing parts of my Week 7 and Week 8 work. I would also open my PR earlier and get more familiar with the review process sooner, even though no peer review was ultimately provided this session.
+
+**What are you most proud of from this module?**
+I am most proud of successfully taking an issue from selection and reproduction through planning and implementation in an unfamiliar codebase. I was able to identify the configuration problem, make the fix, document my process, and submit a PR to the original repository.
