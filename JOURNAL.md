@@ -66,4 +66,35 @@ Direct validation completed because `make` is unavailable in this shell:
 - [ ] Repo-wide `ruff check .` passes: currently fails with pre-existing unrelated lint issues
 - [ ] Repo-wide `python -m pytest tests/unit -v -m unit` passes: currently 50 failed, 348 passed, 31 errors in unrelated areas
 
-**Draft PR feedback received from:** TODO - add reviewer name/handle, or `none` if no peer or mentor feedback is received before submission.
+**Draft PR feedback received from:** none
+
+## Week 10 - Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No - still awaiting review
+
+**Summary of feedback:**
+No reviewer feedback has come in yet on https://github.com/ascherj/pathreview/pull/978. The PR is open and not marked as a draft, but it is still waiting for a maintainer review and workflow approval.
+
+**How you responded:**
+No code-review response was needed yet. I kept the PR ready for review and documented the local validation results and known repo-wide pre-existing failures so reviewers have the context they need.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hardest part was separating my issue from the rest of the codebase noise. The tech detector fix itself was focused, but the repo-wide checks surfaced many unrelated lint and unit-test failures. It took more care than expected to document those failures honestly without trying to fix unrelated modules or make the PR larger than issue #150 required.
+
+**What did you learn about working in a large codebase?**
+I learned that the first job is understanding boundaries. In my own projects I might clean up surrounding code while I am nearby, but in someone else's repository a good contribution stays narrow, follows existing patterns, and proves the exact behavior it changes. Reading the existing tests and contribution guide helped me keep the fix limited to `agent/tools/tech_detector.py` and `tests/unit/test_tech_detector.py`.
+
+**How did AI tools help - and where did they fall short?**
+AI tools helped me trace the issue, turn the reproduction into a regression test, and check that the implementation matched the repository's style. They were also useful for interpreting validation output and drafting the PR description. Where they fell short was external project context: I still had to inspect the actual code, run the tests, verify the GitHub PR state, and make judgment calls about what was pre-existing versus caused by my change.
+
+**What would you do differently if you started over?**
+I would run the focused test file and the repo-wide checks before making any code changes, then save those baseline results immediately. That would make the Week 9 PR notes easier to write and would make it clearer which failures were already present before my branch. I would also update the journal continuously instead of waiting until each weekly deliverable was due.
+
+**What are you most proud of from this module?**
+I am most proud that the fix is small but meaningful. It addresses a realistic bug where generated JavaScript from `node_modules` or `build` could misrepresent a developer's actual project language, and the regression test now protects that behavior for future contributors.
